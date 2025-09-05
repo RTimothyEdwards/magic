@@ -3862,6 +3862,356 @@ dbWritePropFunc(key, value, cdata)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBCellWriteCommandFile --
+ *
+ * Write out the contents of a cell to the specified file as a sequence
+ * of magic commands.  Sourcing the resulting file will regenerate the
+ * cell.
+ *
+ * Results:
+ *	TRUE if the cell could be written successfully, FALSE otherwise.
+ *
+ * Side effects:
+ *	Writes a file to disk.
+ * 	Does NOT close the file 'f', but does fflush(f) before returning.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+DBCellWriteCommandFile(cellDef, f)
+    CellDef *cellDef;	/* Pointer to definition of cell to be written out */
+    FILE *f;		/* The FILE to write to */
+{
+    int dbWritePaintCommandsFunc();
+    int dbWriteUseCommandsFunc();
+    int dbWritePropCommandsFunc();
+
+    Label *lab;
+    struct writeArg arg;
+    int pNum;
+    TileType type, stype;
+    TileTypeBitMask typeMask, *sMask;
+    static const char *directionNames[] = {"c", "n", "ne", "e", "se",
+			"s", "sw", "w", "nw", 0};
+
+    if (f == NULL) return FALSE;
+
+    SigDisableInterrupts();
+
+    /* Write a descriptive header */
+    fprintf(f, "# Command script for generating cell %s\n", cellDef->cd_name);
+    fprintf(f, "\n");
+    fprintf(f, "suspendall\n");
+    fprintf(f, "tech unlock *\n");
+    fprintf(f, "snap internal\n");
+    fprintf(f, "load %s -silent\n", cellDef->cd_name);
+    fprintf(f, "box values 0 0 0 0\n");
+
+    /* These routines only need the file stream pointer */
+    arg.wa_name = NULL;
+    arg.wa_file = f;
+    arg.wa_reducer = 1;
+
+    for (type = TT_PAINTBASE; type < DBNumUserLayers; type++)
+    {
+	if ((pNum = DBPlane(type)) < 0)
+	    continue;
+	arg.wa_found = FALSE;
+	arg.wa_type = type;
+	arg.wa_plane = pNum;
+	TTMaskSetOnlyType(&typeMask, type);
+
+	/* Add to the mask all generated (stacking) types which	*/
+	/* have this type as a residue.				*/
+
+	for (stype = DBNumUserLayers; stype < DBNumTypes; stype++)
+	{
+	    sMask = DBResidueMask(stype);
+	    if (TTMaskHasType(sMask, type))
+		TTMaskSetType(&typeMask, stype);
+	}
+
+	if (DBSrPaintArea((Tile *) NULL, cellDef->cd_planes[pNum],
+		&TiPlaneRect, &typeMask, dbWritePaintCommandsFunc, (ClientData) &arg))
+	    goto ioerror;
+    }
+
+    if (DBCellEnum(cellDef, dbWriteUseCommandsFunc, (ClientData)&arg))
+	goto ioerror;
+
+    /* Now labels */
+    for (lab = cellDef->cd_labels; lab; lab = lab->lab_next)
+    {
+	if (strlen(lab->lab_text) == 0) continue;	// Shouldn't happen
+
+	fprintf(f, "box values %d %d %d %d\n",
+			lab->lab_rect.r_xbot,
+			lab->lab_rect.r_ybot,
+			lab->lab_rect.r_xtop,
+			lab->lab_rect.r_ytop);
+
+	if (lab->lab_font < 0)
+	{
+	    fprintf(f, "label %s %s %s\n",
+			lab->lab_text,
+			directionNames[lab->lab_just],
+			DBTypeLongName(lab->lab_type));
+	}
+	else
+	{
+	    fprintf(f, "label %s %s %d %d %d %d %s %s\n",
+			lab->lab_text,
+			DBFontList[lab->lab_font]->mf_name,
+			lab->lab_size >> 3,
+			lab->lab_rotate,
+			lab->lab_offset.p_x,
+			lab->lab_offset.p_y,
+			directionNames[lab->lab_just],
+			DBTypeLongName(lab->lab_type));
+	}
+
+	if (lab->lab_flags & LABEL_STICKY)
+	{
+	    fprintf(f, "select area label\n");
+	    fprintf(f, "setlabel sticky true\n");
+	}
+
+	if (lab->lab_flags & PORT_DIR_MASK)
+	{
+	    if (!(lab->lab_flags & LABEL_STICKY))
+		fprintf(f, "select area label\n");
+
+	    fprintf(f, "port make %d\n", lab->lab_port);
+
+	    if (lab->lab_flags & (PORT_DIR_NORTH | PORT_DIR_SOUTH | PORT_DIR_EAST
+				| PORT_DIR_WEST))
+		fprintf(f, "port connections");
+	    if (lab->lab_flags & PORT_DIR_NORTH) fprintf(f, " n");
+	    if (lab->lab_flags & PORT_DIR_SOUTH) fprintf(f, " s");
+	    if (lab->lab_flags & PORT_DIR_EAST) fprintf(f, " e");
+	    if (lab->lab_flags & PORT_DIR_WEST) fprintf(f, " w");
+	    fprintf(f, "\n");
+
+	    if (lab->lab_flags & PORT_USE_MASK)
+	    {
+		fprintf(f, "port %d use ", lab->lab_port);
+		switch (lab->lab_flags & PORT_USE_MASK)
+		{
+		    case PORT_USE_SIGNAL:
+			fprintf(f, "signal\n");
+			break;
+		    case PORT_USE_ANALOG:
+			fprintf(f, "analog\n");
+			break;
+		    case PORT_USE_POWER:
+			fprintf(f, "power\n");
+			break;
+		    case PORT_USE_GROUND:
+			fprintf(f, "ground\n");
+			break;
+		    case PORT_USE_CLOCK:
+			fprintf(f, "clock\n");
+			break;
+		}
+	    }
+
+	    if (lab->lab_flags & PORT_CLASS_MASK)
+	    {
+		fprintf(f, "port %d class ", lab->lab_port);
+		switch (lab->lab_flags & PORT_CLASS_MASK)
+		{
+		    case PORT_CLASS_INPUT:
+			fprintf(f, "input\n");
+			break;
+		    case PORT_CLASS_OUTPUT:
+			fprintf(f, "output\n");
+			break;
+		    case PORT_CLASS_TRISTATE:
+			fprintf(f, "tristate\n");
+			break;
+		    case PORT_CLASS_BIDIRECTIONAL:
+			fprintf(f, "bidirectional\n");
+			break;
+		    case PORT_CLASS_FEEDTHROUGH:
+			fprintf(f, "feedthrough\n");
+			break;
+		}
+	    }
+
+	    if (lab->lab_flags & PORT_SHAPE_MASK)
+	    {
+		fprintf(f, "port %d shape ", lab->lab_port);
+		switch (lab->lab_flags & PORT_SHAPE_MASK)
+		{
+		    case PORT_SHAPE_ABUT:
+			fprintf(f, "abutment\n");
+			break;
+		    case PORT_SHAPE_RING:
+			fprintf(f, "ring\n");
+			break;
+		    case PORT_SHAPE_THRU:
+			fprintf(f, "feedthrough\n");
+			break;
+		}
+	    }
+	}
+    }
+
+    /* Note:  Persistant elements should be handled (see dbwind/DBWelement.c) */
+
+    /* And any properties */
+    DBPropEnum(cellDef, dbWritePropCommandsFunc, (ClientData)&arg);
+
+    fprintf(f, "select clear\n");
+    fprintf(f, "view\n");
+    fprintf(f, "tech revert\n");
+    fprintf(f, "resumeall\n");
+
+    if (fflush(f) == EOF || ferror(f))
+    {
+ioerror:
+	TxError("Warning: I/O error in writing file\n");
+	SigEnableInterrupts();
+	return (FALSE);
+    }
+    SigEnableInterrupts();
+    TxPrintf("Saved cell %s as a sequence of magic commands (file %s.tcl).\n",
+		cellDef->cd_name, cellDef->cd_name);
+    return (TRUE);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbWritePaintCommandsFunc ---
+ *
+ *	Callback function used by DBCellWriteCommandFile() to output
+ *	commands corresponding to cell layout geometry.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbWritePaintCommandsFunc(tile, cdarg)
+    Tile *tile;
+    ClientData cdarg;
+{
+    char pstring[256];
+    struct writeArg *arg = (struct writeArg *) cdarg;
+    FILE *f = arg->wa_file;
+
+    TileType type = TiGetType(tile);
+    TileTypeBitMask *lMask, *rMask;
+
+    int diridx;
+    static const char *directionNames[] = {"nw", "se", "sw", "ne", 0};
+
+    /* This could be refined by merging metal areas across contacts,
+     * but the brute force procedure will do the job.
+     */
+
+    if (IsSplit(tile))
+    {
+	diridx = (SplitDirection(tile) << 1) + SplitSide(tile);
+
+	fprintf(f, "box values %d %d %d %d\n",
+			LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
+	type = TiGetLeftType(tile);
+	if (type != TT_SPACE)
+	{
+	    fprintf(f, "splitpaint %s %s\n", directionNames[diridx],
+			DBTypeLongNameTbl[type]);
+	}
+	type = TiGetRightType(tile);
+	if (type != TT_SPACE)
+	{
+	    fprintf(f, "splitpaint %s %s\n", directionNames[diridx],
+			DBTypeLongNameTbl[type]);
+	}
+    }
+    else
+    {
+	type = TiGetType(tile);
+	fprintf(f, "box values %d %d %d %d\n",
+		LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
+	fprintf(f, "paint %s\n", DBTypeLongNameTbl[type]);
+    }
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbWriteUseCommandsFunc ---
+ *
+ *	Callback function used by DBCellWriteCommandFile() to output
+ *	commands corresponding to cell uses in the layout.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbWriteUseCommandsFunc(cellUse, cdarg)
+    CellUse *cellUse;
+    ClientData cdarg;
+{
+    struct writeArg *arg = (struct writeArg *) cdarg;
+    FILE *f = arg->wa_file;
+
+    fprintf(f, "box position %d %d\n", cellUse->cu_bbox.r_ll.p_x,
+		cellUse->cu_bbox.r_ll.p_y);
+    fprintf(f, "getcell %s\n", cellUse->cu_def->cd_name);
+    fprintf(f, "identify %s\n", cellUse->cu_id);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbWritePropCommandsFunc ---
+ *
+ *	Callback function used by DBCellWriteCommandFile() to output
+ *	commands corresponding to properties in the layout.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbWritePropCommandsFunc(key, value, cdarg)
+    char *key;
+    char *value;
+    ClientData cdarg;
+{
+    struct writeArg *arg = (struct writeArg *) cdarg;
+    char *escstr, *p, *v;
+    int vallen;
+    FILE *f = arg->wa_file;
+
+    /* Probably need to escape more than just quotes here. */
+    vallen = strlen(value) + 1;
+    for (v = value; *v != '\0'; v++)
+	if (*v == '"') vallen++;
+
+    escstr = (char *)mallocMagic(vallen);
+    p = escstr;
+    for (v = value; *v != '\0'; v++)
+    {
+	if (*v == '"')
+	    *p++ = '\\';
+	*p++ = *v;
+    }
+    *p = '\0';
+    fprintf(f, "property %s \"%s\"\n", key, escstr);
+    freeMagic(escstr);
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBCellWrite --
  *
  * Write out the paint for a cell to its associated disk file.
@@ -3918,6 +4268,20 @@ DBCellWrite(cellDef, fileName)
     bool result, exists;
 
     result = FALSE;
+
+    /* Feature added 9/4/2025:  If the filename ends with ".tcl",
+     * then write the cell as a series of magic commands, and don't
+     * otherwise alter the cell.
+     */
+    if ((strlen(fileName) > 4) && (!strcmp(fileName + strlen(fileName) - 4, ".tcl")))
+    {
+	if ((realf = fopen(fileName, "w")))
+	{
+	    result = DBCellWriteCommandFile(cellDef, realf);
+	    fclose(realf);
+	    return result;
+	}
+    }
 
     /*
      * Figure out the name of the file we will eventually write.

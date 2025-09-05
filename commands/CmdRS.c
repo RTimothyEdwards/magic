@@ -220,8 +220,6 @@ CmdSave(
     DBUpdateStamps(locDef);
     if (cmd->tx_argc == 2)
     {
-	char *fileName;
-
 	if (CmdIllegalChars(cmd->tx_argv[1], "[],", "Cell name"))
 	    return;
 

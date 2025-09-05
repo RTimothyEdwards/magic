@@ -439,7 +439,8 @@ CIFPaintWirePath(
 		/* Wire reverses direction.  Break wire here,	*/
 		/* draw, and start new polygon.			*/
 
-		TxError("Warning: direction reversal in path.\n");
+		TxError("Warning: direction reversal in path at (%d, %d).\n",
+				pathp->cifp_x, pathp->cifp_y);
 
 		phi = theta;
 		if (endcap)
@@ -451,7 +452,8 @@ CIFPaintWirePath(
 		firstpoint = TRUE;
 	    }
 	    else {
-		TxError("Error: mitre limit exceeded at wire junction.\n");
+		TxError("Error: mitre limit exceeded at wire junction at (%d, %d).\n",
+				pathp->cifp_x, pathp->cifp_y);
 		TxError("Route has been truncated.\n");
 		break;
 	   }
