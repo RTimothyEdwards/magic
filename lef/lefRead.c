@@ -701,8 +701,10 @@ LefRedefined(
 	/* Only one name associated with the record, so	*/
 	/* just clear all the allocated information.	*/
 
+	free_magic1_t mm1 = freeMagic1_init();
 	for (viaLR = lefl->info.via.lr; viaLR != NULL; viaLR = viaLR->r_next)
-	    freeMagic(viaLR);
+	    freeMagic1(&mm1, viaLR);
+	freeMagic1_end(&mm1);
 	newlefl = lefl;
     }
     else
@@ -1077,14 +1079,16 @@ LefReadPolygon(
 
     plist = (Point *)mallocMagic(lpoints * sizeof(Point));
     lpoints = 0;
+    free_magic1_t mm1 = freeMagic1_init();
     while (lr != NULL)
     {
 	plist[*ppoints - lpoints - 1].p_x = lr->r_r.r_xbot;
 	plist[*ppoints - lpoints - 1].p_y = lr->r_r.r_ybot;
-	freeMagic(lr);
+	freeMagic1(&mm1, lr);
 	lpoints++;
 	lr = lr->r_next;
     }
+    freeMagic1_end(&mm1);
     return plist;
 }
 
@@ -1450,6 +1454,7 @@ LefReadPort(
 
     rectList = LefReadGeometry(lefMacro, f, oscale, gdsOffset, TRUE, is_imported);
 
+    free_magic1_t mm1 = freeMagic1_init();
     while (rectList != NULL)
     {
 	if ((pinNum >= 0) || (lanno != NULL))
@@ -1529,9 +1534,10 @@ LefReadPort(
 	    if (lanno != NULL) lanno = NULL;
 	}
 
-	freeMagic((char *)rectList);
+	freeMagic1(&mm1, (char *)rectList);
 	rectList = rectList->r_next;
     }
+    freeMagic1_end(&mm1);
 }
 
 /*

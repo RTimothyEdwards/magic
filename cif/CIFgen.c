@@ -2768,8 +2768,10 @@ cifSquaresFillArea(
 
 	DBPaintPlane(plane, &stripList->area, CIFEraseTable,
 		(PaintUndoInfo *) NULL);
-	freeMagic(stripList);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, stripList);
 	stripList = stripList->strip_next;
+	freeMagic1_end(&mm1);
     }
 
     /* 2nd pass:  Search the plane for unmarked tiles */
@@ -3110,8 +3112,10 @@ cifSlotsFillArea(
 
 	DBPaintPlane(plane, &stripList->area, CIFEraseTable,
 		(PaintUndoInfo *) NULL);
-	freeMagic(stripList);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, stripList);
 	stripList = stripList->strip_next;
+	freeMagic1_end(&mm1);
     }
 
     /* 2nd pass:  Search the plane for unmarked tiles */

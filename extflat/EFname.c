@@ -465,18 +465,20 @@ EFHNFree(hierName, prefix, type)
 {
     HierName *hn;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (hn = hierName; hn; hn = hn->hn_parent)
     {
 	if (hn == prefix)
 	    break;
 
-	freeMagic((char *) hn);
+	freeMagic1(&mm1, (char *) hn);
 	if (efHNStats)
 	{
 	    int len = strlen(hn->hn_name);
 	    efHNRecord(-HIERNAMESIZE(len), type);
 	}
     }
+    freeMagic1_end(&mm1);
 }
 
 /*

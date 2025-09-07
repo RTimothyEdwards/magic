@@ -912,6 +912,7 @@ GrBox(MagWindow *mw, Transform *trans, Tile *tile)
 	}
 	else
 	{
+	    free_magic1_t mm1 = freeMagic1_init();
 	    /* non-rectangular box; requires drawing segments */
 	    for (segptr = tilesegs; segptr != NULL; segptr = segptr->r_next)
 	    {
@@ -924,8 +925,9 @@ GrBox(MagWindow *mw, Transform *trans, Tile *tile)
 		    (*grDrawLinePtr)(r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop);
 
 		/* Free memory, if it was allocated for outline segments */
-		freeMagic(segptr);
+		freeMagic1(&mm1, segptr);
 	    }
+	    freeMagic1_end(&mm1);
 
 	    /* For non-manhattan tiles, the manhattan parts of the	*/
 	    /* boundary have already been drawn.  The diagonal boundary */
