@@ -4269,25 +4269,27 @@ DBCellWrite(cellDef, fileName)
 
     result = FALSE;
 
-    /* Feature added 9/4/2025:  If the filename ends with ".tcl",
-     * then write the cell as a series of magic commands, and don't
-     * otherwise alter the cell.
-     */
-    if ((strlen(fileName) > 4) && (!strcmp(fileName + strlen(fileName) - 4, ".tcl")))
+    if (fileName)
     {
-	if ((realf = fopen(fileName, "w")))
+	/* Feature added 9/4/2025:  If the filename ends with ".tcl",
+	 * then write the cell as a series of magic commands, and don't
+	 * otherwise alter the cell.
+	 */
+	if ((strlen(fileName) > 4) && (!strcmp(fileName + strlen(fileName) - 4, ".tcl")))
 	{
-	    result = DBCellWriteCommandFile(cellDef, realf);
-	    fclose(realf);
-	    return result;
+	    if ((realf = fopen(fileName, "w")))
+	    {
+		result = DBCellWriteCommandFile(cellDef, realf);
+		fclose(realf);
+		return result;
+	    }
 	}
     }
-
-    /*
-     * Figure out the name of the file we will eventually write.
-     */
-    if (!fileName)
+    else
     {
+	/*
+	 * Figure out the name of the file we will eventually write.
+	 */
 	if (cellDef->cd_file)
 	    fileName = cellDef->cd_file;
 	else if (cellDef->cd_name)
