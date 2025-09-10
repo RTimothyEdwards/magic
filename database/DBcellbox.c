@@ -621,6 +621,8 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
      */
     if ((foundAny = DBBoundCellPlane(cellDef, &extended, &rect)) > 0)
 	area = rect;
+    else
+	extended = GeoNullRect;
 
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
 	if (pNum != PL_DRC_CHECK)
