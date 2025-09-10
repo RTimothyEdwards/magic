@@ -3678,7 +3678,7 @@ cmdBevelFunc(
  * Save cells to or recover cells from a crash backup file
  *
  * Usage:
- *	crash save|recover [file]
+ *	crash save|recover|archive|read [file]
  *
  * Results:
  *	None.
@@ -3713,7 +3713,7 @@ CmdCrash(
 
     switch(option) {
 	case 0:			/* save */
-	    DBWriteBackup(filename);
+	    DBWriteBackup(filename, FALSE, FALSE);
 	    break;
 	case 1:			/* recover */
 	    DBFileRecovery(filename);

@@ -1186,7 +1186,7 @@ DBFileRecovery(filename)
 	switch(action)
 	{
 	    case 0:	/* Read */
-		if (DBReadBackup(DBbackupFile) == TRUE)
+		if (DBReadBackup(DBbackupFile, FALSE, TRUE) == TRUE)
 		    DBRemoveBackup();
 		break;
 	    case 1:	/* Cancel */
@@ -1222,24 +1222,38 @@ DBFileRecovery(filename)
  */
 
 bool
-DBReadBackup(name)
+DBReadBackup(name, archive, usederef)
     char *name;		/* Name of the backup file */
+    bool archive;	/* TRUE if this is an archive file */
+    bool usederef;	/* If TRUE, then dereference all cells */
 {
     FILETYPE f;
-    char *filename, *rootname, *chrptr;
+    static const char *filetypes[] = {"archive", "backup", 0};
+    char *filename, *rootname, *chrptr, *suffix, *filetype;
     char line[256];
     CellDef *cellDef;
     bool result = TRUE;
 
-    if ((f = PaZOpen(name, "r", NULL, "", NULL, NULL)) == NULL)
+    if (archive)
     {
-	TxError("Cannot open backup file \"%s\"\n", name);
+	suffix = DBSuffix;
+	filetype = (char *)filetypes[0];
+    }
+    else
+    {
+	suffix = NULL;
+	filetype = (char *)filetypes[1];
+    }
+
+    if ((f = PaZOpen(name, "r", suffix, Path, NULL, NULL)) == NULL)
+    {
+	TxError("Cannot open %s file \"%s\"\n", filetype, name);
 	return FALSE;
     }
 
     if (dbFgets(line, sizeof(line), f) == NULL)
     {
-	TxError("Bad backup file %s; can't restore!\n", name);
+	TxError("Bad %s file %s; can't read!\n", filetype, name);
 	return FALSE;
     }
 
@@ -1273,22 +1287,26 @@ DBReadBackup(name)
 	    cellDef->cd_flags &= ~CDNOTFOUND;
 	    cellDef->cd_flags |= CDAVAILABLE;
 
-	    if (dbCellReadDef(f, cellDef, TRUE, FALSE) == FALSE)
+	    if (dbCellReadDef(f, cellDef, TRUE, usederef) == FALSE)
 		return FALSE;
 
 	    if (dbFgets(line, sizeof(line), f) == NULL)
 	    {
-		TxError("Error in backup file %s; partial restore only!\n",
-			name);
+		TxError("Error in %s file %s; partial restore only!\n",
+			filetype, name);
 		return FALSE;
 	    }
+
 	    /* Update timestamp flags from dbCellReadDef() */
 	    DBFlagMismatches(cellDef);
+
+	    /* Update bounding boxes */
+	    DBReComputeBbox(cellDef);
 	}
 	else
 	{
-	    TxError("Error in backup file %s; expected keyword"
-			" \"file\", got \"%s\"!\n", name, line);
+	    TxError("Error in %s file %s; expected keyword"
+			" \"file\", got \"%s\"!\n", filetype, name, line);
 	    return FALSE;
 	}
     }
@@ -1299,6 +1317,7 @@ DBReadBackup(name)
 	*chrptr = '\0';
 	DBWreload(line + 4);
     }
+
     return TRUE;
 }
 
@@ -4107,6 +4126,10 @@ dbWritePaintCommandsFunc(tile, cdarg)
     int diridx;
     static const char *directionNames[] = {"nw", "se", "sw", "ne", 0};
 
+    /* Don't write out error tiles */
+    if ((type == TT_ERROR_P) || (type == TT_ERROR_S) || (type == TT_ERROR_PS))
+	return 0;
+
     /* This could be refined by merging metal areas across contacts,
      * but the brute force procedure will do the job.
      */
@@ -4910,7 +4933,7 @@ DBGetTech(cellName)
     static char line[512];
     char *p;
 
-    f = PaZOpen(cellName, "r", DBSuffix, Path, CellLibPath, (char **) NULL);
+    f = PaZOpen(cellName, "r", DBSuffix, ".", CellLibPath, (char **) NULL);
     if (f == NULL) return NULL;
 
     p = (char *) NULL;
@@ -4930,6 +4953,15 @@ ret:
     return (p);
 }
 
+/* File and flags record used to hold information for dbWriteBackupFunc()
+ * in DBWriteBackup()
+ */
+
+typedef struct _fileAndFlags {
+    FILE *ff_file;
+    int ff_flags;
+} FileAndFlags;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -4942,6 +4974,13 @@ ret:
  * in the temp directory.  If "filename" is non-null, then DBbackupFile
  * is set to this name, erasing any previous value.  If "filename" is
  * an empty string, then the DBbackupFile reverts to NULL.
+ *
+ * If "archive" is TRUE, then save all read/write files, not just modified
+ * ones, and do not remove the file when magic exits.
+ *
+ * If "doforall" is TRUE, the save all files including read-only PDK
+ * cells.  By definition, if "archive" is not chosen, then "doforall"
+ * has no impact, since read-only cells cannot be modified.
  *
  * Results:
  *	TRUE if the backup file was created, FALSE if an error was
@@ -4956,25 +4995,39 @@ ret:
  */
 
 bool
-DBWriteBackup(filename)
+DBWriteBackup(filename, archive, doforall)
     char *filename;
+    bool archive;
+    bool doforall;
 {
     FILE *f;
     int fd, pid;
-    char *tempdir;
+    char *tempdir, *saveName = NULL;
     MagWindow *mw;
+    FileAndFlags ff;
 
     int dbWriteBackupFunc(), dbCheckModifiedCellsFunc();
-    int flags = CDMODIFIED;
+    int flags = 0;
     int result;
 
     /* First check if there are any modified cells that need to be written */
 
-    result = DBCellSrDefs(flags, dbCheckModifiedCellsFunc, (ClientData)NULL);
-    if (result == 0) return TRUE;		/* Nothing to write */
+    if (archive == FALSE)
+    {
+	flags = CDMODIFIED;
+	result = DBCellSrDefs(flags, dbCheckModifiedCellsFunc, (ClientData)NULL);
+
+	/*
+	 * Avoid unnecessary backups:  If there's nothing modified, then
+	 * there's nothing to write.
+	 */
+	if (result == 0) return TRUE;
+    }
 
     if (filename == NULL)
     {
+	/* A NULL filename is used by the backup mechanism to save to /tmp/. */
+
 	if (DBbackupFile == (char *)NULL)
 	{
 	    char *doslash, *template;
@@ -5008,8 +5061,14 @@ DBWriteBackup(filename)
 	    StrDup(&DBbackupFile, (char *)NULL);
 	    return TRUE;
 	}
+	if (archive == TRUE)
+	{
+	    TxPrintf("Created database archive file %s\n", filename);
+	    saveName = StrDup((char **)NULL, DBbackupFile);
+	}
+	else
+	    TxPrintf("Created database crash recovery file %s\n", DBbackupFile);
 	StrDup(&DBbackupFile, filename);
-	TxPrintf("Created database crash recovery file %s\n", DBbackupFile);
     }
 
     f = fopen(filename, "w");
@@ -5019,7 +5078,15 @@ DBWriteBackup(filename)
 	return FALSE;
     }
 
-    result = DBCellSrDefs(flags, dbWriteBackupFunc, (ClientData)f);
+    ff.ff_file = f;
+
+    /* Flags for recognizing which cells to ignore.  Note that flags
+     * for recognizing which cells to search is in "flags".
+     */
+    ff.ff_flags = CDINTERNAL | CDNOTFOUND;
+    if (!doforall) ff.ff_flags |= CDNOEDIT;
+
+    result = DBCellSrDefs(flags, dbWriteBackupFunc, (ClientData)&ff);
 
     /* End by printing the keyword "end" followed by the cell to load	*/
     /* into the first available window, so that we don't have a default	*/
@@ -5031,6 +5098,17 @@ DBWriteBackup(filename)
     else
 	fprintf(f, "end\n");
     fclose(f);
+
+    /* If archiving, put DBbackupFile back to the name that it contained
+     * prior to doing the archive, so that the archive does not interfere
+     * with the backup mechanism.
+     */
+    if (archive == TRUE)
+    {
+	StrDup(&DBbackupFile, saveName);
+	if (saveName)
+	    freeMagic(saveName);
+    }
     return TRUE;
 }
 
@@ -5042,14 +5120,18 @@ DBWriteBackup(filename)
  */
 
 int
-dbWriteBackupFunc(def, f)
+dbWriteBackupFunc(def, clientData)
     CellDef *def;	/* Pointer to CellDef to be saved */
-    FILE *f;		/* File to append to */
+    ClientData clientData;
 {
     char *name = def->cd_file;
     int result, save_flags;
+    FileAndFlags *ff = (FileAndFlags *)clientData;
 
-    if (def->cd_flags & (CDINTERNAL | CDNOEDIT | CDNOTFOUND)) return 0;
+    FILE *f = ff->ff_file;
+    int flags = ff->ff_flags;
+
+    if (def->cd_flags & flags) return 0;
     else if (!(def->cd_flags & CDAVAILABLE)) return 0;
 
     if (name == NULL) name = def->cd_name;

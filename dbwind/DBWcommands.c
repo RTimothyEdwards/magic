@@ -38,7 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * Standard DBWind command set
  */
 
-extern void CmdAddPath(), CmdAntennaCheck(), CmdArray();
+extern void CmdAddPath(), CmdAntennaCheck(), CmdArchive(), CmdArray();
 extern void CmdBox(), CmdCellname(), CmdClockwise();
 extern void CmdContact(), CmdCopy(), CmdCorner();
 extern void CmdCrash(), CmdCrosshair();
@@ -228,6 +228,10 @@ DBWInitCommands()
 	"antennacheck [path]	check for antenna violations",
 	CmdAntennaCheck, FALSE);
 #endif
+    WindAddCommand(DBWclientID,
+	"archive write|read file\n"
+	"			write or read the archive file \"file\".",
+	CmdArchive, FALSE);
     WindAddCommand(DBWclientID,
 	"array xsize ysize	OR\n"
 	"array xlo xhi ylo yhi\n"

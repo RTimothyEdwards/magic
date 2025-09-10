@@ -81,6 +81,70 @@ CmdAddPath(
     PaAppend(&Path, cmd->tx_argv[1]);
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CmdArchive --
+ *
+ * Save an entire database to a "crash recovery"-type archive file, or
+ * load a database from a "crash recovery"-type archive file.  Option
+ * "writeall" writes everything, including read-only PDK cells, while
+ * "readref" does not dereference and will prefer files found in the
+ * search path over content in the archive.
+ * 
+ *
+ * Usage:
+ *	archive write|writeall|read|readref file
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Writes a single file with the contents of the entire database,
+ *	or loads the database with multiple cells from the file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+CmdArchive(
+    MagWindow *w,
+    TxCommand *cmd)
+{
+    int option = -1;
+    char *filename = NULL;
+    static const char * const cmdArchiveOpt[] = {"write", "writeall",
+		"read", "readref", 0};
+
+    if (cmd->tx_argc != 3)
+	TxError("Usage: %s write|writeall|read|readref filename\n", cmd->tx_argv[0]);
+    else
+    {
+	option = Lookup(cmd->tx_argv[1], cmdArchiveOpt);
+	if (option < 0)
+	{
+	    TxError("Usage: %s write|writeall|read|readref filename\n", cmd->tx_argv[0]);
+	    return;
+	}
+    }
+    filename = cmd->tx_argv[2];
+
+    switch(option) {
+	case 0:			/* write */
+	    DBWriteBackup(filename, TRUE, FALSE);
+	    break;
+	case 1:			/* writeall */
+	    DBWriteBackup(filename, TRUE, TRUE);
+	    break;
+	case 2:			/* read */
+	    DBReadBackup(filename, TRUE, TRUE);
+	    break;
+	case 3:			/* readref */
+	    DBReadBackup(filename, TRUE, FALSE);
+	    break;
+    }
+}
+
 
 /* Linked-list structure for returning information about arrayed cells */
 

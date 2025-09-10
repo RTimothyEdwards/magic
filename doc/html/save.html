@@ -41,7 +41,15 @@ Save edit cell on disk
 
       The <B>save</B> command differs from <B>writeall</B> in several
       ways:  <B>save</B> does not descend the hierarchy, and does not
-      prompt the user for an action.
+      prompt the user for an action. <P>
+
+      As of magic version 8.3.549, if <I>filename</I> ends with
+      "<B>.tcl</B>", then magic will save a script file containing
+      a sequence of magic command-line commands that completely
+      reproduces the file layout.  The cell can then be regenerated
+      by sourcing the script.  This is not a substitution for a
+      database (<B>.mag</B>) file, and magic will not normally
+      search for or source these type of script files itself. <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>

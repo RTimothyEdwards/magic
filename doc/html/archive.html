@@ -1,0 +1,67 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-8.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_3.png ALT="Magic VLSI Layout Tool Version 8.3">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>archive</H2>
+<HR>
+Handle archive files
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>archive write</B> | <B>read</B> <I>filename</I> <BR><BR>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>archive</B> command handles archive files.  The exact
+      operation depends on the option, and are outlined below:
+      <DL>
+      	<DT> <B>archive write</B> <I>filename</I>
+	<DD> creates and writes to the file <I>filename</I> a copy of
+		the contents of all database cells. <P>
+      	<DT> <B>archive read</B> <I>filename</I>
+	<DD> recovers the database from the contents of the saved archive
+		file <I>filename</I>. <P>
+      </DL>
+   </BLOCKQUOTE>
+
+   Archive files use the same format as crash recovery files, which is a
+   single file containing all database files with additional metadata
+   about the original location of each file.
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>archive</B> is implemented as a built-in command in <B>magic</B>.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=crash.html><B>crash</B></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> January 12, 2021 at 10:10am <P>
+</BODY>
+</HTML>
