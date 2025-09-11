@@ -449,6 +449,14 @@ TechLoad(filename, initmask)
 	return (FALSE);
     }
 
+    /* TECH_VERSION in the filename is deprecated as of magic version	*/
+    /* 7.2.27;  TECH_VERSION is no longer defined in the utils/Makefile.*/
+    /* It has been changed to TECH_FORMAT_VERSION, left at version 27,	*/
+    /* and placed in utils/tech.h.  It is needed for backward		*/
+    /* compatibility with the old *.tech27 file format.			*/
+
+    (void) sprintf(suffix, ".tech");
+
     /* If NULL is passed to argument "filename", this is a reload and	*/
     /* we should read TechFileName verbatim.				*/
 
@@ -476,14 +484,6 @@ TechLoad(filename, initmask)
 	char *sptr, *dptr;
 
 	tf = (FILE *)NULL;
-
-	/* TECH_VERSION in the filename is deprecated as of magic version	*/
-	/* 7.2.27;  TECH_VERSION is no longer defined in the utils/Makefile.	*/
-	/* It has been changed to TECH_FORMAT_VERSION, left at version 27,	*/
-	/* and placed in utils/tech.h.  It is needed for backward		*/
-	/* compatibility with *.tech27 files, of which there are many.	*/
-
-	(void) sprintf(suffix, ".tech");
 
 	/* Added 1/20/2015 to correspond to change to PaLockOpen();	*/
 	/* Always strip suffix from filename when suffix is specified.	*/

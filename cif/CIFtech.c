@@ -1758,7 +1758,8 @@ cifComputeHalo(
     if (maxGrow > maxShrink)
 	style->cs_radius = 2*maxGrow;
     else style->cs_radius = 2*maxShrink;
-    style->cs_radius /= style->cs_scaleFactor;
+    if (style->cs_scaleFactor > 0)
+	style->cs_radius /= style->cs_scaleFactor;
     style->cs_radius++;
 
     /* TxPrintf("Radius for %s CIF is %d.\n",
