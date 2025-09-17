@@ -3136,7 +3136,7 @@ int
 DBCellFindScale(cellDef)
     CellDef *cellDef;
 {
-    int dbFindGCFFunc(), dbFindCellGCFFunc();
+    int dbFindGCFFunc(), dbFindCellGCFFunc(), dbFindPropGCFFunc();
     TileType type;
     TileTypeBitMask typeMask;
     int pNum;
@@ -3180,8 +3180,13 @@ DBCellFindScale(cellDef)
 	}
     }
 
-    /* Finally, cell uses */
+    /* Properties, where they are coordinates.  This includes
+     * FIXED_BBOX and MASKHINTS_*
+     */
+    if (DBPropEnum(cellDef, dbFindPropGCFFunc, (ClientData)&ggcf))
+	return 1;
 
+    /* Finally, cell uses */
     if (DBCellEnum(cellDef, dbFindCellGCFFunc, (ClientData) &ggcf))
 	return 1;
 
@@ -3248,6 +3253,72 @@ dbFindCellGCFFunc(cellUse, ggcf)
 
     return (*ggcf == 1) ? 1 : 0;
 }
+
+int
+dbFindPropGCFFunc(key, value, ggcf)
+    char *key;
+    ClientData value;
+    int *ggcf;		/* Client data */
+{
+    Rect bbox;
+    char *vptr = value, *sptr;
+    int numvals, n;
+
+    if (!strcmp(key, "FIXED_BBOX"))
+    {
+	if (sscanf(value, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop) == 4)
+	{
+	    /* Check bounding box */
+	    if (bbox.r_xtop % (*ggcf) != 0)
+		*ggcf = FindGCF(bbox.r_xtop, *ggcf);
+	    if (bbox.r_xbot % (*ggcf) != 0)
+		*ggcf = FindGCF(bbox.r_xbot, *ggcf);
+	    if (bbox.r_ytop % (*ggcf) != 0)
+		*ggcf = FindGCF(bbox.r_ytop, *ggcf);
+	    if (bbox.r_ybot % (*ggcf) != 0)
+		*ggcf = FindGCF(bbox.r_ybot, *ggcf);
+	}
+	else
+	    TxError("Error:  Cannot parse FIXED_BBOX property value!\n");
+    }
+    else if (!strncmp(key, "MASKHINTS_", 10))
+    {
+	while (TRUE)
+	{
+	    numvals = sscanf(vptr, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop);
+	    if (numvals <= 0)
+		break;
+	    else if (numvals != 4)
+	    {
+		TxError("Error:  Cannot parse %s property value!\n", key);
+		break;
+	    }
+	    else
+	    {
+		/* Check bounding box */
+		if (bbox.r_xtop % (*ggcf) != 0)
+		    *ggcf = FindGCF(bbox.r_xtop, *ggcf);
+		if (bbox.r_xbot % (*ggcf) != 0)
+		    *ggcf = FindGCF(bbox.r_xbot, *ggcf);
+		if (bbox.r_ytop % (*ggcf) != 0)
+		    *ggcf = FindGCF(bbox.r_ytop, *ggcf);
+		if (bbox.r_ybot % (*ggcf) != 0)
+		    *ggcf = FindGCF(bbox.r_ybot, *ggcf);
+	    }
+
+	    /* Skip forward four values in value */
+	    for (n = 0; n < 4; n++)
+	    {
+		while (!isspace(*vptr)) vptr++;
+		while (isspace(*vptr) && (*vptr != '\0')) vptr++;
+	    }
+	}
+    }
+    return (*ggcf == 1) ? 1 : 0;
+}
+
 
 /*
  * ----------------------------------------------------------------------------
