@@ -244,11 +244,13 @@ UndoInit(logFileName, mode)
      * Deallocate any events stored in main memory
      */
 
-    while (undoLogHead != (internalUndoEvent *) NULL)
+     free_magic1_t mm1 = freeMagic1_init();
+     while (undoLogHead != (internalUndoEvent *) NULL)
     {
-	freeMagic((char *) undoLogHead);
+	freeMagic1(&mm1, (char *) undoLogHead);
 	undoLogHead = undoLogHead->iue_forw;
     }
+    freeMagic1_end(&mm1);
 
     return (TRUE);
 }
@@ -370,12 +372,14 @@ UndoFlush()
     if (undoLogHead == (internalUndoEvent *) NULL)
 	return;
 
+    free_magic1_t mm1 = freeMagic1_init();
     while (undoLogTail != undoLogHead)
     {
-	freeMagic((char *) undoLogTail);
+	freeMagic1(&mm1, (char *) undoLogTail);
 	undoLogTail = undoLogTail->iue_back;
 	ASSERT(undoLogTail != (internalUndoEvent *) NULL, "UndoFlush");
     }
+    freeMagic1_end(&mm1);
     freeMagic((char *) undoLogHead);
 
     undoLogHead = undoLogTail = undoLogCur = (internalUndoEvent *) NULL;
@@ -813,18 +817,22 @@ undoFreeHead()
 
     while (undoNumCommands > LOWCOMMANDS)
     {
+	free_magic1_t mm1 = freeMagic1_init();
 	do
 	{
 	    ASSERT(undoLogHead != undoLogCur, "undoFreeHead");
-	    freeMagic((char *) undoLogHead);
+	    freeMagic1(&mm1, (char *) undoLogHead);
 	    undoLogHead = undoLogHead->iue_forw;
 	    ASSERT(undoLogHead != (internalUndoEvent *) NULL, "undoFreeHead");
 	}
 	while (undoLogHead->iue_type != UT_DELIM);
+	freeMagic1_end(&mm1);
 	undoNumCommands--;
     }
-    freeMagic((char *) undoLogHead);
+    free_magic1_t mm1 = freeMagic1_init();
+    freeMagic1(&mm1, (char *) undoLogHead);
     undoLogHead = undoLogHead->iue_forw;
+    freeMagic1_end(&mm1);
     undoLogHead->iue_back = (internalUndoEvent *) NULL;
 }
 
@@ -864,11 +872,13 @@ undoMemTruncate()
 	 * Delete ALL events from memory
 	 */
 	up = undoLogHead;
+	free_magic1_t mm1 = freeMagic1_init();
 	while (up != (internalUndoEvent *) NULL)
 	{
-	    freeMagic((char *) up);
+	    freeMagic1(&mm1, (char *) up);
 	    up = up->iue_forw;
 	}
+	freeMagic1_end(&mm1);
 	undoLogTail = undoLogHead = (internalUndoEvent *) NULL;
 	undoNumCommands = 0;
     }
@@ -879,13 +889,15 @@ undoMemTruncate()
 	 * Delete only some of the events in main memory.
 	 */
 	up = undoLogCur->iue_forw;
+	free_magic1_t mm1 = freeMagic1_init();
 	while (up != (internalUndoEvent *) NULL)
 	{
 	    if (up->iue_type == UT_DELIM)
 		undoNumCommands--;
-	    freeMagic((char *) up);
+	    freeMagic1(&mm1, (char *) up);
 	    up = up->iue_forw;
 	}
+	freeMagic1_end(&mm1);
 	undoLogCur->iue_forw = (internalUndoEvent *) NULL;
 	undoLogTail = undoLogCur;
     }

@@ -119,18 +119,17 @@ EFDone(func)
 	HashKill(&def->def_dists);
 	HashKill(&def->def_uses);
 	HashKill(&def->def_devs);
-	for (conn = def->def_conns; conn; conn = conn->conn_next)
-	    efFreeConn(conn);
-	for (conn = def->def_caps; conn; conn = conn->conn_next)
-	    efFreeConn(conn);
-	for (conn = def->def_resistors; conn; conn = conn->conn_next)
-	    efFreeConn(conn);
+	efConnectionFreeLinkedList(def->def_conns);
+	efConnectionFreeLinkedList(def->def_caps);
+	efConnectionFreeLinkedList(def->def_resistors);
 
+	free_magic1_t mm1 = freeMagic1_init();
 	for (kill = def->def_kills; kill; kill = kill->kill_next)
 	{
 	    freeMagic(kill->kill_name);
-	    freeMagic((char *) kill);
+	    freeMagic1(&mm1, (char *) kill);
 	}
+	freeMagic1_end(&mm1);
 	freeMagic((char *) def);
     }
 
@@ -157,8 +156,10 @@ EFDone(func)
 	while (plist != NULL)
 	{
 	    freeMagic(plist->parm_name);
-	    freeMagic(plist);
+	    free_magic1_t mm1 = freeMagic1_init();
+	    freeMagic1(&mm1, plist);
 	    plist = plist->parm_next;
+	    freeMagic1_end(&mm1);
 	}
     }
     HashKill(&efDevParamTable);

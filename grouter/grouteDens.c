@@ -194,7 +194,7 @@ glDMAlloc(dm, top, cap)
     dm->dm_max = 0;
     dm->dm_size = top + 1;
     dm->dm_cap = cap;
-    dm->dm_value = (short *) callocMagic((unsigned) (sizeof (short) * dm->dm_size));
+    dm->dm_value = (short *) callocMagic(dm->dm_size, (unsigned) (sizeof (short)));
 }
 
 /*
