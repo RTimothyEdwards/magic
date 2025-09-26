@@ -37,10 +37,10 @@ LEF-format input and output
 	   <DT> <B>read</B> [<I>filename</I>] <B>-annotate</B>
 	   <DD> Read a LEF file.  Use any macros defined in the LEF file
 		to annotate existing layouts, and ignore all other macros.
-	   <DT> <B>write</B> [<I>cell</I>] [<B>-tech</B>]
+	   <DT> <B>write</B> [<I>filename</I>] [<B>-tech</B>]
 		[<B>-hide</B> [<I>distance</I>]] [<B>-toplayer</B>]
 		[<B>-pinonly</B> [<I>distance</I>]] [<B>-nomaster</B>]
-	   <DD> Write LEF for the current or indicated cell.<BR>
+	   <DD> Write LEF for the current cell to the file <I>filename</I>.<BR>
 		Option <B>-tech</B> writes the technology information (layer
 		mapping and rules) to the same file as the cell macro. <BR>
 		Option <B>-hide</B> generates an abstract view that has all

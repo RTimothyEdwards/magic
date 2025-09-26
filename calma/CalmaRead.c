@@ -613,20 +613,23 @@ CalmaTechInit(void)
     ASSERT(sizeof(FourByteInt)==4, "definition in calmaInt.h");
     ASSERT(sizeof(TwoByteInt)==2, "definition in calmaInt.h");
 
-    /* NOTE:  Enable the code below when CalmaContactArrays	*/
-    /* behaves like the non-arrayed function and can be enabled	*/
-    /* by default.						*/
-#if 0
+    /* NOTE:  Add "$$*$$" to the default "flatglob" value	*/
+    /* when CalmaContactArrays behaves like the non-arrayed	*/
+    /* function and can be enabled by default.			*/
+
     /* Initialize CalmaFlattenByName to have one entry for	*/
-    /* "$$*$$" to match the name style used by the contact	*/
-    /* array cell generation.  This can be overridden by the	*/
-    /* "gds flatglob none" command option.			*/
+    /* "*_CDNS_*" to match the name style used by many foundry	*/
+    /* cells and which corresponds to pcells that often split	*/
+    /* layers between cells in ways that magic can't cope with;	*/
+    /* and whose original parameterized functions cannot be	*/
+    /* recovered by magic anyway.  When necessary, this default	*/
+    /* can be overridden by the	"gds flatglob none" command	*/
+    /* option.							*/
 
     if (CalmaFlattenUsesByName == (char **)NULL)
     {
 	CalmaFlattenUsesByName = (char **)mallocMagic(2 * sizeof(char *));
-	*CalmaFlattenUsesByName = StrDup((char **)NULL, "$$*$$");
+	*CalmaFlattenUsesByName = StrDup((char **)NULL, "*_CDNS_*");
 	*(CalmaFlattenUsesByName + 1) = NULL;
     }
-#endif
 }

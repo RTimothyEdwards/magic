@@ -2176,11 +2176,15 @@ parseindex:
 		{
 		    if ((int)sl->lab_port == idx)
 		    {
-			TxError("Port index %d is already used by port %s.\n"
-				"Use command \"port index %d\" to force "
-				"equivalence after defining the port.\n",
-				idx, sl->lab_text, idx);
-			return;
+			/* This is only an error if port name doesn't match */
+			if (strcmp(sl->lab_text, lab->lab_text))
+			{
+			    TxError("Port index %d is already used by port %s.\n"
+					"Use command \"port index %d\" to force "
+					"equivalence after defining the port.\n",
+					idx, sl->lab_text, idx);
+			    return;
+			}
 		    }
 		}
 	    }

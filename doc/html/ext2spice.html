@@ -95,13 +95,18 @@ Convert extracted file(s) to a SPICE format file.
 		<B>subcircuit</B> is set to <B>off</B>, the top-level
 		circuit will be the top level of the netlist, and it
 		will have no associated subcircuit definition.
-	   <DT> <B>subcircuit top</B> [<B>on</B>|<B>off</B>]
+	   <DT> <B>subcircuit top</B> [<B>on</B>|<B>off</B>|<B>auto</B>]
 	   <DD> This variant of the <B>subcircuit</B> option controls
 		whether or not ext2spice generates a .subckt wrapper
-		around the top-level circuit.  If the top-level circuit
-		does not have defined ports, then no .subckt wrapper
-		will ever be generated, because ext2spice will not
-		be able to know which nets are the ports.
+		around the top-level circuit.  If <B>on</B> is specified,
+		a ".subckt" wrapper will always be output, regardless of
+		whether or not ports are defined in the layout.  If
+		<B>off</B>, no ".subckt" wrapper will be output, and
+		ports will be ignored (They will be regular nets in the
+		output netlist).  If set to <B>auto</B>, magic will
+		check whether or not ports are defined in the layout,
+		and generate a ".subckt" wrapper only if ports have
+		been defined.
 	   <DT> <B>subcircuit descend</B> [<B>on</B>|<B>off</B>]
 	   <DD> When set to <B>off</B>, the <B>subcircuit descend</B>
 		option will not descend into any subcells below the
