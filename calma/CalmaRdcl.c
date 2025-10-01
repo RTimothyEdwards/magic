@@ -1428,12 +1428,17 @@ calmaFindCell(
 	}
 	else
 	{
-	    TxPrintf("Warning:  cell %s already existed before reading GDS!\n",
-			name);
 	    if (CalmaNoDuplicates)
 	    {
+		TxPrintf("Note:  cell %s already existed before reading GDS.\n",
+			name);
 		if (predefined) *predefined = TRUE;
 	    	TxPrintf("Using pre-existing cell definition\n");
+	    }
+	    else
+	    {
+		TxPrintf("Warning:  cell %s already existed before reading GDS!\n",
+			name);
 	    }
 	    if (was_called) *was_called = TRUE;
 	}
