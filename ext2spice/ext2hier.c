@@ -371,11 +371,11 @@ spcHierWriteParams(
 		break;
 	    case 'r':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
-		fprintf(esSpiceF, "%f", (double)(dev->dev_res));
+		esSIvalue(esSpiceF, (double)(dev->dev_res));
 		break;
 	    case 'c':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
-		fprintf(esSpiceF, "%ff", (double)(dev->dev_cap));
+		esSIvalue(esSpiceF, (double)(dev->dev_cap));
 		break;
 	}
 	plist = plist->parm_next;
@@ -840,6 +840,8 @@ spcdevHierVisit(
 			subnode->efnode_name->efnn_hier,
 			dev->dev_type, esSpiceF);
 	    }
+	    /* Support for CDL format */
+	    if (esFormat == CDL) fprintf(esSpiceF, " /");
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 	    /* Write all requested parameters to the subcircuit call.	*/

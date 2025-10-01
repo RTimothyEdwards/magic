@@ -81,7 +81,7 @@ typedef enum
     AREAC, CONTACT, CSCALE,
     DEFAULTAREACAP, DEFAULTOVERLAP, DEFAULTPERIMETER, DEFAULTSIDEOVERLAP,
     DEFAULTSIDEWALL,
-    DEVICE, FET, FETRESIST, FRINGESHIELDHALO,
+    DEVICE, DEVRESIST, FET, FETRESIST, FRINGESHIELDHALO,
     HEIGHT, ANTENNA, MODEL, TIEDOWN, LAMBDA, OVERC,
     PERIMC, PLANEORDER, NOPLANEORDER, RESIST, RSCALE, SIDEHALO, SIDEOVERLAP,
     SIDEWALL, STEP, STYLE, SUBSTRATE, UNITS, VARIANT
@@ -122,7 +122,10 @@ static const keydesc keyTable[] = {
 "types plane capacitance [offset]"},
 
     {"device",		DEVICE,		4,	10,
-"device dev-type types options..."},
+"dev-type dev-name types options..."},
+
+    {"devresist",	DEVRESIST,	4,	4,
+"type region ohms-per-square"},
 
     {"fet",		FET,		8,	9,
 "types terminal-types min-#-terminals name [subs-types] subs-node gscap gate-chan-cap"},
@@ -1958,7 +1961,6 @@ ExtTechLine(sectionName, argc, argv)
     char *subsName, *transName, *cp, *endptr, *paramName;
     TileType s, t, r, o;
     const keydesc *kp, *dv;
-    bool isLinear;
     HashEntry *he;
     EdgeCap *cnew;
     ExtKeep *es, *newStyle;
@@ -2183,6 +2185,7 @@ ExtTechLine(sectionName, argc, argv)
 	case CONTACT:
 	case FET:
 	case FETRESIST:
+	case DEVRESIST:
 	case HEIGHT:
 	case ANTENNA:
 	case TIEDOWN:
@@ -2545,11 +2548,17 @@ ExtTechLine(sectionName, argc, argv)
 		argc--;
 	    }
 
+	    class = dv->k_key;
+
+	    /* Note:  This check has been removed.  Parameters for non-	*/
+	    /* subcircuit devices are allowed for support of CDL	*/
+	    /* netlists, which uses arbitrary subcircuit-like		*/
+	    /* parameters combined with a SPICE-like device prefix.	*/
+#if 0
 	    /* Check the number of arguments after splitting out	*/
 	    /* parameter entries.  There is no limit on arguments in	*/
 	    /* DEV_SUBCKT, DEV_MSUBCKT, and DEV_VERILOGA.		*/
 
-	    class = dv->k_key;
 	    switch (class)
 	    {
 		case DEV_SUBCKT:
@@ -2575,6 +2584,7 @@ ExtTechLine(sectionName, argc, argv)
 		    }
 		    break;
 	    }
+#endif
 
 	    gscap = (CapValue) 0;
 	    gccap = (CapValue) 0;
@@ -2765,14 +2775,16 @@ ExtTechLine(sectionName, argc, argv)
 		    TTMaskSetMask(allExtractTypes, &termtypes[0]);
 		    termtypes[1] = DBZeroTypeBits;
 
-		    if ((argc > 5) && strcmp(argv[5], "None"))
+		    if ((argc > 5) && strcmp(argv[5], "None") &&
+				(strchr(argv[5], '=') == NULL))
 		    {
 			DBTechNoisyNameMask(argv[5], &subsTypes);   /* substrate */
 			TTMaskSetMask(allExtractTypes, &subsTypes);
 		    }
 		    else
 			subsTypes = DBZeroTypeBits;
-		    if (argc > 6) subsName = argv[6];
+		    if ((argc > 6) && (strchr(argv[6], '=') == NULL))
+			subsName = argv[6];
 		    break;
 	    }
 
@@ -2812,7 +2824,6 @@ ExtTechLine(sectionName, argc, argv)
 		    }
 		    devptr->exts_deviceResist.ht_table = (HashEntry **) NULL;
 		    HashInit(&devptr->exts_deviceResist, 8, HT_STRINGKEYS);
-		    devptr->exts_linearResist = 0;
 
 		    devptr->exts_next = ExtCurStyle->exts_device[t];
 		    ExtCurStyle->exts_device[t] = devptr;
@@ -2834,14 +2845,14 @@ ExtTechLine(sectionName, argc, argv)
 	    }
 	    break;
 
+	case DEVRESIST:
 	case FETRESIST:
-	    if (!StrIsInt(argv[3]))
+	    if (!StrIsNumeric(argv[3]))
 	    {
-		TechError("Fet resistivity %s must be numeric\n", argv[3]);
+		TechError("Device resistivity %s must be numeric\n", argv[3]);
 		break;
 	    }
 	    resVal = aToRes(argv[3]);
-	    isLinear = (strcmp(argv[2], "linear") == 0);
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	    {
 		ExtDevice *devptr;
@@ -2851,8 +2862,6 @@ ExtTechLine(sectionName, argc, argv)
 		    {
 			he = HashFind(&devptr->exts_deviceResist, argv[2]);
 			HashSetValue(he, (spointertype)resVal);
-			if (isLinear)
-			    devptr->exts_linearResist = resVal;
 		    }
 		}
 	    }
@@ -3696,6 +3705,8 @@ zinit:
 	    for (devptr = style->exts_device[r]; devptr; devptr = devptr->exts_next)
 	    {	
 		ParamList *chkParam;
+		HashEntry *he;
+		ResValue res;
 
 		devptr->exts_deviceSDCap *= sqfac;
 		devptr->exts_deviceGateCap *= sqfac;
@@ -3722,6 +3733,28 @@ zinit:
 			chkParam->pl_maximum /= dscale;
 			chkParam->pl_minimum /= dscale;
 		    }
+		}
+
+		he = HashLookOnly(&devptr->exts_deviceResist, "area");
+		if (he != NULL)
+		{
+		    res = (ResValue)(spointertype)(HashGetValue(he));
+		    res /= dsq;
+		    HashSetValue(he, (spointertype)res);
+		}
+		he = HashLookOnly(&devptr->exts_deviceResist, "perimeter");
+		if (he != NULL)
+		{
+		    res = (ResValue)(spointertype)(HashGetValue(he));
+		    res /= dscale;
+		    HashSetValue(he, (spointertype)res);
+		}
+		he = HashLookOnly(&devptr->exts_deviceResist, "linear");
+		if (he != NULL)
+		{
+		    res = (ResValue)(spointertype)(HashGetValue(he));
+		    res /= dscale;
+		    HashSetValue(he, (spointertype)res);
 		}
 	    }
 

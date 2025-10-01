@@ -173,6 +173,7 @@ typedef struct {
 #define	SPICE3	1
 #define	HSPICE	2
 #define	NGSPICE	3
+#define	CDL	4
 
 #define AUTO	2	/* TRUE | FALSE | AUTO for esDoSubckt */
 

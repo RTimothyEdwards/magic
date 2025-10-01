@@ -211,9 +211,14 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
 	{
 	    float sheetr;
 	    ExtDevice *devptr;
+	    HashEntry *he;
 
 	    devptr = ExtCurStyle->exts_device[fettype];
-	    sheetr = (float)devptr->exts_linearResist;
+	    he = HashLookOnly(&devptr->exts_deviceResist, "linear");
+	    if (he != NULL)
+		sheetr = (ResValue)(spointertype)HashGetValue(he);
+	    else
+		sheetr = (ResValue)0.0;
 	    result = (*fetproc)(line, sheetr, devptr);
 	}
 	if (result != 0)
@@ -441,9 +446,14 @@ ResSimSubckt(line)
 
     if (lptr != NULL && wptr != NULL)
     {
+	HashEntry *he;
 	float rpersquare;
 
-	rpersquare =(float)devptr->exts_linearResist;
+	he = HashLookOnly(&devptr->exts_deviceResist, "linear");
+	if (he != NULL)
+	    rpersquare = (ResValue)(spointertype)HashGetValue(he);
+	else
+	    rpersquare = (ResValue)0.0;
 	/* Subcircuit types may not have a length or width value, in which  */
 	/* case it is zero.  Don't induce a divide-by-zero error.	    */
 	if (MagAtof(wptr) == 0)

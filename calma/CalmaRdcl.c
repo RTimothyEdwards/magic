@@ -387,6 +387,15 @@ calmaParseStructure(
     he = HashFind(&calmaDefInitHash, strname);
     if ((def = (CellDef *)HashGetValue(he)) != NULL)
     {
+	if (def->cd_flags & CDPRELOADED)
+	{
+	    /* Cell definition was read ahead due to option "flatten"	*/
+	    /* or "flatglob".  Do not complain about seeing it again.	*/
+	    def->cd_flags &= ~CDPRELOADED;
+	    calmaNextCell();
+	    return TRUE;
+	}
+
 	if (def->cd_flags & CDPROCESSEDGDS)
 	{
 	    /* If cell definition was marked as processed, then skip	*/
@@ -396,6 +405,7 @@ calmaParseStructure(
 
 	    if (!CalmaPostOrder && !CalmaRewound)
 	    {
+		cifReadCellDef = def;
 		CalmaReadError("Cell \"%s\" was already defined in this file.\n",
 				strname);
 		CalmaReadError("Ignoring duplicate definition\n");
@@ -407,6 +417,7 @@ calmaParseStructure(
 	{
 	    char *newname;
 
+	    cifReadCellDef = def;
 	    CalmaReadError("Cell \"%s\" was already defined in this file.\n",
 				strname);
 	    newname = (char *)mallocMagic(strlen(strname) + 20);
@@ -773,6 +784,7 @@ calmaElementSref(
     bool madeinst = FALSE;
     char *sname = NULL;
     bool isArray = FALSE;
+    bool dolookahead = FALSE;
     Transform trans, tinv;
     Point refarray[3], refunscaled[3], p;
     CellUse *use;
@@ -798,7 +810,38 @@ calmaElementSref(
      */
 
     def = calmaLookCell(sname);
-    if (!def && (CalmaPostOrder || CalmaFlattenUses || (CalmaFlattenUsesByName != NULL)))
+
+    /*
+     * If the "flatten" option is set, then we always have to seek
+     * ahead and read the structure in order to determine if it
+     * meets the requirement of being flattened or not.  If the
+     * "flatglob" option is set, then we need to read ahead and
+     * read the cell definition so that it can be flatten.  This
+     * requires pattern-matching the cell def.
+     */
+
+    dolookahead = (CalmaPostOrder || CalmaFlattenUses) ? TRUE : FALSE;
+    if ((!dolookahead) && (CalmaFlattenUsesByName != NULL))
+    {
+	char *pattern;
+
+	i = 0;
+	while (TRUE)
+	{
+	    pattern = CalmaFlattenUsesByName[i];
+	    if (pattern == NULL) break;
+	    i++;
+
+	    /* Check pattern against strname */
+	    if (Match(pattern, sname))
+	    {
+		dolookahead = TRUE;
+		break;
+	    }
+	}
+    }
+
+    if (!def && dolookahead)
     {
 	/* Force the GDS parser to read the cell definition in
 	 * post-order.  If cellname "sname" is not defined before
@@ -832,6 +875,7 @@ calmaElementSref(
 	    FSEEK(calmaInputFile, originalFilePos, SEEK_SET);
 	    cifReadCellDef = calmaLookCell(currentSname);
 	    def = calmaLookCell(sname);
+	    def->cd_flags |= CDPRELOADED;
 	    cifCurReadPlanes = savePlanes;
 	    calmaLayerHash = OrigCalmaLayerHash;
 	    if (crsMultiplier != cifCurReadStyle->crs_multiplier)

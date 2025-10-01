@@ -1152,7 +1152,7 @@ ExtSortTerminals(tran, ll)
  * one terminal.
  *
  * Results:
- *	None
+ *	TRUE if L and W were computed, FALSE if not.
  *
  * Side Effects:
  *	Puts effective length and width into the pointers
@@ -1160,7 +1160,7 @@ ExtSortTerminals(tran, ll)
  *----------------------------------------------------------------------
  */
 
-void
+bool
 extComputeCapLW(rlengthptr, rwidthptr)
    int *rlengthptr, *rwidthptr;
 {
@@ -1174,7 +1174,7 @@ extComputeCapLW(rlengthptr, rwidthptr)
     if (lb == NULL)
     {
 	TxError("extract:  Can't get capacitor L and W\n");
-	return;	/* error condition */
+	return FALSE;	/* error condition */
     }
     bbox = lb->r;
     for (lb = extSpecialBounds[0]; lb != NULL; lb = lb->b_next)
@@ -1182,6 +1182,7 @@ extComputeCapLW(rlengthptr, rwidthptr)
 
     *rwidthptr = bbox.r_xtop - bbox.r_xbot;
     *rlengthptr = bbox.r_ytop - bbox.r_ybot;
+    return TRUE;
 }
 
 /*
@@ -1789,6 +1790,8 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
     int *perimvec;
 {
     ParamList *chkParam;
+    HashEntry *he;
+    ResValue resvalue;
 
     for (chkParam = devptr->exts_deviceParams; chkParam
 		!= NULL; chkParam = chkParam->pl_next)
@@ -1862,6 +1865,39 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
 			* reg->treg_area) +
 			(extTransRec.tr_devrec->exts_deviceSDCap
 			* extTransRec.tr_perim));
+		break;
+	    case 'r':
+		/* If the device has an "area" resistance specified
+		 * by "devresist" in the tech file, use that.  If
+		 * it has a "perimeter" resistance specified, use
+		 * that as well.  If neither, then find the sheet
+		 * resistance of the device identifier layer and
+		 * use that.
+		 */
+		resvalue = (ResValue)0.0;
+		he = HashLookOnly(&extTransRec.tr_devrec->exts_deviceResist, "area");
+		if (he != NULL)
+		{
+		    resvalue = (ResValue)(pointertype)HashGetValue(he);
+		    resvalue /= (ResValue)reg->treg_area;
+
+		    he = HashLookOnly(&extTransRec.tr_devrec->exts_deviceResist,
+				"perimeter");
+		    if (he != NULL)
+		    {
+			ResValue perimr;
+			perimr = (ResValue)(pointertype)HashGetValue(he);
+			perimr /= (ResValue)extTransRec.tr_perim;
+			resvalue += perimr;
+		    }
+		}
+		else
+		{
+		    resvalue = ExtCurStyle->exts_sheetResist[reg->treg_type]
+				* (double)length / (double)width;
+		}
+
+		fprintf(outFile, " %c=%g", chkParam->pl_param[0], (float)resvalue);
 		break;
 	    case 's':
 	    case 'x':
@@ -2143,10 +2179,11 @@ extOutputDevices(def, transList, outFile)
     NodeRegion *node, *subsNode;
     TransRegion *reg;
     ExtDevice *devptr, *deventry;
-    char *subsName;
+    ParamList *chkParam;
     FindRegion arg;
     LabelList *ll;
     TileType t;
+    char *subsName;
     int nsd, length, width, n, i, ntiles, corners, tn, rc, termcount;
     double dres, dcap;
     char mesg[256];
@@ -2668,7 +2705,70 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_DIODE:	/* Only handle the optional substrate node */
 	    case DEV_NDIODE:
 	    case DEV_PDIODE:
+		/* Diode length and width are computed like capacitor	*/
+		/* length and width.  This operation is expensive, so	*/
+		/* do this ONLY if length and width are specified as	*/
+		/* parameters.						*/
+
 		devptr = extDevFindParamMatch(devptr, length, width);
+		for (chkParam = devptr->exts_deviceParams; chkParam != NULL;
+				chkParam = chkParam->pl_next)
+		{
+		    char param0;
+
+		    if (chkParam->pl_name == NULL) continue;
+		    param0 = tolower(chkParam->pl_param[0]);
+		    if (param0 == 'l' || param0 == 'w') break;
+		}
+
+		if (chkParam != NULL)
+		{
+		    for (n = 0; n < extTransRec.tr_nterm &&
+				extTransRec.tr_termnode[n] != NULL; n++);
+
+		    if (n > 0)
+		    {
+			LinkedBoundary *lb;
+
+			extSpecialBounds = (LinkedBoundary **)mallocMagic(n *
+				sizeof(LinkedBoundary *));
+
+			for (i = 0; i < n; i++) extSpecialBounds[i] = NULL;
+
+			/* Mark with reg and process each perimeter segment */
+
+			arg.fra_uninit = (ClientData) extTransRec.tr_gatenode;
+			arg.fra_region = (ExtRegion *) reg;
+			arg.fra_each = extAnnularTileFunc;
+			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
+
+			if (extComputeCapLW(&length, &width) == FALSE)
+			{
+			    /* May be a complex area;  fall back on
+			     * computing an equivalent square area.
+			     */
+			    length = (int)(sqrt((double)extTransRec.tr_termarea[0])
+					+ 0.5);
+			    width = length;
+			}
+
+			/* Free the lists */
+
+			for (i = 0; i < n; i++)
+			    for (lb = extSpecialBounds[i]; lb != NULL; lb = lb->b_next)
+				freeMagic((char *)lb);
+			freeMagic((char *)extSpecialBounds);
+
+			/* Put the region list back the way we found it: */
+			/* Re-mark with extTransRec.tr_gatenode */
+
+			arg.fra_uninit = (ClientData) reg;
+			arg.fra_region = (ExtRegion *) extTransRec.tr_gatenode;
+			arg.fra_each = (int (*)()) NULL;
+			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
+		    }
+		}
+
 		fprintf(outFile, "%s %s",
 			extDevTable[(unsigned char)devptr->exts_deviceClass],
 			devptr->exts_deviceName);
@@ -2885,7 +2985,15 @@ extOutputDevices(def, transList, outFile)
 			arg.fra_each = extAnnularTileFunc;
 			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 
-			extComputeCapLW(&length, &width);
+			if (extComputeCapLW(&length, &width) == FALSE)
+			{
+			    /* May be a complex area;  fall back on
+			     * computing an equivalent square area.
+			     */
+			    length = (int)(sqrt((double)extTransRec.tr_termarea[0])
+					+ 0.5);
+			    width = length;
+			}
 
 			/* Free the lists */
 
@@ -2907,7 +3015,7 @@ extOutputDevices(def, transList, outFile)
 		    {
 			/* (Nothing) */
 		    }
-		    else	/* SPICE semiconductor resistor */
+		    else	/* SPICE semiconductor capacitor */
 		    {
 			if ((length * width) > reg->treg_area)
 			{

@@ -506,7 +506,6 @@ typedef struct extDevice
 	 */
 
     HashTable		 exts_deviceResist;
-    ResValue		 exts_linearResist;
 
 	/*
 	 * Mask of the types of tiles that connect to the channel terminals

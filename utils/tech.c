@@ -66,7 +66,9 @@ global bool TechOverridesDefault;
 typedef struct FStack		/* Linked FILE * pointers */
 {
     FILE *file;
-    struct FStack *next;          /* Pointer to another linked rectangle */
+    char *filename;		/* Keep file name of parent file */
+    int  linenum;		/* Keep line number count at the include line */
+    struct FStack *next;        /* Pointer to another linked rectangle */
 } filestack;
 
 int techLineNumber;
@@ -537,6 +539,8 @@ TechLoad(filename, initmask)
     }
 
     topfile.file = tf;
+    topfile.filename = NULL;
+    topfile.linenum = 0;
     topfile.next = NULL;
     fstack = &topfile;
 
@@ -602,15 +606,19 @@ TechLoad(filename, initmask)
 	/* Check for file inclusions (can be nested) */
 	if ((argc > 1) && (!strcmp(argv[0], "include")))
 	{
-	    char *sptr;
+	    char *sptr, *increalname;
 
-	    tf = PaOpen(argv[1], "r", suffix, ".", SysLibPath, NULL);
+	    tf = PaOpen(argv[1], "r", suffix, ".", SysLibPath, &increalname);
 	    if (tf != NULL)
 	    {
 		newstack = (filestack *)mallocMagic(sizeof(filestack));
 		newstack->file = tf;
+		newstack->filename = TechFileName;
+		newstack->linenum = techLineNumber;
 		newstack->next = fstack;
 		fstack = newstack;
+		techLineNumber = 0;
+		TechFileName = StrDup((char **)NULL, increalname);
 		continue;
 	    }
 
@@ -620,14 +628,18 @@ TechLoad(filename, initmask)
 	    if ((sptr = strrchr(TechFileName, '/')) != NULL)
 	    {
 		*sptr = '\0';
-		tf = PaOpen(argv[1], "r", suffix, TechFileName, NULL, NULL);
+		tf = PaOpen(argv[1], "r", suffix, TechFileName, NULL, &increalname);
 		*sptr = '/';
 		if (tf != NULL)
 		{
 		    newstack = (filestack *)mallocMagic(sizeof(filestack));
 		    newstack->file = tf;
+		    newstack->filename = TechFileName;
+		    newstack->linenum = techLineNumber;
 		    newstack->next = fstack;
 		    fstack = newstack;
+		    techLineNumber = 0;
+		    TechFileName = StrDup((char **)NULL, increalname);
 		    continue;
 		}
 	    }
@@ -747,6 +759,7 @@ skipsection:
     while ((fstack != NULL) && (fstack != &topfile))
     {
 	fclose(fstack->file);
+	freeMagic(fstack->filename);
 	freeMagic(fstack);
 	fstack = fstack->next;
     }
@@ -968,6 +981,9 @@ start:
 	    if ((*fstack)->next != NULL)
 	    {
 		fclose((*fstack)->file);
+		freeMagic(TechFileName);
+		TechFileName = (*fstack)->filename;
+		techLineNumber = (*fstack)->linenum;
 		*fstack = (*fstack)->next;
 		file = (*fstack)->file;
 	    }

@@ -403,6 +403,9 @@ typedef struct celldef
  *	    is added to the magic database.  The flag is used to identify
  *	    whether the cell has been processed when forcing the GDS
  *	    stream data to be read in post-order.
+ *	CDPRELOADED is similar to CDPROCESSEDGDS but is used in cases
+ *	    other than forced post-order reading, such as flattening
+ *	    or flatten-by-name.
  *	CDVENDORGDS indicates that the cell was read from a GDS stream
  *	    with the option "gds readonly true".
  *	CDVISITED indicates that at least one instance of the cell was
@@ -434,12 +437,13 @@ typedef struct celldef
 #define CDFLATGDS	 0x00400
 #define CDFLATTENED	 0x00800
 #define CDPROCESSEDGDS	 0x01000
-#define CDVENDORGDS	 0x02000
-#define CDVISITED	 0x04000
-#define CDDEREFERENCE	 0x08000
-#define CDFIXEDSTAMP	 0x10000
-#define CDNOEXTRACT	 0x20000
-#define CDDONTUSE	 0x40000
+#define CDPRELOADED	 0x02000
+#define CDVENDORGDS	 0x04000
+#define CDVISITED	 0x08000
+#define CDDEREFERENCE	 0x10000
+#define CDFIXEDSTAMP	 0x20000
+#define CDNOEXTRACT	 0x40000
+#define CDDONTUSE	 0x80000
 
 #include "database/arrayinfo.h" /* ArrayInfo */
 

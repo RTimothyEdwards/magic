@@ -284,7 +284,7 @@ CmdExtToSpice(
     static int LocResistThreshold = INFINITE_THRESHOLD;
 
     static const char * const spiceFormats[] = {
-	"SPICE2", "SPICE3", "HSPICE", "NGSPICE", NULL
+	"SPICE2", "SPICE3", "HSPICE", "NGSPICE", "CDL", NULL
     };
 
     static const char * const cmdExtToSpcOption[] = {
@@ -330,6 +330,7 @@ CmdExtToSpice(
 	"spice3",
 	"hspice",
 	"ngspice",
+	"cdl",
 	NULL
     };
 
@@ -663,10 +664,10 @@ CmdExtToSpice(
 	    {
 #ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, "Bad format type.  Formats are:"
-			"spice2, spice3, hspice, and ngspice.", NULL);
+			"spice2, spice3, hspice, ngspice, and cdl.", NULL);
 #else
 		TxError("Bad format type.  Formats are:"
-			"spice2, spice3, hspice, and ngspice.");
+			"spice2, spice3, hspice, ngspice, and cdl.");
 #endif
 		return;
 	    }
@@ -876,7 +877,12 @@ runexttospice:
      */
 
     if (spcesOutName == spcesDefaultOut)
-	sprintf(spcesDefaultOut, "%s.spice", inName);
+    {
+	if (esFormat == CDL)
+	    sprintf(spcesDefaultOut, "%s.cdl", inName);
+	else
+	    sprintf(spcesDefaultOut, "%s.spice", inName);
+    }
 
     /* Read the hierarchical description of the input circuit */
     if (EFReadFile(inName, esDoHierarchy, esDoExtResis, FALSE, TRUE)
@@ -963,8 +969,11 @@ runexttospice:
 
 	    locsubname = StrDup(NULL, subname);
 
-	    bangptr = locsubname + strlen(locsubname) - 1;
-	    if (*bangptr == '!') *bangptr = '\0';
+	    if (esFormat != CDL)
+	    {
+		bangptr = locsubname + strlen(locsubname) - 1;
+		if (*bangptr == '!') *bangptr = '\0';
+	    }
 
 	    // Ad-hoc check: Global names with "Error", "err", etc.
 	    // should be rejected from the list.  Also node name
@@ -990,6 +999,42 @@ runexttospice:
 	    }
 	    else
 		freeMagic(locsubname);
+	}
+    }
+
+    if (esFormat == CDL)
+    {
+	/* In CDL format, if the global substrate ends with "!" then
+	 * add it to the list of globals;  likewise for VDD and GND.
+	 */
+	char *glbstr;
+	globalList *glptr;
+
+	glbstr = (char *)Tcl_GetVar(magicinterp, "SUB", TCL_GLOBAL_ONLY);
+	if ((glbstr != NULL) && (*(glbstr + strlen(glbstr) - 1) == '!'))
+	{
+	    glptr = (globalList *)mallocMagic(sizeof(globalList));
+	    glptr->gll_name = StrDup((char **)NULL, glbstr);
+	    glptr->gll_next = glist;
+	    glist = glptr;
+	}
+
+	glbstr = (char *)Tcl_GetVar(magicinterp, "VDD", TCL_GLOBAL_ONLY);
+	if ((glbstr != NULL) && (*(glbstr + strlen(glbstr) - 1) == '!'))
+	{
+	    glptr = (globalList *)mallocMagic(sizeof(globalList));
+	    glptr->gll_name = StrDup((char **)NULL, glbstr);
+	    glptr->gll_next = glist;
+	    glist = glptr;
+	}
+
+	glbstr = (char *)Tcl_GetVar(magicinterp, "GND", TCL_GLOBAL_ONLY);
+	if ((glbstr != NULL) && (*(glbstr + strlen(glbstr) - 1) == '!'))
+	{
+	    glptr = (globalList *)mallocMagic(sizeof(globalList));
+	    glptr->gll_name = StrDup((char **)NULL, glbstr);
+	    glptr->gll_next = glist;
+	    glist = glptr;
 	}
     }
 
@@ -1027,6 +1072,8 @@ runexttospice:
     if (IS_FINITE_F(EFCapThreshold)) flatFlags |= EF_FLATCAPS;
     if (esFormat == HSPICE)
 	EFOutputFlags |= EF_TRIMLOCAL;
+    if (esFormat == CDL)
+	EFOutputFlags &= ~EF_TRIMGLOB;
 
     /* Write globals under a ".global" card */
 
@@ -1226,7 +1273,13 @@ main(
      */
 
     if (spcesOutName == spcesDefaultOut)
-	sprintf(spcesDefaultOut, "%s.spice", inName);
+    {
+	if (esFormat == CDL)
+	    sprintf(spcesDefaultOut, "%s.cdl", inName);
+	else
+	    sprintf(spcesDefaultOut, "%s.spice", inName);
+    }
+
 
     if ((esSpiceF = fopen(spcesOutName, "w")) == NULL)
     {
@@ -1363,7 +1416,7 @@ spcParseArgs(
 
     const char usage_text[] = "Usage: ext2spice "
 		"[-B] [-o spicefile] [-M|-m] [-J flat|hier]\n"
-		"[-f spice2|spice3|hspice|ngspice] [-M] [-m] "
+		"[-f spice2|spice3|hspice|ngspice|cdl] [-M] [-m] "
 		"[file]\n";
 
     switch (argv[0][1])
@@ -1407,6 +1460,8 @@ spcParseArgs(
 	    }
 	    else if (strcasecmp(ftmp, "NGSPICE") == 0)
 		esFormat = NGSPICE;
+	    else if (strcasecmp(ftmp, "CDL") == 0)
+		esFormat = CDL;
 	    else goto usage;
 	    break;
 
@@ -1677,6 +1732,7 @@ subcktVisit(
     }
 
     if (tchars > 80) fprintf(esSpiceF, "\n+");
+    if (esFormat == CDL) fprintf(esSpiceF, " /");
     fprintf(esSpiceF, " %s", subcktname);	/* subcircuit model name */
 
     // Check for a "device parameter" defined with the name of the cell.
@@ -2256,11 +2312,11 @@ spcWriteParams(
 		break;
 	    case 'r':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
-		fprintf(esSpiceF, "%f", (double)(dev->dev_res));
+		esSIvalue(esSpiceF, (double)dev->dev_res);
 		break;
 	    case 'c':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
-		fprintf(esSpiceF, "%ff", (double)(dev->dev_cap));
+		esSIvalue(esSpiceF, (double)dev->dev_cap);
 		break;
 	}
 	plist = plist->parm_next;
@@ -2777,6 +2833,9 @@ spcdevVisit(
 			subnode->efnode_name->efnn_hier,
 			dev->dev_type, esSpiceF);
 	    }
+
+	    /* CDL format support:  Output a slash followed by a space. */
+	    if (esFormat == CDL) fprintf(esSpiceF, " /");
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 	    /* Write all requested parameters to the subcircuit call.	*/
