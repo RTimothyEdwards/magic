@@ -51,7 +51,7 @@ ERROR: Cannot compile without knowing the size of a pointer.  See utils/magic.h
 typedef int64_t dlong;
 #define DLONG_MAX INT64_MAX
 #define DLONG_MIN INT64_MIN
-#if (defined(__x86_64__) && !defined(_WIN64))
+#if ((defined(__x86_64__) || defined(__aarch64__) || defined(__ppc64__) || defined(__riscv64__) || defined(__arm64__)) && !defined(_WIN64))
 /* gcc x86_64 defines int64_t as 'long int' on LP64 */
 #define DLONG_PREFIX "l"
 #else
