@@ -58,13 +58,15 @@ LIBS_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.a"; done)
 ${MODULES_SUBDIR}: FORCE
 	@${MAKE} -C $(dir $@) module
 
+.PHONY: modules
 modules: database/database.h depend ${MODULES_SUBDIR}
 
 ${LIBS_SUBDIR}: FORCE
 	@${MAKE} -C $(dir $@) lib
 
 # Force the tiles/utils modules to exist first for libdatabase.a
-libs: database/database.h tiles/libtiles.o utils/libutils.o depend ${LIBS_SUBDIR}
+.PHONY: libs
+libs: database/database.h depend tiles/libtiles.o utils/libutils.o ${LIBS_SUBDIR}
 
 #
 # extcheck - utility tool

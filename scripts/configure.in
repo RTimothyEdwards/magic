@@ -1100,33 +1100,57 @@ AC_ARG_ENABLE(readline,
   fi
 ])
 
+use_system_readline=yes
+use_bundled_readline=auto
+
+AC_ARG_ENABLE(readline-bundled,
+[  --enable-readline-bundled    enable readline bundled package],
+[ use_bundled_readline=yes
+], [
+  use_bundled_readline=no
+])
+
 if test "x$enable_readline" = "xyes" ; then
     AC_DEFINE(USE_READLINE)
-    use_system_readline=yes
-    AC_CHECK_LIB(readline, rl_pre_input_hook,,
+    if test $use_bundled_readline != yes ; then
+    AC_CHECK_LIB(readline, rl_pre_input_hook,[
+	dnl noop, prevent default action LIBS+=-lreadline
+	],
 	use_system_readline=no)
-    AC_CHECK_LIB(readline, rl_username_completion_function,,
+    AC_CHECK_LIB(readline, rl_username_completion_function,[
+	dnl noop, prevent default action LIBS+=-lreadline
+	],
 	use_system_readline=no)
-    AC_CHECK_LIB(readline, rl_filename_completion_function,,
+    AC_CHECK_LIB(readline, rl_filename_completion_function,[
+	dnl noop, prevent default action LIBS+=-lreadline
+	],
 	use_system_readline=no)
-    AC_CHECK_LIB(readline, rl_attempted_completion_over,,
+    AC_CHECK_LIB(readline, rl_attempted_completion_over,[
+	dnl noop, prevent default action LIBS+=-lreadline
+	],
 	use_system_readline=no)
-    if test $use_system_readline = yes ; then
+    fi
+    if test $use_system_readline = yes && test $use_bundled_readline != yes; then
 	AC_DEFINE(HAVE_READLINE)
 	rl_libs="-lreadline" 
+        use_bundled_readline=
     else
-	rl_libs="\${MAGICDIR}/readline/readline/libreadline.a"
+	echo "Using bundled readline"
+	AC_DEFINE(NEED_READLINE)
+	# not readline/libhistory.a (seems subset of libreadline.a)
+	rl_libs="\${MAGICDIR}/readline/libreadline.a"
 	CPPFLAGS="$CPPFLAGS -I\${MAGICDIR}/readline"
         use_bundled_readline=1
-    fi
-    AC_CHECK_LIB(termcap, tgetent, [
+
+        AC_CHECK_LIB(termcap, tgetent, [
 	rl_libs="$rl_libs -ltermcap"
 	], [
 	   AC_CHECK_LIB(ncurses, tgetent, [
 	      rl_libs="$rl_libs -lncurses"
 	   ], )
 	], )
-    modules="$modules readline"
+        modules="$modules readline"
+    fi
 else
   unused="$unused readline"
 fi
