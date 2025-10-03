@@ -841,7 +841,7 @@ CmdFindLabel(
 	return;
     };
 
-    labname = cmd->tx_argv[1 + (doglob) ? 1 : 0];
+    labname = cmd->tx_argv[1 + ((doglob) ? 1 : 0)];
     labUse = EditCellUse;
     if (labUse == NULL) labUse = (CellUse *)w->w_surfaceID;
 
