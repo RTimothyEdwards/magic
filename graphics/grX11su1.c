@@ -560,7 +560,7 @@ GrX11Init(dispType)
 	}
 	else
 	{
-	    TxPrintf("Using %s, VisualID 0x%x depth %d\n",
+	    TxPrintf("Using %s, VisualID 0x%lx depth %d\n",
 			visual_type[grvisual_get[gritems].class],
 			grvisual_get[gritems].visualid,
 			grvisual_get[gritems].depth);
@@ -931,7 +931,7 @@ grX11Stdin(
    exception. Why X11 is generating an event for a non-existent
    window is another question... ***mdg***                             */
 
-                    if (w == 0) {printf("CreateNotify: w = %d.\n", w); break;}
+                    if (w == 0) {printf("CreateNotify: w = %ld.\n", (intptr_t)w); break;}
 		    SigDisableInterrupts();
 	    	    WindView(w);
 		    SigEnableInterrupts();
@@ -1169,7 +1169,7 @@ GrX11Create(w, name)
     WindSeparateRedisplay(w);
     xsh = XAllocSizeHints();
     /* ASSERT(xsh!=0, "failed XAllocSizeHints"); */
-    if (windowplace=XGetDefault(grXdpy,"magic",option))
+    if ((windowplace=XGetDefault(grXdpy,"magic",option)) != NULL)
     {
 	 XParseGeometry(windowplace,&x,&y,
        (unsigned int *)&width,(unsigned int *)&height);
@@ -1194,9 +1194,9 @@ GrX11Create(w, name)
     TxPrintf("x %d y %d width %d height %d depth %d class %d mask %d\n",
       x,y,width,height, grDepth, grClass, attribmask);
 #endif  /* HIRESDB */
-    if (wind = XCreateWindow(grXdpy,  XDefaultRootWindow(grXdpy),
+    if ((wind = XCreateWindow(grXdpy,  XDefaultRootWindow(grXdpy),
     		x, y, width, height, 0, grDepth, InputOutput, grVisual,
-                attribmask, &grAttributes))
+                attribmask, &grAttributes)) != 0)
     {
 #ifdef	sun
 	/* Hint's for Sun's implementation of X11 (News/X11) */
