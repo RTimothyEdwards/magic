@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 export CURDIR=$(dirname $(readlink -f "${0}"))
 
 export PATH="${CURDIR}/bin":$PATH
