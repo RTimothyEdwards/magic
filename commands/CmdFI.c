@@ -1783,7 +1783,7 @@ CmdGoto(
     MagWindow *w,
     TxCommand *cmd)
 {
-    char	*s, *nodename = cmd->tx_argv[1];
+    char	*nodename = cmd->tx_argv[1];
     Rect	rect;
     CellUse	*use;
     int		locargc;
@@ -1826,7 +1826,7 @@ CmdGoto(
 #ifdef MAGIC_WRAPPER
     Tcl_SetResult(magicinterp, (char*)DBTypeLongName(ttype), NULL); /* Tcl treats as const */
 #else
-    TxPrintf("node %s is type %s\n", s, DBTypeLongName(ttype));
+    TxPrintf("node %s is type %s\n", nodename, DBTypeLongName(ttype));
 #endif
 }
 
