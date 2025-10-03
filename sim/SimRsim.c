@@ -629,11 +629,7 @@ SimFillBuffer(
     int 	charsRead = 0;
     char 	*temp;
     int		n, nfd;
-#if defined(SYSV) || defined(CYGWIN) || defined(__FreeBSD__) || defined(__APPLE__) || defined(EMSCRIPTEN)
     fd_set readfds, writefds, exceptfds;
-#else
-    int		nr, nex;
-#endif  /* SYSV */
 
     struct timeval timeout;
 
@@ -645,10 +641,8 @@ SimFillBuffer(
 
     /* read reply from Rsim */
 
-#if defined(SYSV) || defined(CYGWIN) || defined(__FreeBSD__) || defined(__APPLE__) || defined(EMSCRIPTEN)
     FD_ZERO(&readfds);
     FD_ZERO(&exceptfds);
-#endif  /* SYSV */
 
     ASSERT(pipeIn >= 0 && pipeIn < FD_SETSIZE, "pipeIn>=0&&pipeIn<FD_SETSIZE");
     if (pipeIn < 0 || pipeIn >= FD_SETSIZE)
@@ -661,17 +655,10 @@ SimFillBuffer(
 
 try_again:
 
-#if defined(SYSV) || defined(CYGWIN) || defined(__FreeBSD__) || defined(__APPLE__) || defined(EMSCRIPTEN)
     FD_SET(pipeIn, &readfds);
     FD_ZERO(&writefds);
     FD_SET(pipeIn, &exceptfds);
     n = select(nfd, &readfds, &writefds, &exceptfds, &timeout);
-
-#else /* !SYSV */
-    nr = nex = 1 << pipeIn;
-    n = select(nfd, &nr, NULL, &nex, &timeout);
-
-#endif
 
     if (n == 0)
 	return 0;	/* select() timed out */
