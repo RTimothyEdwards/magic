@@ -270,8 +270,8 @@ extern int  plowSrShadowInitial(int pNum, Rect *area, const TileTypeBitMask *okT
 extern bool plowYankMore();
 extern void PlowRandomTest();
 extern void plowDebugInit();
-extern void plowMergeBottom();
-extern void plowMergeTop();
+extern void plowMergeBottom(Tile **delay1, Tile *tp, Plane *plane); /* for PlowTest.c */
+extern void plowMergeTop(Tile **delay1, Tile *tp, Plane *plane); /* for PlowTest.c */
 extern void plowMoveEdge();
 extern int  plowShadowInitialRHS();
 extern int  plowShadowLHS();

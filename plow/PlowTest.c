@@ -143,6 +143,7 @@ PlowTest(w, cmd)
     Plane *plane;
     Edge edge;
     Tile *tp;
+    Tile *delay1 = NULL;
 
     if (!ToolGetEditBox(&editArea) || !ToolGetBox(&rootBoxDef, &rootBox))
 	return;
@@ -341,7 +342,7 @@ PlowTest(w, cmd)
 	    TiToRect(tp, &editArea);
 	    TiToRect(RT(tp), &area2);
 	    (void) GeoInclude(&area2, &editArea);
-	    plowMergeBottom(tp, plane);
+	    plowMergeBottom(&delay1, tp, plane);
 	    DBWAreaChanged(def, &editArea, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	    break;
 	case PC_MERGEUP:
@@ -350,7 +351,7 @@ PlowTest(w, cmd)
 	    TiToRect(tp, &editArea);
 	    TiToRect(RT(tp), &area2);
 	    (void) GeoInclude(&area2, &editArea);
-	    plowMergeTop(tp, plane);
+	    plowMergeTop(&delay1, tp, plane);
 	    DBWAreaChanged(def, &editArea, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	    break;
 	case PC_PRINT:
@@ -391,6 +392,7 @@ PlowTest(w, cmd)
 	    plowWhenBot = TRUE;
 	    break;
     }
+    TiFreeIf(delay1);
 }
 
 /*

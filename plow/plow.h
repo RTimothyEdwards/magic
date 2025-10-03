@@ -22,6 +22,8 @@
 #define _MAGIC__PLOW__PLOW_H
 
 #include "utils/magic.h"
+#include "windows/windows.h"	/* MagWindow */
+#include "textio/txcommands.h"	/* TxCommand */
 
 /* Technology file clients */
 extern int PlowTechInit(), PlowTechFinal();
@@ -33,7 +35,7 @@ extern bool PlowDRCLine();
 extern bool Plow(CellDef *def, Rect *userRect, const TileTypeBitMask *layersp, int direction);
 
 /* Debugging command procedure */
-extern int PlowTest();
+extern void PlowTest(MagWindow *w, TxCommand *cmd);
 
 extern void PlowExtendJogHorizon();
 
