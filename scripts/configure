@@ -782,6 +782,7 @@ enable_framebuffer_backing_store
 enable_plot
 enable_lef
 enable_readline
+enable_readline_bundled
 enable_threads
 enable_route
 enable_rsim
@@ -1444,6 +1445,7 @@ Optional Features:
   --disable-plot               disable plot package
   --disable-lef                disable LEF package
   --disable-readline           disable readline package
+  --enable-readline-bundled    enable readline bundled package
   --disable-threads            disable threaded graphics
   --disable-route              disable routing package
   --disable-rsim               disable IRSIM tool
@@ -7976,10 +7978,24 @@ else
 fi
 
 
+use_system_readline=yes
+use_bundled_readline=auto
+
+# Check whether --enable-readline-bundled was given.
+if test "${enable_readline_bundled+set}" = set; then :
+  enableval=$enable_readline_bundled;  use_bundled_readline=yes
+
+else
+
+  use_bundled_readline=no
+
+fi
+
+
 if test "x$enable_readline" = "xyes" ; then
     $as_echo "#define USE_READLINE 1" >>confdefs.h
 
-    use_system_readline=yes
+    if test $use_bundled_readline != yes ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for rl_pre_input_hook in -lreadline" >&5
 $as_echo_n "checking for rl_pre_input_hook in -lreadline... " >&6; }
 if ${ac_cv_lib_readline_rl_pre_input_hook+:} false; then :
@@ -8017,11 +8033,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_pre_input_hook" >&5
 $as_echo "$ac_cv_lib_readline_rl_pre_input_hook" >&6; }
 if test "x$ac_cv_lib_readline_rl_pre_input_hook" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBREADLINE 1
-_ACEOF
 
-  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8064,11 +8076,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_username_completion_function" >&5
 $as_echo "$ac_cv_lib_readline_rl_username_completion_function" >&6; }
 if test "x$ac_cv_lib_readline_rl_username_completion_function" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBREADLINE 1
-_ACEOF
 
-  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8111,11 +8119,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_filename_completion_function" >&5
 $as_echo "$ac_cv_lib_readline_rl_filename_completion_function" >&6; }
 if test "x$ac_cv_lib_readline_rl_filename_completion_function" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBREADLINE 1
-_ACEOF
 
-  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8158,26 +8162,28 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_attempted_completion_over" >&5
 $as_echo "$ac_cv_lib_readline_rl_attempted_completion_over" >&6; }
 if test "x$ac_cv_lib_readline_rl_attempted_completion_over" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBREADLINE 1
-_ACEOF
 
-  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
 fi
 
-    if test $use_system_readline = yes ; then
+    fi
+    if test $use_system_readline = yes && test $use_bundled_readline != yes; then
 	$as_echo "#define HAVE_READLINE 1" >>confdefs.h
 
 	rl_libs="-lreadline"
+        use_bundled_readline=
     else
-	rl_libs="\${MAGICDIR}/readline/readline/libreadline.a"
+	echo "Using bundled readline"
+	$as_echo "#define NEED_READLINE 1" >>confdefs.h
+
+	# not readline/libhistory.a (seems subset of libreadline.a)
+	rl_libs="\${MAGICDIR}/readline/libreadline.a"
 	CPPFLAGS="$CPPFLAGS -I\${MAGICDIR}/readline"
         use_bundled_readline=1
-    fi
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltermcap" >&5
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltermcap" >&5
 $as_echo_n "checking for tgetent in -ltermcap... " >&6; }
 if ${ac_cv_lib_termcap_tgetent+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -8264,7 +8270,8 @@ fi
 
 fi
 
-    modules="$modules readline"
+        modules="$modules readline"
+    fi
 else
   unused="$unused readline"
 fi
@@ -8657,7 +8664,7 @@ if test $usingTcl ; then
 
     gr_dflags="$gr_dflags -DOGL"
     gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext} -lm"
-    gr_srcs="$gr_srcs \${TOGL_SRCS}"
+    gr_srcs="$gr_srcs \${TOGL_GL_SRCS} \${TOGL_GLU_SRCS} \${THREE_D_GL_SRCS}"
     if ! test $usingX11 ; then
       usingX11=1
       gr_dflags="$gr_dflags -DXLIB"
@@ -8684,7 +8691,7 @@ else
   if test $usingOGL ; then
     gr_dflags="$gr_dflags -DOGL"
     gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext} -lm"
-    gr_srcs="$gr_srcs \${OGL_SRCS}"
+    gr_srcs="$gr_srcs \${OGL_GL_SRCS} \${OGL_GLU_SRCS}"
     if ! test $usingX11 ; then
       usingX11=1
       gr_libs="$gr_libs -lX11"
