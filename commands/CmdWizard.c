@@ -981,7 +981,7 @@ cmdTsrFunc(
     Tile *tp)
 {
     if (cmdTsearchDebug)
-	TxPrintf("%lx\n", (intmax_t) tp);
+	TxPrintf("%lx\n", (intptr_t) tp);
     numTilesFound++;
     return 0;
 }

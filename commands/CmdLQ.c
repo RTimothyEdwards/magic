@@ -2435,14 +2435,14 @@ printPropertiesFunc(
     }
     else
     {
-	keyvalue = (char *)mallocMagic(strlen(name) + strlen((char *)value) + 2);
-	sprintf(keyvalue, "%s %s", name, (char *)value);
+	keyvalue = (char *)mallocMagic(strlen(name) + strlen((const char *)value) + 2);
+	sprintf(keyvalue, "%s %s", name, (const char *)value);
     }
     Tcl_AppendElement(magicinterp, keyvalue);
     freeMagic(keyvalue);
 
 #else
-    TxPrintf("%s = %s\n", name, value);
+    TxPrintf("%s = %s\n", name, (const char *)value);
 #endif
 
     return 0;	/* keep the search alive */

@@ -99,7 +99,7 @@ CmdRandom(
 #ifdef MAGIC_WRAPPER
 	Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(random()));
 #else
-	TxPrintf("%d", random());
+	TxPrintf("%ld", random());
 #endif
     }
     else if ((cmd->tx_argc >= 2) && (!strcmp(cmd->tx_argv[1], "seed")))
