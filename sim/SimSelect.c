@@ -78,9 +78,9 @@ static SimDefListElt *SimCellLabList = (SimDefListElt *) NULL;
  */
 
 typedef struct TLE {
-    char *tl_nodeName;
+    const char *tl_nodeName;
     Tile *tl_nodeTile;
-    char *tl_simLabel;
+    const char *tl_simLabel;
     struct TLE *tl_next;
 } TileListElt;
 
@@ -212,7 +212,7 @@ SimFreeNodeList(
     while (temp != NULL) {
 	current = temp;
 	temp = temp->tl_next;
-	freeMagic(current->tl_nodeName);
+	freeMagic((char*)current->tl_nodeName);
 	freeMagic(current);
     }
     *List = (TileListElt *) NULL;
@@ -230,7 +230,7 @@ simFreeNodeEntry(
 	if( curr == entry )
 	{
 	    prev->tl_next = curr->tl_next;
-	    freeMagic( entry->tl_nodeName );
+	    freeMagic( (char*)entry->tl_nodeName );
 	    freeMagic( entry );
 	    return( prev );		/* next element in list */
 	}
@@ -406,8 +406,9 @@ SimSelectFunc(
 	if( ! coord )
 	    HashFind(&SimNodeNameTbl, nodeName);
 	newNodeTile = (TileListElt *) mallocMagic((unsigned) (sizeof (TileListElt)));
-	newNodeTile->tl_nodeName = (char *) mallocMagic((unsigned) (strlen(nodeName) + 1));
-	strcpy(newNodeTile->tl_nodeName, nodeName);
+	char *tmp = (char *) mallocMagic((unsigned) (strlen(nodeName) + 1));
+	strcpy(tmp, nodeName);
+	newNodeTile->tl_nodeName = tmp;  /* assign to const */
 	newNodeTile->tl_nodeTile = tile;
 	newNodeTile->tl_next = *pHead;
 	*pHead = newNodeTile;
@@ -515,7 +516,7 @@ the selection.\n");
 
 	if (*cmd == 'd')
 	{
-	    char  *name = current->tl_nodeName;
+	    const char  *name = current->tl_nodeName;
 	    bool  coord = (name[0] == '@' && name[1] == '=') ? TRUE : FALSE;
 
 	    strPtr = strrchr( replyLine, '=' );
@@ -527,9 +528,10 @@ the selection.\n");
 		name = replyLine;
 		if( HashLookOnly(&SimNodeNameTbl, name) == (HashEntry *) NULL)
 		{
-		    freeMagic(current->tl_nodeName);
-		    current->tl_nodeName = (char *) mallocMagic((unsigned) (strlen(name) + 1));
-		    strcpy(current->tl_nodeName, name);
+		    freeMagic((char*)current->tl_nodeName);
+		    char *tmp = (char *) mallocMagic((unsigned) (strlen(name) + 1));
+		    strcpy(tmp, name);
+		    current->tl_nodeName = tmp; /* assign to const */
 		    HashFind(&SimNodeNameTbl, current->tl_nodeName);
 		    *strPtr++ = '=';
 		}
