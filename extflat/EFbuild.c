@@ -831,13 +831,13 @@ efBuildDeviceParams(name, argc, argv)
  */
 
 int
-efBuildDevice(def, class, type, r, argc, argv)
-    Def *def;		/* Def to which this connection is to be added */
-    char class;		/* Class (dev, bjt, etc.) of this device */
-    char *type;		/* Type (name) of this device */
-    Rect *r;		/* Coordinates of 1x1 rectangle entirely inside device */
-    int argc;		/* Size of argv */
-    char *argv[];	/* Tokens for the rest of the dev line.
+efBuildDevice(
+    Def *def,		/* Def to which this connection is to be added */
+    char class,		/* Class (dev, bjt, etc.) of this device */
+    char *type,		/* Type (name) of this device */
+    const Rect *r,	/* Coordinates of 1x1 rectangle entirely inside device */
+    int argc,		/* Size of argv */
+    char *argv[])	/* Tokens for the rest of the dev line.
 			 * Starts with the last two position values, used to
 			 * hash the device record.  The next arguments depend
 			 * on the type of device.  The rest are taken in groups

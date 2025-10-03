@@ -78,7 +78,7 @@ extern int  EFNodeResist();
 extern void efAdjustSubCap();
 extern int  efBuildAddStr();
 extern void efBuildAttr();
-extern int  efBuildDevice();
+extern int  efBuildDevice(Def *def, char class, char *type, const Rect *r, int argc, char *argv[]);
 extern void efBuildDeviceParams();
 extern void efBuildDist();
 extern void efBuildEquiv();
