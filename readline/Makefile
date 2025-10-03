@@ -2,9 +2,18 @@ MAGICDIR = ..
 
 include ${MAGICDIR}/defs.mak
 
-module: readline-create-symlinks libreadline.a libhistory.a
 
-lib: libreadline.a libhistory.a
+ifeq ($(MAKE_READLINE),1)
+TARGETS = libreadline.a libhistory.a
+else
+TARGETS =
+endif
+
+# We don't make a libreadline.o
+module:
+
+# We do make a libreadline.a
+lib: $(TARGETS)
 
 depend:
 
@@ -48,7 +57,7 @@ libreadline.a: build-readline/libreadline.a
 build-readline/libreadline.a build-readline/libhistory.a: readline-create-symlinks build-readline
 
 .PHONY: build-readline
-build-readline:
+build-readline: readline-create-symlinks
 	@if ! test -e build-readline/Makefile ; then \
 	echo --- building GNU readline ; \
 	$(MKDIR) -p build-readline ; \

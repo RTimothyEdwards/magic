@@ -51,8 +51,8 @@ global bool TxStdoutIsatty;
 #include <readline/readline.h>
 #include <readline/history.h>
 #else
-#include "readline/readline.h"
-#include "readline/history.h"
+#include "readline/readline/readline.h"
+#include "readline/readline/history.h"
 #endif
 
 int TxPrefix(void);
