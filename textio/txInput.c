@@ -258,7 +258,7 @@ static const struct cmd_spec {
 #endif
   { NULL , 0, {NULL} }
 };
-#endif
+#endif /* USE_READLINE */
 
 
 /* Characters for input processing.  Set to -1 if not defined */
@@ -376,7 +376,7 @@ TxSetPrompt(
     txPromptChar = ch;
 }
 
-#endif
+#endif /* !MAGIC_WRAPPER */
 
 
 /*
@@ -978,7 +978,7 @@ make_techtype_list(void)
 }
 
 #define free You_should_use_the_Magic_procedure_freeMagic
-#endif
+#endif /* USE_READLINE */
 
 /*
  * ----------------------------------------------------------------------------
@@ -1078,7 +1078,7 @@ TxGetLineWPrompt(
       res = dest;
     }
     TxSetTerminal ();
-#endif
+#endif /* USE_READLINE */
     return res;
 }
 
@@ -1195,7 +1195,7 @@ TxGetLinePfix(
     return ret;
 }
 
-#endif
+#endif /* !MAGIC_WRAPPER */
 
 /*
  * ----------------------------------------------------------------------------
