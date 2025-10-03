@@ -1309,10 +1309,10 @@ EFGetPortMax(def)
  */
 
 EFNode *
-efBuildDevNode(def, name, isSubsNode)
-    Def *def;
-    char *name;
-    bool isSubsNode;
+efBuildDevNode(
+    Def *def,
+    char *name,
+    bool isSubsNode)
 {
     HashEntry *he;
     EFNodeName *nn;
