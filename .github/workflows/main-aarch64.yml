@@ -1,0 +1,48 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-aarch64
+
+# Controls when the workflow will run
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  simple_build_linux_arm:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Dependencies
+        run: |
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev
+      - name: Build
+        run: |
+          ./configure
+          make database/database.h
+          make -j$(nproc)
+  simple_build_wasm_arm:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Dependencies
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+      - name: Build
+        run: |
+          source ./emsdk/emsdk_env.sh
+          emconfigure ./configure --without-cairo --without-opengl --without-x --disable-readline --disable-compression --target=asmjs-unknown-emscripten
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
+          emmake make
+      - name: archive wasm bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: magic-wasm-bundle-arm
+          path: |
+            ${{ github.workspace }}/magic/magic.wasm
