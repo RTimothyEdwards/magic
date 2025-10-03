@@ -431,7 +431,7 @@ CmdCalma(
 #ifdef MAGIC_WRAPPER
 		Tcl_SetObjResult(magicinterp, Tcl_NewDoubleObj((double)CalmaMagScale));
 #else
-		TxPrintf("Text magnification 1.0 = %g microns.\n");
+		TxPrintf("Text magnification 1.0 = %g microns.\n", (double)CalmaMagScale);
 #endif
 		return;
 	    }
@@ -744,7 +744,7 @@ CmdCalma(
 #ifdef MAGIC_WRAPPER
 		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaNoDuplicates));
 #else
-		TxPrintf("Cell defs that exist before reading GDS will not be paresd.\n",
+		TxPrintf("Cell defs that exist before reading GDS will %sbe parsed.\n",
 			(CalmaNoDuplicates) ?  "not " : "");
 #endif
 		return;
@@ -764,7 +764,7 @@ CmdCalma(
 #ifdef MAGIC_WRAPPER
 		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaUnique));
 #else
-		TxPrintf("Cell defs that exist before reading GDS will be renamed.\n",
+		TxPrintf("Cell defs that exist before reading GDS will %sbe renamed.\n",
 			(CalmaUnique) ?  "not " : "");
 #endif
 		return;
