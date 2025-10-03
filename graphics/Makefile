@@ -4,13 +4,16 @@
 
 MODULE    = graphics
 MAGICDIR  = ..
-BASE_SRCS = grMain.c grLock.c grDStyle.c grText.c grCMap.c grClip.c \
-            grGlyphs.c grNull.c W3Dmain.c
-X11_SRCS  = grX11su1.c grX11su2.c grX11su3.c grX11su4.c grX11su5.c
-TK_SRCS   = grTk1.c grTk2.c grTk3.c grTk4.c grTk5.c
-TOGL_SRCS = grTOGL1.c grTOGL2.c grTOGL3.c grTOGL4.c grTOGL5.c
-OGL_SRCS  = grOGL1.c grOGL2.c grOGL3.c grOGL4.c grOGL5.c
-TCAIRO_SRCS = grTCairo1.c grTCairo2.c grTCairo3.c grTCairo4.c grTCairo5.c
+BASE_SRCS       = grMain.c grLock.c grDStyle.c grText.c grCMap.c grClip.c \
+                  grGlyphs.c grNull.c
+X11_SRCS        = grX11su1.c grX11su2.c grX11su3.c grX11su4.c grX11su5.c
+TK_SRCS         = grTk1.c grTk2.c grTk3.c grTk4.c grTk5.c
+TOGL_GL_SRCS    = grTOGL1.c grTOGL2.c grTOGL4.c grTOGL5.c
+TOGL_GLU_SRCS   = grTOGL3.c
+THREE_D_GL_SRCS = W3Dmain.c
+OGL_GL_SRCS     = grOGL1.c grOGL2.c grOGL4.c grOGL5.c
+OGL_GLU_SRCS    = grOGL3.c
+TCAIRO_SRCS     = grTCairo1.c grTCairo2.c grTCairo3.c grTCairo4.c grTCairo5.c
 
 GLYPHS = bw.glyphs color.glyphs
 OUTLINE_FONTS = FreeSerif.pt3 FreeSans.pt3 FreeMono.pt3
@@ -28,19 +31,21 @@ DEPSRCS = ${BASE_SRCS}
 ifeq (${MAKE_X11},1)
 DEPSRCS += ${X11_SRCS} ${TK_SRCS}
 endif
+ifeq (${MAKE_GL},1)
+DEPSRCS += ${OGL_GL_SRCS} ${TOGL_GL_SRCS}
 ifeq (${MAKE_GLU},1)
-DEPSRCS += ${TOGL_SRCS}
+DEPSRCS += ${OGL_GLU_SRCS} ${TOGL_GLU_SRCS}
+endif
+DEPSRCS += ${THREE_D_SRCS}
 endif
 ifeq (${MAKE_X11},1)
 DEPSRCS += ${TKCOMMON_SRCS}
-endif
-ifeq (${MAKE_GL},1)
-DEPSRCS += ${OGL_SRCS}
-endif
 DEPSRCS += ${X11HELPER_SRCS} ${X11THREAD_SRCS}
+endif
 ifeq (${MAKE_CAIRO},1)
 DEPSRCS += ${TCAIRO_SRCS}
 endif
+# Note GR_SRCS is from defs.mak
 OBJS    = ${BASE_SRCS:.c=.o} ${GR_SRCS:.c=.o}
 CFLAGS += ${GR_CFLAGS}
 DFLAGS += ${GR_DFLAGS}

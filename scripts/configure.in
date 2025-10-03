@@ -1384,7 +1384,7 @@ if test $usingTcl ; then
     AC_DEFINE(THREE_D)
     gr_dflags="$gr_dflags -DOGL"
     gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext} -lm"
-    gr_srcs="$gr_srcs \${TOGL_SRCS}"
+    gr_srcs="$gr_srcs \${TOGL_GL_SRCS} \${TOGL_GLU_SRCS} \${THREE_D_GL_SRCS}"
     if ! test $usingX11 ; then
       usingX11=1
       gr_dflags="$gr_dflags -DXLIB"
@@ -1411,7 +1411,7 @@ else
   if test $usingOGL ; then
     gr_dflags="$gr_dflags -DOGL"
     gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext} -lm"
-    gr_srcs="$gr_srcs \${OGL_SRCS}"
+    gr_srcs="$gr_srcs \${OGL_GL_SRCS} \${OGL_GLU_SRCS}"
     if ! test $usingX11 ; then
       usingX11=1  
       gr_libs="$gr_libs -lX11"
