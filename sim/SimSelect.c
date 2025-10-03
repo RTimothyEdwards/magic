@@ -259,7 +259,7 @@ simFreeNodeEntry(
 
 TileListElt *
 SimSelectArea(
-    const Rect *rect)
+    const Rect * __unused__(rect))
 {
     int plane;
     int SimSelectFunc(Tile *tile, ClientData cdata); /* cb_database_srpaintarea_t (TileListElt **pHead) */
@@ -445,6 +445,7 @@ SimSelection(
     static const char QUESTstring[] = "?";
 
     char timeString[256];
+    char questString[2];
     TileListElt	*current, *node_list;
     char 		*replyLine;
     char		*strPtr;
@@ -453,6 +454,7 @@ SimSelection(
     extern void		RsimErrorMsg(void);
 
     timeString[0] = 0;
+    strcpy(questString, QUESTstring); /* writable form */
 
     /* check to see if Rsim has been started yet */
 
@@ -521,7 +523,7 @@ the selection.\n");
 
 	    strPtr = strrchr( replyLine, '=' );
 	    if( strPtr == NULL )
-		strPtr = QUESTstring;
+		strPtr = questString;
 	    else if( coord )
 	    {
 		*strPtr = '\0';
