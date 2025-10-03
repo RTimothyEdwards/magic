@@ -28,6 +28,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -39,8 +40,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "plot/plotInt.h"
 #include "textio/textio.h"
 #include "utils/utils.h"
-
-extern double sqrt();
 
 int rasFileByteCount = 0;
 /* A solid black stipple: */
