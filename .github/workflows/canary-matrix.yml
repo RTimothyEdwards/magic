@@ -14,35 +14,33 @@ jobs:
       matrix:
         os: [ubuntu-24.04, ubuntu-22.04]
         # Configure Options
-        pkgs: [all, none, no_tk_tcl_rl, no_rl, no_zlib, no_gc_gl_gu, no_gc_gu]
+        #                                                       X11          OGL    CAIRO
+        pkgs: [all, none, no_tk_tcl_rl, no_tk_tcl_brl, no_zlib, no_gc_gl_gu, no_gc, no_gl_gu]
         # Toolchain
-        #  ubuntu-20.04 [gcc-9] gcc-10
-        #  ubuntu-22.04 [gcc-11] gcc-12
-        #  ubuntu-24.04 [gcc-13] gcc-14
-        tc:  [default, gcc-10, gcc-12, gcc-14, clang-17, clang-18]
+        #  ubuntu-20.04 [gcc-9,  clang-10]
+        #  ubuntu-22.04 [gcc-11, clang-14]
+        #  ubuntu-24.04 [gcc-13, clang-18]
+        tc:  [default, gcc-10, gcc-11, gcc-12, gcc-13, gcc-14, clang-14, clang-15, clang-17, clang-18, clang-19]
         exclude:
-          - os: ubuntu-20.04
-            tc: gcc-12
-          - os: ubuntu-20.04
-            tc: gcc-14
-          - os: ubuntu-20.04
-            tc: clang-17
-          - os: ubuntu-20.04
-            tc: clang-18
-
           - os: ubuntu-22.04
-            tc: gcc-10
+            tc: gcc-13
           - os: ubuntu-22.04
             tc: gcc-14
           - os: ubuntu-22.04
             tc: clang-17
-          - os: ubuntu-22.04
+          - os: ubuntu-22.04 # some sources show this as present but not found
             tc: clang-18
+          - os: ubuntu-22.04
+            tc: clang-19
 
           - os: ubuntu-24.04
             tc: gcc-10
           - os: ubuntu-24.04
-            tc: gcc-12
+            tc: gcc-11
+          - os: ubuntu-24.04
+            tc: clang-14
+          - os: ubuntu-24.04
+            tc: clang-15
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -69,16 +67,19 @@ jobs:
           # z no.*_zl  zlib1g-dev
           # n no.*_nc  libncurses-dev
           # r no.*_rl  libreadline-dev
+          # R no.*_brl --enable-readline-bundled
           # c no.*_tcl tcl-dev
           # k no.*_tk  tk-dev
           # C no.*_gc  libcairo-dev
           # L no.*_gl  libgl-dev
-          # U no.*_gu  libglu1-mesa-dev
+          # U no.*_gu  libglu1-mesa-dev  # GLU requires GL
           # X no.*_gx  libx11-dev
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_zl"; then
             pkgs=$(echo -n "$pkgs" | sed -e 's#z##'); fi
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_nc"; then
             pkgs=$(echo -n "$pkgs" | sed -e 's#n##'); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_brl"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#r#R#'); fi # replace
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_rl"; then
             pkgs=$(echo -n "$pkgs" | sed -e 's#r##'); fi
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_tcl"; then
@@ -111,6 +112,8 @@ jobs:
           _configure_args=()
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_zl"; then
             _configure_args+=(--disable-compression); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_brl"; then
+            _configure_args+=(--enable-readline-bundled); fi
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_rl"; then
             _configure_args+=(--disable-readline); fi
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_tcl"; then
