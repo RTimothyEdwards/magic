@@ -180,9 +180,13 @@ EFReadFile(name, dosubckt, resist, noscale, isspice)
  */
 
 bool
-efReadDef(def, dosubckt, resist, noscale, toplevel, isspice)
-   Def *def;
-   bool dosubckt, resist, noscale, toplevel, isspice;
+efReadDef(
+   Def *def,
+   bool dosubckt,
+   bool resist,
+   bool noscale,
+   bool toplevel,
+   bool isspice)
 {
     int argc, ac, n;
     CellDef *dbdef;
