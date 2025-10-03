@@ -318,7 +318,7 @@ GrX11SetCursor(cursorNum)
     grCurrent.cursor = grCursors[cursorNum];
 
     HashStartSearch(&hs);
-    while (entry = HashNext(&grX11WindowTable,&hs))
+    while ((entry = HashNext(&grX11WindowTable,&hs)) != NULL)
     {
     	 if (HashGetValue(entry))
          	XDefineCursor(grXdpy,(Window)entry->h_key.h_ptr,grCurrent.cursor);
