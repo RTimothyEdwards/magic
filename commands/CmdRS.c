@@ -2784,7 +2784,7 @@ CmdSimCmd(
 {
     static char cmdbuf[200];
     char 	*strptr;
-    char 	*nodeCmd;
+    const char 	*nodeCmd;
     int 	i;
 
     if (!SimRsimRunning) {
