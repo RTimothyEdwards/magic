@@ -129,6 +129,50 @@ GetHierNode(
 /*
  * ----------------------------------------------------------------------------
  *
+ * spcHierWriteValue ---
+ *
+ * Special case of spcHierWriteParams() below.  Only check for 'r' or 'c'
+ * parameters which have no parameter name.  Write out the given value,
+ * which in the case of CDL format is written out after the pins but before
+ * everything else, arbitrarily.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+spcHierWriteValue(
+    HierContext *hc,
+    Dev *dev)           /* Dev being output */
+{
+    DevParam *plist;
+
+    plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
+    while (plist != NULL)
+    {
+	switch (plist->parm_type[0])
+	{
+	    case 'r':
+		if (*(plist->parm_name) == '\0')
+		{
+		    fprintf(esSpiceF, " ");
+		    esSIvalue(esSpiceF, (double)(dev->dev_res));
+		}
+		break;
+	    case 'c':
+		if (*(plist->parm_name) == '\0')
+		{
+		    fprintf(esSpiceF, " ");
+		    esSIvalue(esSpiceF, (double)(dev->dev_cap));
+		}
+		break;
+	}
+	plist = plist->parm_next;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * spcHierWriteSubParam ---
  *
  * Special case of spcHierWriteParams() below.  Only check for the substrate
@@ -164,6 +208,7 @@ spcHierWriteSubParam(
 				dev->dev_type, esSpiceF);
 		    retvalue = TRUE;
 		}
+		break;
 	}
 	plist = plist->parm_next;
     }
@@ -423,12 +468,18 @@ spcHierWriteParams(
 				* scale * esScale * 1.0E-6);
 		break;
 	    case 'r':
-		fprintf(esSpiceF, " %s=", plist->parm_name);
-		esSIvalue(esSpiceF, (double)(dev->dev_res));
+		if (*(plist->parm_name) != '\0')
+		{
+		    fprintf(esSpiceF, " %s=", plist->parm_name);
+		    esSIvalue(esSpiceF, (double)(dev->dev_res));
+		}
 		break;
 	    case 'c':
-		fprintf(esSpiceF, " %s=", plist->parm_name);
-		esSIvalue(esSpiceF, (double)(dev->dev_cap));
+		if (*(plist->parm_name) != '\0')
+		{
+		    fprintf(esSpiceF, " %s=", plist->parm_name);
+		    esSIvalue(esSpiceF, (double)(dev->dev_cap));
+		}
 		break;
 	}
 	plist = plist->parm_next;
@@ -509,7 +560,10 @@ esOutputHierResistor(
 	bool subdone = FALSE;
 
 	if (esFormat == CDL)
+	{
+	    spcHierWriteValue(hc, dev);
 	    subdone = spcHierWriteSubParam(hc, dev);
+	}
 
 	fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
@@ -1037,7 +1091,10 @@ spcdevHierVisit(
 	    else
 	    {
 		if (esFormat == CDL)
+		{
+		    spcHierWriteValue(hc, dev);
 		    subdone = spcHierWriteSubParam(hc, dev);
+		}
 		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 		if (esScale < 0)
@@ -1086,7 +1143,10 @@ spcdevHierVisit(
 	    else
 	    {
 		if (esFormat == CDL)
+		{
+		    spcHierWriteValue(hc, dev);
 		    subdone = spcHierWriteSubParam(hc, dev);
+		}
 		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 		if (esScale < 0)

@@ -2033,6 +2033,48 @@ topVisit(
 /*
  * ----------------------------------------------------------------------------
  *
+ * spcWriteValue ---
+ *
+ * Special handling for CDL format:  Output any resistor or capacitor value,
+ * value only, no parameter name.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+spcWriteValue(
+    Dev *dev,		/* Dev being output */
+    HierName *hierName)	/* Hierarchical path down to this dev */
+{
+    DevParam *plist;
+
+    plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
+    while (plist != NULL)
+    {
+	switch (plist->parm_type[0])
+	{
+	    case 'r':
+		if (*(plist->parm_name) == '\0')
+		{
+		    fprintf(esSpiceF, " ");
+		    esSIvalue(esSpiceF, (double)dev->dev_res);
+		}
+		break;
+	    case 'c':
+		if (*(plist->parm_name) == '\0')
+		{
+		    fprintf(esSpiceF, " ");
+		    esSIvalue(esSpiceF, (double)dev->dev_res);
+		}
+		break;
+	}
+	plist = plist->parm_next;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * spcWriteSubParam ---
  *
  * Special handling for CDL format:  Output any substrate parameter before
@@ -2365,12 +2407,18 @@ spcWriteParams(
 				* scale * esScale * 1.0E-6);
 		break;
 	    case 'r':
-		fprintf(esSpiceF, " %s=", plist->parm_name);
-		esSIvalue(esSpiceF, (double)dev->dev_res);
+		if (*(plist->parm_name) != '\0')
+		{
+		    fprintf(esSpiceF, " %s=", plist->parm_name);
+		    esSIvalue(esSpiceF, (double)dev->dev_res);
+		}
 		break;
 	    case 'c':
-		fprintf(esSpiceF, " %s=", plist->parm_name);
-		esSIvalue(esSpiceF, (double)dev->dev_cap);
+		if (*(plist->parm_name) != '\0')
+		{
+		    fprintf(esSpiceF, " %s=", plist->parm_name);
+		    esSIvalue(esSpiceF, (double)dev->dev_cap);
+		}
 		break;
 	}
 	plist = plist->parm_next;
@@ -2442,7 +2490,10 @@ esOutputResistor(
     {
 	bool subdone = FALSE;
 	if (esFormat == CDL)
+	{
+	    spcWriteValue(dev, hierName);
 	    subdone = spcWriteSubParam(dev, hierName);
+	}
 	fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 	if (esScale < 0)
@@ -3021,7 +3072,10 @@ spcdevVisit(
 	    else
 	    {
 		if (esFormat == CDL)
+		{
+		    spcWriteValue(dev, hierName);
 		    subdone = spcWriteSubParam(dev, hierName);
+		}
 		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 		if (esScale < 0)
@@ -3066,7 +3120,10 @@ spcdevVisit(
 	    else
 	    {
 		if (esFormat == CDL)
+		{
+		    spcWriteValue(dev, hierName);
 		    subdone = spcWriteSubParam(dev, hierName);
+		}
 		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 		if (esScale < 0)

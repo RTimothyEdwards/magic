@@ -2918,8 +2918,6 @@ extOutputDevices(def, transList, outFile)
 		else if (hasModel)	/* SPICE semiconductor resistor */
 		{
 		    fprintf(outFile, " %d %d", length, width);
-		    if (subsName != NULL)
-			fprintf(outFile, " \"%s\"", subsName);
 		}
 		else		/* regular resistor */
 		    fprintf(outFile, " %g", dres / 1000.0); /* mOhms -> Ohms */
@@ -2931,6 +2929,11 @@ extOutputDevices(def, transList, outFile)
 		{
 		    fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 				"None" : subsName);
+		}
+		else if (hasModel)
+		{
+		    if (subsName != NULL)
+			fprintf(outFile, " \"%s\"", subsName);
 		}
 		break;
 
@@ -3027,8 +3030,6 @@ extOutputDevices(def, transList, outFile)
 			}
 			else
 			    fprintf(outFile, " %d %d", length, width);
-			if (subsName != NULL)
-			    fprintf(outFile, " \"%s\"", subsName);
 		    }
 
 		    extOutputDevParams(reg, devptr, outFile, length, width,
@@ -3039,6 +3040,8 @@ extOutputDevices(def, transList, outFile)
 			fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 				"None" : subsName);
 		    }
+		    else if (subsName != NULL)
+			fprintf(outFile, " \"%s\"", subsName);
 		}
 		else
 		{
