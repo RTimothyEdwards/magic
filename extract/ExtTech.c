@@ -78,10 +78,10 @@ void ExtTechScale(int, int);
 
 typedef enum
 {
-    AREAC, CONTACT, CSCALE,
+    AREAC, CONNECT, CONTACT, CSCALE,
     DEFAULTAREACAP, DEFAULTOVERLAP, DEFAULTPERIMETER, DEFAULTSIDEOVERLAP,
     DEFAULTSIDEWALL,
-    DEVICE, DEVRESIST, FET, FETRESIST, FRINGESHIELDHALO,
+    DEVICE, DEVRESIST, DISCONNECT, FET, FETRESIST, FRINGESHIELDHALO,
     HEIGHT, ANTENNA, MODEL, TIEDOWN, LAMBDA, OVERC,
     PERIMC, PLANEORDER, NOPLANEORDER, RESIST, RSCALE, SIDEHALO, SIDEOVERLAP,
     SIDEWALL, STEP, STYLE, SUBSTRATE, UNITS, VARIANT
@@ -99,6 +99,9 @@ typedef struct
 static const keydesc keyTable[] = {
     {"areacap",		AREAC,		3,	3,
 "types capacitance"},
+
+    {"connect",		CONNECT,	3,	3,
+"types1 types1"},
 
     {"contact",		CONTACT,	3,	6,
 "type resistance"},
@@ -126,6 +129,9 @@ static const keydesc keyTable[] = {
 
     {"devresist",	DEVRESIST,	4,	4,
 "type region ohms-per-square"},
+
+    {"disconnect",	DISCONNECT,	3,	3,
+"types1 types1"},
 
     {"fet",		FET,		8,	9,
 "types terminal-types min-#-terminals name [subs-types] subs-node gscap gate-chan-cap"},
@@ -935,16 +941,24 @@ extTechStyleInit(style)
     }
     doConvert = FALSE;
 
-    // The exts_globSubstratePlane setting of -1 will be used to set a
-    // backwards-compatibility mode matching previous behavior with
-    // respect to the substrate when there is no "substrate" line in
-    // the techfile.
+    /* The exts_globSubstratePlane setting of -1 will be used to set a
+     * backwards-compatibility mode matching previous behavior with
+     * respect to the substrate when there is no "substrate" line in
+     * the techfile.
+     */
 
     style->exts_globSubstratePlane = -1;
     style->exts_globSubstrateDefaultType = -1;
     TTMaskZero(&style->exts_globSubstrateTypes);
     TTMaskZero(&style->exts_globSubstrateShieldTypes);
     style->exts_globSubstrateName = (char *)NULL;
+
+    /* Initialize exts_nodeConn to match DBConnectTbl, so that "connect"
+     * and "disconnect" statements in the extract section can be used to
+     * modify the defaults.
+     */
+    for (r = 0; r < NT; r++)
+	style->exts_nodeConn[r] = DBConnectTbl[r];
 }
 
 
@@ -1959,7 +1973,7 @@ ExtTechLine(sectionName, argc, argv)
     TileTypeBitMask types1, types2, termtypes[MAXSD];
     TileTypeBitMask near, far, ov, shield, subsTypes, idTypes;
     char *subsName, *transName, *cp, *endptr, *paramName;
-    TileType s, t, r, o;
+    TileType s, t, t2, r, o;
     const keydesc *kp, *dv;
     HashEntry *he;
     EdgeCap *cnew;
@@ -2182,10 +2196,12 @@ ExtTechLine(sectionName, argc, argv)
     switch (kp->k_key)
     {
 	case AREAC:
+	case CONNECT:
 	case CONTACT:
+	case DEVRESIST:
+	case DISCONNECT:
 	case FET:
 	case FETRESIST:
-	case DEVRESIST:
 	case HEIGHT:
 	case ANTENNA:
 	case TIEDOWN:
@@ -2220,6 +2236,19 @@ ExtTechLine(sectionName, argc, argv)
 		    ExtCurStyle->exts_overlapMult[0][t] = (float) capVal * FRINGE_MULT;
 		}
 	    break;
+	case CONNECT:
+	    /* Parse like a line from the "connect" section */
+	    DBTechNoisyNameMask(argv[2], &types2);
+	    TTMaskSetMask(allExtractTypes, &types2);
+	    for (t = 0; t < DBNumTypes; t++)
+		if (TTMaskHasType(&types1, t))
+		    for (t2 = 0; t2 < DBNumTypes; t2++)
+			if (TTMaskHasType(&types2, t2))
+			{
+			    TTMaskSetType(&ExtCurStyle->exts_nodeConn[t], t2);
+			    TTMaskSetType(&ExtCurStyle->exts_nodeConn[t2], t);
+			}
+	    break;
 	case CONTACT:
 	    /* Contact size, border, spacing deprecated (now taken from	*/
 	    /* cifoutput "squares" generation parameters).		*/
@@ -2251,6 +2280,22 @@ ExtTechLine(sectionName, argc, argv)
 		TechError("Cannot parse cap scale value \"%s\"\n", argv[1]);
 		ExtCurStyle->exts_capScale = 1;
 	    }
+	    break;
+	case DISCONNECT:
+	    /* Parse like a line from the "connect" section; however,	*/
+	    /* "disconnect" overrides an existing connection in the	*/
+	    /* DBConnectTbl array by removing the connection between	*/
+	    /* layers.							*/
+	    DBTechNoisyNameMask(argv[2], &types2);
+	    TTMaskSetMask(allExtractTypes, &types2);
+	    for (t = 0; t < DBNumTypes; t++)
+		if (TTMaskHasType(&types1, t))
+		    for (t2 = 0; t2 < DBNumTypes; t2++)
+			if (TTMaskHasType(&types2, t2))
+			{
+			    TTMaskClearType(&ExtCurStyle->exts_nodeConn[t], t2);
+			    TTMaskClearType(&ExtCurStyle->exts_nodeConn[t2], t);
+			}
 	    break;
 	case FET:
 
@@ -3492,7 +3537,7 @@ extTechFinalStyle(style)
 
     for (r = TT_TECHDEPBASE; r < DBNumTypes; r++)
     {
-	maskBits = style->exts_nodeConn[r] = DBConnectTbl[r];
+	maskBits = style->exts_nodeConn[r];
 	if (!TTMaskHasType(&style->exts_deviceMask, r))
 	{
 	     TTMaskZero(&style->exts_deviceConn[r]);

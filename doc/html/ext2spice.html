@@ -34,11 +34,15 @@ Convert extracted file(s) to a SPICE format file.
 		(see Summary, below).
 	   <DT> <B>default</B>
 	   <DD> Reset to default values
-	   <DT> <B>format hspice</B>|<B>spice2</B>|<B>spice3</B>|<B>ngspice</B>
+	   <DT> <B>format hspice</B>|<B>spice2</B>|<B>spice3</B>|<B>ngspice</B>|<B>cdl</B>
 	   <DD> Set output format.  <B>spice3</B> is the default,
 		for compatibility with <B>tclspice</B>.  This is a
 		change from previous versions of magic, where the
-		default was <B>hspice</B>.
+		default was <B>hspice</B>. <B>ngspice</B> is set as
+		default by the <B>ext2spice lvs</B> option.  <B>cdl</B>
+		format incorporates some common syntax used by CDL format
+		files, including placing a slash between a subcircuit's
+		pins and the subcircuit name.
 	   <DT> <B>rthresh</B> [<I>value</I>]
 	   <DD> Set resistance threshold value.  Lumped resistances
 		below this value will not be written to the output.  The
@@ -46,7 +50,6 @@ Convert extracted file(s) to a SPICE format file.
 		to prohibit writing any lumped resistances to the output.
 	   <DT> <B>cthresh</B> [<I>value</I>]
 	   <DD> Set capacitance threshold value.  The value is in femtofarads,
-		or may be the keyword <B>infinite</B> to prohibit writing
 		any parasitic capacitances to the output.
 	   <DT> <B>merge</B> [<I>merge_option</I>]
 	   <DD> Merge parallel devices/transistors.  The valid merge options are:
@@ -235,7 +238,7 @@ Convert extracted file(s) to a SPICE format file.
 	     class, and substrate node name for device type <I>device</I>.
 	     Resistance classes are indexed by number and must match the
 	     definition in the technology file's extract section.
-	<DT> <B>-f spice2</B>|<B>spice3</B>|<B>hspice</B>|<B>ngspice</B>
+	<DT> <B>-f spice2</B>|<B>spice3</B>|<B>hspice</B>|<B>ngspice</B>|<B>cdl</B>
 	<DD> Choose the output SPICE format for compatibility with
 	     different versions of SPICE.
 	<DT> <B>-d</B>
