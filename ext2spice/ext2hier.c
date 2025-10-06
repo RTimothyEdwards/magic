@@ -126,6 +126,49 @@ GetHierNode(
     return(nn->efnn_node);
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * spcHierWriteSubParam ---
+ *
+ * Special case of spcHierWriteParams() below.  Only check for the substrate
+ * parameter, which in the case of CDL format is written out before the
+ * device model, for whatever reason.  Return TRUE if the substrate parameter
+ * was output;  otherwise return FALSE.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+spcHierWriteSubParam(
+    HierContext *hc,
+    Dev *dev)           /* Dev being output */
+{
+    DevParam *plist;
+    bool retvalue = FALSE;
+
+    plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
+    while (plist != NULL)
+    {
+	switch (plist->parm_type[0])
+	{
+	    case 's':
+		if (dev->dev_subsnode == NULL)
+		    TxError("Error:  Device %s missing substrate node!\n",
+				EFDevTypes[dev->dev_type]);
+		else
+		{
+		    fprintf(esSpiceF, " %s=", plist->parm_name);
+		    spcdevSubstrate(hc->hc_hierName,
+				dev->dev_subsnode->efnode_name->efnn_hier,
+				dev->dev_type, esSpiceF);
+		    retvalue = TRUE;
+		}
+	}
+	plist = plist->parm_next;
+    }
+    return retvalue;
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -145,7 +188,8 @@ spcHierWriteParams(
     float scale,        /* Scale transform for output */
     int l,              /* Device length, in internal units */
     int w,              /* Device width, in internal units */
-    float sdM)          /* Device multiplier */
+    float sdM,          /* Device multiplier */
+    bool subdone)	/* If TRUE, then substrate parameter was already output */
 {
     DevParam *plist, *dparam;
     int parmval;
@@ -342,14 +386,19 @@ spcHierWriteParams(
 		}
 		break;
 	    case 's':
-		fprintf(esSpiceF, " %s=", plist->parm_name);
-		if (dev->dev_subsnode == NULL)
-		    TxError("Error:  Device %s missing substrate node!\n",
+		if (!subdone)
+		{
+		    if (dev->dev_subsnode == NULL)
+			TxError("Error:  Device %s missing substrate node!\n",
 				EFDevTypes[dev->dev_type]);
-		else
-		    spcdevSubstrate(hc->hc_hierName,
+		    else
+		    {
+			fprintf(esSpiceF, " %s=", plist->parm_name);
+			spcdevSubstrate(hc->hc_hierName,
 				dev->dev_subsnode->efnode_name->efnn_hier,
 				dev->dev_type, esSpiceF);
+		    }
+		}
 		break;
 	    case 'x':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -453,10 +502,15 @@ esOutputHierResistor(
     {
 	fprintf(esSpiceF, " %f", ((double)(dev->dev_res)
 			/ (double)(dscale)) / (double)sdM);
-	spcHierWriteParams(hc, dev, scale, l, w, sdM);
+	spcHierWriteParams(hc, dev, scale, l, w, sdM, FALSE);
     }
     else
     {
+	bool subdone = FALSE;
+
+	if (esFormat == CDL)
+	    subdone = spcHierWriteSubParam(hc, dev);
+
 	fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 	if (esScale < 0)
@@ -471,7 +525,7 @@ esOutputHierResistor(
 	    fprintf(esSpiceF, " l=");
 	    esSIvalue(esSpiceF, 1.0E-6 * (float)((l * scale * esScale) / dscale));
 	}
-	spcHierWriteParams(hc, dev, scale, l, w, sdM);
+	spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 	if (sdM != 1.0)
 	    fprintf(esSpiceF, " M=%g", sdM);
     }
@@ -588,6 +642,7 @@ spcdevHierVisit(
     float sdM;
     char devchar;
     bool has_model = TRUE;
+    bool subdone = FALSE;
 
     /* If no terminals, or only a gate, can't do much of anything */
     if (dev->dev_nterm <= 1 )
@@ -769,9 +824,11 @@ spcdevHierVisit(
 			source->dterm_node->efnode_name->efnn_hier,
 			"base", esSpiceF);
 
+	    if (esFormat == CDL)
+		subdone = spcHierWriteSubParam(hc, dev);
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 	    sdM = getCurDevMult();
-	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
+	    spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 	    break;
 
 	case DEV_MSUBCKT:
@@ -850,7 +907,7 @@ spcdevHierVisit(
 
 	    /* Write all requested parameters to the subcircuit call.	*/
 	    sdM = getCurDevMult();
-	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
+	    spcHierWriteParams(hc, dev, scale, l, w, sdM, FALSE);
 	    if (sdM != 1.0)
 		fprintf(esSpiceF, " M=%g", sdM);
 	    break;
@@ -921,9 +978,11 @@ spcdevHierVisit(
 		spcdevOutNode(hc->hc_hierName,
 			subnode->efnode_name->efnn_hier,
 			"diode_bot", esSpiceF);
+	    if (esFormat == CDL)
+		subdone = spcHierWriteSubParam(hc, dev);
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 	    sdM = getCurDevMult();
-	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
+	    spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 	    break;
 
 	case DEV_NDIODE:
@@ -942,9 +1001,11 @@ spcdevHierVisit(
 	    spcdevOutNode(hc->hc_hierName,
 			gate->dterm_node->efnode_name->efnn_hier,
 			"diode_top", esSpiceF);
+	    if (esFormat == CDL)
+		subdone = spcHierWriteSubParam(hc, dev);
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 	    sdM = getCurDevMult();
-	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
+	    spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 	    break;
 
 	case DEV_CAP:
@@ -971,10 +1032,12 @@ spcdevHierVisit(
 	    if (!has_model)
 	    {
 		esSIvalue(esSpiceF, 1.0E-15 * (double)sdM * (double)dev->dev_cap);
-		spcHierWriteParams(hc, dev, scale, l, w, sdM);
+		spcHierWriteParams(hc, dev, scale, l, w, sdM, FALSE);
 	    }
 	    else
 	    {
+		if (esFormat == CDL)
+		    subdone = spcHierWriteSubParam(hc, dev);
 		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 		if (esScale < 0)
@@ -988,7 +1051,7 @@ spcdevHierVisit(
 		    fprintf(esSpiceF, " l=");
 		    esSIvalue(esSpiceF, 1.0E-6 * l * scale * esScale);
 		}
-		spcHierWriteParams(hc, dev, scale, l, w, sdM);
+		spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 		if (sdM != 1.0)
 		    fprintf(esSpiceF, " M=%g", sdM);
 	    }
@@ -1018,10 +1081,12 @@ spcdevHierVisit(
 	    if (!has_model)
 	    {
 		esSIvalue(esSpiceF, 1.0E-15 * (double)sdM * (double)dev->dev_cap);
-		spcHierWriteParams(hc, dev, scale, l, w, sdM);
+		spcHierWriteParams(hc, dev, scale, l, w, sdM, FALSE);
 	    }
 	    else
 	    {
+		if (esFormat == CDL)
+		    subdone = spcHierWriteSubParam(hc, dev);
 		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 		if (esScale < 0)
@@ -1035,7 +1100,7 @@ spcdevHierVisit(
 		    fprintf(esSpiceF, " l=");
 		    esSIvalue(esSpiceF, 1.0E-6 * l * scale * esScale);
 		}
-		spcHierWriteParams(hc, dev, scale, l, w, sdM);
+		spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 		if (sdM != 1.0)
 		    fprintf(esSpiceF, " M=%g", sdM);
 	    }
@@ -1079,7 +1144,7 @@ spcdevHierVisit(
 		fprintf(esSpiceF, " l=");
 		esSIvalue(esSpiceF, 1.0E-6 * l * scale * esScale);
 	    }
-	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
+	    spcHierWriteParams(hc, dev, scale, l, w, sdM, FALSE);
 	    if (sdM != 1.0)
 		fprintf(esSpiceF, " M=%g", sdM);
 
