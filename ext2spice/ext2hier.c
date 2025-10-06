@@ -343,9 +343,13 @@ spcHierWriteParams(
 		break;
 	    case 's':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
-		/*EFNode *subnodeFlat =*/ spcdevSubstrate(hc->hc_hierName,
-			dev->dev_subsnode->efnode_name->efnn_hier,
-			dev->dev_type, esSpiceF);
+		if (dev->dev_subsnode == NULL)
+		    TxError("Error:  Device %s missing substrate node!\n",
+				EFDevTypes[dev->dev_type]);
+		else
+		    spcdevSubstrate(hc->hc_hierName,
+				dev->dev_subsnode->efnode_name->efnn_hier,
+				dev->dev_type, esSpiceF);
 		break;
 	    case 'x':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
