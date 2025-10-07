@@ -1867,12 +1867,13 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
 			* extTransRec.tr_perim));
 		break;
 	    case 'r':
-		/* If the device has an "area" resistance specified
-		 * by "devresist" in the tech file, use that.  If
-		 * it has a "perimeter" resistance specified, use
-		 * that as well.  If neither, then find the sheet
-		 * resistance of the device identifier layer and
-		 * use that.
+		/* If the device has an "area" resistance specified by
+		 * "devresist" in the tech file, use that.  If it has a
+	 	 * "perimeter" resistance specified, use that as well.  If
+		 * neither, then find the sheet resistance of the device
+		 * identifier layer and use that.  When using sheet
+		 * resistance, check if there is a devresist "terminal"
+		 * value, indicating terminal resistance per unit length.
 		 */
 		resvalue = (ResValue)0.0;
 		he = HashLookOnly(&extTransRec.tr_devrec->exts_deviceResist, "area");
@@ -1888,13 +1889,26 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
 			ResValue perimr;
 			perimr = (ResValue)(pointertype)HashGetValue(he);
 			perimr /= (ResValue)extTransRec.tr_perim;
-			resvalue += perimr;
+
+			/* Perimeter and area resistances combine in parallel */
+			resvalue = (ResValue)(1.0 / ((1.0 / (double)perimr) +
+				(1.0 / (double)resvalue)));
 		    }
 		}
 		else
 		{
-		    resvalue = ExtCurStyle->exts_sheetResist[reg->treg_type]
-				* (double)length / (double)width;
+		    resvalue = (ResValue)(
+				(double)ExtCurStyle->exts_sheetResist[reg->treg_type]
+				* (double)length / (double)width);
+
+		    he = HashLookOnly(&extTransRec.tr_devrec->exts_deviceResist,
+				"terminal");
+		    if (he != NULL)
+		    {
+			ResValue termr;
+			termr = (ResValue)(pointertype)HashGetValue(he);
+			resvalue += termr * width;
+		    }
 		}
 
 		fprintf(outFile, " %c=%g", chkParam->pl_param[0], (float)resvalue);
