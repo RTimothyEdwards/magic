@@ -189,6 +189,7 @@ EFGetLengthAndWidth(dev, lptr, wptr)
 	case DEV_VERILOGA:
 	case DEV_MSUBCKT:
 	case DEV_RSUBCKT:
+	case DEV_DSUBCKT:
 	case DEV_CSUBCKT:
 	case DEV_DIODE:
 	case DEV_PDIODE:

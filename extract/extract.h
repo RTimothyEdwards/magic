@@ -55,7 +55,8 @@ extern int ExtDoWarn;		/* Bitmask of above */
 #define DEV_RSUBCKT    12		/* Resistor-like subcircuit.	*/
 #define DEV_MSUBCKT    13		/* MOSFET-like subcircuit.	*/
 #define DEV_CSUBCKT    14		/* Capacitor-like subcircuit.	*/
-#define DEV_VERILOGA   15		/* Verilog-A model ("N" component) */
+#define DEV_DSUBCKT    15		/* Diode-like subcircuit.	*/
+#define DEV_VERILOGA   16		/* Verilog-A model ("N" component) */
 
 /* Device names for .ext file output (new in version 7.2)	*/
 /* (defined in extract/ExtBasic.c *and* extflat/EFread.c)	*/

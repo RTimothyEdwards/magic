@@ -895,6 +895,7 @@ efBuildDevice(
 	case DEV_MSUBCKT:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
+	case DEV_DSUBCKT:
 	    argstart = 0;
     }
 
@@ -976,6 +977,7 @@ efBuildDevice(
 	case DEV_CAPREV:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
+	case DEV_DSUBCKT:
 	case DEV_MSUBCKT:
 	case DEV_SUBCKT:
 	case DEV_VERILOGA:

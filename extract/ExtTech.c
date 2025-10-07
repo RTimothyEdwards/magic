@@ -205,7 +205,7 @@ static const keydesc keyTable[] = {
 /*
  * Table used for parsing the "device" keyword types
  *
- * (Note: "10" for max types in subcircuit is arbitrary---the parser
+ * (Note: "11" for max types in subcircuit is arbitrary---the parser
  * ignores max types for DEV_SUBCKT, DEV_MSUBCKT, and DEV_VERILOGA).
  */
 
@@ -246,6 +246,9 @@ static const keydesc devTable[] = {
 "name dev-types [N] [term1-types ... termN-types [sub-types|None sub-node]] [options]"},
 
     {"csubcircuit",	DEV_CSUBCKT,		4,	7,
+"name dev-types terminal-types [sub-types|None sub-node] [options]"},
+
+    {"dsubcircuit",	DEV_DSUBCKT,		4,	7,
 "name dev-types terminal-types [sub-types|None sub-node] [options]"},
 
     {"veriloga",	DEV_VERILOGA,		3,	11,
@@ -2815,6 +2818,7 @@ ExtTechLine(sectionName, argc, argv)
 
 		case DEV_RSUBCKT:
 		case DEV_CSUBCKT:
+		case DEV_DSUBCKT:
 		    nterm = (dv->k_key == DEV_RSUBCKT) ? 2 : 1;
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]);	/* terminals */
 		    TTMaskSetMask(allExtractTypes, &termtypes[0]);

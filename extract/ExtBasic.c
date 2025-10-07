@@ -57,7 +57,7 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 #ifdef MAGIC_WRAPPER
 const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
 	"devcap", "devcaprev", "vsource", "diode", "pdiode", "ndiode",
-	"subckt", "rsubckt", "msubckt", "csubckt", "veriloga", NULL};
+	"subckt", "rsubckt", "msubckt", "csubckt", "dsubckt", "veriloga", NULL};
 #endif
 
 /* --------------------- Data local to this file ---------------------- */
@@ -2719,6 +2719,7 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_DIODE:	/* Only handle the optional substrate node */
 	    case DEV_NDIODE:
 	    case DEV_PDIODE:
+	    case DEV_DSUBCKT:
 		/* Diode length and width are computed like capacitor	*/
 		/* length and width.  This operation is expensive, so	*/
 		/* do this ONLY if length and width are specified as	*/

@@ -805,6 +805,7 @@ spcdevHierVisit(
 	case DEV_SUBCKT:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
+	case DEV_DSUBCKT:
 	case DEV_MSUBCKT:
 	    devchar = 'X';
 	    break;
@@ -842,6 +843,7 @@ spcdevHierVisit(
 	    case DEV_VERILOGA:
 	    case DEV_RSUBCKT:
 	    case DEV_CSUBCKT:
+	    case DEV_DSUBCKT:
 	    case DEV_MSUBCKT:
 		fprintf(esSpiceF, "%d", esSbckNum++);
 		break;
@@ -884,6 +886,7 @@ spcdevHierVisit(
 	    break;
 
 	case DEV_MSUBCKT:
+	case DEV_DSUBCKT:
 	    /* msubcircuit is "Xnnn drain gate [source [sub]]]"		*/
 	    /* to more conveniently handle situations where MOSFETs	*/
 	    /* are modeled by subcircuits with the same pin ordering.	*/

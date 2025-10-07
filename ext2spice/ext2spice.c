@@ -2697,6 +2697,7 @@ spcdevVisit(
 	case DEV_VERILOGA:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
+	case DEV_DSUBCKT:
 	case DEV_MSUBCKT:
 	    break;
 	case DEV_DIODE:
@@ -2794,6 +2795,7 @@ spcdevVisit(
 	case DEV_SUBCKT:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
+	case DEV_DSUBCKT:
 	case DEV_MSUBCKT:
 	    devchar = 'X';
 	    break;
@@ -2835,6 +2837,7 @@ spcdevVisit(
 	    case DEV_VERILOGA:
 	    case DEV_RSUBCKT:
 	    case DEV_CSUBCKT:
+	    case DEV_DSUBCKT:
 	    case DEV_MSUBCKT:
 		fprintf(esSpiceF, "%d", esSbckNum++);
 		break;
@@ -2874,6 +2877,7 @@ spcdevVisit(
 	    break;
 
 	case DEV_MSUBCKT:
+	case DEV_DSUBCKT:
 
 	    /* MOS-like subcircuit is "Xnnn drain gate [source [sub]]"	*/
 	    /* to more conveniently handle cases where MOS devices are	*/
@@ -4439,6 +4443,7 @@ parallelDevs(
 	case DEV_VERILOGA:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
+	case DEV_DSUBCKT:
 	    break;
 
 	case DEV_VOLT:

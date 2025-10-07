@@ -50,7 +50,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
 		"devcap", "devcaprev", "vsource", "diode", "pdiode",
 		"ndiode", "subckt", "rsubckt", "msubckt", "csubckt",
-		"veriloga", NULL};
+		"dsubckt", "veriloga", NULL};
 #endif
 
 /*
@@ -376,6 +376,7 @@ readfile:
 		    case DEV_VERILOGA:
 		    case DEV_MSUBCKT:
 		    case DEV_RSUBCKT:
+		    case DEV_DSUBCKT:
 		    case DEV_CSUBCKT:
 			ac = 7;	/* Actually can have many arguments, which */
 			break;	/* we will deal with in efBuildDevice().   */
