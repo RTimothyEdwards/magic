@@ -559,11 +559,9 @@ esOutputHierResistor(
     {
 	bool subdone = FALSE;
 
+	spcHierWriteValue(hc, dev);
 	if (esFormat == CDL)
-	{
-	    spcHierWriteValue(hc, dev);
 	    subdone = spcHierWriteSubParam(hc, dev);
-	}
 
 	fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
@@ -1090,11 +1088,9 @@ spcdevHierVisit(
 	    }
 	    else
 	    {
+		spcHierWriteValue(hc, dev);
 		if (esFormat == CDL)
-		{
-		    spcHierWriteValue(hc, dev);
 		    subdone = spcHierWriteSubParam(hc, dev);
-		}
 		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 		if (esScale < 0)
@@ -1142,11 +1138,9 @@ spcdevHierVisit(
 	    }
 	    else
 	    {
+		spcHierWriteValue(hc, dev);
 		if (esFormat == CDL)
-		{
-		    spcHierWriteValue(hc, dev);
 		    subdone = spcHierWriteSubParam(hc, dev);
-		}
 		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
 		if (esScale < 0)
