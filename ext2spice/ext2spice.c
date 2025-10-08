@@ -1002,6 +1002,7 @@ runexttospice:
 	}
     }
 
+#ifdef MAGIC_WRAPPER
     if (esFormat == CDL)
     {
 	/* In CDL format, if the global substrate ends with "!" then
@@ -1038,7 +1039,6 @@ runexttospice:
 	}
     }
 
-#ifdef MAGIC_WRAPPER
     if (EFCompat == TRUE)
     {
 	/* Keep a pointer to the "GND" variable, if it exists. */
