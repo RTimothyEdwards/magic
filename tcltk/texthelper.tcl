@@ -139,7 +139,7 @@ proc magic::make_texthelper { mgrpath } {
 
    # Set up tag callbacks
 
-   magic::tag select "[magic::tag select]; magic::update_texthelper"
+   magic::tag add select "magic::update_texthelper"
 }
 
 # For all editable selected labels, fill in entries in the

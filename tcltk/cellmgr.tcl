@@ -10,9 +10,9 @@ if {$::tk_version >= 8.5} {
 
 set Opts(cellmgr) 0
 
-magic::tag select   "magic::mgrselect %r"
-magic::tag load     "catch {magic::clearstack}; magic::cellmanager"
-magic::tag getcell  "magic::cellmanager"
+magic::tag add select   "magic::mgrselect %r"
+magic::tag add load     "catch {magic::clearstack}; magic::cellmanager"
+magic::tag add getcell  "magic::cellmanager"
 
 # Callback to the cell manager
 
@@ -110,11 +110,14 @@ proc magic::makecellmanager { mgrpath } {
  		{magic::instcallback expand}
    button ${mgrpath}.actionbar.place -text "Place" -command \
 		{magic::instcallback place}
+   button ${mgrpath}.actionbar.refresh -text "Refresh" -command \
+		{magic::cellmanager update}
 
    pack ${mgrpath}.actionbar.load -side left
    pack ${mgrpath}.actionbar.edit -side left
    pack ${mgrpath}.actionbar.expand -side left
    pack ${mgrpath}.actionbar.place -side left
+   pack ${mgrpath}.actionbar.refresh -side left
    pack ${mgrpath}.actionbar.done -side right
 
    label ${mgrpath}.target.name -text "Target window:"

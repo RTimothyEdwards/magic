@@ -10,8 +10,11 @@ if {$::tk_version >= 8.5} {
 
 set Opts(libmgr) 0
 
-magic::tag addpath "magic::libmanager"
-magic::tag path    "magic::libmanager"
+magic::tag add addpath "magic::libmanager"
+magic::tag add path    "magic::libmanager"
+magic::tag add save    "magic::libmanager"
+magic::tag add writeall "magic::libmanager"
+magic::tag add select "magic::libmanager %1"
 
 # Callback to the library manager
 
@@ -82,12 +85,15 @@ proc magic::makelibmanager { mgrpath } {
    button ${mgrpath}.actionbar.load  -text "Load" -command {magic::libcallback load}
    button ${mgrpath}.actionbar.place -text "Place" -command {magic::libcallback place}
    button ${mgrpath}.actionbar.pick  -text "Pick" -command {magic::libcallback pick}
+   button ${mgrpath}.actionbar.refresh -text "Refresh" \
+	-command {magic::libmanager update}
    checkbutton ${mgrpath}.actionbar.filter -text "Filter" -variable filtered \
 	-command {magic::libmanager update}
 
    pack ${mgrpath}.actionbar.load -side left
    pack ${mgrpath}.actionbar.place -side left
    pack ${mgrpath}.actionbar.pick -side left
+   pack ${mgrpath}.actionbar.refresh -side left
    pack ${mgrpath}.actionbar.filter -side right
 
    label ${mgrpath}.target.name -text "Target window:"
@@ -181,6 +187,12 @@ proc magic::libmanager {{option "update"}} {
 
    # Use of command "path" is recursive, so break if level > 0
    if {[info level] > 1} {return}
+
+   # Because this has been tagged to the "select" command, avoid processing
+   # anything except the approved options.
+   if { $option != "update" && $option != "create" && $option != "save"} {
+      return
+   }
 
    # Check for existence of the manager widget
    if {[catch {wm state .libmgr}]} {

@@ -10,8 +10,8 @@ if {$::tk_version >= 8.5} {
 
 set Opts(drcmgr) 0
 
-magic::tag addpath "magic::drcmanager"
-magic::tag path    "magic::drcmanager"
+magic::tag add addpath "magic::drcmanager"
+magic::tag add path    "magic::drcmanager"
 
 # Callback to the DRC manager
 

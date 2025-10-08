@@ -220,7 +220,7 @@ TagCallback(interp, tkpath, argc, argv)
 		    if ((argidx >= 0) && (argidx < argc))
 		    {
 		        newcmd = (char *)mallocMagic(strlen(substcmd)
-				+ strlen(argv[argidx]));
+				+ strlen(argv[argidx]) + 1);
 		        strcpy(newcmd, substcmd);
 			strcpy(newcmd + (int)(sptr - substcmd), argv[argidx]);
 			strcat(newcmd, sptr + 2);
@@ -230,9 +230,16 @@ TagCallback(interp, tkpath, argc, argv)
 		    }
 		    else if (argidx >= argc)
 		    {
-		        newcmd = (char *)mallocMagic(strlen(substcmd) + 1);
+			/* Note that the assumption is that a specific
+			 * command option is expected.  Therefore if there
+			 * are fewer options given to the command, a
+			 * placeholder should be added.  Use an empty
+			 * brace {} for this.
+			 */
+		        newcmd = (char *)mallocMagic(strlen(substcmd) + 3);
 		        strcpy(newcmd, substcmd);
-			strcpy(newcmd + (int)(sptr - substcmd), sptr + 2);
+			strcpy(newcmd + (int)(sptr - substcmd), "{}");
+			strcat(newcmd, sptr + 2);
 			freeMagic(substcmd);
 			substcmd = newcmd;
 			sptr = substcmd;
@@ -296,11 +303,43 @@ AddCommandTag(ClientData clientData,
 {
     HashEntry *entry;
     char *hstring;
+    int argstart = 1, idx;
+    bool doadd = FALSE;
+    Tcl_Obj *objv1;
+
+    static char *tagtypes[] =
+    {
+	"add", "replace", NULL
+    };
+
+    typedef enum
+    {
+	IDX_ADD, IDX_REPLACE
+    } tagOption;
+
+    if (argc == 4)
+    {
+	/* For four arguments, the 2nd must be "add" or "replace" */
+	objv1 = Tcl_NewStringObj(argv[1], strlen(argv[1]));
+	if (Tcl_GetIndexFromObj(interp, objv1, (const char **)tagtypes,
+		"tag options", 0, &idx) == TCL_OK)
+	{
+	    if (idx == IDX_ADD)
+		doadd = TRUE;
+	    else if (idx == IDX_REPLACE)
+		doadd = FALSE;
+	}
+	else
+	    return TCL_ERROR;
+
+	argstart++;
+	argc--;
+    }
 
     if (argc != 2 && argc != 3)
 	return TCL_ERROR;
 
-    entry = HashFind(&txTclTagTable, argv[1]);
+    entry = HashFind(&txTclTagTable, argv[argstart]);
 
     if (entry == NULL) return TCL_ERROR;
 
@@ -312,16 +351,33 @@ AddCommandTag(ClientData clientData,
 	return TCL_OK;
     }
 
-    if (hstring != NULL) freeMagic(hstring);
+    /* If there is no existing tag then "tag add" is just "tag replace" */
+    if (doadd && (hstring == NULL)) doadd = FALSE;
 
-    if (strlen(argv[2]) == 0)
+    if (doadd)	/* add to existing contents */
     {
-	HashSetValue(entry, NULL);
+	if (strlen(argv[argstart + 1]) > 0)	/* Only handle non-empty strings */
+	{
+	    char *newstring = mallocMagic(strlen(hstring)
+			+ strlen(argv[argstart + 1]) + 4); 
+	    sprintf(newstring, "%s ; %s", hstring, argv[argstart + 1]);
+	    HashSetValue(entry, newstring);
+	    freeMagic(hstring);
+	}
     }
-    else
+    else	/* replace */
     {
-	hstring = StrDup((char **)NULL, argv[2]);
-	HashSetValue(entry, hstring);
+	if (hstring != NULL) freeMagic(hstring);
+
+	if (strlen(argv[argstart + 1]) == 0)
+	{
+	    HashSetValue(entry, NULL);
+	}
+	else
+	{
+	    hstring = StrDup((char **)NULL, argv[argstart + 1]);
+	    HashSetValue(entry, hstring);
+	}
     }
     return TCL_OK;
 }

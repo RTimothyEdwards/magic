@@ -180,6 +180,8 @@ macro XK_Pointer_Button4 "scroll u .05 w"
 macro XK_Pointer_Button5 "scroll d .05 w"
 macro Shift_XK_Pointer_Button4 "scroll l .05 w"
 macro Shift_XK_Pointer_Button5 "scroll r .05 w"
+macro Control_XK_Pointer_Button4 "zoom 1.6"
+macro Control_XK_Pointer_Button5 "zoom 0.625"
 # Quick macro function keys for scmos tech (X11 versions only)
 macro XK_F1  "paint ndiff"
 macro XK_F2  "paint pdiff"

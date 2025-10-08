@@ -105,7 +105,7 @@ magic::macro ^P "magic::gencell {} ; raise .params"
 # Add tag callback to select to update the gencell window
 #-------------------------------------------------------------
 
-magic::tag select "[magic::tag select]; magic::gencell_update %1"
+magic::tag add select "magic::gencell_update %1"
 
 #--------------------------------------------------------------
 # Supporting procedures for netlist_to_layout procedure
