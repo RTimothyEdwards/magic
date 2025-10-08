@@ -915,7 +915,11 @@ spcdevHierVisit(
 	    /* except that the "gate" node is treated as an identifier	*/
 	    /* only and is not output.					*/
 
-        if (dev->dev_class != DEV_MSUBCKT)
+	    if (dev->dev_class == DEV_DSUBCKT)
+	    {
+		/* Do nothing;  both terminals have already been output */
+	    }
+	    else if (dev->dev_class != DEV_MSUBCKT)
 	    {
 		if (dev->dev_nterm > 1)
 		    spcdevOutNode(hc->hc_hierName, source->dterm_node->efnode_name->efnn_hier,
