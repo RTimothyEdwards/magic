@@ -671,6 +671,15 @@ CmdTool(
 
     if (strcmp(cmd->tx_argv[1], "info") == 0)
 	DBWPrintButtonDoc();
+    else if (strcmp(cmd->tx_argv[1], "type") == 0)
+    {
+	char *toolType = DBWGetButtonHandler();
+#ifdef MAGIC_WRAPPER
+	Tcl_SetObjResult(magicinterp, Tcl_NewStringObj(toolType, -1));
+#else
+	TxPrintf("Current tool is \"%s\".\n", toolType);
+#endif /* MAGIC_WRAPPER */
+    }
     else (void) DBWChangeButtonHandler(cmd->tx_argv[1]);
 }
 

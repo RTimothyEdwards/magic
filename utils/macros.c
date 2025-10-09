@@ -38,6 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/macros.h"
 #include "windows/windows.h"
+#include "dbwind/dbwind.h"
 
 /* C99 compat */
 #include "textio/textio.h"
@@ -58,20 +59,29 @@ HashTable MacroClients;
  * Side Effects:
  *	Memory allocated for the hash table MacroClients.
  *
+ * Note:
+ *	Hash type changed from WORDKEYS to STRINGKEYS.
+ *	This is slightly less efficient but allows the
+ *	layout window client to be divided into separate
+ *	macro clients for each tool type, accessed by
+ *	name.
+ *
  *---------------------------------------------------------
  */
 
 void
 MacroInit()
 {
-    HashInit(&MacroClients, 4, HT_WORDKEYS);
+    HashInit(&MacroClients, 4, HT_STRINGKEYS);
 }
 
 /*
  *---------------------------------------------------------
- * MacroDefine ---
+ * MacroDefineByName ---
  *
- *	This procedure defines a macro.
+ *	This procedure defines a macro.  The macro table is
+ *	defined by name, not by client.  MacroDefine() is a
+ *	wrapper for this routine.
  *
  * Results:
  *	None.
@@ -83,8 +93,8 @@ MacroInit()
  */
 
 void
-MacroDefine(client, xc, str, help, imacro)
-    WindClient client;	/* window client type */
+MacroDefineByName(clientName, xc, str, help, imacro)
+    char *clientName;	/* window client name */
     int xc;		/* full (X11) keycode of macro with modifiers */
     char *str;		/* ...and the string to be attached to it */
     char *help;		/* ...and/or the help text for the macro */
@@ -95,7 +105,7 @@ MacroDefine(client, xc, str, help, imacro)
     macrodef *oldMacro, *newMacro;
 
     /* If a macro exists, delete the old string and redefine it */
-    h = HashFind(&MacroClients, (char *)client);
+    h = HashFind(&MacroClients, (char *)clientName);
     clienttable = (HashTable *)HashGetValue(h);
     if (clienttable == NULL)
     {
@@ -128,6 +138,45 @@ MacroDefine(client, xc, str, help, imacro)
 }
 
 /*
+ *------------------------------------------------------------------
+ * MacroDefine ---
+ *
+ *	This procedure is a simple wrapper for MacroDefineByName().
+ *	The window client is given as a client ID.  This limits
+ *	macros to one set per client type.  To allow a more
+ *	flexible macro handling, if the client is a layout window
+ *	(DBWclientID), then the name is instead taken from the
+ *	name of the tool currently active.  This allows macros
+ *	to be uniquely defined for each tool.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	The string passed is copied and considered to be the
+ *	macro definition for the character.
+ *------------------------------------------------------------------
+ */
+
+void
+MacroDefine(client, xc, str, help, imacro)
+    WindClient client;	/* window client type */
+    int xc;		/* full (X11) keycode of macro with modifiers */
+    char *str;		/* ...and the string to be attached to it */
+    char *help;		/* ...and/or the help text for the macro */
+    bool imacro;	/* is this an interactive macro? */
+{
+    char *clientName = NULL;
+
+    if (client == DBWclientID)
+	clientName = DBWGetButtonHandler();
+    if (clientName == NULL)
+	clientName = WindGetClientName(client);
+
+    MacroDefineByName(clientName, xc, str, help, imacro);
+}
+
+/*
  *---------------------------------------------------------
  * MacroDefineHelp ---
  *
@@ -152,9 +201,15 @@ MacroDefineHelp(client, xc, help)
     HashEntry *h;
     HashTable *clienttable;
     macrodef *curMacro;
+    char *clientName = NULL;
+
+    if (client == DBWclientID)
+	clientName = DBWGetButtonHandler();
+    if (clientName == NULL)
+	clientName = WindGetClientName(client);
 
     /* If a macro exists, delete the old string and redefine it */
-    h = HashFind(&MacroClients, (char *)client);
+    h = HashFind(&MacroClients, (char *)clientName);
     clienttable = (HashTable *)HashGetValue(h);
     if (clienttable == NULL) return;
 
@@ -194,9 +249,17 @@ MacroRetrieve(client, xc, iReturn)
     HashEntry *h;
     HashTable *clienttable;
     macrodef *cMacro;
+    char *clientName = NULL;
+
+    if (client == DBWclientID)
+	clientName = DBWGetButtonHandler();
+    if (clientName == NULL)
+	clientName = WindGetClientName(client);
+    if (clientName == NULL)
+	return NULL;
 
     /* If a macro exists, delete the old string and redefine it */
-    h = HashLookOnly(&MacroClients, (char *)client);
+    h = HashLookOnly(&MacroClients, (char *)clientName);
     if (h != NULL)
     {
 	clienttable = (HashTable *)HashGetValue(h);
@@ -241,9 +304,15 @@ MacroRetrieveHelp(client, xc)
     HashEntry *h;
     HashTable *clienttable;
     macrodef *cMacro;
+    char *clientName = NULL;
+
+    if (client == DBWclientID)
+	clientName = DBWGetButtonHandler();
+    if (clientName == NULL)
+	clientName = WindGetClientName(client);
 
     /* If a macro exists, delete the old string and redefine it */
-    h = HashLookOnly(&MacroClients, (char *)client);
+    h = HashLookOnly(&MacroClients, (char *)clientName);
     if (h != NULL)
     {
 	clienttable = (HashTable *)HashGetValue(h);
@@ -340,8 +409,14 @@ MacroDelete(client, xc)
     HashEntry *h;
     HashTable *clienttable;
     macrodef *cMacro;
+    char *clientName = NULL;
 
-    h = HashLookOnly(&MacroClients, (char *)client);
+    if (client == DBWclientID)
+	clientName = DBWGetButtonHandler();
+    if (clientName == NULL)
+	clientName = WindGetClientName(client);
+
+    h = HashLookOnly(&MacroClients, (char *)clientName);
     if (h != NULL)
     {
 	clienttable = (HashTable *)HashGetValue(h);
@@ -365,6 +440,62 @@ MacroDelete(client, xc)
     }
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ * MacroCopy --
+ *	Copy all macros from one table to another.
+ *	This is used with the "tool" command to simplify the process
+ *	of defining new macro sets for button and keypress actions
+ *	for a new tool type.  It copies all of the macros from the
+ *	table for the client passed as (WindClient type) "client" to
+ *	the table for the client named by (string) "clientkey".
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	New hash entries are created.
+ * ----------------------------------------------------------------------------
+ */
+
+void
+MacroCopy(client, clientkey)
+    WindClient client;	/* Current window client */
+    char *clientkey;	/* Name of client to copy macros to */
+{
+    HashTable *clienttable;
+    HashTable *copytable;
+    HashEntry *h, *he;
+    HashSearch hs;
+    char *clientName;
+    int cKey;
+    macrodef *cMacro;
+
+    if (clientkey == NULL) return;
+    if (client == (WindClient)NULL) return;
+
+    if (client == DBWclientID)
+        clientName = DBWGetButtonHandler();
+    if (clientName == NULL)
+        clientName = WindGetClientName(client);
+
+    h = HashLookOnly(&MacroClients, (char *)clientName);
+    if (h == NULL) return;	/* No clients, nothing can be done */
+
+    clienttable = (HashTable *)HashGetValue(h);
+    if (clienttable == NULL) return;	/* Also nothing can be done */
+
+    HashStartSearch(&hs);
+    while (TRUE)
+    {
+	he = HashNext(clienttable, &hs);
+	if (he == NULL) break;
+	cMacro = (macrodef *)HashGetValue(he);
+	cKey = (int)CD2INT(he->h_key.h_ptr);
+	MacroDefineByName(clientkey, cKey, cMacro->macrotext,
+			cMacro->helptext, cMacro->interactive);
+    }
+}
 
 /*
  * ----------------------------------------------------------------------------

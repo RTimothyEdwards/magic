@@ -325,6 +325,30 @@ WindGetClient(clientName, exact)
 
 /*
  * ----------------------------------------------------------------------------
+ * WindGetClientName --
+ *
+ *	Looks up the name of a client from the unique client ID for a window.
+ *
+ * Results:
+ *	A pointer to the client name is returned.  If the client is NULL,
+ *	then NULL is returned.
+ *
+ * Side effects:
+ *	None.
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+WindGetClientName(client)
+    WindClient client;
+{
+    clientRec *clientrec  = (clientRec *)client;
+    if (client == (WindClient)NULL) return NULL;
+    return clientrec->w_clientName;
+}
+
+/*
+ * ----------------------------------------------------------------------------
  * WindNextClient --
  *
  *	Return the w_nextClient record to the caller as a WindClient

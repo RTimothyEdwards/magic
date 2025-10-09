@@ -1087,6 +1087,22 @@ windDoMacro(w, cmd, interactive)
 	    do_reverse = TRUE;
 	    argstart++;
 	}
+	else if (!strcmp(cmd->tx_argv[argstart], "copy"))
+	{
+	    if (cmd->tx_argc > (argstart + 1))
+	    {
+		argstart++;
+		if (wc == (WindClient)NULL)
+		{
+		    if (w != NULL)
+			wc = w->w_client;
+		    else
+			wc = DBWclientID;
+		}
+		MacroCopy(wc, cmd->tx_argv[argstart]);
+	    }
+	    return;
+	}
 	else break;
     }
 

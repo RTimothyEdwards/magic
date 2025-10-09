@@ -27,6 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <string.h>
 
+#include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
@@ -238,6 +239,38 @@ DBWChangeButtonHandler(name)
     GrSetCursor(dbwButtonCursors[dbwButtonCurrentIndex]);
     DBWButtonCurrentProc = dbwButtonProcs[dbwButtonCurrentIndex];
     return oldName;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBWGetButtonHandler --
+ *
+ *	Return the name of the current button handler.  This does the same
+ *	thing as DBWChangeButtonHandler(name) with an invalid name, but
+ *	without printing the error messages.  However, if magic is running
+ *	with the Tcl interpreter wrapper, then return the string value of
+ *	$Opts(tool), if it exists.
+ *
+ * Results:
+ *	A pointer to the name of the current button handler.
+ *
+ * Side effects:
+ *	None.	
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+DBWGetButtonHandler()
+{
+#ifdef MAGIC_WRAPPER
+    char *toolName;
+    toolName = (char *)Tcl_GetVar2(magicinterp, "Opts", "tool", TCL_GLOBAL_ONLY);
+    if (toolName != NULL) return toolName;
+#endif
+    
+    return dbwButtonHandlers[dbwButtonCurrentIndex];
 }
 
 /*

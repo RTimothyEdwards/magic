@@ -516,8 +516,55 @@ proc magic::enable_tools {} {
    magic::macro space		{magic::tool}
    magic::macro Shift_space	{magic::tool box}
 
+   # Set these first because the magic::tool command defined
+   # in this script depends on them being valid.
    set Opts(tool) box
    set Opts(motion) {}
+
+   # Set up unique key macros for each individual tool.  This
+   # effectively defines what the tools are, since each tool
+   # is really just a collection of unique key bindings.  The
+   # default bindings are copied from the "box" tool, and
+   # then replacement bindings for button actions are applied.
+   # The user can change these bindings at will by using the
+   # "macro" command when the tool is active.
+
+   magic::macro copy wiring
+   magic::macro copy netlist
+   magic::macro copy pick
+
+   magic::tool wiring
+   macro  Button1          "magic::trackwire %W pick"
+   macro  Button2          "magic::trackwire %W done"
+   macro  Button3          "magic::trackwire %W cancel"
+   macro  Shift_Button1    "wire incr type ; wire show"
+   macro  Shift_Button2    "wire switch"
+   macro  Shift_Button3    "wire decr type ; wire show"
+   macro  Button4 "wire incr width ; wire show"
+   macro  Button5 "wire decr width ; wire show"
+
+   magic::tool netlist
+   macro  Button1          "netlist select"
+   macro  Button2          "netlist join"
+   macro  Button3          "netlist terminal"
+   # Remove shift-button bindings
+   macro  Shift_Button1    ""
+   macro  Shift_Button2    ""
+   macro  Shift_Button3    ""
+   macro  Button4 "scroll u .05 w"
+   macro  Button5 "scroll d .05 w"
+
+   magic::tool pick
+   macro  Button1          "magic::keepselect %W"
+   macro  Shift_Button2    "magic::startselect %W copy"
+   macro  Button2          "magic::startselect %W pick"
+   macro  Button3          "magic::cancelselect %W"
+   macro  Shift_Button1    "box corner bl cursor"
+   macro  Shift_Button3    "box move ur cursor"
+   macro  Button4 "scroll u .05 w"
+   macro  Button5 "scroll d .05 w"
+
+   magic::tool box
    set Opts(origin) {0 0}
    set Opts(backupinterval) 60000
    magic::crashbackups start
@@ -644,6 +691,9 @@ proc magic::tool {{type next}} {
       }
    }
    switch $type {
+      type {
+	 return $Opts(tool)
+      }
       info {
 	 # print information about the current tool.
 	 puts stdout "Current tool is $Opts(tool)."
@@ -675,63 +725,32 @@ proc magic::tool {{type next}} {
 	 if {[llength [macro Control_Button3]] > 0} {
 	    macro Control_Button3
 	 }
+	 if {[llength [macro Button4]] > 0} {
+	    macro Button4
+	 }
+	 if {[llength [macro Button5]] > 0} {
+	    macro Button5
+	 }
       }
       box {
 	 puts stdout {Switching to BOX tool.}
 	 set Opts(tool) box
 	 cursor 0	;# sets the cursor
-	 macro  Button1          "box move bl cursor; magic::boxview %W %1"
-	 macro  Shift_Button1    "box corner bl cursor; magic::boxview %W %1"
-	 macro  Button2          "paint cursor"
-	 macro  Shift_Button2    "erase cursor"
-	 macro  Button3          "box corner ur cursor"
-	 macro  Shift_Button3    "box move ur cursor; magic::boxview %W %1"
-	 macro  Button4 "scroll u .05 w; magic::boxview %W %1"
-	 macro  Button5 "scroll d .05 w; magic::boxview %W %1"
-	 macro  Shift_XK_Pointer_Button4 "scroll r .05 w; magic::boxview %W %1"
-	 macro  Shift_XK_Pointer_Button5 "scroll l .05 w; magic::boxview %W %1"
-
       }
       wiring {
 	 puts stdout {Switching to WIRING tool.}
 	 set Opts(tool) wiring
 	 cursor 19 	;# sets the cursor
-	 macro  Button1          "magic::trackwire %W pick"
-	 macro  Button2          "magic::trackwire %W done"
-	 macro  Button3          "magic::trackwire %W cancel"
-         macro  Shift_Button1    "wire incr type ; wire show"
-	 macro  Shift_Button2    "wire switch"
-	 macro  Shift_Button3    "wire decr type ; wire show"
-	 macro  Button4 "wire incr width ; wire show"
-	 macro  Button5 "wire decr width ; wire show"
-
       }
       netlist {
 	 puts stdout {Switching to NETLIST tool.}
 	 set Opts(tool) netlist
 	 cursor 18	;# sets the cursor
-         macro  Button1          "netlist select"
-	 macro  Button2          "netlist join"
-	 macro  Button3          "netlist terminal"
-         # Remove shift-button bindings
-         macro  Shift_Button1    ""
-	 macro  Shift_Button2    ""
-	 macro  Shift_Button3    ""
-	 macro  Button4 "scroll u .05 w"
-	 macro  Button5 "scroll d .05 w"
       }
       pick {
 	 puts stdout {Switching to PICK tool.}
 	 set Opts(tool) pick
 	 cursor 22	;# set the cursor
-         macro  Button1          "magic::keepselect %W"
-	 macro  Shift_Button2    "magic::startselect %W copy"
-	 macro  Button2          "magic::startselect %W pick"
-	 macro  Button3          "magic::cancelselect %W"
-	 macro  Shift_Button1    "box corner bl cursor"
-	 macro  Shift_Button3    "box move ur cursor"
-	 macro  Button4 "scroll u .05 w"
-	 macro  Button5 "scroll d .05 w"
       }
    }
 

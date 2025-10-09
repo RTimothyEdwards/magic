@@ -48,6 +48,7 @@ extern char *MacroRetrieveHelp(); /* returns a malloc'ed string */
 extern char *MacroSubstitute();	/* returns a malloc'ed string */
 extern void MacroDelete();
 extern char *MacroName();	/* returns a malloc'ed string */
+extern void MacroCopy();
 extern int MacroKey();
 extern int MacroCode();
 

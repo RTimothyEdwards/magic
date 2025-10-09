@@ -240,6 +240,7 @@ extern MagWindow *WindCreate();
 extern WindClient WindGetClient();
 extern WindClient WindNextClient();
 extern WindClient WindAddClient();
+extern char *WindGetClientName();
 extern void WindInit();
 extern void WindUpdate();
 extern void WindDrawBorder();
