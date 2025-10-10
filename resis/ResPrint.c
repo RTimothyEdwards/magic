@@ -113,7 +113,7 @@ ResPrintExtDev(outextfile, devices)
     RDev	*devices;
 {
     char *subsName;
-    ExtDevice *devptr, *devtest;
+    ExtDevice *devptr;
 
     for (; devices != NULL; devices = devices->nextDev)
     {
@@ -389,7 +389,7 @@ ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
     int		*nidx;
     CellDef	*celldef;
 {
-    char 	newname[16];
+    ARG_UNUSED(nodename);
     resNode	*nodeptr;
     resResistor	*resptr, *contact_res;
     resElement	*elemptr;
@@ -576,6 +576,7 @@ ResPrintFHRects(fp, reslist, nodename, eidx)
     char	*nodename;
     int		*eidx;		/* element (segment) index */
 {
+    ARG_UNUSED(nodename);
     resResistor	*resistors;
     float	oscale, thick, cwidth;
     int		edge;
@@ -677,6 +678,7 @@ ResPrintReference(fp, devices, cellDef)
     RDev	*devices;
     CellDef	*cellDef;
 {
+    ARG_UNUSED(devices);
     char 	*outfile = cellDef->cd_name;
     Rect	*bbox = &(cellDef->cd_bbox);
     int		numsegsx, numsegsy;

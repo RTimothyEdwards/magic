@@ -183,7 +183,6 @@ dbExpandFunc(scx, arg)
     struct expandArg *arg;	/* Client data from caller */
 {
     CellUse *childUse = scx->scx_use;
-    int n = DBLambda[1];
 
     /*
      * Change the expansion status of this cell if necessary.  Call the

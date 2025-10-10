@@ -466,6 +466,7 @@ CIFReadTechLine(
     int argc,			/* Number of fields on line. */
     char *argv[])		/* Values of fields. */
 {
+    ARG_UNUSED(sectionName);
     CIFOp *newOp = NULL;
     CIFReadKeep *newStyle, *p;
     HashEntry *he;

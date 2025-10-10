@@ -124,6 +124,7 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
     int	 (*attrproc)(), (*mergeproc)(), (*subproc)();
 
 {
+    ARG_UNUSED(mergeproc);
     char line[MAXLINE][MAXTOKEN];
     int	result, fettype, extfile;
     FILE *fp, *fopen();
@@ -255,7 +256,6 @@ ResReadNode(nodefile)
     HashEntry	*entry;
     ResSimNode	*node;
     char *cp;
-    float lambda;
 
     fp = PaOpen(nodefile, "r", ".nodes", ".", (char *)NULL, (char **)NULL);
     if (fp == NULL)
@@ -360,7 +360,6 @@ ResSimSubckt(line)
 {
     RDev	*device;
     int		rvalue, i, j, k;
-    static int	nowarning = TRUE;
     float	lambda;
     TileType	ttype = TT_SPACE;
     char	*lptr = NULL, *wptr = NULL;
@@ -498,7 +497,7 @@ ResSimDevice(line, rpersquare, devptr)
 
 {
     RDev	*device;
-    int		rvalue, i, j, k;
+    int		rvalue, i;
     char	*newattr, tmpattr[MAXTOKEN];
     static int	nowarning = TRUE;
     float	lambda;

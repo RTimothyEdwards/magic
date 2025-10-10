@@ -115,6 +115,7 @@ GlTest(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int glDebugSides();
     typedef enum { CLRDEBUG, ONLYNET, SETDEBUG, SHOWDEBUG, SIDES } cmdType;
     Rect editArea;

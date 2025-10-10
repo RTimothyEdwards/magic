@@ -139,6 +139,7 @@ NMcreate(window, argc, argv)
     int argc;			/* Count of additional arguments. */
     char *argv[];		/* Pointers to additional arguments. */
 {
+    ARG_UNUSED(argv);
     if (argc > 0)
         TxError("Ignoring extra argments for netlist menu creation.\n");
     if (NMWindow != NULL)
@@ -179,6 +180,7 @@ bool
 NMdelete(window)
     MagWindow *window;		/* The window that's about to disappear. */
 {
+    ARG_UNUSED(window);
     NMWindow = NULL;
     NMClearPoints();
     return TRUE;
@@ -216,6 +218,7 @@ NMreposition(window, newScreenArea, final)
 					 * cleanup.
 					 */
 {
+    ARG_UNUSED(newScreenArea);
     if (final) WindMove(window, &nmSurfaceArea);
     return 0;
 }
@@ -366,7 +369,6 @@ NMcommand(w, cmd)
     NetButton *nb;
     Point surfacePoint;
     void (*proc)();
-    int cmdNum;
 
     if (cmd->tx_button == TX_NO_BUTTON)
     {

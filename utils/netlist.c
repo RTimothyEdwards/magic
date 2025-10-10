@@ -218,6 +218,7 @@ nlLabelFunc(area, name, label, term)
     Label *label;	/* Label within scx->scx_use->cu_def */
     NLTerm *term;	/* Prepend new NLTermLoc to this terminal */
 {
+    ARG_UNUSED(name);
     NLTermLoc *loc;
 
     loc = (NLTermLoc *) mallocMagic((unsigned) (sizeof (NLTermLoc)));

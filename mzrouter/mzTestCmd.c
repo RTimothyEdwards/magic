@@ -83,6 +83,7 @@ mzDebugTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int result;
     bool value;
 
@@ -137,6 +138,7 @@ mzDumpEstimatesTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc > 2)
     {
 	TxPrintf("Too many args on '*mzroute dumpEstimates'\n");
@@ -184,6 +186,7 @@ mzDumpTagsTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc > 2)
     {
 	TxPrintf("Too many args on '*mzroute dumpTags'\n");
@@ -231,6 +234,7 @@ mzHelpTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int n;
     int which;
 
@@ -307,6 +311,8 @@ mzNumberLineTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
     NumberLine myLine;
     int *result;
 
@@ -386,6 +392,8 @@ mzParmsTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
 
     MZPrintRLs(mzRouteLayers);
     TxMore("");
@@ -417,6 +425,7 @@ mzPlaneTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     TileType t;
     RouteType *rT;
     char *layerName;
@@ -490,6 +499,7 @@ mzVersionCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
 
     if(cmd->tx_argc == 2)
     {

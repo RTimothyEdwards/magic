@@ -234,7 +234,7 @@ cifParseLayers(
 				*/
 {
     TileTypeBitMask curCifMask, curPaintMask;
-    char curLayer[40], *p, *cp;
+    char curLayer[40], *p;
     TileType paintType;
     int i;
     bool allResidues;
@@ -533,6 +533,7 @@ CIFTechLine(
     int argc,			/* Number of fields on line. */
     char *argv[])		/* Values of fields. */
 {
+    ARG_UNUSED(sectionName);
     TileTypeBitMask mask, tempMask, cifMask, bloatLayers;
     int i, j, l, distance;
     CIFLayer *newLayer;
@@ -2572,7 +2573,6 @@ CIFTechOutputScale(
 
 	    if (op->co_client)
 	    {
-		int nlayers;
 		switch (op->co_opcode)
 		{
 		    case CIFOP_SLOTS:

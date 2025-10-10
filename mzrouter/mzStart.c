@@ -93,7 +93,6 @@ mzStart(term)
 {
     RouteLayer *rL;
     RouteContact *rC;
-    Tile *tp;
     bool returnCode = TRUE;
     Point point;
     int result;
@@ -212,6 +211,8 @@ mzExtendInitPath(path, rL, point, cost, length, directions)
     int length;		/* length of path (excluding new segment) */
     int directions;	/* directions to extend init path in */
 {
+    ARG_UNUSED(length);
+    ARG_UNUSED(directions);
     Tile *tp;
     bool returnCode = TRUE;
     int orient;

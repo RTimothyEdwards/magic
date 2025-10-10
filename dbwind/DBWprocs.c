@@ -292,7 +292,6 @@ DBWloadWindow(window, name, flags)
     int xadd, yadd;
     Rect loadBox;
     char *rootname;
-    bool isUnnamed;
     int UnexpandFunc();		/* forward declaration */
 
     bool ignoreTech;	/* If FALSE, indicates that the technology of
@@ -677,7 +676,6 @@ DBWcommands(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int cmdNum;
 
     /* If it was a keyboard command, just dispatch to the proper
      * command routine.
@@ -781,7 +779,6 @@ void
 DBWinit()
 {
     MagWindow *initialWindow;
-    int i;
     static char *doc =
 	"You are currently using the \"box\" tool.  The button actions are:\n"
 	"   left    - move the box so its lower-left corner is at cursor position\n"

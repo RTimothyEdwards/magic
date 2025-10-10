@@ -494,11 +494,6 @@ extAddOverlap(tbelow, ecpls)
 	int ob = ExtCurStyle->exts_planeOrder[ecpls->plane_checked];
 	if (oa > ob)
 	{
-	    Tile *tp;
-	    TileType t, tres;
-	    TileTypeBitMask *mask;
-	    int len;
-	    CapValue cp;
 	    /*
 	     * Subtract the substrate capacitance from tabove's region due to
 	     * the area of the overlap, minus any shielded area.  The shielded
@@ -809,8 +804,6 @@ extAddCouple(bp, ecs)
     extCapStruct *ecs;
 {
     TileType tin = TiGetType(bp->b_inside), tout = TiGetType(bp->b_outside);
-    int pNum;
-    PlaneMask pMask;
     Boundary bpCopy;
     Rect r, ovr;
     extSidewallStruct esws;
@@ -928,7 +921,7 @@ extRemoveSubcap(bp, clip, esws)
     extSidewallStruct *esws;	/* Overlapping edge and plane information */
 {
     int dnear, length;
-    double snear, cfrac;
+    double snear;
     NodeRegion *rbp;
     TileType ta, tb;
     float mult;
@@ -1000,6 +993,7 @@ extFindOverlap(tp, area, esws)
     Rect *area;			/* Area to check for coupling */
     extSidewallStruct *esws;	/* Overlapping edge and plane information */
 {
+    ARG_UNUSED(tp);
     PlaneMask pMask;
     int pNum;
     Rect *rsave;
@@ -1063,12 +1057,11 @@ extSideOverlapHalo(tp, esws)
     NodeRegion *rtp = (NodeRegion *) extGetRegion(tp);
     NodeRegion *rbp = (NodeRegion *) extGetRegion(bp->b_inside);
     TileType ta, tb;
-    Rect tpr;
     struct sideoverlap sov;
     HashEntry *he;
     EdgeCap *e;
     int length;
-    double cfrac, sfrac, afrac, mult, efflength;
+    double cfrac, sfrac, mult, efflength;
     CapValue cap, subcap;
     CoupleKey ck;
     int dfar, dnear;
@@ -1290,7 +1283,6 @@ extSideOverlap(tp, esws)
     NodeRegion *rtp = (NodeRegion *) extGetRegion(tp);
     NodeRegion *rbp = (NodeRegion *) extGetRegion(bp->b_inside);
     TileType ta, tb;
-    Rect tpr;
     struct overlap ov;
     HashEntry *he;
     EdgeCap *e;

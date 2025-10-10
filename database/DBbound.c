@@ -61,7 +61,6 @@ DBBoundCellPlane(def, extended, rect)
     TreeFilter filter;
     DBCellBoundStruct cbs;
     int dbCellBoundFunc();
-    Plane *plane;
 
     filter.tf_func = NULL;
     filter.tf_arg = (ClientData)&cbs;

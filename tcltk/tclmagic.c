@@ -301,6 +301,8 @@ static int
 AddCommandTag(ClientData clientData,
         Tcl_Interp *interp, int argc, char *argv[])
 {
+    ARG_UNUSED(clientData);
+    ARG_UNUSED(interp);
     HashEntry *entry;
     char *hstring;
     int argstart = 1, idx;
@@ -540,7 +542,6 @@ _tk_dispatch(ClientData clientData,
         Tcl_Interp *interp, int argc, char *argv[])
 {
     int id;
-    char *tkpath;
     char *arg0;
     Point txp;
 
@@ -662,12 +663,12 @@ static int
 _magic_initialize(ClientData clientData,
         Tcl_Interp *interp, int argc, char *argv[])
 {
+    ARG_UNUSED(clientData);
     WindClient client;
-    int n, i;
+    int n;
     char keyword[100];
     char *kwptr = keyword + 7;
     const char * const *commandTable;
-    int result;
 
     /* Is magic being executed in a slave interpreter? */
 
@@ -781,6 +782,7 @@ static int
 _magic_flags(ClientData clientData,
         Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
+    ARG_UNUSED(clientData);
     int index, index2;
     bool value;
     static char *flagOptions[] = {"debug", "recover", "silent",
@@ -877,6 +879,10 @@ static int
 _magic_display(ClientData clientData,
         Tcl_Interp *interp, int argc, char *argv[])
 {
+    ARG_UNUSED(clientData);
+    ARG_UNUSED(interp);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
     /* Set the result to the name of the graphics mode used. */
     Tcl_SetResult(magicinterp, MainDisplayType, NULL);
     return TCL_OK;
@@ -892,6 +898,9 @@ static int
 _magic_startup(ClientData clientData,
         Tcl_Interp *interp, int argc, char *argv[])
 {
+    ARG_UNUSED(clientData);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
     /* Execute contents of startup files and load any initial cell */
 
     if (mainInitFinal() != 0)
@@ -1050,7 +1059,6 @@ TxGetLinePfix(dest, maxChars, prefix)
     char *prefix;
 {
     Tcl_Obj *objPtr;
-    int charsStored;
 #if TCL_MAJOR_VERSION < 9
     int length;
 #else
@@ -1229,7 +1237,7 @@ Tcl_printf(FILE *f, const char *fmt, va_list args_in)
     va_list args;
     static char outstr[128] = "puts -nonewline std";
     char *outptr, *bigstr = NULL, *finalstr = NULL;
-    int i, nchars, result, escapes = 0, limit;
+    int i, nchars, result, escapes = 0;
     Tcl_Interp *printinterp = (TxTkOutput) ? consoleinterp : magicinterp;
 
     strcpy (outstr + 19, (f == stderr) ? "err \"" : "out \"");
@@ -1375,7 +1383,7 @@ TerminalInputProc(instanceData, buf, toRead, errorCodePtr)
     int *errorCodePtr;
 {
     FileState *fsPtr = (FileState *)instanceData;
-    int bytesRead, i, tlen;
+    int bytesRead, tlen;
     char *locbuf;
 
     *errorCodePtr = 0;

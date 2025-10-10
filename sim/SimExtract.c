@@ -222,7 +222,6 @@ SimAddNodeList(
 void
 SimFreeNodeRegs(void)
 {
-    NodeRegion *p, *q;
 
     if( NodeRegList != (NodeRegion *) NULL )		/* sanity */
 	ExtFreeLabRegions((LabRegion *) NodeRegList );
@@ -242,7 +241,7 @@ SimFreeNodeRegs(void)
 int
 SimInitConnTables(void)
 {
-    int  i, t, sd, p;
+    int  i, t, sd;
     ExtDevice *devptr;
 
     SimTransMask = ExtCurStyle->exts_deviceMask;
@@ -480,6 +479,7 @@ SimTransistorTile(
     int		pNum,
     FindRegion	*arg)
 {
+    ARG_UNUSED(arg);
     int i;
     TileType t;
     ExtDevice *devptr;
@@ -709,7 +709,6 @@ SimGetNodeName(
 					 */
     const char		*path)		/* path name of hierarchy of search */
 {
-    CellDef	*def = sx->scx_use->cu_def;
     NodeRegion 	*nodeList;
     LabelList 	*ll;
     static char nodename[256];

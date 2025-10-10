@@ -63,6 +63,7 @@ int
 existFunc(
     Tile *tile)
 {
+    ARG_UNUSED(tile);
     return 1;
 }
 
@@ -85,7 +86,7 @@ checkForPaintFunc(
     ClientData arg)
 {
     int numPlanes = *((int *)arg);
-    int pNum, result;
+    int pNum;
 
     if (cellDef->cd_flags & CDINTERNAL) return 0;
 
@@ -167,6 +168,7 @@ CmdTech(
     MagWindow *w,		/* Window in which command was invoked. */
     TxCommand *cmd)		/* Info about command options. */
 {
+    ARG_UNUSED(w);
     int	option, action, i, locargc;
     const char * const *msg;
 #ifdef MAGIC_WRAPPER
@@ -657,6 +659,7 @@ CmdTool(
     MagWindow *w,		/* Window in which command was invoked. */
     TxCommand *cmd)		/* Info about command options. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc == 1)
     {
 	(void) DBWChangeButtonHandler((char *) NULL);
@@ -777,6 +780,7 @@ CmdUpsidedown(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     Transform trans;
     Rect rootBox, bbox;
     CellDef *rootDef;
@@ -842,6 +846,7 @@ cmdWhatPrintCell(
    Tile *tile,
    TreeContext *cxp)
 {
+    ARG_UNUSED(tile);
     struct linked_id **lid = (struct linked_id **)cxp->tc_filter->tf_arg;
     struct linked_id *curlid = *lid;
     char *CurrCellName;
@@ -1217,6 +1222,7 @@ cmdWhatPaintFunc(
     TileType type,		/* Type of this piece of paint. */
     TileTypeBitMask *mask)	/* Place to OR in type's bit. */
 {
+    ARG_UNUSED(rect);
     if (type & TT_DIAGONAL)
 	type = (type & TT_SIDE) ? (type & TT_RIGHTMASK) >> 14 :
 		(type & TT_LEFTMASK);
@@ -1238,6 +1244,8 @@ cmdWhatLabelPreFunc(
 				 * label found.
 				 */
 {
+    ARG_UNUSED(transform);
+    ARG_UNUSED(foundAny);
     LabelStore	*newPtr;
     CellDef *cellDef = cellUse->cu_def;	/* Cell definition containing label. */
 
@@ -1358,6 +1366,8 @@ cmdWhatCellFunc(
 				 * use found.
 				 */
 {
+    ARG_UNUSED(selUse);
+    ARG_UNUSED(transform);
     /* Forward reference */
     char *dbGetUseName(CellUse *celluse);
 
@@ -1382,6 +1392,8 @@ cmdWhatCellListFunc(
     Transform *transform,	/* Not used. */
     Tcl_Obj *newobj)		/* Tcl list object holding use names */
 {
+    ARG_UNUSED(selUse);
+    ARG_UNUSED(transform);
     Tcl_Obj *tuple;
     /* Forward reference */
     char *dbGetUseName(CellUse *celluse);
@@ -1942,6 +1954,7 @@ CmdWriteall(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int cmdWriteallFunc(CellDef *def, TxCommand *cmd);
     int option = -1;
     static const char * const writeallOpts[] = { "force", "modified", 0 };
@@ -2007,7 +2020,7 @@ cmdWriteallFunc(
 			 * argc is a list of cells to write.
 			 */
 {
-    char *prompt, *argv;
+    char *prompt;
     int i, action, cidx = 0;
     static const char * const actionNames[] =
         { "write", "flush", "skip", "abort", "autowrite", 0 };

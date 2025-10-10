@@ -103,7 +103,6 @@ EFDone(func)
     HashEntry *he;
     Kill *kill;
     Def *def;
-    Use *use;
     int n;
 
     HashStartSearch(&hs);

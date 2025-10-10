@@ -967,6 +967,7 @@ windBackgroundFunc(tile, notUsed)
     Tile *tile;
     ClientData notUsed;
 {
+    ARG_UNUSED(notUsed);
     Rect area;
 
     if (TiGetType(tile) == (TileType) TT_SPACE) return 0;

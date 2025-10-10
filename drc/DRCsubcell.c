@@ -228,7 +228,7 @@ drcSubcellFunc(subUse, flags)
     CellUse *subUse;		/* Subcell instance. */
     int *flags;			/* Information to propagate up */
 {
-    Rect area, haloArea, intArea, subIntArea, locIntArea;
+    Rect area, haloArea, intArea, subIntArea;
     int i;
 
     /* A subcell has been seen, so set the "cell found" flag */
@@ -965,5 +965,8 @@ drcIncCount(def, area, rule, count)
     DRCCookie *rule;
     int *count;
 {
+    ARG_UNUSED(def);
+    ARG_UNUSED(area);
+    ARG_UNUSED(rule);
     (*count)++;
 }

@@ -829,7 +829,7 @@ DBClearCellPlane(def)
 
 int dbDeleteCellUse(CellUse *use, ClientData arg)
 {
-    CellDef *def = (CellDef *)arg;
+    ARG_UNUSED(arg);
     CellUse *defuses, *lastuse;
 
     dbInstanceUnplace(use);

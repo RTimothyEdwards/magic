@@ -182,7 +182,6 @@ areaCheck(tile, arg)
 
     if (arg->dCD_radial != 0)
     {
-	unsigned int i;
 	int sqx, sqy;
 	int sdist = arg->dCD_radial & 0xfff;
 	long sstest, ssdist = (long) sdist * sdist;
@@ -440,11 +439,11 @@ drcTile (tile, arg)
     Rect *rect = arg->dCD_rect;	/* Area being checked */
     Rect errRect;		/* Area checked for an individual rule */
     MaxRectsData *mrd;		/* Used by widespacing rule */
-    TileTypeBitMask tmpMask, *rMask;
+    TileTypeBitMask tmpMask;
     bool trigpending;		/* Hack for widespacing rule */
     bool firsttile;
     int triggered;
-    int cdist, dist, ccdist, result;
+    int cdist, dist, result;
 
     arg->dCD_constraint = &errRect;
 
@@ -475,7 +474,6 @@ drcTile (tile, arg)
 
     if (IsSplit(tile) && !SplitSide(tile))
     {
-	int deltax, deltay;
 	TileType tt, to;
 
 	tt = TiGetLeftType(tile);	/* inside type */
@@ -495,7 +493,7 @@ drcTile (tile, arg)
 	{
 	    int deltax, deltay, w, h;
 	    double r;
-	    TileType dinfo, dsplit;
+	    TileType dinfo;
 
 	    /* Work to be done:  Handle triggering rules for non-Manhattan  */
 	    /* edges;  especially important for the wide-spacing rule.	    */

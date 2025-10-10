@@ -196,6 +196,7 @@ void
 windSetWindowPosition(w)
     MagWindow *w;
 {
+    ARG_UNUSED(w);
 }
 
 /*
@@ -264,6 +265,7 @@ WindCreate(client, frameArea, isHint, argc, argv)
     int argc;			/* Passed to the client */
     char *argv[];
 {
+    ARG_UNUSED(isHint);
     MagWindow *w;
     clientRec *cr;
     bool OK;

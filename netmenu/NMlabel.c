@@ -391,6 +391,8 @@ NMChangeNum(window,cmd, nmButton, point)
     Point *point;		/* Cursor position in surface coords. */
 
 {
+    ARG_UNUSED(window);
+    ARG_UNUSED(point);
     int *pNum;
 
     /* Figure out which number is involved. */
@@ -502,6 +504,8 @@ NMPutLabel(window, cmd, nmButton, point)
     TxCommand *cmd;		/* Complete info about command. (ignored) */
     Point *point;		/* Cursor position in surface coords. */
 {
+    ARG_UNUSED(window);
+    ARG_UNUSED(cmd);
     int pos;
     char *text;
 
@@ -542,6 +546,8 @@ NMReOrientLabel(window, cmd, nmButton, point)
     TxCommand *cmd;		/* Detailed info on command (ignored). */
     Point *point;		/* Cursor position in surface coords. */
 {
+    ARG_UNUSED(window);
+    ARG_UNUSED(cmd);
     int pos;
     Rect editArea;
 

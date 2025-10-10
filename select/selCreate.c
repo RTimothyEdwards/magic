@@ -291,7 +291,6 @@ int
 selIntersectPaintFunc(tile)
     Tile *tile;			/* The tile to copy paint from. */
 {
-    TileTypeBitMask tMask;
     Rect r;
     int pNum;
 
@@ -344,8 +343,7 @@ SelectIntersect(scx, type, xMask, negate)
 				 */
     bool negate;		/* If true, search on NOT(type) */
 {
-    TileTypeBitMask tMask, rMask;
-    TileType s, t;
+    TileTypeBitMask tMask;
     int plane;
     SearchContext scx2;
 
@@ -703,7 +701,6 @@ SelectChunk(scx, type, xMask, pArea, less)
 #define INITIALSIZE 10
     SearchContext newscx;
     TileTypeBitMask wrongTypes, typeMask;
-    TileType ttype;
     Rect bestChunk;
     int bestMin, bestMax, width, height;
     extern int selSplitFunc();		/* Forward reference. */
@@ -1225,7 +1222,7 @@ SelectAndCopy2(newSourceDef)
 					 */
 {
     SearchContext scx;
-    Rect editArea, labelArea, expanded;
+    Rect editArea;
     int plane;
     int (*savedPaintPlane)();
     extern int selACPaintFunc();	/* Forward reference. */

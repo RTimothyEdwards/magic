@@ -281,6 +281,7 @@ stackCopyFn(stackItem, i, cd)
     int i;
     ClientData cd;
 {
+    ARG_UNUSED(i);
     if(stackCopyStr)
 	StackPush((ClientData) StrDup((char **) NULL, (char *)stackItem), (Stack *) cd);
     else

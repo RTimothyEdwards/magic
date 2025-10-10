@@ -169,6 +169,7 @@ RtrDecompose(routeUse, area, netList)
     Rect *area;
     NLNetList *netList;
 {
+    ARG_UNUSED(netList);
     SearchContext scx;
     CellDef *cdTo;
     int tmp;

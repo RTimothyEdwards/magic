@@ -163,6 +163,7 @@ DBWredisplay(w, rootArea, clipArea)
     Rect *clipArea;		/* The screen area that we should clip to
 				 */
 {
+    ARG_UNUSED(clipArea);
     int i;
     TileTypeBitMask *mask;
     SearchContext scontext;
@@ -170,7 +171,7 @@ DBWredisplay(w, rootArea, clipArea)
     int bitMask, lambdasPerPixel, pixelsPerLambda;
     DBWclientRec *crec;
     CellDef *cellDef;
-    TileTypeBitMask layers, rmask;
+    TileTypeBitMask layers;
 
     /*
     TxPrintf("Root area (%d, %d) (%d, %d) redisplay.\n",
@@ -703,7 +704,6 @@ DBWDrawLabel(label, rect, pos, style, labelSize, sizeBox)
     Point p;
     Rect location;
     char *text = label->lab_text;
-    int result;
 
     if (style >= 0) GrSetStuff(style);
     GrDrawFastBox(rect, labelSize);
@@ -791,7 +791,6 @@ DBWDrawFontLabel(label, window, trans, style)
     Rect rootArea, labrect;
     int i, rotate, minv, scaledLambdasPerPixel;
     dlong tmp, dval, scale;
-    double rads;
 
     GeoTransRect(trans, &label->lab_rect, &rootArea);
     WindSurfaceToScreen(window, &rootArea, &labrect);
@@ -930,8 +929,9 @@ dbwLabelFunc(scx, label, tpath, clientData)
     TerminalPath *tpath;	/* Contains pointer to full pathname of label */
     ClientData clientData;	/* Used for mask for dbw_visibleLayers */
 {
+    ARG_UNUSED(tpath);
     Rect labRect, tmp;
-    int screenPos, screenRot, newStyle;
+    int screenPos, newStyle;
     TileTypeBitMask *vmask;
 
     vmask = (TileTypeBitMask *)clientData;
@@ -1725,6 +1725,7 @@ DBWTechAddStyle(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     TileType t, r;
     TileTypeBitMask *rMask;
     int i, sidx;

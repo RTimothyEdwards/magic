@@ -535,7 +535,6 @@ mzWalkLRContact(path)
     RoutePath *path;
 {
     Point pOrg;		/* point to extend from */
-    int extendCode;	/* Interesting directions to extend in */
     RouteContact *rC;   /* Route contact to make connection with */
     RouteLayer *newRL;	/* Route layer of dest area */
     dlong conCost;	/* Cost of final contact */
@@ -622,7 +621,6 @@ mzWalkUDContact(path)
     RoutePath *path;
 {
     Point pOrg;		/* point to extend from */
-    int extendCode;	/* Interesting directions to extend in */
     RouteContact *rC;   /* Route contact to make connection with */
     RouteLayer *newRL;	/* Route layer of dest area */
     dlong conCost;	/* Cost of final contact */

@@ -177,6 +177,9 @@ PlotPixTechLine(sectionName, argc, argv)
     int argc;			/* Number of arguments on line. */
     char *argv[];		/* Pointers to fields of line. */
 {
+    ARG_UNUSED(sectionName);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
     return TRUE;
 }
 

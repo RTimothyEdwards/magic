@@ -577,6 +577,7 @@ glCrossChoose(newRest, tp, pin, newPath)
     GCRPin *pin;	/* Pin on boundary of tp being considered */
     GlPoint *newPath;		/* Update newPath->gl_pin, newPath->gl_cost */
 {
+    ARG_UNUSED(tp);
     GCRPin *savePin;
     int cost;
 

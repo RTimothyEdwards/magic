@@ -171,6 +171,7 @@ DBTechAddContact(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     TileType contactType;
     int nresidues;
 
@@ -216,7 +217,6 @@ DBTechAddContact(sectionName, argc, argv)
 		else
 		{
 		    TileType lastType = TT_SPACE;
-		    char *primary;
 
 		    while (--argc > 1)
 		    {
@@ -826,7 +826,6 @@ DBTechTypesOnPlane(src, plane)
     int plane;
 {
     int i;
-    PlaneMask pmask;
 
     for (i = 0; i < DBNumTypes; i++)
 	if (TTMaskHasType(src, i))

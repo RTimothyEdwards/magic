@@ -1006,8 +1006,7 @@ TxGetLineWPrompt(
     const char *prompt,
     const char *prefix)
 {
-    char *res, *hist_res, *tmp;
-    int return_nothing = 0;
+    char *res;
 
     if (txHavePrompt) TxUnPrompt();
 #ifndef USE_READLINE

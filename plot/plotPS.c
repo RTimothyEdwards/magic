@@ -111,7 +111,6 @@ static PSStyle *curStyle;	/* Current style being output. */
 static PSColor *curColor;	/* Current color being output. */
 static PSPattern *curPattern;	/* Current pattern being output. */
 static int curLineWidth;	/* Current line width */
-static int curFont;		/* Current font */
 static TileTypeBitMask curMask;	/* Layers currently being searched:  this
 				 * is the AND of the mask from curStyle and
 				 * the layers that the user specified.
@@ -174,7 +173,6 @@ PSReset()
 void
 PlotPSTechInit()
 {
-    int i, j;
     PSStyle *style;
     PSColor *color;
     PSPattern *pattern;
@@ -230,6 +228,7 @@ PlotPSTechLine(sectionName, argc, argv)
     int argc;			/* Number of arguments on line. */
     char *argv[];		/* Pointers to fields of line. */
 {
+    ARG_UNUSED(sectionName);
     PSStyle *newstyle;
     PSColor *newcolor;
     PSPattern *newpattern;
@@ -382,7 +381,7 @@ plotPSLine(p1, p2)
 				 * coordinates.
 				 */
 {
-    int x1, x2, y1, y2, limit, diff;
+    int x1, x2, y1, y2, limit;
     bool tmptf;
 
     /* Clip the line to the rectangular area being output.  First,
@@ -525,7 +524,6 @@ plotPSPaint(tile, cxp)
 	 * to corner, and skip the rest of this procedure.
 	 */
 
-	Point ul, lr;
 
 	if (curLineWidth != PS_MEDIUM) {
 	    fprintf(file, "l2\n");
@@ -1135,7 +1133,7 @@ PlotPS(fileName, scx, layers, xMask)
 {
     int xsize, ysize;
     float yscale;
-    int i, j;
+    int j;
     int twidth, theight;
     char *fontptr, *fptr2, *fptr3;
     char line_in[100];

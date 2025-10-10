@@ -72,6 +72,7 @@ int
 extHierSubShieldFunc(tile)
     Tile *tile;
 {
+    ARG_UNUSED(tile);
     return 1;
 }
 
@@ -333,9 +334,8 @@ extHierConnectFunc1(oneTile, ha)
     Rect r;
     TileTypeBitMask mask, *connected;
     TileType rtype;
-    Label *lab, *newlab;
+    Label *lab;
     int i;
-    unsigned n;
 
     /*
      * Find all tiles that connect to 'srcTile', but in the
@@ -950,6 +950,7 @@ extHierLabFirst(tile, arg)
     Tile *tile;
     FindRegion *arg;
 {
+    ARG_UNUSED(tile);
     LabRegion *new;
 
     new = (LabRegion *) mallocMagic((unsigned) (sizeof (LabRegion)));

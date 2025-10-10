@@ -183,6 +183,8 @@ glPenCompute(chanList, netList)
     GCRChannel *chanList;	/* All the channels in the routing problem */
     NLNetList *netList;	/* Netlist being routed */
 {
+    ARG_UNUSED(chanList);
+    ARG_UNUSED(netList);
 #ifdef	notdef
     CZone *czones, *cz;
     GlobChan *gc;
@@ -567,6 +569,9 @@ glPenFindCrossingFunc(cz, srcPin, dstPin, rcc)
     GCRPin *srcPin, *dstPin;	/* UNUSED */
     struct glCrossClient *rcc;
 {
+    ARG_UNUSED(cz);
+    ARG_UNUSED(srcPin);
+    ARG_UNUSED(dstPin);
     NetSet *ns;
 
     ns = (NetSet *) mallocMagic((unsigned) (sizeof (NetSet)));
@@ -709,6 +714,8 @@ glPenRouteCost(rootUse, bestPath, pNetId, pCost)
     NetId *pNetId;	/* UNUSED */
     int *pCost;		/* Add bestPath->gl_cost to this */
 {
+    ARG_UNUSED(rootUse);
+    ARG_UNUSED(pNetId);
     *pCost += bestPath->gl_cost;
     return 0;
 }
@@ -852,6 +859,7 @@ glPenSavePath(rootUse, path, pNetId)
     GlPoint *path;	/* Path linked via gl_path pointers */
     NetId *pNetId;	/* Net and segment identifier */
 {
+    ARG_UNUSED(rootUse);
     GlPoint *newpath;
     NetClient *nc;
 
@@ -883,7 +891,6 @@ void
 glPenDensitySet(net)
     NLNet *net;
 {
-    NetClient *nc = (NetClient *) net->nnet_cdata;
     GCRPin *srcPin, *dstPin;
     GlPoint *rp;
     GlPoint *path;

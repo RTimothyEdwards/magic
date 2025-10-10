@@ -152,6 +152,7 @@ windPauseCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int i;
     static char ssline[TX_MAX_CMDLEN];
 
@@ -263,6 +264,7 @@ windQuitCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     clientRec *cr;
     bool checkfirst = TRUE;
     int exit_status = 0;
@@ -336,6 +338,7 @@ windRedoCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int count;
 
     if (cmd->tx_argc > 3)
@@ -410,6 +413,8 @@ windRedrawCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
    WindAreaChanged((MagWindow *) NULL, (Rect *) NULL);
 }
 
@@ -436,6 +441,7 @@ windResetCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1)
     {
 	TxError("Usage: %s\n", cmd->tx_argv[0]);

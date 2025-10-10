@@ -571,6 +571,8 @@ lefHasPaint(
     Tile *tile,
     ClientData clientData)
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(clientData);
     return 1;
 }
 
@@ -616,6 +618,8 @@ lefFindTopmost(
     Tile *tile,
     ClientData cdata)
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(cdata);
     return 1;	    /* Stop processing on the first tile found */
 }
 
@@ -2075,6 +2079,7 @@ lefGetSites(
     int i,
     ClientData clientData)
 {
+    ARG_UNUSED(i);
     CellDef *def = (CellDef *)stackItem;
     HashTable *lefSiteTbl = (HashTable *)clientData;
     HashEntry *he;
@@ -2105,6 +2110,7 @@ lefGetProperties(
     int i,
     ClientData clientData)
 {
+    ARG_UNUSED(i);
     CellDef *def = (CellDef *)stackItem;
     HashTable *lefPropTbl = (HashTable *)clientData;
     HashEntry *he;

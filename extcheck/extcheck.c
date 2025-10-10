@@ -22,10 +22,6 @@
  *     *********************************************************************
  */
 
-#ifndef lint
-static const char rcsid[] = "$Header: /usr/cvsroot/magic-8.0/extcheck/extcheck.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
-#endif  /* not lint */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -138,6 +134,7 @@ nodeVisit(
     double cap,
     ClientData cdata) /* unused */
 {
+    ARG_UNUSED(cdata);
     cap = (cap + 500) / 1000;
     res = (res + 500) / 1000;
 
@@ -159,6 +156,11 @@ devVisit(
     Transform *trans,
     ClientData cdata) /* UNUSED */
 {
+    ARG_UNUSED(dev);
+    ARG_UNUSED(hc);
+    ARG_UNUSED(scale);
+    ARG_UNUSED(trans);
+    ARG_UNUSED(cdata);
     ecNumDevs++;
     return 0;
 }
@@ -172,6 +174,9 @@ capVisit(
     double cap,
     ClientData cdata)	/* UNUSED */
 {
+    ARG_UNUSED(hn1);
+    ARG_UNUSED(hn2);
+    ARG_UNUSED(cdata);
     ecNumCaps++;
     if ((cap / 1000.) > (double) EFCapThreshold) ecNumThreshCaps++;
     return 0;
@@ -186,6 +191,9 @@ resistVisit(
     float res,
     ClientData cdata)   /* UNUSED */
 {
+    ARG_UNUSED(hn1);
+    ARG_UNUSED(hn2);
+    ARG_UNUSED(cdata);
     ecNumResists++;
     if ((res / 1000.) > EFResistThreshold) ecNumThreshResists++;
     return 0;

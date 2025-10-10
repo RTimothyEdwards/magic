@@ -169,7 +169,7 @@ maskToPrint (mask)
     int	i;
     int gotSome = FALSE;
     static char printchain[512];
-    char buffer[20], *drcName;
+    char buffer[20];
     int bufsize = 511;
 
     if (TTMaskIsZero(mask))

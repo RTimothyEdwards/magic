@@ -321,8 +321,8 @@ PlotVersTechLine(sectionName, argc, argv)
     int argc;			/* Number of arguments on line. */
     char *argv[];		/* Pointers to fields of line. */
 {
+    ARG_UNUSED(sectionName);
     VersatecStyle *new;
-    int i;
 
     new = (VersatecStyle *) mallocMagic(sizeof(VersatecStyle));
 
@@ -408,6 +408,7 @@ PlotColorVersTechLine(sectionName, argc, argv)
     int argc;			/* Number of arguments on line. */
     char *argv[];		/* Pointers to fields of line. */
 {
+    ARG_UNUSED(sectionName);
     VersatecStyle *new;
     static const struct { const char *l_str; int l_color; } colors[] = {
 	{"black",   BLACK},
@@ -420,7 +421,6 @@ PlotColorVersTechLine(sectionName, argc, argv)
 	{"Y",	   YELLOW},
 	{0}
     };
-    int i;
 
     new = (VersatecStyle *)mallocMagic(sizeof(VersatecStyle));
 
@@ -696,7 +696,6 @@ plotVersTile(tile, cxp)
 
     if (IsSplit(tile))
     {
-	int i, j;
 	TileType dinfo;
 	Rect r;
 
@@ -855,6 +854,7 @@ plotVersLabel(scx, label, tpath, raster)
     TerminalPath *tpath;	/* Ignored. */
     Raster *raster;		/* Raster to write to */
 {
+    ARG_UNUSED(tpath);
     Rect rootArea, swathArea, labelSize;
     Point point;
     int pos;

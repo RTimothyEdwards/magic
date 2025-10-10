@@ -128,6 +128,7 @@ nmwRipTileFunc(tile, plane, listHead)
     int plane;			/* Plane index of the tile */
     struct nmwarea **listHead;	/* Pointer to list head pointer. */
 {
+    ARG_UNUSED(plane);
     struct nmwarea *new;
 
     new = (struct nmwarea *) mallocMagic(sizeof(struct nmwarea));
@@ -227,6 +228,7 @@ nmRipLocFunc(rect, name, label, area)
 				 * all the tiles we delete.
 				 */
 {
+    ARG_UNUSED(name);
     struct nmwarea *list;
     Rect initialArea;
     TileTypeBitMask maskBits;
@@ -281,6 +283,7 @@ nmRipNameFunc(name, firstInNet, area)
 				 * nmRipLocFunc.
 				 */
 {
+    ARG_UNUSED(firstInNet);
     (void) DBSrLabelLoc(EditCellUse, name, nmRipLocFunc, (ClientData) area);
     return 0;
 }
@@ -407,6 +410,7 @@ nmwNetTermFunc(scx, label, tpath, netPtr)
     TerminalPath *tpath;	/* Gives hierarchical label name. */
     char **netPtr;		/* Pointer to a terminal in current net. */
 {
+    ARG_UNUSED(scx);
     char *p, *p2;
 
     if (strchr(tpath->tp_first, '/') == 0) return 0;
@@ -479,6 +483,7 @@ nmwNetTileFunc(tile, plane, netPtr)
     int plane;			/* Plane index of the tile */
     char **netPtr;		/* Pointer to pointer to net name. */
 {
+    ARG_UNUSED(plane);
     SearchContext scx;
     char label[TERMLENGTH];
     TerminalPath tpath;
@@ -717,6 +722,7 @@ nmwVerifyTileFunc(
     int plane,			/* Plane index of the tile. */
     ClientData cdata)		/* Processing function for each tile. */
 {
+    ARG_UNUSED(plane);
     int (*func)(Tile *) = (int (*)(Tile *))CD2FUN(cdata);
     SearchContext scx;
     char label[TERMLENGTH];
@@ -827,6 +833,7 @@ nmwVErrorLabelFunc(rect, name, label)
     char *name;			/* Hierarchical name of label. */
     Label *label;		/* Pointer to the label itself (not used). */
 {
+    ARG_UNUSED(label);
     char msg[200];
     Rect biggerArea;
 
@@ -1223,6 +1230,7 @@ nmMeasureFunc(r, type, clientData)
     TileType type;
     ClientData clientData;
 {
+    ARG_UNUSED(clientData);
     if(type == RtrMetalType)
 	nmMArea=nmMArea+(r->r_xtop-r->r_xbot)*(r->r_ytop-r->r_ybot);
     else

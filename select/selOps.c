@@ -241,6 +241,7 @@ selDelCellFunc(selUse, use)
     CellUse *selUse;		/* Not used. */
     CellUse *use;		/* What to delete. */
 {
+    ARG_UNUSED(selUse);
     if (use->cu_flags & CU_LOCKED) return 0;
 
     DBUnLinkCell(use, use->cu_parent);
@@ -793,6 +794,7 @@ selShortFindForward(srctile, srctype, srcpnum, desttile)
     int srcpnum;
     Tile *desttile;
 {
+    ARG_UNUSED(desttile);
     TileType type;
     TileTypeBitMask *lmask;
     Tile *tile, *tp;
@@ -1112,6 +1114,7 @@ selTransCellFunc(selUse, realUse, realTrans, transform)
 				 * copying.
 				 */
 {
+    ARG_UNUSED(realTrans);
     CellUse  *newUse;
     Transform newTrans;
 
@@ -1150,6 +1153,7 @@ selTransLabelFunc(label, cellUse, defTransform, transform)
 				 * Select2Def.
 				 */
 {
+    ARG_UNUSED(cellUse);
     Rect rootArea, finalArea;
     int rootJust, finalJust;
     Point rootOffset, finalOffset;
@@ -1253,6 +1257,7 @@ selExpandFunc(selUse, use, transform, mask)
     Transform *transform;	/* Not used. */
     int mask;			/* Windows in which to expand. */
 {
+    ARG_UNUSED(transform);
     /* Don't change expansion status of root cell:  screws up
      * DBWAreaChanged (need to always have at least top-level
      * cell be expanded).
@@ -1381,6 +1386,7 @@ selArrayCFunc(selUse, use, transform, arrayInfo)
     Transform *transform;	/* Transform from use->cu_def to root. */
     ArrayInfo *arrayInfo;	/* Array characteristics desired. */
 {
+    ARG_UNUSED(selUse);
     CellUse *newUse;
     Transform tinv, newTrans;
     Rect tmp, oldBbox;
@@ -1439,6 +1445,7 @@ selArrayLFunc(label, use, transform, arrayInfo)
     Transform *transform;	/* Transform from coords of def to root. */
     ArrayInfo *arrayInfo;	/* How to replicate. */
 {
+    ARG_UNUSED(use);
     int y, nx, ny, rootJust, rootRotate;
     Point rootOffset;
     Rect original, current;
@@ -1634,7 +1641,7 @@ selStretchEraseFunc(tile, plane)
     int planeNum;
     planeAndArea pa;
     TileType type, t;
-    TileTypeBitMask tmpmask, mask, *residueMask;
+    TileTypeBitMask tmpmask, mask;
     PaintUndoInfo ui;
     PaintResultType selStretchEraseTbl[NT];
     extern int selStretchEraseFunc2();
@@ -1916,7 +1923,7 @@ selStretchFillFunc3(tile, area)
 {
     Rect editArea, rootArea;
     TileType type, stype;
-    TileTypeBitMask *mask, *sMask, *tMask;
+    TileTypeBitMask *sMask, *tMask;
     StretchArea *sa;
 
     /* Compute the area to be painted. */

@@ -339,7 +339,6 @@ bool
 grtoglScrollBackingStore(MagWindow *w, Point *shift)
 {
     RenderFrame *rf;
-    GLuint FramebufferName, RenderbufferName;
     unsigned int width, height;
     int xorigin, yorigin, xshift, yshift;
 
@@ -399,7 +398,6 @@ void
 grtoglPutBackingStore(MagWindow *w, Rect *area)
 {
     RenderFrame *rf;
-    GLuint FramebufferName, RenderbufferName;
     unsigned int width, height;
     int ybot, xbot;
     Rect r;
@@ -456,6 +454,9 @@ GrTOGLReadPixel (w, x, y)
     MagWindow *w;
     int x,y;		/* the location of a pixel in screen coords */
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(x);
+    ARG_UNUSED(y);
     return 0;		/* OpenGL has no such function, so return 0 */
 }
 
@@ -479,6 +480,7 @@ GrTOGLBitBlt(r, p)
     Rect *r;
     Point *p;
 {
+    ARG_UNUSED(p);
     glCopyPixels(r->r_xbot, r->r_ybot, r->r_xtop - r->r_xbot + 1,
 		r->r_ytop - r->r_ybot + 1, GL_COLOR);
 }
@@ -498,6 +500,8 @@ void
 myCombine(GLdouble coords[3], GLdouble *vertex_data[4],
           GLfloat weight[4], GLdouble **outData, void *dataptr)
 {
+    ARG_UNUSED(vertex_data);
+    ARG_UNUSED(weight);
     /* This needs to be free'd at the end of gluTessEndPolygon()! */
     GLdouble *new = (GLdouble *)mallocMagic(2 * sizeof(GLdouble));
     new[0] = coords[0];
@@ -605,13 +609,14 @@ grtoglFontText(text, font, size, rotate, pos, clip, obscure)
     Rect  *clip;		/* Clipping area */
     LinkedRect *obscure;	/* List of obscuring areas */
 {
+    ARG_UNUSED(clip);
+    ARG_UNUSED(obscure);
     char *tptr;
     Point *coffset;		/* vector to next character */
     Rect *cbbox;
-    GLfloat fsize, matvals[16];
+    GLfloat fsize;
     FontChar *clist;
-    int cheight, baseline;
-    float tmp;
+    int baseline;
 
     /* Keep it simple for now---ignore clip and obscure */
 
@@ -680,8 +685,6 @@ grtoglPutText (text, pos, clip, obscure)
     Rect textrect;
     LinkedRect *ob;
     void grTOGLGeoSub();
-    int i;
-    float tscale;
 
     if (GrTOGLTextSize(text, toglCurrent.fontSize, &textrect) < 0) return;
 

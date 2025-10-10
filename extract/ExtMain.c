@@ -189,6 +189,7 @@ extIsUsedFunc(use, clientData)
     CellUse *use;
     ClientData clientData;	/* unused */
 {
+    ARG_UNUSED(clientData);
     CellDef *def = use->cu_def;
 
     /* If any cell is not marked CDDONTUSE then return 1 and stop the search. */
@@ -213,6 +214,8 @@ extEnumFunc(tile, plane)
     Tile *tile;
     int *plane;
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(plane);
     return 1;
 }
 

@@ -48,6 +48,7 @@ selUnselFunc(tile, arg)
      Tile *tile;
      ClientData *arg;
 {
+    ARG_UNUSED(arg);
   TileType type;
   Rect rect;
 
@@ -214,6 +215,7 @@ selRemoveLabelPaintFunc(tile, label)
      Tile *tile;
      Label *label;
 {
+    ARG_UNUSED(tile);
   (void) DBPutFontLabel(Select2Def, &label->lab_rect, label->lab_font,
 	label->lab_size, label->lab_rotate, &label->lab_offset,
 	label->lab_just, label->lab_text, label->lab_type,

@@ -192,6 +192,7 @@ CmdChannel(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     Rect newBox;
     CellDef *def, *RtrDecomposeName();
     char *name;
@@ -266,7 +267,6 @@ CmdGaRoute(w, cmd)
     char *name, *channame;
     int n, chanType;
     Rect editArea;
-    FILE *f;
     static const struct
     {
 	const char *cmd_name;
@@ -784,6 +784,7 @@ CmdSeeFlags(w, cmd)
     MagWindow * w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     Rect      rootRect;
     Point     point;
     MagWindow * window;

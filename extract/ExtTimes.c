@@ -400,6 +400,7 @@ extCountTiles(tile, cs)
     Tile *tile;			/* UNUSED */
     struct cellStats *cs;
 {
+    ARG_UNUSED(tile);
     cs->cs_rects++;
     return (0);
 }
@@ -783,7 +784,8 @@ extTimeProc(proc, def, tv)
     CellDef *def;
     struct timeval *tv;
 {
-    int secs, usecs, i;
+    ARG_UNUSED(proc);
+    ARG_UNUSED(def);
 
 #if defined(SYSV) || defined(EMSCRIPTEN)
     tv->tv_sec = 0;

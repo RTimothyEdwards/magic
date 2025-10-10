@@ -88,7 +88,6 @@ CmdEdit(
     CellDef *csave;
     int cmdEditRedisplayFunc(MagWindow *w, Rect *area);		/* Forward declaration. */
     int cmdEditEnumFunc(CellUse *selUse, CellUse *use, Transform *transform, Rect *area);		/* Forward declaration. */
-    bool noCurrentUse = FALSE;
 
     if ((w != NULL) && (cmd->tx_argc == 2))
     {
@@ -236,6 +235,7 @@ cmdEditEnumFunc(
 				 * area, in root coords.
 				 */
 {
+    ARG_UNUSED(selUse);
     Rect defArea, useArea;
     int xhi, xlo, yhi, ylo;
 
@@ -547,7 +547,6 @@ CmdElement(
 			    DBWElementPos(w, cmd->tx_argv[2], &crect);
 			else
 			{
-badrect:
 			    TxError("Usage: element configure <name> position "
 					"<x> <y> [<x2> <y2>]\n");
 			    return;
@@ -585,7 +584,6 @@ badrect:
 	    DBWElementInbox(&area);
 	    break;
 	case ELEMENT_HELP:
-badusage:
             for (msg = &(cmdElementOption[0]); *msg != NULL; msg++)
             {
                 TxPrintf("    %s\n", *msg);
@@ -763,6 +761,7 @@ cmdEraseCellsFunc(
     SearchContext *scx,		/* Indicates cell found. */
     ClientData cdarg)		/* Not used. */
 {
+    ARG_UNUSED(cdarg);
     /* All this procedure does is to remember cells that are
      * found, up to MAXCELLS of them.
      */
@@ -954,7 +953,6 @@ CmdExtract(
     CellDef	*selectedDef;
     bool dolist = FALSE;
     bool doforall = FALSE;
-    bool doLocal = FALSE;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
 

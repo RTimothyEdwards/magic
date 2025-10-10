@@ -327,7 +327,7 @@ CIFPaintWirePath(
     CIFPath *pathp, *previousp, *nextp, *polypath;
     CIFPath *returnpath, *newpath, *savepath;
     LinkedRect	*rectp;
-    double theta, phi, alpha, delta, cwidth, adjwidth, testmitre, savetheta;
+    double theta, phi, alpha, delta, cwidth, testmitre, savetheta;
     double xmaxoff, ymaxoff, xminoff, yminoff;
     double xmin, ymin, xmax, ymax, xnext, ynext;
     bool firstpoint;
@@ -495,9 +495,7 @@ CIFPaintWirePath(
 	}
 	else
 	{
-	    Rect r;
 	    double a1, a2, r2, d1;
-	    Point newpt;
 
 	    /* Check if either of the two new segments travels opposite	*/
 	    /* to theta.  If so, then we need to find the intersection	*/
@@ -666,7 +664,7 @@ bool
 CIFParseWire(void)
 {
     int		width;
-    CIFPath	*pathheadp, *polypath;
+    CIFPath	*pathheadp;
     int		savescale;
 
     /* Take the 'W'. */

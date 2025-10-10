@@ -867,6 +867,7 @@ simParseArgs(
     char ***pargv,
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     char **argv = *pargv;
     int argc = *pargc;
 
@@ -1022,6 +1023,7 @@ simdevVisit(
     Transform *trans,	/* Coordinate transform */
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     const DevTerm *gate, *source, *drain, *term;
     const EFNode *subnode;
     EFNode *snode, *dnode;
@@ -1543,6 +1545,7 @@ simcapVisit(
     double cap,
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     cap = cap / 1000;
     if (cap <= EFCapThreshold)
 	return 0;
@@ -1590,6 +1593,7 @@ simresistVisit(
     float res,
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     fprintf(esSimF, "r ");
     EFHNOut(hierName1, esSimF);
     fprintf(esSimF, " ");
@@ -1625,6 +1629,7 @@ simnodeVisit(
     double cap,
     ClientData cdata) /* unused */
 {
+    ARG_UNUSED(cdata);
     const EFNodeName *nn;
     const HierName *hierName;
     bool isGlob;
@@ -1797,6 +1802,8 @@ simmergeVisit(
     Transform *trans,	/* Coordinate transform (not used) */
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(trans);
+    ARG_UNUSED(cdata);
 	const DevTerm *gate, *source, *drain;
 	const EFNode *subnode, *snode, *dnode, *gnode;
 	int      pmode, l, w;

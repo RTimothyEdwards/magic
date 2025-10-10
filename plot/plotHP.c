@@ -299,7 +299,7 @@ PlotDumpHPRTL(hpfile, kRaster, cRaster, mRaster, yRaster)
     Raster *mRaster;
     Raster *yRaster;
 {
-    int line, count, line_offset = 0;
+    int line, count;
     int ipl, bpl;
     register int *c, *m, *y, *k;
     unsigned char *obytes;	/* bytes to output (compressed) */

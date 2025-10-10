@@ -597,6 +597,7 @@ dbTechAddPaintErase(type, sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     int pNum;
     PlaneMask pMask, rMask;
     TileType t1, t2, tres;

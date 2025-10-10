@@ -58,8 +58,6 @@ int WireUnits;		    // Units per lambda for wiring sizes
 void
 WireTechInit(void)
 {
-    Contact *contact;
-    int i;
 
     while (WireContacts != NULL)
     {
@@ -92,6 +90,7 @@ WireTechLine(
     int argc,			/* Number of arguments on line. */
     char *argv[])		/* Pointers to fields of line. */
 {
+    ARG_UNUSED(sectionName);
     Contact *new;
     int hasExtend = 0;
 

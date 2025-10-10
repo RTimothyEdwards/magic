@@ -1316,8 +1316,7 @@ DBFontLabelSetBBox(label)
     char *tptr;
     Point *coffset, rcenter;
     Rect *cbbox, locbbox, *frect;
-    Transform labTransform = GeoIdentityTransform;
-    int i, ysave, size;
+    int i, ysave;
     double rrad, cr, sr, tmpx, tmpy;
     bool expand;
 
@@ -1563,7 +1562,7 @@ DBLoadFont(fontfile, scale)
 	"v", "w", "x", "y", "z", "braceleft", "bar", "braceright",
 	"asciitilde", ".notdef", NULL
     };
-    int i, j, x, y, asciiidx, chardef, numidx;
+    int i, j, asciiidx, chardef, numidx;
     int numtok[NUMBUF];
     char *token, *psname = NULL;
     MagicFont *newFont = NULL, **newDBFontList;

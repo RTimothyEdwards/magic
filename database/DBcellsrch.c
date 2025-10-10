@@ -1802,7 +1802,7 @@ int dbScaleProp(name, value, cps)
     CellPropStruct *cps;
 {
     int scalen, scaled;
-    char *newvalue, *vptr;
+    char *newvalue;
     Rect r;
 
     if ((strlen(name) > 5) && !strncmp(name + strlen(name) - 5, "_BBOX", 5))
@@ -1940,7 +1940,6 @@ dbScaleCell(cellDef, scalen, scaled)
     int dbCellScaleFunc(), dbCellUseEnumFunc();
     Label *lab;
     int pNum;
-    LinkedTile *lhead, *lt;
     LinkedCellUse *luhead, *lu;
     Plane *newplane;
     BPlane *cellPlane, *cellPlaneOrig;
@@ -2155,7 +2154,6 @@ DBMoveCell(cellDef, origx, origy)
     int dbCellTileEnumFunc(), dbCellUseEnumFunc();
     Label *lab;
     int pNum;
-    LinkedTile *lhead, *lt;
     LinkedCellUse *luhead, *lu;
     Plane *newplane;
     BPlane *cellPlane, *cellPlaneOrig;

@@ -62,7 +62,6 @@ GetRect(fin, skip, rect, scalen, scaled)
     int scaled;			/* Scale down by this amount */
 {
     int n, c;
-    char *cp;
     bool isNegative;
     int dir = 0x1;
 

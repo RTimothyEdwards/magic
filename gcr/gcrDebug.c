@@ -73,9 +73,7 @@ GCRRouteFromFile(fname)
     static Point initOrigin = { 0, 0 };
     struct tms tbuf1, tbuf2;
     GCRChannel *ch;
-    Transform trans;
     FILE *fp;
-    Rect box;
 
     fp = fopen(fname, "r");
     if (fp == NULL)

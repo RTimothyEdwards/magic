@@ -426,7 +426,6 @@ extHardGenerateLabel(scx, reg, arg)
     char gen[100];
     int len;
     Rect r;
-    Point p;
 
     extMakeNodeNumPrint(gen, (LabRegion *)reg);
 

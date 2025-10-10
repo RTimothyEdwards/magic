@@ -260,8 +260,7 @@ cifFindCell(
     int cifNum)			/* The CIF number of the desired cell. */
 {
     HashEntry *h;
-    CellDef *def, *testdef;
-    int reused;
+    CellDef *def;
 
     h = HashFind(&CifCellTable, (char *)(spointertype)cifNum);
 
@@ -507,6 +506,8 @@ int cifCheckPaintFunc(
     Tile *tile,
     ClientData clientData)
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(clientData);
     return 1;
 }
 
@@ -517,7 +518,6 @@ cifCopyPaintFunc(
     Tile *tile,
     CIFCopyRec *cifCopyRec)
 {
-    int pNum;
     TileType dinfo;
     Rect sourceRect, targetRect;
     Transform *trans = cifCopyRec->trans;
@@ -563,7 +563,6 @@ cifMaskHintFunc(
     Tile *tile,
     LinkedRect **lrecp)
 {
-    Rect r;
     LinkedRect *newlr;
 
     newlr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
@@ -638,7 +637,6 @@ CIFPaintCurrent(
 		int pNum;
 		Plane *newplane;
 		Plane **parray;
-		extern char *(cifReadLayers[MAXCIFRLAYERS]);
 
 		/* NOTE:  The condition cd_client == 0 when CDFLATGDS
 		 * indicates that the cell was already in memory when the
@@ -1620,7 +1618,6 @@ CIFReadCellCleanup(
     HashEntry *h;
     HashSearch hs;
     CellDef *def;
-    MagWindow *window;
     int flags;
 
     if (cifSubcellBeingRead)

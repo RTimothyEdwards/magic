@@ -137,11 +137,6 @@ int TxCurButtons = 0;
 int TxCommandNumber = 0;
 
 /*
- * The "cmd" structure is shared by lisp and eval using this pointer
- */
-static TxCommand *lisp_cur_cmd = NULL;
-
-/*
  * ----------------------------------------------------------------------------
  *
  * FD_IsZero --
@@ -718,7 +713,6 @@ TxLogStart(
     else
     {
 	time_t t_stamp = time((time_t *)NULL);
-	struct tm *clock = localtime(&t_stamp);
 	char *now = ctime(&t_stamp);
 
 	TxPrintf("Logging commands to file \"%s\"\n", fileName);
@@ -1176,6 +1170,8 @@ TxParseString_internal(
     DQueue *q,
     TxInputEvent *event)
 {
+    ARG_UNUSED(q);
+    ARG_UNUSED(event);
     TxParseString(str);
 }
 

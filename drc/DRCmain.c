@@ -151,6 +151,7 @@ drcPaintError(celldef, rect, cptr, plane)
     DRCCookie * cptr;  			/* Design rule violated -- not used */
     Plane     * plane;			/* Where to paint error tiles. */
 {
+    ARG_UNUSED(cptr);
     PaintUndoInfo ui;
 
     ui.pu_def = celldef;
@@ -275,9 +276,9 @@ drcPrintError (celldef, rect, cptr, scx)
     DRCCookie * cptr;  		/* Design rule violated */
     SearchContext * scx;	/* Only errors in scx->scx_area get reported. */
 {
-    HashEntry *h;
+    ARG_UNUSED(celldef);
     int i;
-    Rect *area, r;
+    Rect *area;
 
     ASSERT (cptr != (DRCCookie *) NULL, "drcPrintError");
 
@@ -306,7 +307,7 @@ drcListError (celldef, rect, cptr, scx)
     DRCCookie * cptr;  		/* Design rule violated */
     SearchContext * scx;	/* Only errors in scx->scx_area get reported */
 {
-    HashEntry *h;
+    ARG_UNUSED(celldef);
     int i;
     Rect *area;
 
@@ -340,6 +341,7 @@ drcListallError (celldef, rect, cptr, scx)
     DRCCookie * cptr;  		/* Design rule violated */
     SearchContext * scx;	/* Only errors in scx->scx_area get reported. */
 {
+    ARG_UNUSED(celldef);
     Tcl_Obj *lobj, *pobj;
     HashEntry *h;
     Rect *area, r;
@@ -488,7 +490,7 @@ DRCWhy(dolist, use, area, findonly)
 {
     SearchContext scx;
     Rect box;
-    int i, nerrors;
+    int i;
     extern void drcWhyFunc();		/* Forward reference. */
     LinkedIndex *li;
 
@@ -558,6 +560,7 @@ DRCWhyAll(use, area, fout)
 					 * Write formatted output to fout
 					 */
 {
+    ARG_UNUSED(fout);
     SearchContext scx;
     Rect box;
     extern int drcWhyAllFunc();		/* Forward reference. */
@@ -656,6 +659,7 @@ drcWhyAllFunc(scx, cdarg)
     SearchContext *scx;		/* Describes current state of search. */
     ClientData cdarg;		/* Unused */
 {
+    ARG_UNUSED(cdarg);
     CellDef *def = scx->scx_use->cu_def;
 
     /* Check paint and interactions in this subcell. */
@@ -717,6 +721,7 @@ drcCheckFunc(scx, cdarg)
     SearchContext *scx;
     ClientData cdarg;		/* Not used. */
 {
+    ARG_UNUSED(cdarg);
     Rect cellArea;
     CellDef *def;
 
@@ -781,7 +786,6 @@ DRCCount(use, area, recurse)
     HashSearch	  hs;
     int		  count;
     SearchContext scx;
-    CellDef	  *def;
     extern int drcCountFunc();
 
     /* Shouldn't happen? */

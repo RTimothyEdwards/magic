@@ -530,7 +530,7 @@ mzDumpTagsFunc(tile, cxp)
     Tile *tile;
     TreeContext *cxp;
 {
-    SearchContext *scx = cxp->tc_scx;
+    ARG_UNUSED(cxp);
     Rect r;
 
     /* if tile has no client data attached, skip it */

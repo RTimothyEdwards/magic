@@ -182,8 +182,7 @@ EFFlatBuildOneLevel(def, flags)
     Def *def;		/* root def being flattened */
     int flags;
 {
-    int usecount, savecount;
-    Use *use;
+    int usecount;
     int efFlatNodesDeviceless();	/* Forward declaration */
     int efFlatCapsDeviceless();		/* Forward declaration */
     int flatnodeflags;
@@ -402,7 +401,6 @@ efFlatNodesDeviceless(hc, cdata)
 {
     int *usecount = (int *)cdata;
     int newcount;
-    Use *use;
 
     newcount = HashGetNumEntries(&hc->hc_use->use_def->def_uses);
 
@@ -965,7 +963,6 @@ efFlatCapsDeviceless(hc)
 {
     Connection *conn;
     int newcount;
-    Use *use;
 
     newcount = HashGetNumEntries(&hc->hc_use->use_def->def_uses);
 

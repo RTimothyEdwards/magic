@@ -276,7 +276,7 @@ void
 DBWFeedbackClear(text)
     char *text;
 {
-    int i, oldCount;
+    int oldCount;
     Feedback *fb, *fl, *fe;
     Rect area;
     CellDef *currentRoot;

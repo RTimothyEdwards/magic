@@ -85,14 +85,7 @@ unsigned int bpStatBA(BinArray *ba,
 		      int *totUnbinned,     /* ret tot num of e's not binned */
 		      int *maxDepth)        /* ret max bin array depth */
 {
-  Rect *bbox = &ba->ba_bbox;
-  int dx = ba->ba_dx;
-  int dy = ba->ba_dy;
   int numBins = ba->ba_numBins;
-  int dimX = ba->ba_dimX;
-  int dimY = numBins/dimX;
-  int w = GEO_WIDTH(bbox);
-  int h = GEO_HEIGHT(bbox);
 
   /* initial statistics */
   unsigned int mem = 0;
@@ -103,7 +96,6 @@ unsigned int bpStatBA(BinArray *ba,
   int maxCount = 0;
   int maxEff = 0;
   int maxEffSub = 0;
-  int maxSubCount = 0;
   int unbinned = 0;
   int depth = 1;
   int maxDepthSub = 0;
@@ -228,7 +220,6 @@ unsigned int BPStat(BPlane *bp,
 		      int *maxDepth)        /* ret max bin array depth */
 {
   BinArray *ba = bp->bp_rootNode;
-  int numBins;
   unsigned int mem = 0;
   int tot = 0;
   int bins = 0;

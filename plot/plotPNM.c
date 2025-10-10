@@ -398,7 +398,7 @@ pnmTile (tile, cxp)
     if (IsSplit(tile))
     {
 	TileType dinfo;
-	int w, h, llx, lly, urx, ury;
+	int llx, lly, urx, ury;
 	Rect scaledClip;
 
         type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
@@ -577,9 +577,8 @@ PlotPNM(fileName, scx, layers, xMask, width)
 					 */
 {
     FILE *fp = NULL;
-    Rect bbox;
     int bb_ysize, bb_xsize;
-    int i, x, y, tile_ydelta;
+    int x, y, tile_ydelta;
     int save_ds, iter;
     int scale_over_2, ds_over_2;
     float *strip = NULL;
@@ -1132,6 +1131,7 @@ PlotPNMTechLine(sectionName, argc, argv)
     int argc;			/* Number of arguments on line. */
     char *argv[];		/* Pointers to fields of line. */
 {
+    ARG_UNUSED(sectionName);
     int i, j, k, style;
     void PlotPNMSetDefaults();	/* Forward declaration */
 
@@ -1356,7 +1356,7 @@ PlotLoadStyles(filename)
     char fullName[256];
     char *buf;
     int newsec;
-    int ord, mask, color, outline, nfill, stipple;
+    int ord, mask, color, outline, stipple;
     int ir, ig, ib;
     char shortname;
     char longname[128];

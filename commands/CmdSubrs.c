@@ -1190,6 +1190,7 @@ cmdGetSelFunc(
     Transform *transform,	/* Transform from coords of realUse to root. */
     CellUse **pResult)		/* Store realUse here. */
 {
+    ARG_UNUSED(selUse);
     *pResult = realUse;
     if (cmdSelTrans != NULL)
 	*cmdSelTrans = *transform;

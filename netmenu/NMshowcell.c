@@ -407,6 +407,7 @@ nmSRNFunc(rect, name, label, cdarg)
     Label *label;
     ClientData cdarg;
 {
+    ARG_UNUSED(name);
     SearchContext scx;
 
     /* Expand the box area by one so we'll get everything that even

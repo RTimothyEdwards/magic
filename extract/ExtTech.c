@@ -18,9 +18,6 @@
  *     *********************************************************************
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)ExtTech.c	4.8 MAGIC (Berkeley) 10/26/85";
-#endif  /* not lint */
 
 #include <stdio.h>
 #include <stdlib.h>		/* for strtod() */
@@ -543,7 +540,6 @@ int
 ExtGetDiffTypesMask(mask)
     TileTypeBitMask *mask;
 {
-    TileType ttype;
 
     if (ExtCurStyle == NULL) return 1;
 
@@ -808,7 +804,6 @@ ExtStyle *
 extTechStyleAlloc()
 {
     ExtStyle *style;
-    TileType r;
 
     style = (ExtStyle *) mallocMagic(sizeof (ExtStyle));
     return style;
@@ -1112,7 +1107,6 @@ void
 ExtTechInit()
 {
     ExtKeep *style;
-    int r;
 
     /* Delete everything in ExtCurStyle */
 
@@ -1177,7 +1171,6 @@ ExtTechSimpleAreaCap(argc, argv)
     TileType s, t;
     TileTypeBitMask types, subtypes, shields;
     CapValue capVal;
-    float multVal;
     int plane1, plane2, plane3, pnum1, pnum2, pnum3;
     PlaneMask pshield;
 
@@ -1969,7 +1962,8 @@ ExtTechLine(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
-    int n, l, i, j, size, val, p1, p2, p3, nterm, iterm, class;
+    ARG_UNUSED(sectionName);
+    int n, l, i, j, val, p1, p2, p3, nterm, iterm, class;
     PlaneMask pshield, pov;
     CapValue capVal, gscap, gccap;
     ResValue resVal;
@@ -1983,7 +1977,6 @@ ExtTechLine(sectionName, argc, argv)
     ExtKeep *es, *newStyle;
     ParamList *subcktParams, *newParam;
     ExtDevice *devptr;
-    int refcnt;
     int offset;
     double dhalo;
     double doffset;
@@ -3479,7 +3472,6 @@ diffplane:
 void
 ExtTechFinal()
 {
-    ExtStyle *es;
     TileType s, t;
 
     /* Create a "default" style if there isn't one */

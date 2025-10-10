@@ -791,6 +791,7 @@ DefReadNonDefaultRules(
     float oscale,
     int total)
 {
+    ARG_UNUSED(rootDef);
     const char *token;
     int keyword, subkey;
     int processed = 0;
@@ -2429,7 +2430,6 @@ DefRead(
     int keyword, dscale, total;
     float oscale;
     Rect *dierect;
-    bool design_is_root = FALSE;
 
     static const char * const sections[] = {
 	"VERSION",

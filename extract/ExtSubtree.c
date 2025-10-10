@@ -117,6 +117,7 @@ extClearUseFlags(use, clientData)
     CellUse *use;
     ClientData clientData;
 {
+    ARG_UNUSED(clientData);
     use->cu_flags &= ~CU_SUB_EXTRACTED;
     return 0;
 }
@@ -436,7 +437,6 @@ extSubtreeInteraction(ha)
 {
     CellDef *oneDef, *cumDef = ha->ha_cumFlat.et_use->cu_def;
     ExtTree *oneFlat, *nextFlat;
-    NodeRegion *reg;
     SearchContext scx;
 
     scx.scx_trans = GeoIdentityTransform;
@@ -717,6 +717,8 @@ extFoundProc(tile, clientData)
     Tile *tile;
     ClientData clientData;
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(clientData);
     return 1;
 }
 
@@ -1056,7 +1058,6 @@ extSubtreeTileToNode(tp, pNum, et, ha, doHard)
 	"Cannot find the name of this node (probable extractor error)";
     CellDef *parentDef = ha->ha_parentUse->cu_def;
     LabRegion *reg;
-    Label *lab;
     Rect r;
     TileType ttype;
 

@@ -191,7 +191,6 @@ efReadDef(
     int argc, ac, n;
     CellDef *dbdef;
     EFCapValue cap;
-    EFNode *node;
     char *line = NULL, *argv[128], *name, *attrs;
     int size = 0;
     int rscale = 1;	/* Multiply resistances by this */
@@ -748,7 +747,6 @@ start:
 	if (size <= 1)
 	{
 	    char *newline;
-	    int i;
 
 	    *sizeptr += 1024;	/* Increase buffer size in 1024 byte increments */
 	    newline = (char *)mallocMagic(*sizeptr);

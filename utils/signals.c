@@ -164,6 +164,7 @@ SigRemoveTimer()
 sigRetVal
 sigOnAlarm(int signo)
 {
+    ARG_UNUSED(signo);
     if (GrDisplayStatus == DISPLAY_IN_PROGRESS)
 	GrDisplayStatus = DISPLAY_BREAK_PENDING;
 
@@ -205,6 +206,7 @@ SigTimerInterrupts()
 sigRetVal
 sigOnStop(int signo)
 {
+    ARG_UNUSED(signo);
     /* fix things up */
     TxResetTerminal(TRUE);
     GrStop();
@@ -410,6 +412,7 @@ SigUnWatchFile(filenum, filename)
 				 * calls (such as windows: /dev/winXX).
 				 */
 {
+    ARG_UNUSED(filename);
     int flags;
 
     flags = fcntl(filenum, F_GETFL, 0);
@@ -448,6 +451,7 @@ SigUnWatchFile(filenum, filename)
 sigRetVal
 sigOnInterrupt(int signo)
 {
+    ARG_UNUSED(signo);
     if (sigNumDisables != 0)
 	sigInterruptReceived = TRUE;
     else
@@ -476,6 +480,7 @@ sigOnInterrupt(int signo)
 sigRetVal
 sigOnTerm(int signo)
 {
+    ARG_UNUSED(signo);
     DBWriteBackup(NULL);
     exit (1);
 }
@@ -499,6 +504,7 @@ sigOnTerm(int signo)
 sigRetVal
 sigOnWinch(int signo)
 {
+    ARG_UNUSED(signo);
     SigGotSigWinch = TRUE;
     sigReturn;
 }
@@ -520,6 +526,7 @@ sigOnWinch(int signo)
 sigRetVal
 sigIO(int signo)
 {
+    ARG_UNUSED(signo);
     SigIOReady = TRUE;
     if (SigInterruptOnSigIO == 1) sigOnInterrupt(0);
     sigReturn;

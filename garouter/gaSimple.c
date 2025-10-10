@@ -576,6 +576,8 @@ gaIsClearFunc(tile, cxp)
     Tile *tile;
     TreeContext *cxp;
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(cxp);
     return 1;
 }
 

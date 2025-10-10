@@ -308,7 +308,6 @@ cifOut(
     FILE *outf)
 {
     CellDef *def;
-    bool needHier;
 
     while (!StackEmpty(cifStack))
     {
@@ -728,7 +727,6 @@ CIFWriteFlat(
 {
     bool good;
     int oldCount = DBWFeedbackCount;
-    TileTypeBitMask cifMask;
     SearchContext scx;
 
     cifStack = StackNew(1);

@@ -737,8 +737,9 @@ int
 dbcUnconnectFunc(tile, clientData)
     Tile *tile;				/* Current tile	*/
     ClientData clientData;		/* Unused.	*/
-
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(clientData);
     return 1;
 }
 
@@ -946,7 +947,6 @@ dbcConnectFunc(tile, cx)
     TileTypeBitMask notConnectMask;
     Rect *srArea;
     SearchContext *scx = cx->tc_scx;
-    SearchContext scx2;
     TileType loctype = TiGetTypeExact(tile);
     TileType dinfo = 0;
     int retval, i, pNum = cx->tc_plane;

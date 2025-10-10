@@ -262,7 +262,6 @@ grtoglSetStipple (stipple)
 bool
 GrTOGLInit ()
 {
-    bool rstatus;
 #ifdef THREE_D
     static int attributeList[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
 #else
@@ -490,10 +489,8 @@ TOGLEventProc(clientData, xevent)
     ClientData clientData;
     XEvent *xevent;
 {
-    TxInputEvent *event;
     HashEntry	*entry;
     Tk_Window tkwind = (Tk_Window)clientData;
-    Window wind;
     MagWindow *mw;
     unsigned char LocRedirect = TxInputRedirect;
 
@@ -552,7 +549,7 @@ TOGLEventProc(clientData, xevent)
 	    {
 		int keywstate, keymod, idx, idxmax;
 		char inChar[10];
-		Tcl_Channel outChannel = Tcl_GetStdChannel(TCL_STDOUT);
+		Tcl_GetStdChannel(TCL_STDOUT);
 
 		nbytes = XLookupString(KeyPressedEvent, inChar, sizeof(inChar),
 			&keysym, NULL);
@@ -833,7 +830,7 @@ keys_and_buttons:
 		XConfigureEvent *ConfigureEvent = (XConfigureEvent*) xevent;
 		Rect	screenRect;
 		int width, height;
-		bool result, need_resize;
+		bool need_resize;
 
 		width = ConfigureEvent->width;
 		height = ConfigureEvent->height;
@@ -973,9 +970,9 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
     char *outFileName;
     char *mouseFileName;
 {
-    char *planecount;
-    char *fullname;
-    FILE* f;
+    ARG_UNUSED(dispType);
+    ARG_UNUSED(outFileName);
+    ARG_UNUSED(mouseFileName);
     bool execFailed = FALSE;
     int x, y, width, height;
 
@@ -1098,7 +1095,6 @@ GrTOGLCreate(w, name)
     int		y      = glTransYs(w->w_frameArea.r_ytop);
     int		width  = w->w_frameArea.r_xtop - w->w_frameArea.r_xbot;
     int		height = w->w_frameArea.r_ytop - w->w_frameArea.r_ybot;
-    unsigned long        attribmask = CWBackPixel | CWBorderPixel | CWColormap;
     XSetWindowAttributes grAttributes;
 
     WindSeparateRedisplay(w);
@@ -1158,7 +1154,6 @@ GrTOGLCreate(w, name)
 
     if (tkwind != 0)
     {
-	bool result;
 
 	GrTOGLFlush();
 
@@ -1358,7 +1353,6 @@ GrTOGLLock(w, flag)
     MagWindow *w;
     bool flag;
 {
-    Window wind;
 
 #ifdef CAIRO_OFFSCREEN_RENDER
     /* Use Cairo graphics for off-screen rendering */

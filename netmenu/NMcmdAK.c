@@ -61,6 +61,7 @@ NMCmdAdd(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 3)
     {
 	TxError("Usage: add term1 term2\n");
@@ -129,6 +130,7 @@ NMCmdCleanup(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     extern int nmCleanupFunc1();	/* Forward reference. */
     struct nmcleanup *p;
 
@@ -215,6 +217,7 @@ nmCleanupFunc1(name, firstInNet, cdarg)
     bool firstInNet;		/* TRUE means first terminal of new net. */
     ClientData cdarg;		/* Not used. */
 {
+    ARG_UNUSED(cdarg);
     int count;
     struct nmcleanup *p;
 
@@ -251,6 +254,9 @@ nmCleanupFunc2(rect, name, label, pCount)
     Label *label;		/* Not used. */
     int *pCount;		/* Pointer to word to be incremented. */
 {
+    ARG_UNUSED(rect);
+    ARG_UNUSED(name);
+    ARG_UNUSED(label);
     *pCount += 1;
     return 0;
 }
@@ -300,6 +306,7 @@ NMCmdCull(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1)
     {
 	TxError("Usage: cull\n");
@@ -338,6 +345,7 @@ NMCmdDnet(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     int i;
 
     if (!NMHasList())
@@ -393,6 +401,7 @@ NMCmdDterm(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     int i;
     if (cmd->tx_argc < 2)
     {
@@ -444,6 +453,7 @@ NMCmdExtract(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1)
     {
 	TxError("Usage: extract\n");
@@ -483,6 +493,7 @@ NMCmdFindLabels(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     TileTypeBitMask mask, *pMask;
     char *pattern;
 
@@ -528,6 +539,7 @@ NMCmdFlush(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     char *name;
 
     if (cmd->tx_argc >= 3)
@@ -579,6 +591,7 @@ NMCmdJoinNets(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 3)
     {
 	TxError("Usage: joinnets term1 term2\n");

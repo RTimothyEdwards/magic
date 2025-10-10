@@ -561,9 +561,8 @@ WireAddLeg(
 void
 WireShowLeg(void)
 {
-    Rect current, new, leg, editArea, *rect = &current;
+    Rect current, new, *rect = &current;
     CellDef *boxRootDef;
-    SearchContext scx;
     Point cursorPos, *point = &cursorPos;
     TileTypeBitMask mask;
     int direction = WIRE_CHOOSE;
@@ -1078,6 +1077,7 @@ WireButtonProc(
     MagWindow *w,		/* Window in which button was pushed. */
     TxCommand *cmd)		/* Describes exactly what happened. */
 {
+    ARG_UNUSED(w);
     /* We do commands on the down-pushes and ignore the releases. */
 
     if (cmd->tx_buttonAction != TX_BUTTON_DOWN)

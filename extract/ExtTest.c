@@ -118,7 +118,6 @@ ExtractTest(w, cmd)
     int n, halo, bloat;
     CellUse *selectedCell;
     Rect editArea;
-    char *addr, *name;
     typedef enum {  CLRDEBUG, CLRLENGTH, DRIVER, DUMP, INTERACTIONS,
 		    INTERCOUNT, EXTPARENTS, RECEIVER, SETDEBUG, SHOWDEBUG,
 		    SHOWPARENTS, SHOWTECH, STATS, STEP, TIME } cmdType;

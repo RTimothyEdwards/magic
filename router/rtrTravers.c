@@ -443,6 +443,7 @@ rtrExamineStack(tile, ts)
     Tile *tile;
     struct rtrTileStack *ts;
 {
+    ARG_UNUSED(tile);
     int i;
     Tile *tp[3];
     struct conSrArg *csa = ts->ts_csa;

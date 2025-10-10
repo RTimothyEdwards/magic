@@ -734,10 +734,10 @@ void
 DBLockContact(ctype)
    TileType ctype;
 {
-    LayerInfo *lpImage, *lpPaint;
-    TileType c, n, itype, eresult;
+    LayerInfo *lpPaint;
+    TileType n;
     TileTypeBitMask *rmask;
-    int m, pNum;
+    int pNum;
 
     /* Have type, Erase * --> Result is type */
 
@@ -778,9 +778,7 @@ DBUnlockContact(ctype)
    TileType ctype;
 {
     LayerInfo *lpImage, *lpPaint;
-    TileType n, itype, eresult;
-    TileTypeBitMask *rmask;
-    int m, pNum;
+    TileType n;
 
     lpImage = &dbLayerInfo[ctype];
 
@@ -868,6 +866,7 @@ dbComposeDecompose(imageType, componentType, remainingType)
     TileType componentType;
     TileType remainingType;
 {
+    ARG_UNUSED(remainingType);
     int pNum = DBPlane(imageType);
     TileType resultType;
 

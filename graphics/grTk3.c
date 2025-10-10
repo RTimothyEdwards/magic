@@ -237,6 +237,7 @@ GrTkReadPixel (w, x, y)
     MagWindow *w;
     int x,y;		/* the location of a pixel in screen coords */
 {
+    ARG_UNUSED(w);
     XImage *image;
     unsigned long value;
     XWindowAttributes	att;
@@ -325,11 +326,13 @@ grtkFontText(text, font, size, rotate, pos, clip, obscure)
     Rect *clip;
     LinkedRect *obscure;
 {
+    ARG_UNUSED(clip);
+    ARG_UNUSED(obscure);
     char *tptr;
     FontChar *ccur, *clist;
-    Point *coffset, *tp, loffset, locoffset, corners[4], lpos;
+    Point *coffset, *tp, loffset, locoffset, lpos;
     Rect *cbbox, charbbox, *frect;
-    int np, i, j, w, h, llx, lly, baseline;
+    int np, i, j, w, h, baseline;
     XPoint *xp;
     Pixmap pxm;
     double fscale, scx, scy, tmpx, tmpy, rrad, cr, sr;

@@ -150,10 +150,6 @@ DBPlaceCell (use, def)
     CellUse   * use;	/* new celluse to add to subcell tile plane */
     CellDef   * def;    /* parent cell's definition */
 {
-    Rect             rect;    /* argument to DBSrCellPlaneArea(), placeCellFunc() */
-    BPlane          *bplane;  /* argument to DBSrCellPlaneArea(), placeCellFunc() */
-    struct searchArg arg;     /* argument to placeCellFunc() */
-
     ASSERT(use != (CellUse *) NULL, "DBPlaceCell");
     ASSERT(def, "DBPlaceCell");
 
@@ -184,9 +180,6 @@ DBPlaceCellNoModify (use, def)
     CellUse   * use;	/* new celluse to add to subcell tile plane */
     CellDef   * def;    /* parent cell's definition */
 {
-    Rect             rect;    /* argument to DBSrCellPlaneArea(), placeCellFunc() */
-    BPlane          *bplane;  /* argument to DBSrCellPlaneArea(), placeCellFunc() */
-    struct searchArg arg;     /* argument to placeCellFunc() */
 
     ASSERT(use != (CellUse *) NULL, "DBPlaceCell");
     ASSERT(def, "DBPlaceCell");

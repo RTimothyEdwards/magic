@@ -672,7 +672,6 @@ MZAddDest(rect, type)
     Rect *rect;
     TileType type;
 {
-    ColoredRect *dTerm;
 
     UndoDisable();
 

@@ -759,6 +759,8 @@ cmdFindLabelFunc(
     Label *label,
     LabSearchRec *cdarg)
 {
+    ARG_UNUSED(name);
+    ARG_UNUSED(label);
     if (cdarg->lsr_occur == 0)
     {
     	cdarg->lsr_rect = *rect;
@@ -897,6 +899,8 @@ dbListLabels(
     TerminalPath *tpath,		/* Full pathname of terminal	*/
     ClientData cdarg)			/* (unused)			*/
 {
+    ARG_UNUSED(scx);
+    ARG_UNUSED(cdarg);
     char *n = tpath->tp_next;
     char c = *n;
     strcpy(n, label->lab_text);
@@ -1515,6 +1519,7 @@ CmdIdentify(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     extern int cmdIdFunc(CellUse *selUse, CellUse *use, Transform *transform, char *newId);		/* Forward reference. */
 
     if (cmd->tx_argc != 2)
@@ -1548,6 +1553,7 @@ cmdIdFunc(
     Transform *transform,	/* Not used. */
     char *newId)		/* New id for cell use. */
 {
+    ARG_UNUSED(transform);
     if (EditCellUse == NULL)
     {
 	TxError("Top-level cell is not editable---cannot change identifier"
@@ -1969,7 +1975,7 @@ CmdFlatten(
     TxCommand *cmd)
 {
      int		i, xMask, optargs;
-     bool		dolabels, dobox, toplabels, invert, doports, doinplace;
+     bool		dolabels, dobox, toplabels, invert, doinplace;
      char		*destname;
      CellDef		*newdef;
      CellUse		*newuse;
@@ -1981,7 +1987,6 @@ CmdFlatten(
     dolabels = TRUE;
     toplabels = FALSE;
     dobox = FALSE;
-    doports = TRUE;
     doinplace = FALSE;
     optargs = cmd->tx_argc - 1;
 
@@ -2020,7 +2025,7 @@ CmdFlatten(
 			if (!strncmp(cmd->tx_argv[i] + 3, "prop", 4))
 			    xMask = (invert) ? CU_DESCEND_ALL : CU_DESCEND_PROP_FLAT;
 			else
-			    doports = (invert) ? FALSE : TRUE;
+			 	{;} // doports = (invert) ? FALSE : TRUE;
 			break;
 		    case 's':
 			xMask = (invert) ? CU_DESCEND_NO_SUBCKT : CU_DESCEND_ALL;

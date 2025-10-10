@@ -493,6 +493,7 @@ DBWDrawCrosshair(window, plane)
 				 * which highlight areas must be redrawn.
 				 */
 {
+    ARG_UNUSED(plane);
     Point p;
 
     /* Unlike most highlights, which are related to the database and	*/

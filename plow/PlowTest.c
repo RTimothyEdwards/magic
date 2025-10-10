@@ -134,6 +134,7 @@ PlowTest(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     pCmd plowCmd, plowGetCommand();
     Rect editArea, dummyRect, rootBox, area2;
     CellDef *def, *rootBoxDef, *saveDef;

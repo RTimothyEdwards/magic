@@ -300,7 +300,6 @@ calmaElementBoundary(void)
     if (rp != NULL)
     {
         Rect rpc;
-	int savescale;
 
 	/* Convert rp to magic database units to compare to label rects */
         rpc = rp->r_r;
@@ -507,11 +506,8 @@ calmaElementPath(void)
 {
     int nbytes = -1, rtype = 0, extend1, extend2;
     int layer, dt, width, pathtype, ciftype, savescale;
-    int xmin, ymin, xmax, ymax, temp;
-    CIFPath *pathheadp, *pathp, *previousp;
-    Rect segment;
+    CIFPath *pathheadp, *pathp;
     Plane *plane;
-    int first,last;
     CellUse *use;
     CellDef *savedef = NULL, *newdef = NULL;
 

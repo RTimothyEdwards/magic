@@ -511,6 +511,8 @@ mainInitBeforeArgs(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
     TechOverridesDefault = FALSE;
     if (Path == NULL)
 	Path = StrDup((char **) NULL, ".");

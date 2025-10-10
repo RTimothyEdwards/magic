@@ -167,7 +167,7 @@ efBuildNode(def, isSubsnode, isDevSubsnode, isExtNode, nodeName, nodeCap,
     if (newname && (def->def_kills != NULL))
     {
 	HashEntry *hek;
-	EFNodeName *nn, *knn, *nodeAlias, *lastAlias;
+	EFNodeName *knn, *nodeAlias, *lastAlias;
 
 	/* Watch for nodes that are aliases of the node that was most
 	 * recently killed.  This can occur in .res.ext files where an
@@ -644,8 +644,6 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
 	    return;		/* Repeated "equiv" statement */
 	if (nn1->efnn_node != nn2->efnn_node)
 	{
-	    struct efnode *node1 = nn1->efnn_node;
-	    struct efnode *node2 = nn2->efnn_node;
     	    HashSearch hs;
 	    HashEntry *he;
 
@@ -854,12 +852,11 @@ efBuildDevice(
     DevParam *newparm, *devp, *sparm;
     TileType ttype;
     int dev_type;
-    char ptype, *pptr, **av;
+    char *pptr, **av;
     char devhash[64];
     int argstart = 1;	/* start of terminal list in argv[] */
     bool hasModel = strcmp(type, "None") ? TRUE : FALSE;
 
-    int area, perim;	/* Total area, perimeter of primary type (i.e., channel) */
 
     newdev = (Dev *)NULL;
     devtmp.dev_subsnode = NULL;
@@ -2110,8 +2107,6 @@ efFreeUseTable(table)
     HashSearch hs;
     HashEntry *he;
     Use *use;
-    HierName *hn;
-    EFNodeName *nn;
 
     HashStartSearch(&hs);
     while ((he = HashNext(table, &hs)))

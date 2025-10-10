@@ -345,6 +345,7 @@ windFrameUp(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if (WindNewButtons == 0)
     {
 	GrSetCursor(STYLE_CURS_NORMAL);
@@ -642,7 +643,6 @@ windCmdInterp(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int cmdNum;
 
     switch (cmd->tx_button)
     {

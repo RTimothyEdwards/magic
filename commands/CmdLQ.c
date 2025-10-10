@@ -189,7 +189,6 @@ CmdLabel(
     TileType type = (TileType)(-1);
     int pos = -1, font = -1, size = 0, rotate = 0, offx = 0, offy = 0;
     bool sticky = FALSE;
-    int option;
     char *p;
 
     if (cmd->tx_argc < 2 || cmd->tx_argc > 9)
@@ -554,6 +553,8 @@ keepGoing(
     CellUse *use,
     ClientData clientdata)
 {
+    ARG_UNUSED(use);
+    ARG_UNUSED(clientdata);
     return 0;	/* keep the search going */
 }
 
@@ -598,6 +599,7 @@ CmdLocking(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int option;
 
     static const char * const cmdLockingYesNo[] = { "disable", "no", "false", "off", "0",
@@ -1089,6 +1091,7 @@ CmdPath(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     char **pathptr;
     char *srcptr;
     int option;
@@ -1289,6 +1292,7 @@ cmdPortLabelFunc1(
     TerminalPath *tpath,
     ClientData cdata)
 {
+    ARG_UNUSED(tpath);
     Label **rlab = (Label **)cdata;
 
     if (GEO_SURROUND(&scx->scx_area, &label->lab_rect))
@@ -1311,6 +1315,7 @@ cmdPortLabelFunc2(
     TerminalPath *tpath,
     ClientData cdata)
 {
+    ARG_UNUSED(tpath);
     Label **rlab = (Label **)cdata;
 
     if (GEO_OVERLAP(&scx->scx_area, &label->lab_rect))
@@ -1526,7 +1531,6 @@ CmdPort(
     int argstart;
     int i, refidx, idx, pos, type, option, argc;
     unsigned int dirmask;
-    bool found;
     bool nonEdit = FALSE, doQuiet = FALSE;
     Label *lab, *sl;
     Rect editBox, tmpArea;
@@ -2425,6 +2429,7 @@ printPropertiesFunc(
     ClientData value,
     ClientData cdata) /* not used */
 {
+    ARG_UNUSED(cdata);
 #ifdef MAGIC_WRAPPER
     char *keyvalue;
 
@@ -2479,8 +2484,6 @@ CmdNetlist(
 {
     int option;
     const char * const *msg;
-    char *lastargv;
-    Point cursor;
     static const char * const cmdNetlistOption[] =
     {
 	"help           print this help information",
@@ -2561,6 +2564,8 @@ CmdOrient(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
     Transform trans, t2;
     int orientidx, locargc;
     char *orientstr;

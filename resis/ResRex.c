@@ -244,6 +244,7 @@ CmdExtResis(win, cmd)
     MagWindow *win;
     TxCommand *cmd;
 {
+    ARG_UNUSED(win);
     int i, j, k, option, value, saveFlags;
     static int init = 1;
     static float rthresh, tdiTolerance, fhFrequency;
@@ -759,6 +760,7 @@ resPortFunc(scx, lab, tpath, result)
     TerminalPath *tpath;
     int *result;
 {
+    ARG_UNUSED(tpath);
     Rect r;
     int pclass, puse;
     Point portloc;
@@ -993,7 +995,6 @@ ResCheckSimNodes(celldef, resisdata)
     int		total =0;
     char	*outfile = celldef->cd_name;
     float	rctol = resisdata->tdiTolerance;
-    float	rthresh = resisdata->rthresh;
     int		nidx = 1, eidx = 1;	/* node & segment counters for geom. */
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
@@ -1203,7 +1204,6 @@ ResCheckSimNodes(celldef, resisdata)
 	if ((node->resistance > ftolerance) || (node->status & FORCE) ||
 		(ResOpt_ExtractAll & ResOptionsFlags))
 	{
-	    ResFixPoint	fp;
 
 	    failed1++;
 	    if (ResExtractNet(node, &gparams, outfile) != 0)
@@ -1767,6 +1767,7 @@ ResAlignNodes(nodelist, reslist)
     resNode	*nodelist;
     resResistor *reslist;
 {
+    ARG_UNUSED(nodelist);
     resResistor *resistor;
     resNode	*node1;
     short	i;

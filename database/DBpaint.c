@@ -744,7 +744,7 @@ DBSplitTile(plane, point, splitx)
     Point *point;
     int splitx;
 {
-    Tile *tile, *newtile, *tp;
+    Tile *tile, *newtile;
     tile = PlaneGetHint(plane);
     GOTOPOINT(tile, point);
 
@@ -805,7 +805,6 @@ DBFracturePlane(plane, area, resultTbl, undo)
     TileType oldType;
     Tile *tile, *newtile;
     Tile *tpnew;	/* Used for area search */
-    Tile *tp;		/* Used for paint */
 
     if (area->r_xtop <= area->r_xbot || area->r_ytop <= area->r_ybot)
 	return;
@@ -1511,7 +1510,6 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
     if (exacttype & TT_DIAGONAL)
     {
 	int dbNMEnumFunc();	/* Forward reference */
-	TileRect arg;
 
 	dinfo.resultTbl = resultTbl;
 	dinfo.dir = (exacttype & TT_DIRECTION) ? 1 : 0;
