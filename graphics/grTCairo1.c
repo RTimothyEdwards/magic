@@ -546,7 +546,7 @@ XEvent *xevent;
 	break;
 	case KeyPress:
 	{
-		int keywstate, keymod, idx, idxmax;
+		int keywstate, keymod, modifier, idx, idxmax;
 		char inChar[10];
 		Tcl_Channel outChannel = Tcl_GetStdChannel(TCL_STDOUT);
 
@@ -569,6 +569,7 @@ keys_and_buttons:
 #else
 		keymod |= (Mod1Mask & KeyPressedEvent->state);
 #endif
+		modifier = keymod;
 
 		if (nbytes == 0)	/* No ASCII equivalent */
 		{
@@ -631,71 +632,81 @@ keys_and_buttons:
 			if ((LocRedirect == TX_INPUT_REDIRECTED) && TxTkConsole)
 			{
 #if TCL_MAJOR_VERSION < 9
-				Tcl_SavedResult state;
+			    Tcl_SavedResult state;
 #else
-				Tcl_InterpState state;
+			    Tcl_InterpState state;
 #endif
-				static char outstr[] = "::tkcon::Insert .text \"x\" ";
+			    static char outstr[] = "::tkcon::Insert .text \"x\" ";
 
-				switch (keysym)
-				{
+			    switch (keysym)
+			    {
 				case XK_Return:
-					TxSetPoint(KeyPressedEvent->x,
-					           grXtransY(mw, KeyPressedEvent->y),
-					           mw->w_wid);
-					TxInputRedirect = TX_INPUT_PROCESSING;
-					Tcl_EvalEx(consoleinterp, "::tkcon::Eval .text",
+				    TxSetPoint(KeyPressedEvent->x,
+						grXtransY(mw, KeyPressedEvent->y),
+						mw->w_wid);
+				    TxInputRedirect = TX_INPUT_PROCESSING;
+				    Tcl_EvalEx(consoleinterp, "::tkcon::Eval .text",
 					           19, 0);
-					TxInputRedirect = TX_INPUT_NORMAL;
-					TxSetPrompt('%');
+				    TxInputRedirect = TX_INPUT_NORMAL;
+				    TxSetPrompt('%');
 
 #if TCL_MAJOR_VERSION < 9
-					Tcl_SaveResult(magicinterp, &state);
+				    Tcl_SaveResult(magicinterp, &state);
 #else
-					state = Tcl_SaveInterpState(magicinterp, TCL_OK);
+				    state = Tcl_SaveInterpState(magicinterp, TCL_OK);
 #endif
-					Tcl_EvalEx(magicinterp, "history event 0", 15, 0);
-					MacroDefine(mw->w_client, (int)'.',
-					            Tcl_GetStringResult(magicinterp), NULL,
-					            FALSE);
+				    Tcl_EvalEx(magicinterp, "history event 0", 15, 0);
+				    MacroDefine(mw->w_client, (int)'.',
+						Tcl_GetStringResult(magicinterp), NULL,
+						FALSE);
 #if TCL_MAJOR_VERSION < 9
-					Tcl_RestoreResult(magicinterp, &state);
+				    Tcl_RestoreResult(magicinterp, &state);
 #else
-					Tcl_RestoreInterpState(magicinterp, state);
+				    Tcl_RestoreInterpState(magicinterp, state);
 #endif
-					break;
+				    break;
 				case XK_Up:
-					Tcl_EvalEx(consoleinterp, "::tkcon::Event -1",
-					           17, 0);
-					break;
+				    Tcl_EvalEx(consoleinterp, "::tkcon::Event -1",
+					   17, 0);
+				    break;
 				case XK_Down:
-					Tcl_EvalEx(consoleinterp, "::tkcon::Event 1",
-					           16, 0);
-					break;
+				    Tcl_EvalEx(consoleinterp, "::tkcon::Event 1",
+					   16, 0);
+				    break;
 				case XK_Left:
-					Tcl_EvalEx(consoleinterp, ".text mark set insert "
-					           "insert-1c ; .text see insert", 50, 0);
-					break;
+				    Tcl_EvalEx(consoleinterp, ".text mark set insert "
+					   "insert-1c ; .text see insert", 50, 0);
+				    break;
 				case XK_Right:
-					Tcl_EvalEx(consoleinterp, ".text mark set insert "
-					           "insert+1c ; .text see insert", 50, 0);
-					break;
+				    Tcl_EvalEx(consoleinterp, ".text mark set insert "
+					   "insert+1c ; .text see insert", 50, 0);
+				    break;
 				case XK_BackSpace: case XK_Delete:
-					Tcl_EvalEx(consoleinterp, ".text delete insert-1c ;"
-					           ".text see insert", 40, 0);
-					break;
+				    Tcl_EvalEx(consoleinterp, ".text delete insert-1c ;"
+					   ".text see insert", 40, 0);
+				    break;
 				case XK_quotedbl: case XK_backslash: case XK_bracketleft:
-					outstr[23] = '\\';
-					outstr[24] = inChar[idx];
-					outstr[25] = '\"';
-					Tcl_EvalEx(consoleinterp, outstr, 26, 0);
-					outstr[24] = '\"';
-					outstr[25] = '\0';
+				    outstr[23] = '\\';
+				    outstr[24] = inChar[idx];
+				    outstr[25] = '\"';
+				    Tcl_EvalEx(consoleinterp, outstr, 26, 0);
+				    outstr[24] = '\"';
+				    outstr[25] = '\0';
+				    /* fall through */
 				default:
+				    /* Handle Ctrl-u:  Delete entire command */
+				    if ((keysym == XK_u) && (modifier == ControlMask))
+				    {
+					Tcl_EvalEx(consoleinterp, ".text delete limit end",
+							22, 0);
+				    }
+				    else
+				    {
 					outstr[23] = inChar[idx];
 					Tcl_EvalEx(consoleinterp, outstr, 25, 0);
-					break;
-				}
+				    }
+				    break;
+			    }
 			}
 			else if (LocRedirect == TX_INPUT_REDIRECTED) {
 				int tl;

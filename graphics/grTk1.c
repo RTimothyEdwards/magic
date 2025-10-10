@@ -793,7 +793,7 @@ MagicEventProc(clientData, xevent)
 	    break;
 	case KeyPress:
 	    {
-		int keywstate, keymod, idx, idxmax;
+		int keywstate, keymod, modifier, idx, idxmax;
 		char inChar[10];
 		Tcl_Channel outChannel = Tcl_GetStdChannel(TCL_STDOUT);
 
@@ -820,6 +820,7 @@ keys_and_buttons:
 #else
 		keymod |= (Mod1Mask & KeyPressedEvent->state);
 #endif
+		modifier = keymod;
 
 		if (nbytes == 0)
 		{
@@ -951,9 +952,19 @@ keys_and_buttons:
 				Tcl_EvalEx(consoleinterp, outstr, 26, 0);
 				outstr[24] = '\"';
 				outstr[25] = '\0';
+				/* fall through */
 			    default:
-				outstr[23] = inChar[idx];
-				Tcl_EvalEx(consoleinterp, outstr, 25, 0);
+				/* Handle Ctrl-u:  Delete entire command */
+				if ((keysym == XK_u) && (modifier == ControlMask))
+				{
+				    Tcl_EvalEx(consoleinterp, ".text delete limit end",
+						22, 0);
+				}
+				else
+				{
+				    outstr[23] = inChar[idx];
+				    Tcl_EvalEx(consoleinterp, outstr, 25, 0);
+				}
 				break;
 			}
 		    }
