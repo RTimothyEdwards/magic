@@ -67,11 +67,6 @@ global int DRCRuleOptimization = TRUE;
 static int drcRulesSpecified = 0;
 static int drcRulesOptimized = 0;
 
-/* Rules with unique names are tagged with a reference number	*/
-/* for use in placing errors into the DRC error plane.		*/
-
-static int DRCtag = 0;
-
 /*
  * Forward declarations.
  */
@@ -279,7 +274,6 @@ void
 drcTechFreeStyle()
 {
     int i, j;
-    char *old;
     DRCCookie *dp;
 
     if (DRCCurStyle != NULL)
@@ -481,7 +475,6 @@ drcLoadStyle(stylename)
 void
 DRCReloadCurStyle()
 {
-    char *stylename;
     DRCKeep * style;
 
     if (DRCCurStyle == NULL) return;
@@ -1019,6 +1012,7 @@ DRCTechAddRule(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     int which, distance, mdist;
     const char *fmt;
     static const struct
@@ -1158,6 +1152,7 @@ drcExtend(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers1 = argv[1];
     char *layers2 = argv[2];
     int distance = atoi(argv[3]);
@@ -1334,6 +1329,7 @@ drcWidth(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     int distance = atoi(argv[2]);
     int why;
@@ -1445,6 +1441,7 @@ drcArea(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     int distance = atoi(argv[2]);
     int	horizon = atoi(argv[3]);
@@ -1525,6 +1522,7 @@ drcOffGrid(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     int pitch = atoi(argv[2]);
     int why = drcWhyCreate(argv[3]);
@@ -1722,6 +1720,7 @@ drcAngles(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     char *endptr;
     long value;
@@ -1902,10 +1901,10 @@ drcSpacing3(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers1 = argv[1], *layers2 = argv[2];
     char *layers3 = argv[5];
     int distance = atoi(argv[3]);
-    char *adjacency = argv[4];
     int why = drcWhyCreate(argv[6]);
     TileTypeBitMask set1, set2, set3;
     int plane;
@@ -2006,13 +2005,12 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 {
     TileTypeBitMask tmp1, tmp2, setR, setRreverse;
     int plane, plane2;
-    PlaneMask pset, ptest;
+    PlaneMask pset;
     DRCCookie *dp, *dpnew;
     int needReverse = (widerule) ? TRUE : FALSE;
-    TileType i, j, pref;
+    TileType i, j;
     bool needtrigger = FALSE;
     bool touchingok = TRUE;
-    bool cornerok = FALSE;
     bool surroundok = FALSE;
     unsigned short flags = 0;
 
@@ -2862,6 +2860,7 @@ drcOverhang(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers2 = argv[1], *layers1 = argv[2];
     int distance = atoi(argv[3]);
     int why = drcWhyCreate(argv[4]);
@@ -2999,6 +2998,7 @@ drcRectOnly(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     int why = drcWhyCreate(argv[2]);
     TileTypeBitMask set1, set2, setC;
@@ -3404,6 +3404,7 @@ drcNoOverlap(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers1 = argv[1], *layers2 = argv[2];
     TileTypeBitMask set1, set2;
     TileType i, j;
@@ -3458,6 +3459,7 @@ drcExactOverlap(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     TileTypeBitMask set;
 
@@ -3502,6 +3504,7 @@ drcRectangle(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     int why = drcWhyCreate(argv[4]);
     TileTypeBitMask types, nottypes;
@@ -3672,6 +3675,7 @@ drcStepSize(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     if (DRCCurStyle == NULL) return 0;
 
     DRCCurStyle->DRCStepSize = atoi(argv[1]);
@@ -3710,7 +3714,6 @@ drcStepSize(argc, argv)
 void
 DRCTechFinal()
 {
-    DRCStyle *ds;
 
     /* Create a "default" style if there isn't one */
 
@@ -4222,8 +4225,6 @@ void
 DRCTechScale(scalen, scaled)
     int scalen, scaled;
 {
-    DRCCookie  *dp;
-    TileType i, j;
     int scalegcf;
 
     if (DRCCurStyle == NULL) return;
@@ -4492,7 +4493,7 @@ DRCGetDirectionalLayerSurround(ttype1, ttype2)
 {
     int layerSurround = 0;
     DRCCookie *cptr, *cnext;
-    TileTypeBitMask *set, *cset;
+    TileTypeBitMask *set;
 
     for (cptr = DRCCurStyle->DRCRulesTbl[ttype1][TT_SPACE]; cptr != (DRCCookie *) NULL;
 	cptr = cptr->drcc_next)

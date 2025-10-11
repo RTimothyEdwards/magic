@@ -144,6 +144,7 @@ spcHierWriteValue(
     HierContext *hc,
     Dev *dev)           /* Dev being output */
 {
+    ARG_UNUSED(hc);
     DevParam *plist;
 
     plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
@@ -686,6 +687,7 @@ spcdevHierVisit(
     float scale,	/* Scale transform for output */
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     DevParam *plist, *pptr;
     DevTerm *gate, *source, *drain;
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
@@ -1295,6 +1297,7 @@ spcdevHierMergeVisit(
     float scale,	/* Scale of transform (may be non-integer) */
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     DevTerm *gate, *source, *drain;
     EFNode *subnode, *snode, *dnode, *gnode;
     int pmode, l, w;
@@ -1421,6 +1424,7 @@ spccapHierVisit(
     double cap,
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     cap = cap / 1000;
     if (fabs(cap) <= EFCapThreshold)
 	return 0;
@@ -1469,6 +1473,7 @@ spcresistHierVisit(
     float res,
     ClientData cdata)	// UNUSED
 {
+    ARG_UNUSED(cdata);
     HashEntry *he;
     EFNodeName *nn;
 
@@ -1533,6 +1538,8 @@ spcsubHierVisit(
     double cap,		// Unused
     char **resstrptr)
 {
+    ARG_UNUSED(res);
+    ARG_UNUSED(cap);
     HierName *hierName;
     const char *nsn;
 
@@ -1570,6 +1577,7 @@ spcnodeHierVisit(
     int res,
     double cap)
 {
+    ARG_UNUSED(res);
     HierName *hierName;
     bool isConnected = FALSE;
     const char *fmt, *nsn;
@@ -1649,6 +1657,7 @@ nodeSpiceHierName(
     HierContext *hc,
     const HierName *hname)
 {
+    ARG_UNUSED(hc);
     EFNodeName *nn;
     HashEntry *he;
     EFNode *node;
@@ -1874,6 +1883,7 @@ devDistJunctHierVisit(
     float scale,		/* Scale tranform of output */
     ClientData cdata)		/* unused */
 {
+    ARG_UNUSED(cdata);
     EFNode  *n;
     int i, l, w;
 
@@ -1925,6 +1935,7 @@ esMakePorts(
     HierContext *hc,
     ClientData cdata)
 {
+    ARG_UNUSED(cdata);
     Connection *conn;
     Def *def = hc->hc_use->use_def, *portdef, *updef;
     Use *use;

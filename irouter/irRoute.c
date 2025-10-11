@@ -384,7 +384,6 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
     if (path)
     {
 
-	RouteLayer *finalRL = path->rp_rLayer;
 	CellUse *resultUse;
 
         /* Have MazeRouter paint path into resultCell */
@@ -760,8 +759,8 @@ irSelLabelsFunc(label, cellUse, transform, clientData)
     Transform *transform;
     ClientData clientData;
 {
+    ARG_UNUSED(cellUse);
     LabelSearchData *lsd = (LabelSearchData *)clientData;
-    CellDef *cellDef = cellUse->cu_def;
 
     if (strcmp(lsd->lsd_name, label->lab_text) != 0)
     {
@@ -810,6 +809,7 @@ irAllLabelsFunc(rect, name, label, clientData)
     Label *label;
     ClientData clientData;
 {
+    ARG_UNUSED(name);
     LabelSearchData *lsd = (LabelSearchData *)clientData;
 
     if (lsd->lsd_result == LSR_FOUND)
@@ -854,6 +854,7 @@ irSelectedTileFunc(rect, type, c)
     TileType type;
     ClientData c;
 {
+    ARG_UNUSED(type);
     RouteLayer *rL = (RouteLayer *) c;
     MZAddDest(rect, rL->rl_routeType.rt_tileType);
 

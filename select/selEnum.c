@@ -186,7 +186,6 @@ selEnumPFunc1(tile, arg)
 {
     Rect editRect, rootRect;
     TileType loctype;
-    TileTypeBitMask uMask;
     extern int selEnumPFunc2();
 
     TiToRect(tile, &arg->sea_rect);
@@ -916,6 +915,7 @@ selEnumLFunc(scx, label, tpath, arg)
     TerminalPath *tpath;	/* Ignored. */
     struct searg *arg;		/* Indicates what we're looking for. */
 {
+    ARG_UNUSED(tpath);
     Rect *want, got;
 
     GeoTransRect(&scx->scx_trans, &label->lab_rect, &got);
@@ -951,6 +951,7 @@ selEnumLFunc2(scx, label, tpath, arg)
     TerminalPath *tpath;	/* Ignored. */
     struct searg *arg;		/* Indicates what we're looking for. */
 {
+    ARG_UNUSED(tpath);
     Rect *want, got;
     int mismatch = 0;
 

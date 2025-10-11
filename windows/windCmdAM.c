@@ -153,7 +153,6 @@ windCaptionCmd(w, cmd)
     TxCommand *cmd;
 {
     int place;
-    Rect ts;
     static const char * const onoff[] = {"on", "off", 0};
     static const bool truth[] = {TRUE, FALSE};
 
@@ -414,6 +413,7 @@ windCrashCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1)
     {
 	TxError("Usage:  *crash\n");
@@ -576,6 +576,7 @@ windDebugCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1) goto usage;
     windPrintCommands = !windPrintCommands;
     TxError("Window command debugging set to %s\n",
@@ -605,6 +606,8 @@ windDumpCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
     (void) windDump();
 }
 
@@ -674,6 +677,8 @@ windFilesCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
 #define NUM_FD	20	/* max number of open files per process */
     int fd;
     struct stat buf;
@@ -728,6 +733,7 @@ windGrowCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(cmd);
     if (w == NULL)
     {
 	TxError("Point to a window first.\n");
@@ -863,6 +869,8 @@ windHelpCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
     ASSERT(FALSE, windHelpCmd);
 }
 

@@ -17,9 +17,6 @@
  *     *********************************************************************
  */
 
-#ifndef lint
-static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
-#endif  /* not lint */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -170,6 +167,7 @@ extFoundFunc(tile, cxp)
     Tile *tile;
     TreeContext *cxp;
 {
+    ARG_UNUSED(tile);
     CellDef *def = (CellDef *)cxp->tc_filter->tf_arg;
     return (def == cxp->tc_scx->scx_use->cu_def) ? 0 : 1;
 }
@@ -855,7 +853,6 @@ char *
 extSubsName(node)
     LabRegion *node;
 {
-    char *subsName;
 
     /* If the techfile specifies a global name for the substrate, use	*/
     /* that in preference to the default "p_x_y#" name.	 Use this name	*/
@@ -2117,6 +2114,7 @@ extSDTileFunc(tile, pNum)
     Tile *tile;
     int pNum;
 {
+    ARG_UNUSED(pNum);
     LinkedTile *newdevtile;
 
     newdevtile = (LinkedTile *)mallocMagic(sizeof(LinkedTile));
@@ -2198,7 +2196,7 @@ extOutputDevices(def, transList, outFile)
     LabelList *ll;
     TileType t;
     char *subsName;
-    int nsd, length, width, n, i, ntiles, corners, tn, rc, termcount;
+    int nsd, length, width, n, i, ntiles, termcount;
     double dres, dcap;
     char mesg[256];
     bool isAnnular, hasModel, sd_is_tied;
@@ -3116,6 +3114,7 @@ extTransFindSubs(tile, t, mask, def, sn, layerptr)
     NodeRegion **sn;
     TileType *layerptr;
 {
+    ARG_UNUSED(t);
     Rect tileArea, tileAreaPlus;
     int pNum;
     int extTransFindSubsFunc1();	/* Forward declaration */
@@ -3195,7 +3194,6 @@ extTransFindId(tile, mask, def, idtypeptr)
     CellDef *def;
     TileType *idtypeptr;
 {
-    TileType type;
     Rect tileArea;
     int pNum;
     int extTransFindIdFunc1();	/* Forward declaration */
@@ -3337,9 +3335,9 @@ extTransTileFunc(tile, pNum, arg)
     int pNum;
     FindRegion *arg;
 {
-    TileTypeBitMask mask, cmask, *smask;
+    TileTypeBitMask mask, cmask;
     TileType loctype, idlayer, sublayer;
-    int perim, result, i;
+    int perim;
     bool allow_globsubsnode;
     ExtDevice *devptr, *deventry, *devtest;
     NodeRegion *region;
@@ -3597,6 +3595,7 @@ extTermAPFunc(tile, pNum, eapd)
     int   pNum;		/* Plane of tile (unused, set to -1) */
     ExtAreaPerimData *eapd;	/* Area and perimeter totals for terminal */
 {
+    ARG_UNUSED(pNum);
     TileType type;
     Tile *tp;
     Rect r;
@@ -3694,7 +3693,7 @@ extTransPerimFunc(bp)
     Tile *tile;
     NodeRegion *diffNode = (NodeRegion *) extGetRegion(bp->b_outside);
     ExtDevice *devptr, *deventry;
-    int i, area, perim, len = BoundaryLength(bp);
+    int i, len = BoundaryLength(bp);
     int thisterm;
     LabelList *ll;
     Label *lab;
@@ -4867,6 +4866,7 @@ int
 extSubsFunc3(tile)
     Tile *tile;
 {
+    ARG_UNUSED(tile);
     /* Stops the search because something that was not space was found */
     return 1;
 }

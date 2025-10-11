@@ -645,8 +645,8 @@ w3dHelp(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     const char * const *msg;
-    W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
     if (cmd->tx_argc == 1)
     {
@@ -676,9 +676,6 @@ w3dCutBox(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    bool hide = FALSE;
-    int lidx = 1, num_layers;
-    TileTypeBitMask mask;
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
     if (cmd->tx_argc == 1 || cmd->tx_argc == 2 || cmd->tx_argc == 5)
@@ -759,7 +756,7 @@ w3dSeeLayers(w, cmd)
     TxCommand *cmd;
 {
     bool hide = FALSE;
-    int lidx = 1, num_layers;
+    int lidx = 1;
     TileTypeBitMask mask;
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
@@ -811,7 +808,6 @@ w3dClose(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
     if (cmd->tx_argc == 1)
 	(void) WindDelete(w);
@@ -988,7 +984,6 @@ w3dRefresh(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
     if (cmd->tx_argc == 1)
 	w3drefreshFunc(w);
@@ -1236,7 +1231,6 @@ w3dRenderValues(w, cmd)
 {
     int lidx;
     CIFLayer *layer;
-    W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
     if (cmd->tx_argc > 1)
     {
@@ -1638,6 +1632,7 @@ W3Dredisplay(w, rootArea, clipArea)
     Rect *rootArea;	/* Ignore this---area defined by window with box */
     Rect *clipArea;	/* Ignore this, too */
 {
+    ARG_UNUSED(clipArea);
     W3DclientRec *crec;
     CellDef *cellDef;
     SearchContext scontext;
@@ -1715,12 +1710,13 @@ W3DCIFredisplay(w, rootArea, clipArea)
     Rect *rootArea;	/* Ignore this---area defined by window with box */
     Rect *clipArea;	/* Ignore this, too */
 {
+    ARG_UNUSED(rootArea);
+    ARG_UNUSED(clipArea);
     W3DclientRec *crec;
     SearchContext scx;
     CellDef *cellDef;
     Rect clipRect;
     int i;
-    TileTypeBitMask *mask;
 
     w3dLock(w);
 
@@ -1791,7 +1787,6 @@ W3Dcommand(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int cmdNum;
 
     switch (cmd->tx_button)
     {

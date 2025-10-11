@@ -207,6 +207,7 @@ LefTechLine(
     int argc,                   /* Number of arguments on line. */
     char *argv[])               /* Pointers to fields of line. */
 {
+    ARG_UNUSED(sectionName);
     bool isObstruction, isContact, isInactive;
     HashEntry *he;
     TileType mtype, mtype2 = -1;
@@ -304,7 +305,7 @@ LefTechLine(
 
 	    if (newlefl == NULL)
 	    {
-		float oscale = CIFGetOutputScale(1000); /* FIXME unused return value from call to function with no side-effects */
+		CIFGetOutputScale(1000); /* FIXME call to function with no side-effects */
 
 		newlefl = (lefLayer *)mallocMagic(sizeof(lefLayer));
 		newlefl->refCnt = 0;

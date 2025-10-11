@@ -355,7 +355,6 @@ ResAddBreakpointFunc(tile, node)
    Tile *tile;
    ResSimNode *node;
 {
-    tileJunk *junk;
 
     if (TiGetClient(tile) == CLIENTDEFAULT)
 	return 0;
@@ -492,8 +491,6 @@ ResProcessTiles(goodies, origin)
     resNode	*resptr2;
     jElement	*workingj;
     cElement	*workingc;
-    ResFixPoint	*fix;
-    resNode	*resptr;
     int		(*tilefunc)();
 
 #ifdef LAPLACE
@@ -802,7 +799,6 @@ resExpandDevFunc(tile, cx)
     ResDevTile	    *thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
     static Stack    *devExtentsStack = NULL;
     static Stack    *devResetStack = NULL;
-    TileTypeBitMask *rMask;
     Tile *tp, *tp2;
     TileType	ttype;
     int pNum;
@@ -923,7 +919,6 @@ ResShaveContacts(tile, def)
     CellDef *def;
 {
     TileType ttype;
-    TileTypeBitMask *rmask;
     Rect area;
     Plane *plane;
     int pNum;
@@ -981,7 +976,6 @@ ResExtractNet(node, goodies, cellname)
     Point		startpoint;
     static int		first = 1;
     ResDevTile		*DevTiles, *thisDev;
-    ResFixPoint		*fix;
     devPtr		*tptr;
     int			pNum;
     int			resMakeDevFunc();

@@ -121,6 +121,7 @@ ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
     int 	xj, yj, direction;
     resNode	**PendingList;
 {
+    ARG_UNUSED(direction);
     resNode	*resptr;
     resDevice	*resDev;
     tElement	*tcell;

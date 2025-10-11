@@ -72,6 +72,9 @@ NMButtonNetList(window, cmd, nmButton, point)
     TxCommand *cmd;		/* Used to figure out which button it was. */
     Point *point;		/* Not used. */
 {
+    ARG_UNUSED(window);
+    ARG_UNUSED(nmButton);
+    ARG_UNUSED(point);
 #define MAXLENGTH 200
     char newName[MAXLENGTH];
     if (cmd->tx_button == TX_RIGHT_BUTTON)
@@ -186,6 +189,8 @@ NMButtonRight(w, cmd)
     MagWindow *w;			/* Window in which button was pushed. */
     TxCommand *cmd;		/* Detailed information about command. */
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
     char *name;
     extern int nmButHighlightFunc(), nmButUnHighlightFunc();
     extern int nmButCheckFunc(), nmNewRefFunc(), nmFindNetNameFunc();
@@ -285,6 +290,8 @@ nmButHighlightFunc(area, name, label, pExists)
     Label *label;		/* Pointer to label */
     bool  *pExists;		/* We just set this to TRUE. */
 {
+    ARG_UNUSED(name);
+    ARG_UNUSED(label);
     Rect rootArea;
     Point point;
 
@@ -406,6 +413,8 @@ NMButtonLeft(w, cmd)
     MagWindow *w;			/* Window in which button was pushed. */
     TxCommand *cmd;		/* Detailed information about the command. */
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
     char *name;
 
     name = nmButtonSetup();
@@ -445,6 +454,8 @@ NMButtonMiddle(w, cmd)
     MagWindow *w;		/* Window in which button was pushed. */
     TxCommand *cmd;	/* Detailed information about command. */
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
     char *name;
 
     name = nmButtonSetup();

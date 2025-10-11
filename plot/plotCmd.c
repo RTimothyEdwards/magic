@@ -90,6 +90,7 @@ CmdPlot(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int option;
     const char * const *msg;
     MagWindow *window;
@@ -97,7 +98,6 @@ CmdPlot(w, cmd)
     TileTypeBitMask mask;
     CellDef *boxRootDef;
     SearchContext scx;
-    float width;
     int iwidth, scale;
 
 #if defined(HAVE_LIBCAIRO) && defined(MAGIC_WRAPPER)

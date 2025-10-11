@@ -174,6 +174,7 @@ PlowDRCLine(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     int which;
     static const struct
     {
@@ -229,6 +230,7 @@ plowWidthRule(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     int distance = atoi(argv[2]);
     TileTypeBitMask set, setC;
@@ -310,6 +312,7 @@ plowSpacingRule(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers1 = argv[1], *layers2 = argv[2];
     int distance = atoi(argv[3]);
     char *adjacency = argv[4];
@@ -758,8 +761,6 @@ next:	;
 void
 PlowTechInit()
 {
-    register TileType i, j;
-    PlowRule *pr;
 
     PlowFixedTypes = DBZeroTypeBits;
     PlowCoveredTypes = DBZeroTypeBits;
@@ -814,6 +815,7 @@ PlowTechLine(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     TileTypeBitMask types;
 
     if (argc != 2)

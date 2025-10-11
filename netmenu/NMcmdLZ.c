@@ -62,6 +62,7 @@ NMCmdMeasure(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     FILE * fp, * fopen();
 
     if (cmd->tx_argc > 3)
@@ -130,6 +131,7 @@ NMCmdNetlist(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc > 2)
     {
 	TxError("Usage: netlist [name]\n");
@@ -165,6 +167,7 @@ NMCmdPrint(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     extern int nmCmdPrintFunc();
     int gotAny;
     char *name;
@@ -234,7 +237,7 @@ NMCmdPushButton(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
-    int button, action;
+    int button;
     static const char * const NMButton[] = {"left", "middle", "right", NULL};
 
     if (cmd->tx_argc != 2)
@@ -292,6 +295,7 @@ NMCmdRipup(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc == 1)
 	NMRipup();
     else if (cmd->tx_argc == 2)
@@ -330,6 +334,7 @@ NMCmdSavenetlist(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if ((cmd->tx_argc != 2) && (cmd->tx_argc != 1))
     {
 	TxError("Usage: savenetlist [file]\n");
@@ -370,6 +375,7 @@ NMCmdShownet(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1)
     {
 	if (!strncmp(cmd->tx_argv[1], "erase", 5))
@@ -407,6 +413,7 @@ NMCmdShowterms(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     extern int nmShowtermsFunc1();	/* Forward reference. */
 
     if (cmd->tx_argc != 1)
@@ -434,6 +441,8 @@ nmShowtermsFunc1(name, firstInNet, cdarg)
     bool firstInNet;				/* Not used. */
     ClientData cdarg;				/* Not used. */
 {
+    ARG_UNUSED(firstInNet);
+    ARG_UNUSED(cdarg);
     extern int nmShowtermsFunc2();		/* Forward reference. */
 
     (void) DBSrLabelLoc(EditCellUse, name, nmShowtermsFunc2,
@@ -453,6 +462,9 @@ nmShowtermsFunc2(rect, name, label, cdarg)
     Label *label;		/* Not used. */
     ClientData cdarg;		/* Not used. */
 {
+    ARG_UNUSED(name);
+    ARG_UNUSED(label);
+    ARG_UNUSED(cdarg);
     Rect expanded;
     GEO_EXPAND(rect, 1, &expanded);
     DBWFeedbackAdd(&expanded, "\"Showterms\" result", EditCellUse->cu_def,
@@ -486,6 +498,7 @@ NMCmdTrace(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if ((cmd->tx_argc != 1) && (cmd->tx_argc != 2))
     {
 	TxError("Usage: trace [name]\n");
@@ -523,6 +536,7 @@ NMCmdVerify(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1)
     {
 	TxError("Usage: verify\n");
@@ -563,6 +577,7 @@ NMCmdWriteall(w, cmd)
     MagWindow *w;			/* Netlist window. */
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1)
     {
 	TxError("Usage: writeall\n");

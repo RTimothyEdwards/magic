@@ -1028,6 +1028,7 @@ LefReadPolygon(
     Point *gdsOffset,
     int *ppoints)
 {
+    ARG_UNUSED(curlayer);
     LinkedRect *lr = NULL, *newRect;
     Point *plist = NULL;
     const char *token;
@@ -1188,6 +1189,8 @@ lefUnconnectFunc(
     Tile *tile,
     ClientData clientdata)	/* (unused) */
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(clientdata);
     return 1;
 }
 
@@ -1291,7 +1294,7 @@ LefReadGeometry(
 
 		    if (is_imported)
 		    {
-			int pNum = DBPlane(curlayer); /* FIXME unused return value from call to function with no side-effects */
+			DBPlane(curlayer); /* FIXME call to function with no side-effects */
 			SearchContext scx;
 			CellUse	dummy;
 			PlaneType pt;
@@ -2564,6 +2567,7 @@ LefGenViaGeometry(
     TileType blayer,		/* Bottom layer type */
     float oscale)		/* output scaling	*/
 {
+    ARG_UNUSED(f);
     Rect rect;
     int i, j, x, y, w, h;
     LinkedRect *viaLR;
@@ -2729,6 +2733,7 @@ LefReadLayerSection(
     int mode,			/* layer, via, or viarule */
     lefLayer *lefl)		/* pointer to layer info  */
 {
+    ARG_UNUSED(mode);
     const char *token;
     int keyword, typekey;
     TileType curlayer = -1;
@@ -2777,12 +2782,6 @@ LefReadLayerSection(
 	"VIA",
 	"GENERATE",
 	"END",
-	NULL
-    };
-
-    static const char * const spacing_keys[] = {
-	"RANGE",
-	";",
 	NULL
     };
 

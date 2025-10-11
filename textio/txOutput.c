@@ -51,7 +51,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 FILE * TxMoreFile = NULL;
-static int txMorePid;
 static bool txPrintFlag = TRUE;
 
 

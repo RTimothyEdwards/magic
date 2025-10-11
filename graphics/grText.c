@@ -57,7 +57,6 @@ GrFontText(str, style, p, font, size, rotate, clip)
     Rect *clip;		/* Clipping area */
 {
     Rect nClip;
-    Point pstart;
 
     /* Fall back on X11 text if vectored text unavailable */
     if (!grFontTextPtr)

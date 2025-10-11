@@ -221,11 +221,9 @@ EFStrToHN(prefix, suffixStr)
     char *suffixStr;	/* Leaf part of name (may have /'s) */
 {
     char *cp;
-    HashEntry *he;
     char *slashPtr;
     HierName *hierName;
     unsigned size;
-    int len;
 
     /* Skip to the end of the relative name */
     slashPtr = NULL;
@@ -360,7 +358,7 @@ EFHNLook(prefix, suffixStr, errorStr)
     char *suffixStr;	/* Part of name on leaf side */
     char *errorStr;	/* Explanatory string for errors */
 {
-    HierName *hierName, *hn;
+    HierName *hierName;
     bool dontFree = FALSE;
     HashEntry *he;
 

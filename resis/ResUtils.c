@@ -149,6 +149,7 @@ ResEach(tile, pNum, arg)
     int		pNum;
     FindRegion	*arg;
 {
+    ARG_UNUSED(pNum);
 
     if (((ResContactPoint *)(arg->fra_region))->cp_contactTile != tile)
     {
@@ -656,6 +657,7 @@ ResRemovePlumbing(tile, arg)
     ClientData	*arg;
 
 {
+    ARG_UNUSED(arg);
     ClientData ticlient = TiGetClient(tile);
     if (ticlient != CLIENTDEFAULT)
     {

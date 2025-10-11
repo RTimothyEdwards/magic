@@ -666,16 +666,13 @@ calmaFullDumpZ(
     char *filename)
 {
     int version, rval;
-    char *libname = NULL, *testlib, uniqlibname[4];
-    char *sptr, *viewopts;
+    char *libname = NULL, uniqlibname[4];
+    char *viewopts;
     bool isAbstract;
     HashTable calmaDefHash;
     HashSearch hs;
     HashEntry *he, *he2;
 
-    static const int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
-		CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
-		CALMA_STYPTABLE, CALMA_GENERATIONS, -1 };
     static const int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
 		CALMA_LIBSECUR, -1 };
 
@@ -932,7 +929,6 @@ calmaProcessDefZ(
 	size_t defsize, numbytes;
 	z_off_t cellstart, cellend, structstart;
  	dlong cval;
-	int namelen;
 	gzFile fi;
 
 	/* Use PaOpen() so the paths searched are the same as were	*/
@@ -1726,10 +1722,9 @@ calmaWriteContactsZ(
 {
     TileType type;
     TileTypeBitMask tMask, *rMask;
-    CellDef *def, *cellDef;
+    CellDef *def;
     Rect area, cliprect;
     int halfwidth, halfsize;
-    CIFOp *op;
 
     /* Turn off generation of contact arrays for the duration of this	*/
     /* subroutine, so that the contact definitions themselves will get	*/
@@ -1809,9 +1804,8 @@ calmaProcessBoundaryZ(
     calmaOutputStructZ *cos)
 {
     gzFile f = cos->f;
-    LinkedBoundary *listtop, *lbref, *lbstop, *lbfree;
+    LinkedBoundary *listtop, *lbref, *lbstop;
     BoundaryTop *bounds;
-    int sval;
     int chkcount;	/* diagnostic */
 
     for (bounds = blist; bounds != NULL; bounds = bounds->bt_next)
@@ -1891,8 +1885,6 @@ calmaMergePaintFuncZ(
     Tile *tile,			/* Tile to be written out. */
     calmaOutputStructZ *cos)	/* Information needed by algorithm */
 {
-    gzFile f = cos->f;
-    const Rect *clipArea = cos->area;
     Tile *t, *tp;
     TileType ttype;
     int i, llx, lly, urx, ury, intedges, num_points, split_type;
@@ -2216,7 +2208,7 @@ calmaWritePaintFuncZ(
 {
     gzFile f = cos->f;
     const Rect *clipArea = cos->area;
-    Rect r, r2;
+    Rect r;
 
     TiToRect(tile, &r);
     if (clipArea != NULL)
@@ -2492,9 +2484,8 @@ calmaPaintLabelFuncZ(
 {
     gzFile f = cos->f;
     const Rect *clipArea = cos->area;
-    Rect r, r2;
+    Rect r;
     Point p;
-    int len;
     CIFLayer *layer = CIFCurStyle->cs_layers[cos->type];
 
     if (IsSplit(tile)) return 0;    /* Ignore non-Manhattan geometry */

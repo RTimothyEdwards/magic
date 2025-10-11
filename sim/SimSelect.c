@@ -18,10 +18,6 @@
  * of California
  */
 
-#ifndef lint
-static const char sccsid[] = "@(#)SimSelect.c	4.14 MAGIC (Berkeley) 10/3/85";
-#endif  /* not lint */
-
 #include <stdio.h>
 #include <string.h>
 

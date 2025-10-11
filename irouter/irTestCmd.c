@@ -81,6 +81,7 @@ irDebugTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int result;
     bool value;
 
@@ -134,6 +135,7 @@ irHelpTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int n;
     int which;
 
@@ -210,6 +212,8 @@ irParmsTstCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(cmd);
 
     MZPrintRLs(irRouteLayers);
     TxMore("");

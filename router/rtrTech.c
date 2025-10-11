@@ -134,6 +134,7 @@ RtrTechLine(sectionName, argc, argv)
     int argc;				/* Number of fields on line. */
     char *argv[];			/* Values of fields. */
 {
+    ARG_UNUSED(sectionName);
     TileTypeBitMask mask;
     int type, width, i, distance;
     char **nextArg;

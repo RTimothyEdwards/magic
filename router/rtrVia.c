@@ -118,6 +118,8 @@ rtrFollowLocFunc(rect, name, label, area)
 				 * all the tiles we delete.
 				 */
 {
+    ARG_UNUSED(name);
+    ARG_UNUSED(area);
     CellDef *def = EditCellUse->cu_def;
     Rect initialArea;
 

@@ -455,7 +455,6 @@ dbCellPrintInfo(StartDef, who, dolist)
     CellDef *celldef;
     CellUse *celluse;
     char *cu_name;
-    bool topdone;
 
     switch (who) {
 	case SELF:
@@ -1254,6 +1253,7 @@ dbLockUseFunc(selUse, use, transform, data)
     Transform *transform;
     ClientData data;
 {
+    ARG_UNUSED(transform);
     bool dolock = *((bool *)data);
 
     if (EditCellUse && !DBIsChild(use, EditCellUse))
@@ -1450,6 +1450,7 @@ dbOrientUseFunc(selUse, use, transform, data)
     Transform *transform;
     ClientData data;
 {
+    ARG_UNUSED(transform);
     bool *dodef = (bool *)data;
     int orient;
 
@@ -1608,6 +1609,8 @@ dbAbutmentUseFunc(selUse, use, transform, data)
     Transform *transform;
     ClientData data;
 {
+    ARG_UNUSED(selUse);
+    ARG_UNUSED(transform);
     Rect bbox, refbox;
     Transform *trans;
     char *propvalue;

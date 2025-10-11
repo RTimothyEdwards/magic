@@ -139,6 +139,8 @@ cifInteractFunc(
     Tile *tile,
     ClientData clientdata)		/* Unused */
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(clientdata);
     return 1;
 }
 
@@ -326,7 +328,7 @@ cifGrowMinFunc(
 {
     Rect area, parea;
     int locDist, width, height, h;
-    TileType type, tptype;
+    TileType tptype;
     Tile *tp, *tp2;
     bool changed;
 
@@ -500,10 +502,9 @@ cifGrowGridFunc(
     PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area;
-    int remainder;
 
     /* To be done---handle non-Manhattan geometry */
-    TileType oldType = TiGetType(tile);
+    TiGetType(tile);
 
     TiToRect(tile, &area);
 
@@ -613,7 +614,6 @@ cifGrowEuclideanFunc(
 	int growDistanceX, growDistanceY;
 	int height, width;
 	double frac, ratio;
-	int limit;
 
 	if (oldType & TT_SIDE)
 	    growDirs &= ~GROW_WEST;
@@ -1244,6 +1244,7 @@ cifProcessResetFunc(
     Tile *tile,
     ClientData clientData)	/* unused */
 {
+    ARG_UNUSED(clientData);
     TiSetClient(tile, CIF_UNPROCESSED);
     return 0;
 }
@@ -1344,7 +1345,7 @@ cifBloatAllFunc(
     Tile *t, *tp, *firstTile = NULL;
     TileType type, ttype;
     BloatData *bloats;
-    int i, locScale;
+    int locScale;
     PlaneMask pmask;
     CIFOp *op;
     CellDef *def;
@@ -1423,7 +1424,6 @@ cifBloatAllFunc(
     }
     if (pmask == 0)
     {
-	Rect foundArea;
 
 	if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
 	{
@@ -1905,7 +1905,6 @@ cifBridgeFunc2(
     Rect area;
     Tile *tp1, *tp2, *tpx;
     int width = brs->bridge->br_width;
-    int wtest;
     int spacing = growDistance;
     BridgeCheckStruct brcs;
     int cifBridgeCheckFunc(Tile *tile, BridgeCheckStruct *brcs);	/* Forward reference */
@@ -2124,7 +2123,7 @@ cifCloseFunc(
     Tile *tile,
     Plane *plane)
 {
-    Rect area, newarea;
+    ARG_UNUSED(plane);
     int atotal;
     int cifGatherFunc(Tile *tile, int *atotal, int mode);
 
@@ -2162,9 +2161,8 @@ cifGatherFunc(
     int mode)
 {
     Tile *tp;
-    TileType type;
     dlong locarea;
-    Rect area, newarea;
+    Rect area;
     ClientData cdata = (mode == CLOSE_SEARCH) ? CIF_UNPROCESSED :
 	    CD2INT(CIF_PENDING);
 
@@ -2312,6 +2310,7 @@ cifSquaresInitFunc(tile, clientData)
     Tile *tile;
     ClientData clientData;
 {
+    ARG_UNUSED(clientData);
     if (TiGetClient(tile) == CIF_UNPROCESSED)
 	return 1;
     else
@@ -2464,6 +2463,7 @@ cifUnconnectFunc(
     Tile *tile,
     ClientData clientData)	/* unused */
 {
+    ARG_UNUSED(clientData);
     TileType t = TiGetTypeExact(tile);
     if (t == TT_SPACE) return 1;
     else if (t & TT_DIAGONAL) return 1;
@@ -2495,10 +2495,9 @@ cifRectBoundingBox(
     CellDef *cellDef,
     Plane *plane)
 {
+    ARG_UNUSED(cellDef);
     Tile *tile = NULL, *t, *tp;
     Rect bbox, area, *maxr;
-    int i, j, savecount;
-    TileType type;
     bool simple;
     static Stack *BoxStack = (Stack *)NULL;
 
@@ -2654,11 +2653,11 @@ cifSquaresFillArea(
     CellDef *cellDef,
     Plane *plane)
 {
+    ARG_UNUSED(cellDef);
     Tile *tile, *t, *tp;
     Rect bbox, area, square, cut, llcut;
-    int nAcross, nUp, left, pitch, size, diff, right;
+    int nAcross, nUp, pitch, size, diff;
     int i, j, k, savecount;
-    TileType type;
     SquaresData *squares = (SquaresData *)op->co_client;
     StripsData stripsData;
     linkedStrip *stripList;
@@ -2983,13 +2982,13 @@ cifSlotsFillArea(
     CellDef *cellDef,
     Plane *plane)
 {
+    ARG_UNUSED(cellDef);
     Tile *tile, *t, *tp;
     Rect bbox, area, square, cut, llcut;
-    int nAcross, nUp, left, spitch, lpitch, ssize, lsize, offset;
-    int diff, right;
+    int nAcross, nUp, spitch, lpitch, ssize, lsize, offset;
+    int diff;
     int xpitch, ypitch, xborder, yborder, xdiff, ydiff;
     int i, j, k, savecount;
-    TileType type;
     SlotsData *slots = (SlotsData *)op->co_client;
     StripsData stripsData;
     linkedStrip *stripList;
@@ -3544,7 +3543,7 @@ cifContactFunc(
     CIFSquaresInfo *csi) 	/* Describes how to generate squares. */
 {
     Rect area;
-    int i, nAcross, j, nUp, left, bottom, pitch, halfsize;
+    int nAcross, nUp, left, bottom, pitch, halfsize;
     bool result;
     SquaresData *squares = csi->csi_squares;
 
@@ -3625,7 +3624,7 @@ cifSlotFunc(
     Rect *cut,			/* initial (lower left) cut area 	*/
     bool vertical)		/* if TRUE, slot is aligned vertically	*/
 {
-    int i, j, xpitch, ypitch, delta, limit;
+    int xpitch, ypitch, delta, limit;
     int *axtop, *axbot, *aytop, *aybot;
     int *sxtop, *sxbot, *sytop, *sybot;
     int *rows, *columns;
@@ -3972,7 +3971,6 @@ cifSrTiles(
 {
     TileTypeBitMask maskBits;
     TileType t;
-    Tile *tp;
     int i;
     BloatData *bloats;
 
@@ -4056,7 +4054,6 @@ cifSrTiles2(
     TileTypeBitMask maskBits;
     Rect r;
     TileType t;
-    Tile *tp;
     int i;
 
     /* When reading data from a cell, it must first be scaled to
@@ -4212,7 +4209,6 @@ cifBridgeLimFunc0(
     Tile *tile,
     BridgeLimStruct *brlims)
 {
-    Plane *plane = brlims->plane;
     Rect area, parea;
     int minDistance = brlims->bridge->br_width;
     int width, height, ybot0, tp2lim;
@@ -4573,7 +4569,6 @@ cifBridgeLimFunc2(
     Tile *tp1, *tp2, *tpx;
     int width = brlims->bridge->br_width;
     int thirdOption;
-    int spacing = growDistance;
     BridgeLimCheckStruct brlimcs;
     brlimcs.sqdistance = (long) width * width;
 
@@ -4701,8 +4696,6 @@ cifInteractingRegions(
 {
     Tile *tile = NULL, *t, *tp;
     Rect area;
-    int i;
-    TileType type;
     bool interacts;
     static Stack *RegStack = (Stack *)NULL;
 
@@ -4888,7 +4881,6 @@ CIFGenLayer(
     Plane *temp;
     static Plane *nextPlane, *curPlane;
     Rect bbox;
-    CIFOp *tempOp;
     CIFSquaresInfo csi;
     SearchContext scx;
     TileType ttype;
@@ -4896,7 +4888,6 @@ CIFGenLayer(
     BloatStruct bls;
     BridgeStruct brs;
     BridgeLimStruct brlims;
-    BridgeData *bridge;
     BloatData *bloats;
     bool hstop = FALSE;
     char *propvalue;

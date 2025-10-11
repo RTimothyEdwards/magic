@@ -804,6 +804,7 @@ irContactsCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     TileType tileType;
     RouteContact *rC;
 
@@ -1073,6 +1074,7 @@ irHelpCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int n;
     int which;
 
@@ -1178,6 +1180,7 @@ irLayersCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     TileType tileType;
     RouteLayer *rL;
     bool doList = FALSE;
@@ -1757,6 +1760,7 @@ irSearchCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
 
     /* Process by case */
     if(cmd->tx_argc == 2)
@@ -2136,6 +2140,7 @@ irVerbosityCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if(cmd->tx_argc >3)
     {
 	TxError("'iroute verbosity' only takes one arg!\n");
@@ -2201,6 +2206,7 @@ irVersionCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
 
     if(cmd->tx_argc == 2)
     {
@@ -2254,6 +2260,7 @@ irWizardCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
 
     /* Process by case */
     if(cmd->tx_argc == 2)
@@ -2357,6 +2364,7 @@ irSaveParametersCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     FILE *saveFile;
     RouteContact *rC;
     RouteLayer *rL;

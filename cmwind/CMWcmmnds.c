@@ -455,6 +455,7 @@ cmwSave(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     bool ok;
     if ((cmd->tx_argc != 1) && (cmd->tx_argc != 4))
     {
@@ -500,6 +501,7 @@ cmwLoad(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     if ((cmd->tx_argc != 1) && (cmd->tx_argc != 4))
     {
 	TxError("Usage: %s [techStyle displayStyle monitorType]\n",

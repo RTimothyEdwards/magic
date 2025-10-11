@@ -63,6 +63,7 @@ Rect *prect;            /* A rectangle that forms the template
 int outline;        /* the outline style */
 Rect *clip;         /* a clipping rectangle */
 {
+    ARG_UNUSED(outline);
 	int xsize, ysize;
 	int x, y;
 	int xstart, ystart;
@@ -188,9 +189,9 @@ char *text;
 int size;
 Rect *r;
 {
+    ARG_UNUSED(size);
 	TCairoData *tcairodata;
 	cairo_text_extents_t extents;
-	int width;
 
 	/* Note:  size is ignored, as it is passed the current value;	*/
 	/* but the font size in cairo has already been set.		*/
@@ -233,7 +234,6 @@ grtcairoCreateBackingStore(MagWindow *w)
 	Tk_Window tkwind = (Tk_Window)w->w_grdata;
 	Window wind;
 	unsigned int width, height;
-	GC gc;
 	XGCValues gcValues;
 	int grDepth;
 
@@ -433,6 +433,9 @@ GrTCairoReadPixel (w, x, y)
 MagWindow *w;
 int x, y;       /* the location of a pixel in screen coords */
 {
+    ARG_UNUSED(w);
+    ARG_UNUSED(x);
+    ARG_UNUSED(y);
 	return 0;       /* (unimplemented) */
 }
 
@@ -456,6 +459,8 @@ GrTCairoBitBlt(r, p)
 Rect *r;
 Point *p;
 {
+    ARG_UNUSED(r);
+    ARG_UNUSED(p);
 	// (unimplemented)
 }
 
@@ -474,10 +479,10 @@ FontChar *clist;
 unsigned char tc;
 int pixsize;
 {
+    ARG_UNUSED(tc);
 	Point *tp;
-	int np, nptotal;
+	int np;
 	int i;
-	static int maxnp = 0;
 	FontChar *ccur;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 
@@ -520,13 +525,14 @@ Point *pos;         /* Text base position */
 Rect  *clip;        /* Clipping area */
 LinkedRect *obscure;    /* List of obscuring areas */
 {
+    ARG_UNUSED(clip);
+    ARG_UNUSED(obscure);
 	char *tptr;
 	Point *coffset;     /* vector to next character */
 	Rect *cbbox;
 	float fsize;
 	FontChar *clist;
-	int cheight, baseline;
-	float tmp;
+	int baseline;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 
 	cairo_save(tcairodata->context);
@@ -595,8 +601,6 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 	Rect textrect;
 	LinkedRect *ob;
 	void grTCairoGeoSub();
-	int i;
-	float tscale;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 
 	if (GrTCairoTextSize(text, tcairoCurrent.fontSize, &textrect) < 0) return;

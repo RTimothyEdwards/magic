@@ -79,7 +79,7 @@ windScrollCmd(w, cmd)
     Rect r;
     int xsize, ysize;
     Point p;
-    int pos, locargc = cmd->tx_argc;
+    int pos;
     float amount;
     bool doFractional = FALSE;
 
@@ -320,6 +320,7 @@ windSleepCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int time;
 
     if (cmd->tx_argc != 2)
@@ -635,6 +636,7 @@ windUndoCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int count;
 
     if (cmd->tx_argc > 3)
@@ -717,6 +719,7 @@ windUpdateCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc == 1)
 	WindUpdate();
 #ifdef MAGIC_WRAPPER
@@ -763,6 +766,7 @@ windVersionCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1) {
 	TxError("Usage: %s\n", cmd->tx_argv[0]);
 	return;
@@ -813,7 +817,7 @@ windViewCmd(w, cmd)
     else if (cmd->tx_argc == 2)
     {
 #ifdef MAGIC_WRAPPER
-	Tcl_Obj *listxy, *fval;
+	Tcl_Obj *listxy;
 
 	listxy = Tcl_NewListObj(0, NULL);
 #endif
@@ -928,6 +932,7 @@ windXviewCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(cmd);
     CellUse *celluse;
     int ViewUnexpandFunc();
 
@@ -989,6 +994,7 @@ windScrollBarsCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int place;
     static const char * const onoff[] = {"on", "off", 0};
     static const bool truth[] = {TRUE, FALSE};
@@ -1120,6 +1126,7 @@ windPositionsCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     extern int windPositionsFunc();
     char *filename = NULL;
     cdwpos windpos;

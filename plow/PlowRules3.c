@@ -203,6 +203,7 @@ scanDown(inarg, type, canMoveInargEdge)
     TileType type;
     bool canMoveInargEdge;
 {
+    ARG_UNUSED(canMoveInargEdge);
     TileType ltype = inarg->ina_moving->e_ltype;
     Edge *movingEdge = inarg->ina_moving;
     TileTypeBitMask badTypes;
@@ -298,6 +299,7 @@ scanUp(inarg, type, canMoveInargEdge)
     TileType type;
     bool canMoveInargEdge;
 {
+    ARG_UNUSED(canMoveInargEdge);
     TileType ltype = inarg->ina_moving->e_ltype;
     Edge *movingEdge = inarg->ina_moving;
     TileTypeBitMask badTypes;

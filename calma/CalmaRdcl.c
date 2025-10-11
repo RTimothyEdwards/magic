@@ -99,11 +99,10 @@ OFFTYPE
 calmaSetPosition(
     char *sname)
 {
-    OFFTYPE originalPos = 0, currentPos = 0;
+    OFFTYPE originalPos = 0;
     int nbytes, rtype;
     char *strname = NULL;
     int strRecSize = 0;
-    bool found = FALSE;
 
     originalPos = FTELL(calmaInputFile);
 
@@ -302,10 +301,8 @@ calmaFlattenPolygonFunc(
     CellUse *use,
     CellDef *parent)
 {
-    int i;
     CellUse dummy;
     SearchContext scx;
-    HashEntry *he;
 
     if (use->cu_def == NULL || use->cu_def->cd_name == NULL) return 0;
     if (strncmp(use->cu_def->cd_name, "polygon", 7)) return 0;
@@ -356,7 +353,6 @@ calmaParseStructure(
     HashEntry *he;
     int timestampval = 0;
     int suffix;
-    int mfactor;
     int locPolygonCount;
     OFFTYPE filepos;
     bool was_called = FALSE;
@@ -364,7 +360,6 @@ calmaParseStructure(
     bool predefined;
     bool do_flatten;
     CellDef *def;
-    Label *lab;
 
     locPolygonCount = CalmaPolygonCount;
 
@@ -753,6 +748,8 @@ calmaEnumFunc(
     Tile *tile,
     int *plane)
 {
+    ARG_UNUSED(tile);
+    ARG_UNUSED(plane);
     return 1;
 }
 
@@ -1167,7 +1164,6 @@ calmaElementSref(
 	    Plane **gdsplanes = (Plane **)def->cd_client;
 	    GDSCopyRec gdsCopyRec;
 	    int pNum;
-	    bool hasUses;
 
 	    // Mark cell as flattened (at least once)
 	    def->cd_flags |= CDFLATTENED;
@@ -1281,6 +1277,8 @@ gdsHasUses(
     CellUse *use,
     ClientData clientdata)
 {
+    ARG_UNUSED(use);
+    ARG_UNUSED(clientdata);
     return 1;
 }
 
@@ -1291,7 +1289,6 @@ gdsCopyPaintFunc(
     Tile *tile,
     GDSCopyRec *gdsCopyRec)
 {
-    int pNum;
     TileType dinfo;
     Rect sourceRect, targetRect;
     Transform *trans = gdsCopyRec->trans;

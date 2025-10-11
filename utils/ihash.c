@@ -42,7 +42,6 @@
 
 #define DEREF(ptr,offset) (((char*)ptr)+(offset))
 
-static char rcsid[] = "$Header$";
 #include <string.h>
 #include <stdio.h>
 #include "utils/magic.h"
@@ -128,8 +127,6 @@ void *IHashLookUpNext(IHashTable *table, void *prevEntry)
 {
   void *entry;
   void *key = DEREF(prevEntry,table->iht_keyOffset);
-  int hash = (table->iht_hashFn)(key);
-  int bucket = ABS(hash) % table->iht_nBuckets;
 
   for(entry = *((void **) DEREF(prevEntry,table->iht_nextOffset));
       entry && !(table->iht_sameKeyFn)(key,DEREF(entry,table->iht_keyOffset));

@@ -61,7 +61,7 @@ void
 DumpCore()
 {
     int parentPid = getpid();
-    int cpid, gcpid, wpid;
+    int cpid, gcpid;
     FILE *commentFile, *crashFile;
     time_t now;
     char pidString[20], line[150], command[512], tempName[200], *crashDir;

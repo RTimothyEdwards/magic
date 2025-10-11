@@ -223,6 +223,7 @@ CMWreposition(
     Rect *newScreenArea,
     bool final)
 {
+    ARG_UNUSED(newScreenArea);
     if (final)
 	WindMove(window, &colorWindowRect);
 }

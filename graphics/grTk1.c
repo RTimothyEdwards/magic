@@ -350,7 +350,7 @@ GrTkInit(dispType)
     char *dispType;
 {
     int i,j;
-    XVisualInfo grvisual_info, *grvisual_get, grtemplate;
+    XVisualInfo *grvisual_get, grtemplate;
     VisualID defpsvid;
     int defpsindex = -1;
     int gritems, gritems_list, grcolorCount;
@@ -677,7 +677,6 @@ GrTkInit(dispType)
 void
 GrTkClose ()
 {
-    int i;
 
     if (grXdpy == NULL) return;
 
@@ -795,7 +794,7 @@ MagicEventProc(clientData, xevent)
 	    {
 		int keywstate, keymod, modifier, idx, idxmax;
 		char inChar[10];
-		Tcl_Channel outChannel = Tcl_GetStdChannel(TCL_STDOUT);
+		Tcl_GetStdChannel(TCL_STDOUT);
 
 		nbytes = XLookupString(KeyPressedEvent, inChar, sizeof(inChar),
 			&keysym, NULL);
@@ -1223,9 +1222,8 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
     char *outFileName;
     char *mouseFileName;
 {
-    char *planecount;
-    char *fullname;
-    FILE* f;
+    ARG_UNUSED(outFileName);
+    ARG_UNUSED(mouseFileName);
     bool execFailed = FALSE;
     int x, y, width, height;
 
@@ -1727,7 +1725,6 @@ GrTkUnlock(w)
 bool
 GrTkEventPending()
 {
-   Tk_Window	tkwind = grCurrent.window;
    Window	wind = grCurrent.windowid;
    XEvent	genEvent;
    bool		retval;

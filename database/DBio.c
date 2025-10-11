@@ -225,11 +225,10 @@ DBSearchForTech(techname, techroot, pathroot, level)
     char *pathroot;
     int level;
 {
-    char *newpath, *found, *dptr;
+    char *newpath, *found;
     struct dirent *tdent;
     DIR *tdir;
     LinkedDirent *dlist = NULL, *ld, *ldlast = NULL;
-    int dlen;
 
     /* Avoid potential infinite looping.  Any tech file should not be very  */
     /* far down the path.  10 levels is already excessive.		    */
@@ -525,13 +524,11 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 {
     int cellStamp = 0, rectCount = 0, rectReport = 10000;
     char line[2048], tech[50], layername[50];
-    PaintResultType *ptable;
     bool result = TRUE, scaleLimit = FALSE, has_mismatch;
     Rect *rp;
     int c;
     TileType type, rtype, loctype;
     TileTypeBitMask *rmask, typemask;
-    Plane *plane;
     Rect r;
     int n = 1, d = 1;
     HashTable dbUseTable;
@@ -1232,7 +1229,6 @@ DBReadBackup(name, archive, usederef)
     char *filename, *rootname, *chrptr, *suffix, *filetype;
     char line[256];
     CellDef *cellDef;
-    bool result = TRUE;
 
     if (archive)
     {
@@ -1447,7 +1443,7 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 {
     FILETYPE f = NULL;
     int fd;
-    char *filename, *realname, *savename;
+    char *filename, *realname;
     bool is_locked;
 
 #ifdef FILE_LOCKS
@@ -1654,6 +1650,7 @@ DBOpenOnly(cellDef, name, setFileName, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
+    ARG_UNUSED(name);
     dbReadOpen(cellDef, setFileName, FALSE, errptr);
 }
 
@@ -3261,7 +3258,7 @@ dbFindPropGCFFunc(key, value, ggcf)
     int *ggcf;		/* Client data */
 {
     Rect bbox;
-    char *vptr = value, *sptr;
+    char *vptr = value;
     int numvals, n;
 
     if (!strcmp(key, "FIXED_BBOX"))
@@ -3398,6 +3395,7 @@ dbCountUseFunc(cellUse, count)
     CellUse *cellUse;	/* Cell use whose "call" is to be written to a file */
     int *count;
 {
+    ARG_UNUSED(cellUse);
     (*count)++;
     return 0;
 }
@@ -3491,6 +3489,8 @@ dbCountPropFunc(key, value, count)
     ClientData value;
     int *count;		/* Client data */
 {
+    ARG_UNUSED(key);
+    ARG_UNUSED(value);
     (*count)++;
     return 0;
 }
@@ -3551,9 +3551,6 @@ DBCellWriteFile(cellDef, f)
     int reducer;
     char *estring;
     char lstring[2048];
-    char *propvalue;
-    bool propfound;
-    CellUse **useList;
     int i, numUses = 0, numProps = 0;
     struct cellUseList cul;
     pwfrec pwf;
@@ -4187,12 +4184,10 @@ dbWritePaintCommandsFunc(tile, cdarg)
     Tile *tile;
     ClientData cdarg;
 {
-    char pstring[256];
     struct writeArg *arg = (struct writeArg *) cdarg;
     FILE *f = arg->wa_file;
 
     TileType type = TiGetType(tile);
-    TileTypeBitMask *lMask, *rMask;
 
     int diridx;
     static const char *directionNames[] = {"nw", "se", "sw", "ne", 0};
@@ -4760,6 +4755,7 @@ dbClearCellFunc(cellUse, cdarg)
     CellUse *cellUse;	/* Cell use */
     ClientData cdarg;	/* Not used */
 {
+    ARG_UNUSED(cdarg);
     cellUse->cu_def->cd_flags &= ~CDVISITED;
     return 0;
 }
@@ -5231,6 +5227,7 @@ dbCheckModifiedCellsFunc(def, cdata)
     CellDef *def;	/* Pointer to CellDef to be saved */
     ClientData cdata;	/* Unused */
 {
+    ARG_UNUSED(cdata);
     if (def->cd_flags & (CDINTERNAL | CDNOEDIT | CDNOTFOUND)) return 0;
     else if (!(def->cd_flags & CDAVAILABLE)) return 0;
     return 1;

@@ -491,6 +491,7 @@ mzReclaimTCFunc(tile, notUsed)
     Tile *tile;
     ClientData notUsed;
 {
+    ARG_UNUSED(notUsed);
     if (tile->ti_client != (ClientData)CLIENTDEFAULT)
     {
 	TileCosts *tc = ((TileCosts *) (tile->ti_client));
@@ -610,6 +611,7 @@ mzDestTileEstFunc(tile, cdarg)
     Tile *tile;
     ClientData cdarg;
 {
+    ARG_UNUSED(cdarg);
     Rect rect;
 
     /* set rect to bounding box of tile */
@@ -660,6 +662,7 @@ mzAddSubcellEstFunc(scx, cdarg)
     SearchContext *scx;
     ClientData cdarg;
 {
+    ARG_UNUSED(cdarg);
     Rect r, rDest;
 
     /* Transform bounding box to result coords */
@@ -701,6 +704,7 @@ mzAddFenceEstFunc(tile, buildArea)
     Tile *tile;
     Rect *buildArea; /* currently ignored */
 {
+    ARG_UNUSED(buildArea);
     Rect r;
 
     /* Get boundary of tile */
@@ -906,6 +910,7 @@ mzBuildEstimatesFunc(tile, notUsed)
     Tile *tile;
     ClientData notUsed;
 {
+    ARG_UNUSED(notUsed);
 
     mzBuildCornerEstimators(tile);
     mzBuildStraightShotEstimators(tile);
@@ -1318,6 +1323,7 @@ mzTrimEstimatesFunc(tile, notUsed)
     Tile *tile;
     ClientData notUsed;
 {
+    ARG_UNUSED(notUsed);
     TileCosts *tc = (TileCosts *) (tile->ti_client);
     Estimate *e;
     Estimate *reqEstimates = NULL;
@@ -1513,7 +1519,6 @@ mzAssignVertexCosts()
 {
     Heap adjHeap;	/* vertices adjacent to the IN set are put here */
     HeapEntry buf, *he;
-    Tile *t;
 
     /* Initialize Heap */
     HeapInitType(&adjHeap, 1024, FALSE, FALSE, HE_DLONG);
@@ -1984,7 +1989,6 @@ mzDumpEstFunc(tile, fd)
 	fprintf(fd,"vcost = %d \n",
 		tilec->tc_vCost);
 	{
-	    char str[100];
 	    Estimate *e;
 
 	    fprintf(fd,"\tEstimates:\n");
@@ -2006,7 +2010,6 @@ mzDumpEstFunc(tile, fd)
 	TxPrintf("vcost = %d \n",
 		tilec->tc_vCost);
 	{
-	    char str[100];
 	    Estimate *e;
 
 	    TxPrintf("\tEstimates:\n");

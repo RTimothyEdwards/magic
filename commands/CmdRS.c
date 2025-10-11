@@ -90,6 +90,7 @@ CmdRandom(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int value;
 
     if (cmd->tx_argc == 1)
@@ -266,6 +267,7 @@ CmdScaleGrid(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int scalen, scaled;
     char *argsep;
     Rect rootBox;
@@ -422,6 +424,7 @@ CmdSee(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int flags;
     bool off;
     char *arg;
@@ -844,7 +847,7 @@ CmdSelect(
     CellUse *use;
     CellDef *rootBoxDef;
     Transform trans, rootTrans, tmp1;
-    Point p, rootPoint, atPoint;
+    Point p, atPoint;
     Rect r, selarea;
     ExtRectList *rlist;
     int option;
@@ -969,7 +972,6 @@ CmdSelect(
 	option = SEL_DEFAULT;
     else
     {
-	char *fileName;
 
 	option = Lookup(optionArgs[0], cmdSelectOption);
 	if ((option < 0) && (primargs != 2))
@@ -1707,6 +1709,7 @@ cmdLabelTextFunc(
     Transform *transform,
     char *text)
 {
+    ARG_UNUSED(transform);
     Label *newlab;
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
@@ -1747,11 +1750,11 @@ cmdLabelRotateFunc(
     Transform *transform,
     int *value)
 {
+    ARG_UNUSED(transform);
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj;
 #endif
-    Rect selarea;
 
     if (value == NULL)
     {
@@ -1784,6 +1787,7 @@ cmdLabelSizeFunc(
     Transform *transform,
     int *value)
 {
+    ARG_UNUSED(transform);
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj;
@@ -1820,6 +1824,7 @@ cmdLabelJustFunc(
     Transform *transform,
     int *value)
 {
+    ARG_UNUSED(transform);
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj;
@@ -1856,6 +1861,7 @@ cmdLabelLayerFunc(
     Transform *transform,
     int *value)
 {
+    ARG_UNUSED(transform);
     CellDef *cellDef = cellUse->cu_def;
     TileType ttype;
 #ifdef MAGIC_WRAPPER
@@ -1894,6 +1900,7 @@ cmdLabelStickyFunc(
     Transform *transform,
     int *value)
 {
+    ARG_UNUSED(transform);
     CellDef *cellDef = cellUse->cu_def;
     int newvalue;
 #ifdef MAGIC_WRAPPER
@@ -1935,6 +1942,7 @@ cmdLabelOffsetFunc(
     Transform *transform,
     Point *point)
 {
+    ARG_UNUSED(transform);
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj, *pobj;
@@ -1976,6 +1984,7 @@ cmdLabelRectFunc(
     Transform *transform,
     Rect *rect)
 {
+    ARG_UNUSED(transform);
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj, *pobj;
@@ -2022,6 +2031,7 @@ cmdLabelFontFunc(
     Transform *transform,
     int *font)
 {
+    ARG_UNUSED(transform);
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj;
@@ -2590,6 +2600,7 @@ CmdSideways(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     Transform trans;
     Rect rootBox, bbox;
     CellDef *rootDef;
@@ -2652,6 +2663,7 @@ CmdShell(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int i, cmdlength;
     char *command;
 
@@ -2869,10 +2881,10 @@ CmdSnap(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     static const char * const names[] = { "off", "internal", "lambda", "grid", "user", "on",
 		"list", 0 };
     int n = SNAP_LIST;
-    DBWclientRec *crec;
 
     if (cmd->tx_argc < 2) goto printit;
 

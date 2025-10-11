@@ -517,6 +517,7 @@ mzConnectedSubcellFunc(scx, cdarg)
     SearchContext *scx;
     ClientData cdarg;
 {
+    ARG_UNUSED(cdarg);
     CellUse *cu = scx->scx_use;
 
     /* If not already marked, mark celluse and add to marked list */
@@ -589,7 +590,7 @@ mzPaintContact(path, prev)
     RoutePath *path, *prev;
 {
     RouteContact *rC;
-    int pNum, pNumC, cWidth;
+    int pNum, cWidth;
     Rect r;
     TileType cType;
 

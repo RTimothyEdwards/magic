@@ -325,6 +325,7 @@ EFHierVisitSubcircuits(hc, subProc, cdata)
     int (*subProc)();
     ClientData cdata;	/* unused */
 {
+    ARG_UNUSED(cdata);
     CallArg ca;
     int efHierVisitSubcircuits();   /* Forward declaration */
 
@@ -389,11 +390,12 @@ efHierDevKilled(hc, dev, prefix)
     Dev *dev;
     HierName *prefix;
 {
+    ARG_UNUSED(hc);
+    ARG_UNUSED(prefix);
     HierName *suffix;
     HashEntry *he;
     EFNodeName *nn;
     int n;
-    Def *def = hc->hc_use->use_def;
 
     for (n = 0; n < dev->dev_nterm; n++)
     {
@@ -622,8 +624,6 @@ efHierVisitResists(
 {
     Def *def = hc->hc_use->use_def;
     Connection *res;
-    Transform t;
-    int scale;
 
     /* Visit all resistors */
     for (res = def->def_resistors; res; res = res->conn_next)
@@ -735,7 +735,6 @@ EFHierVisitNodes(hc, nodeProc, cdata)
     int (*nodeProc)();
     ClientData cdata;
 {
-    Def *def = hc->hc_use->use_def;
     EFCapValue cap;
     int res;
     EFNode *snode;

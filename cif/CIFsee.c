@@ -142,7 +142,6 @@ CIFPaintLayer(
     CellDef *paintDef)		/* CellDef to paint into (may be NULL)	*/
 {
     int oldCount, i;
-    char msg[100];
     SearchContext scx;
     PaintLayerData pld;
     TileTypeBitMask mask, depend;

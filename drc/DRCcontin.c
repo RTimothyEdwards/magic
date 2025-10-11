@@ -188,12 +188,13 @@ DRCCheckThis (celldef, operation, area)
     TileType  operation;		/* TT_CHECKPAINT or TT_CHECKSUBCELL */
     Rect    * area;			/* Area that changed. */
 {
+    ARG_UNUSED(operation);
     CellUse	     * cu;		/* Ptr to uses of the given CellDef */
     Rect	       transRect;	/* Area in coords of parent CellDefs,
 					 * expanded if the use is in an array
 					 */
     Rect               dummyRect, dummyRect2;
-    DRCPendingCookie * p, ** pback;	/* Used to insert new element in list
+    DRCPendingCookie * p;	/* Used to insert new element in list
 					 *  of CellDefs waiting for DRC
 					 */
 
@@ -642,6 +643,7 @@ drcCheckTile(tile, arg)
     Tile        * tile;			/* tile in DRC_CHECK plane */
     ClientData 	  arg;			/* Not used. */
 {
+    ARG_UNUSED(arg);
     Rect square;		/* Square area of the checkerboard
 				 * being processed right now.
 				 */

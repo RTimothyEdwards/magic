@@ -587,7 +587,7 @@ mzBuildFenceBlocksFunc(tile, buildArea)
     RouteType *rT;
     int d;
     Rect r, rAdjusted;
-    TileType tt = TiGetType(tile);
+    TiGetType(tile);
 
     /* Get boundary of tile */
     TITORECT(tile, &r);
@@ -727,6 +727,7 @@ mzExtendBlockFunc(tile, cdarg)
     Tile *tile;
     ClientData cdarg;
 {
+    ARG_UNUSED(cdarg);
     Rect area;
 
     /* Get location of tile */

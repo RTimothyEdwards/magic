@@ -77,6 +77,7 @@ calmaReadTransform(
     Transform *ptrans,	/* Fill in this transform */
     char *name)		/* Name of subcell (for errors) */
 {
+    ARG_UNUSED(name);
     int nbytes, rtype, flags, angle;
     double dangle;
     double dmag;

@@ -259,7 +259,7 @@ CIFSetStyle(
 				 * print out the valid styles.
 				 */
 {
-    CIFKeep *style, *match, *exactmatch;
+    CIFKeep *style, *match;
     bool ambiguous = FALSE;
     int length;
 

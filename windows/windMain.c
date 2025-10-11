@@ -370,7 +370,6 @@ WindNextClient(client)
     WindClient client;
 {
     clientRec *cr = (clientRec *)client;
-    int length;
 
     if (cr == NULL)
 	return (WindClient)windFirstClientRec;

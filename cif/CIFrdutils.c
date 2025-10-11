@@ -210,7 +210,7 @@ CIFScaleCoord(
     int snap_type)			/* How to deal with fractional results */
 {
     int result, scale, remain, denom;
-    int mult, mfactor;
+    int mult;
 
     /* If internal grid subdivision is disallowed, always round to the	*/
     /* nearest grid unit.						*/
@@ -1056,8 +1056,6 @@ CIFMakeManhattanPath(
     PaintUndoInfo *ui)
 {
     CIFPath *new, *new2, *next, *path;
-    int xinit, xdiff, xincr, xlast, x;
-    int yinit, ydiff, yincr, ylast, y;
 
     bool clockwise;
     CIFPath *first, *last;
@@ -1239,7 +1237,7 @@ void
 CIFCleanPath(
     CIFPath *pathHead)
 {
-    CIFPath *next, *path, *prev, *last;
+    CIFPath *next, *path, *prev;
     int dir1, dir2;
 
     if (!pathHead) return;

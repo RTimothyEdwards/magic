@@ -155,7 +155,6 @@ DBTechNameTypes(typename, bitmask)
     char *slash;
     TileType type;
     int plane;
-    LayerInfo *lp;
 
     TTMaskZero(bitmask);
     slash = strchr(typename, '/');

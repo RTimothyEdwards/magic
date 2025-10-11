@@ -104,8 +104,8 @@ drcArrayFunc(scx, arg)
 {
     int xsep, ysep;
     int xsize, ysize;
-    int rval, oldTiles;
-    Rect errorArea, yankArea, tmp, tmp2, saveClip;
+    int oldTiles;
+    Rect errorArea, yankArea, tmp, tmp2;
     DRCCookie *save_cptr;
     CellUse *use = scx->scx_use;
     Rect *area;
@@ -113,7 +113,6 @@ drcArrayFunc(scx, arg)
     void (*drcArrayErrorFunc)();	/* Function to call on violations. */
     ClientData drcArrayClientData;	/* Extra parameter to pass to func. */
     PaintResultType (*savedPaintTable)[NT][NT];
-    PaintResultType (*savedEraseTable)[NT][NT];
     int (*savedPaintPlane)();
 
     if ((use->cu_xlo == use->cu_xhi) && (use->cu_ylo == use->cu_yhi))
@@ -291,6 +290,8 @@ drcArrayYankFunc(use, transform, x, y, yankArea)
     Rect *yankArea;			/* Area to yank (in parent coords). */
 
 {
+    ARG_UNUSED(x);
+    ARG_UNUSED(y);
     SearchContext scx;
     Transform tinv;
 
@@ -332,6 +333,8 @@ drcArrayOverlapFunc(use, transform, x, y, arg)
 				 * checking.  See drcExactOverlapTile.
 				 */
 {
+    ARG_UNUSED(x);
+    ARG_UNUSED(y);
     Transform tinv;
     SearchContext scx;
 

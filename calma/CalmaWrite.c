@@ -286,7 +286,7 @@ CalmaWrite(
     CellDef *rootDef,	/* Pointer to CellDef to be written */
     FILE *f)		/* Open output file */
 {
-    int oldCount = DBWFeedbackCount, problems, nerr;
+    int oldCount = DBWFeedbackCount, problems;
     bool good;
     CellDef *err_def;
     CellUse dummy;
@@ -686,8 +686,8 @@ calmaFullDump(
     char *filename)
 {
     int version, rval;
-    char *libname = NULL, *testlib, uniqlibname[4];
-    char *sptr, *viewopts;
+    char *libname = NULL, uniqlibname[4];
+    char *viewopts;
     bool isAbstract;
     HashTable calmaDefHash;
     HashSearch hs;
@@ -977,7 +977,6 @@ calmaProcessDef(
 	size_t defsize, numbytes;
 	off_t cellstart, cellend, structstart;
  	dlong cval;
-	int namelen;
 	FILETYPE fi;
 
 	/* Give some feedback to the user */
@@ -1901,10 +1900,9 @@ calmaWriteContacts(
 {
     TileType type;
     TileTypeBitMask tMask, *rMask;
-    CellDef *def, *cellDef;
+    CellDef *def;
     Rect area, cliprect;
     int halfwidth, halfsize;
-    CIFOp *op;
 
     /* Turn off generation of contact arrays for the duration of this	*/
     /* subroutine, so that the contact definitions themselves will get	*/
@@ -2344,9 +2342,8 @@ calmaProcessBoundary(
     calmaOutputStruct *cos)
 {
     FILE *f = cos->f;
-    LinkedBoundary *listtop, *lbref, *lbstop, *lbfree;
+    LinkedBoundary *listtop, *lbref, *lbstop;
     BoundaryTop *bounds;
-    int sval;
     int chkcount;	/* diagnostic */
 
     for (bounds = blist; bounds != NULL; bounds = bounds->bt_next)
@@ -2456,8 +2453,6 @@ calmaMergePaintFunc(
     Tile *tile,			/* Tile to be written out. */
     calmaOutputStruct *cos)	/* Information needed by algorithm */
 {
-    FILE *f = cos->f;
-    const Rect *clipArea = cos->area;
     Tile *t, *tp;
     TileType ttype;
     int i, llx, lly, urx, ury, intedges, num_points, split_type;
@@ -2781,7 +2776,7 @@ calmaWritePaintFunc(
 {
     FILE *f = cos->f;
     const Rect *clipArea = cos->area;
-    Rect r, r2;
+    Rect r;
 
     TiToRect(tile, &r);
     if (clipArea != NULL)
@@ -3057,9 +3052,8 @@ calmaPaintLabelFunc(
 {
     FILE *f = cos->f;
     const Rect *clipArea = cos->area;
-    Rect r, r2;
+    Rect r;
     Point p;
-    int len;
     CIFLayer *layer = CIFCurStyle->cs_layers[cos->type];
 
     if (IsSplit(tile)) return 0;    /* Ignore non-Manhattan geometry */

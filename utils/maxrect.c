@@ -32,8 +32,6 @@ genCanonicalMaxwidth(bbox, starttile, plane, mask)
     Plane	*plane;		/* Plane being searched */
     TileTypeBitMask *mask;	/* Mask of types to check */
 {
-    int		    s;
-    Tile	    *tile, *tp;
     TileTypeBitMask wrongtypes;
     static MaxRectsData *mrd = (MaxRectsData *)NULL;
     Rect	    boundorig;
@@ -251,9 +249,9 @@ FindMaxRectangle(bbox, startpoint, plane, expandtypes)
     Plane *plane;			/* plane of types to expand */
     TileTypeBitMask *expandtypes;	/* types to expand in */
 {
+    ARG_UNUSED(expandtypes);
     MaxRectsData *mrd;
     Tile *starttile;
-    TileType tt;
     int rectArea;
     int maxarea = 0;
     int s, sidx = -1;
@@ -310,7 +308,6 @@ FindMaxRectangle2(bbox, starttile, plane, expandtypes)
     TileTypeBitMask *expandtypes;	/* types to expand in, may be NULL */
 {
     MaxRectsData *mrd;
-    TileType tt;
     int rectArea;
     int maxarea = 0;
     int s, sidx = -1;

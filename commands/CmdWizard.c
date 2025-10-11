@@ -83,6 +83,7 @@ CmdCoord(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(cmd);
     MagWindow *pointW = (MagWindow *) NULL;
     Rect editRect, rootRect;
     Transform tinv;
@@ -363,6 +364,7 @@ CmdShowtech(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     FILE *outf;
     bool verbose;
     char **av;
@@ -431,6 +433,7 @@ CmdTilestats(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     CellUse *selectedUse;
     FILE *outf = stdout;
     bool allDefs = FALSE;
@@ -569,6 +572,7 @@ cmdStatsCount(
     CellDef *def,
     struct countClient *cc)
 {
+    ARG_UNUSED(cc);
     int cmdStatsCountTile(Tile *tile, struct cellInfo *ci);
     int pNum;
     struct cellInfo *ci;
@@ -756,6 +760,7 @@ CmdPsearch(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     static struct tms tlast, tdelta;
     Point p;
@@ -868,6 +873,7 @@ CmdTsearch(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int cmdTsrFunc(Tile *tp);
     char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     char *rstatp;

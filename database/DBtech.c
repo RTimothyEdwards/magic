@@ -106,6 +106,7 @@ DBTechSetTech(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     if (argc != 1)
     {
 	if (argc == 2)
@@ -174,6 +175,7 @@ DBTechSetVersion(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     char *contline;
     int n, slen;
 
@@ -312,6 +314,7 @@ DBTechAddConnect(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     TileTypeBitMask types1, types2;
     TileType t1, t2;
 

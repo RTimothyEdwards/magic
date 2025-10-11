@@ -53,25 +53,3 @@ int bpRectDim(Rect *r, bool xDir)
 {
   return xDir ? r->r_xtop - r->r_xbot : r->r_ytop - r->r_ybot;
 }
-
-/*
- * ----------------------------------------------------------------------------
- * bpBinIndices --
- *
- * compute bin indices corresponding to area.
- *
- * ----------------------------------------------------------------------------
- */
-static __inline__ void
-bpBinIndices(Rect area,        /* area */
-	     Rect binArea,     /* lower left corner of bin system */
-	     int indexBits,
-	     int dim,
-	     bool  xDir,       /* TRUE for x bin, FALSE for y bin */
-	     int *min,         /* results go here */
-	     int *max)
-{
-  int ref, coord;
-  int index;
-
-}

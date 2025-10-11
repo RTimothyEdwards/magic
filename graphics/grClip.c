@@ -577,7 +577,6 @@ GrBoxOutline(tile, tilesegs)
 {
     Rect rect;
     TileType ttype;
-    LinkedRect *curseg;
     Tile *tpleft, *tpright, *tptop, *tpbot;
     int edgeTop, edgeBot, edgeRight, edgeLeft;
     int isolate = 0;
@@ -776,7 +775,7 @@ void
 GrBox(MagWindow *mw, Transform *trans, Tile *tile)
 {
     Rect r, r2, clipr;
-    bool needClip, needObscure, simpleBox;
+    bool needClip, needObscure;
     LinkedRect *ob, *tilesegs, *segptr;
     Point polyp[5];
     int np;

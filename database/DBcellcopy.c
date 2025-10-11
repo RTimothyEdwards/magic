@@ -388,7 +388,7 @@ dbCopyMaskHintsFunc(key, value, puds)
     CellDef *dest = puds->puds_dest;
     Transform *trans = puds->puds_trans;
     char *propstr = (char *)value;
-    char *parentprop, *newvalue, *vptr;
+    char *parentprop, *newvalue;
     Rect r, rnew;
     bool propfound;
 
@@ -615,7 +615,6 @@ DBFlattenInPlace(use, dest, xMask, dolabels, toplabels, doclear)
 
 	for (lab = dest->cu_def->cd_labels; lab; lab = lab->lab_next)
 	{
-	    Label *newlab;
 	    char *newtext;
 
 	    if (lab->lab_flags & LABEL_GENERATE)
@@ -917,7 +916,6 @@ DBCellGenerateSimpleSubstrate(scx, subType, notSubMask, targetDef)
     int plane;
     Rect rect;
     TileTypeBitMask allButSubMask;
-    TileTypeBitMask defaultSubTypeMask;
     int dbEraseSubFunc();
     int dbPaintSubFunc();
     int dbEraseNonSub();
@@ -1192,6 +1190,7 @@ dbCopyAllLabels(scx, lab, tpath, arg)
     TerminalPath *tpath;
     struct copyLabelArg *arg;
 {
+    ARG_UNUSED(tpath);
     Rect labTargetRect;
     Point labOffset;
     int targetPos, labRotate;

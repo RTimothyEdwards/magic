@@ -991,6 +991,7 @@ plowSelPaintBox(rect, type, pSelBox)
     TileType type;
     Rect *pSelBox;
 {
+    ARG_UNUSED(type);
     Rect editRect;
 
     GeoTransRect(&RootToEditTransform, rect, &editRect);
@@ -1005,6 +1006,8 @@ plowSelCellBox(selUse, realUse, transform, pSelBox)
     Transform *transform;
     Rect *pSelBox;
 {
+    ARG_UNUSED(selUse);
+    ARG_UNUSED(transform);
     GeoInclude(&realUse->cu_bbox, pSelBox);
     return (0);
 }
@@ -1102,6 +1105,8 @@ plowSelCellPlow(selUse, realUse, transform, distance)
     Transform *transform;	/* UNUSED */
     int distance;		/* Plow distance */
 {
+    ARG_UNUSED(selUse);
+    ARG_UNUSED(transform);
     int plowFindSelCell();
     ClientData save;
 

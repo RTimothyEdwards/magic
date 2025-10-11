@@ -326,6 +326,7 @@ MZTechLine(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(sectionName);
     if(strcmp(argv[0], "style") == 0)
     {
         mzTechStyle(argc, argv);
@@ -393,6 +394,7 @@ mzTechStyle(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
 
     /* if there is a previous style, complete processing on it */
     if(mzStyles)

@@ -242,7 +242,6 @@ dbwhlRedrawFunc(window, area)
 
     if (dbwhlErase)
     {
-	bool needErase = TRUE;
 
 	erase.r_xbot += expand.r_xbot;
 	erase.r_ybot += expand.r_ybot;

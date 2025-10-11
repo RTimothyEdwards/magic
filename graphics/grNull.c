@@ -152,6 +152,7 @@ NullTextSize(text, size, r)
     int size;
     Rect *r;
 {
+    ARG_UNUSED(size);
     ASSERT(r != NULL, "nullTextSize");
     r->r_xbot = 0;
     r->r_xtop = strlen(text);
@@ -182,6 +183,8 @@ nullStdin(
     int fd,
     ClientData cdata) /* notused */
 {
+    ARG_UNUSED(fd);
+    ARG_UNUSED(cdata);
     int ch;
     TxInputEvent *event;
 
@@ -245,6 +248,9 @@ nullSetDisplay(dispType, outFileName, mouseFileName)
     char *outFileName;
     char *mouseFileName;
 {
+    ARG_UNUSED(dispType);
+    ARG_UNUSED(outFileName);
+    ARG_UNUSED(mouseFileName);
     TxPrintf("Using NULL graphics device.\n");
 
     TxAdd1InputDevice(fileno(stdin), nullStdin, (ClientData) NULL);

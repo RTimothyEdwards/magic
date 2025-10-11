@@ -339,6 +339,7 @@ DBWElementRedraw(window, plane)
 				 * needs to be redrawn.
 				 */
 {
+    ARG_UNUSED(plane);
     int curStyle, newStyle;
     styleptr stylePtr;
     CellDef *windowRoot;
@@ -570,7 +571,6 @@ void
 DBWElementDelete(MagWindow *w, char *name)
 {
     DBWElement *elem;
-    CellDef *currentRoot;
     HashEntry *entry;
     styleptr stylePtr;
 
@@ -673,7 +673,6 @@ DBWElementInbox(area)
     DBWElement *elem;
     HashSearch hs;
     HashEntry *he;
-    int sqdist;
 
 #ifndef MAGIC_WRAPPER
     TxPrintf("Element(s) inside box: ");
@@ -1201,7 +1200,6 @@ DBWElementPos(MagWindow *w, char *ename, Rect *crect)
 {
     DBWElement *elem;
     HashEntry *entry;
-    Rect prect;
     char ptemp[22];
 
     entry = HashFind(&elementTable, ename);

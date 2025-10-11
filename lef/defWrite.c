@@ -293,6 +293,8 @@ defnodeCount(
     EFCapValue cap,		/* not used */
     NetCount *total)
 {
+    ARG_UNUSED(res);
+    ARG_UNUSED(cap);
     HierName *hierName;
     char *cp, clast;
 
@@ -658,6 +660,8 @@ defnodeVisit(
     EFCapValue cap,
     DefData *defdata)
 {
+    ARG_UNUSED(res);
+    ARG_UNUSED(cap);
     HierName *hierName;
     char *ndn;
     char ndn2[256];
@@ -1701,6 +1705,7 @@ int
 defCheckFunc(
     Tile *tile)
 {
+    ARG_UNUSED(tile);
     return 1;
 }
 
@@ -2083,6 +2088,7 @@ defWriteVias(
     float oscale,			/* Output scale factor */
     LefMapping *lefMagicToLefLayer)
 {
+    ARG_UNUSED(rootDef);
     HashSearch hs;
     HashEntry *he;
     lefLayer *lefl;
@@ -2585,6 +2591,8 @@ defblockageVisit(
     EFCapValue cap,
     DefObsData *defobsdata)
 {
+    ARG_UNUSED(res);
+    ARG_UNUSED(cap);
     CellDef *def = defobsdata->def;
     TileType magictype;
     TileTypeBitMask tmask;

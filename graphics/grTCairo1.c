@@ -150,6 +150,7 @@ void
 grtcairoSetLineStyle (style)
 int style;			/* New stipple pattern for lines. */
 {
+    ARG_UNUSED(style);
 	// unimplemented for cairo
 }
 
@@ -259,7 +260,6 @@ int stipple;			/* The stipple number to be used. */
 bool
 GrTCairoInit ()
 {
-	bool rstatus;
 
 	if (Tk_InitStubs(magicinterp, Tclmagic_InitStubsVersion, 0) == NULL) return FALSE;
 
@@ -414,6 +414,8 @@ void
 tcairoSetProjection(llx, lly, width, height)
 int llx, lly, width, height;
 {
+    ARG_UNUSED(llx);
+    ARG_UNUSED(lly);
     TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
     bool offscreen = FALSE;
 
@@ -486,10 +488,8 @@ TCairoEventProc(clientData, xevent)
 ClientData clientData;
 XEvent *xevent;
 {
-	TxInputEvent *event;
 	HashEntry	*entry;
 	Tk_Window tkwind = (Tk_Window)clientData;
-	Window wind;
 	MagWindow *mw;
 	unsigned char LocRedirect = TxInputRedirect;
 
@@ -548,7 +548,7 @@ XEvent *xevent;
 	{
 		int keywstate, keymod, modifier, idx, idxmax;
 		char inChar[10];
-		Tcl_Channel outChannel = Tcl_GetStdChannel(TCL_STDOUT);
+		Tcl_GetStdChannel(TCL_STDOUT);
 
 		nbytes = XLookupString(KeyPressedEvent, inChar, sizeof(inChar),
 		                       &keysym, NULL);
@@ -840,7 +840,7 @@ keys_and_buttons:
 		XConfigureEvent *ConfigureEvent = (XConfigureEvent*) xevent;
 		Rect	screenRect;
 		int width, height;
-		bool result, need_resize;
+		bool need_resize;
 
 		width = ConfigureEvent->width;
 		height = ConfigureEvent->height;
@@ -992,9 +992,9 @@ char *dispType;
 char *outFileName;
 char *mouseFileName;
 {
-	char *planecount;
-	char *fullname;
-	FILE* f;
+    ARG_UNUSED(dispType);
+    ARG_UNUSED(outFileName);
+    ARG_UNUSED(mouseFileName);
 	bool execFailed = FALSE;
 	int x, y, width, height;
 
@@ -1108,7 +1108,6 @@ char *name;
 	int		y      = grTransYs(w->w_frameArea.r_ytop);
 	int		width  = w->w_frameArea.r_xtop - w->w_frameArea.r_xbot;
 	int		height = w->w_frameArea.r_ytop - w->w_frameArea.r_ybot;
-	unsigned long        attribmask = CWBackPixel | CWBorderPixel | CWColormap;
 	XSetWindowAttributes grAttributes;
 
 	WindSeparateRedisplay(w);
@@ -1169,7 +1168,6 @@ char *name;
 
 	if (tkwind != 0)
 	{
-		bool result;
 		TCairoData *tcairodata;
 
 		GrTCairoFlush();
@@ -1395,7 +1393,6 @@ GrTCairoLock(w, flag)
 MagWindow *w;
 bool flag;
 {
-	Window wind;
 
 	grSimpleLock(w, flag);
 	if ( w != GR_LOCK_SCREEN )

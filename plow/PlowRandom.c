@@ -95,7 +95,6 @@ PlowRandomTest(def)
     static char *dirnames[] = { "up", "down", "right", "left" };
     Rect plowRect;
     int dir, plowDir;
-    Plane *savePlane;
 
 #ifdef	notdef
     strcpy(goodName, tempgood);

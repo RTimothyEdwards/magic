@@ -304,7 +304,6 @@ GrTkWindowName(mw)
     MagWindow *mw;
 {
     Tk_Window tkwind;
-    char *tkname;
 
     tkwind = (Tk_Window) mw->w_grdata;
     return Tk_PathName(tkwind);
@@ -677,6 +676,7 @@ static int
 _magic_magiccolor(ClientData clientData,
 	Tcl_Interp *interp, int argc, char *argv[])
 {
+    ARG_UNUSED(clientData);
     char *result;
     char *name;
 
@@ -847,6 +847,7 @@ ImgLayerCreate(interp, name, argc, argv, typePtr, master, clientDataPtr)
     ClientData *clientDataPtr;	/* Store manager's token for image here;
 				 * it will be returned in later callbacks. */
 {
+    ARG_UNUSED(typePtr);
     LayerMaster *masterPtr;
 
     masterPtr = (LayerMaster *) Tcl_Alloc(sizeof(LayerMaster));

@@ -116,6 +116,7 @@ drcCifSetStyle(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     CIFKeep     *new;
 
     for (new = CIFStyleList; new != NULL; new = new->cs_next)
@@ -182,11 +183,11 @@ drcCifWidth(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layername = argv[1];
     int scalefactor;
     int centidistance = atoi(argv[2]);
     int why = drcWhyCreate(argv[3]);
-    TileTypeBitMask set, setC, tmp1;
     int	thislayer = -1;
     DRCCookie *dpnew,*dpnext;
     TileType i;
@@ -243,11 +244,12 @@ drcCifSpacing(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *adjacency = argv[4];
     int why = drcWhyCreate(argv[5]);
     DRCCookie *dpnext, *dpnew;
     int needReverse = FALSE;
-    TileType i, j;
+    TileType i;
     int scalefactor;
     int centidistance = atoi(argv[3]);
     char *layers[2];
@@ -571,7 +573,6 @@ drcCifCheck(arg)
 	    for (drcCifCur = drcCifRules[i][j];
 	       		drcCifCur; drcCifCur = drcCifCur->drcc_next)
             {
-	  	TileTypeBitMask	*mask;
 
 		arg->dCD_plane = i;
 	        DBSrPaintArea((Tile *) NULL, CIFPlanes[i], &cifrect,
@@ -1073,7 +1074,6 @@ areaCifCheck(tile, arg)
      */
     if (arg->dCD_radial != 0)
     {
-	unsigned int i;
 	int sqx, sqy;
 	int sdist = arg->dCD_radial & 0xfff;
 	long sstest, ssdist = (long) sdist * sdist;
@@ -1176,14 +1176,13 @@ drcCifArea(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     int centiarea = atoi(argv[2]);
     int	centihorizon = atoi(argv[3]);
     int why = drcWhyCreate(argv[4]);
-    TileTypeBitMask set, setC, tmp1;
     DRCCookie *dpnext, *dpnew;
-    TileType i, j;
-    int plane;
+    TileType i;
     int	thislayer = -1;
     int scalefactor;
 
@@ -1237,14 +1236,13 @@ drcCifMaxwidth(argc, argv)
     int argc;
     char *argv[];
 {
+    ARG_UNUSED(argc);
     char *layers = argv[1];
     int centidistance = atoi(argv[2]);
     char *bends = argv[3];
     int why = drcWhyCreate(argv[4]);
-    TileTypeBitMask set, setC, tmp1;
     DRCCookie *dpnext, *dpnew;
-    TileType i, j;
-    int plane;
+    TileType i;
     int bend;
     int thislayer = -1;
     int scalefactor;

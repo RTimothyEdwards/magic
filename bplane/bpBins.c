@@ -80,7 +80,6 @@ static BinArray *bpBinArrayNew(int dx,      /* x diameter of bins */
 
 {
   BinArray *new;
-  Rect abbox;
   int w, h, dimX, dimY, numBins;
   int size;
 
@@ -262,7 +261,6 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
 		 int *numBinsp,         /* return number of bins here */
 		 int *countp)           /* return number of elements here */
 {
-  BinArray *ba;
   int count;
   double numBins;  /* need double to avoid overflow on tentative calc. */
   int h = GEO_HEIGHT(bbox);
@@ -590,7 +588,6 @@ BinArray *bpBinArrayBuild(Rect bbox,
 
   /* sub-bin normal bins */
   {
-    int dimX = ba->ba_dimX;
 
     int i;
     for(i=0;i<numBins;i++)

@@ -214,7 +214,6 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
     int quad, pNum, n, nclasses;
     Point p;
     bool found;
-    TileType extSubType = 0;
     LabelList *retList = NULL;
 
     for (lab = def->cd_labels; lab; lab = lab->lab_next)

@@ -101,7 +101,7 @@ MacroDefineByName(clientName, xc, str, help, imacro)
     bool imacro;	/* is this an interactive macro? */
 {
     HashEntry *h;
-    HashTable *clienttable, newTable;
+    HashTable *clienttable;
     macrodef *oldMacro, *newMacro;
 
     /* If a macro exists, delete the old string and redefine it */
@@ -464,7 +464,6 @@ MacroCopy(client, clientkey)
     char *clientkey;	/* Name of client to copy macros to */
 {
     HashTable *clienttable;
-    HashTable *copytable;
     HashEntry *h, *he;
     HashSearch hs;
     char *clientName;

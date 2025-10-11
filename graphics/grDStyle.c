@@ -205,7 +205,7 @@ styleBuildDisplayStyle(line, version)
     int ord = 1, mask, color, outline, nfill, stipple;
     char shortName, longName[52];
     char fill[42], ordstr[12], colorName[30];
-    dstylelink *newstyle, *sstyle;
+    dstylelink *newstyle;
 
     char v6scanline[] = "%10s %o %29s %o %40s %d %c %50s";
     char v7scanline[] = "%10s %i %29s %i %40s %d %c %50s";
@@ -482,7 +482,6 @@ char *libPath;
 		}
 		else if (strcmp(sectionName, "display_styles") == 0)
 		{
-		    int locbitplanes;
 
 		    if ((processed & (LAYOUT_STYLES | PALE_STYLES)) != 0)
 		    {

@@ -269,6 +269,7 @@ DBTechAddPlane(
     int argc,
     char *argv[])
 {
+    ARG_UNUSED(sectionName);
     const char *cp;
 
     if (DBNumPlanes >= PL_MAXTYPES)
@@ -344,8 +345,7 @@ DBTechAddAlias(sectionName, argc, argv)
     int argc;
     char *argv[];
 {
-    char *cp;
-    int pNum;
+    ARG_UNUSED(sectionName);
     HashEntry *he;
     TileType atype;
     TileTypeBitMask *amask, tmask;

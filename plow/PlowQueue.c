@@ -158,7 +158,6 @@ plowQueueAdd(eadd)
 				 * edge, respectively.
 				 */
 {
-    extern CellDef *plowYankDef;
     extern int plowQueuedEdges;
     int xbin = eadd->e_x - plowBinXBase;
     Edge *enew, *eprev, *ep;

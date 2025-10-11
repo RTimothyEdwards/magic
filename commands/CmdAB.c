@@ -74,6 +74,7 @@ CmdAddPath(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 2) {
 	TxError("Usage: %s appended_search_path\n", cmd->tx_argv[0]);
 	return;
@@ -111,6 +112,7 @@ CmdArchive(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int option = -1;
     char *filename = NULL;
     static const char * const cmdArchiveOpt[] = {"write", "writeall",
@@ -198,6 +200,7 @@ CmdArray(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     static const char * const cmdArrayOption[] = {
 	"count 		[[xlo] xhi [ylo] yhi]	array subcells",
 	"width 		[value]			set or return array x-spacing",
@@ -214,7 +217,6 @@ CmdArray(
     ArrayInfo a;
     Rect toolRect;
     LinkedArray *lahead = NULL, *la;
-    int xval, yval;
 
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *tobj;
@@ -364,11 +366,6 @@ CmdArray(
 	    }
 	    if ((locargc != 3) || (!StrIsInt(cmd->tx_argv[argstart + 1])))
 		goto badusage;
-
-	    xval = atoi(cmd->tx_argv[argstart + 1]);
-	    yval = atoi(cmd->tx_argv[argstart + 2]);
-
-	    TxPrintf("Unimplemented function.\n");
 	    break;
 
 	case ARRAY_HEIGHT:
@@ -400,11 +397,6 @@ CmdArray(
 	    }
 	    if ((locargc != 3) || (!StrIsInt(cmd->tx_argv[argstart + 1])))
 		goto badusage;
-
-	    xval = atoi(cmd->tx_argv[argstart + 1]);
-	    yval = atoi(cmd->tx_argv[argstart + 2]);
-
-	    TxPrintf("Unimplemented function.\n");
 	    break;
 
 	case ARRAY_PITCH:
@@ -440,11 +432,6 @@ CmdArray(
 	    if ((locargc != 4) || (!StrIsInt(cmd->tx_argv[argstart + 1])) ||
 				(!StrIsInt(cmd->tx_argv[argstart + 2])))
 		goto badusage;
-
-	    xval = atoi(cmd->tx_argv[argstart + 1]);
-	    yval = atoi(cmd->tx_argv[argstart + 2]);
-
-	    TxPrintf("Unimplemented function.\n");
 	    break;
 
 	case ARRAY_POSITION:
@@ -481,11 +468,6 @@ CmdArray(
 	    if ((locargc != 4) || (!StrIsInt(cmd->tx_argv[argstart + 1])) ||
 				(!StrIsInt(cmd->tx_argv[argstart + 2])))
 		goto badusage;
-
-	    xval = atoi(cmd->tx_argv[argstart + 1]);
-	    yval = atoi(cmd->tx_argv[argstart + 2]);
-
-	    TxPrintf("Unimplemented function.\n");
 	    break;
 
 	case ARRAY_DEFAULT:
@@ -529,7 +511,6 @@ badusage:
 	    break;
     }
 
-freelist:
     la = lahead;
     while (la != NULL)
     {
@@ -550,6 +531,7 @@ selGetArrayFunc(
    Transform *trans,
    LinkedArray **arg)
 {
+    ARG_UNUSED(selUse);
     /* Check "use" for array information and pass this to arrayInfo */
 
     LinkedArray *la;

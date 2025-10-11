@@ -241,6 +241,7 @@ RtrStemAssignExt(use, doWarn, loc, term, net)
     NLTerm *term;	/* For nterm_name */
     NLNet *net;		/* For marking pin */
 {
+    ARG_UNUSED(term);
     TileType type = loc->nloc_label->lab_type;
     int dirMask, termWidth, pins;
     Rect r, errorArea;
@@ -519,6 +520,7 @@ int
 rtrAbort(tile)
     Tile *tile;
 {
+    ARG_UNUSED(tile);
     return 1;
 }
 
@@ -654,7 +656,7 @@ rtrTreeSrArea(loc, dir, p, use)
     Point *p;		/* Point at channel boundary */
     CellUse *use;	/* Parent cell use */
 {
-    Rect tmp, tmp1, tmp2;
+    Rect tmp, tmp1;
     Point contact, jog, start;
     int i, width = MAX(RtrMetalWidth, RtrPolyWidth);
     int delta;

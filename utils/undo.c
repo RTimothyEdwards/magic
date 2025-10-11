@@ -234,6 +234,8 @@ UndoInit(logFileName, mode)
 			 */
     char *mode;		/* Mode for opening.  Must be "r", "rw", or "w" */
 {
+    ARG_UNUSED(logFileName);
+    ARG_UNUSED(mode);
     UndoDisableCount = 0;
     undoLogTail = NULL;
     undoLogCur = NULL;
@@ -336,6 +338,8 @@ UndoAddClient(init, done, readEvent, writeEvent, forwEvent, backEvent, name)
     void (*forwEvent)(), (*backEvent)();
     char *name;
 {
+    ARG_UNUSED(readEvent);
+    ARG_UNUSED(writeEvent);
     if (undoNumClients >= MAXUNDOCLIENTS)
 	return ((UndoType) -1);
 

@@ -1781,6 +1781,8 @@ subcktUndef(
     HierName *hierName,
     bool is_top)	/* TRUE if this is the top-level cell */
 {
+    ARG_UNUSED(hierName);
+    ARG_UNUSED(is_top);
     Def *def = use->use_def;
 
     def->def_flags &= ~(DEF_SUBCIRCUIT);
@@ -1831,6 +1833,7 @@ topVisit(
     Def *def,
     bool doStub)
 {
+    ARG_UNUSED(doStub);
     EFNode *snode;
     EFNodeName *sname, *nodeName;
     HashSearch hs;
@@ -2046,6 +2049,7 @@ spcWriteValue(
     Dev *dev,		/* Dev being output */
     HierName *hierName)	/* Hierarchical path down to this dev */
 {
+    ARG_UNUSED(hierName);
     DevParam *plist;
 
     plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
@@ -2643,6 +2647,8 @@ spcdevVisit(
     Transform *trans,	/* (unused) */
     ClientData cdata)	/* (unused) */
 {
+    ARG_UNUSED(trans);
+    ARG_UNUSED(cdata);
     DevParam *plist, *pptr;
     DevTerm *gate, *source, *drain;
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
@@ -3804,6 +3810,7 @@ spccapVisit(
     double cap,
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     cap = cap / 1000;
     if (cap <= EFCapThreshold)
 	return 0;
@@ -3850,6 +3857,7 @@ spcresistVisit(
     float res,
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(cdata);
     HashEntry *he;
     EFNodeName *nn;
 
@@ -3914,6 +3922,8 @@ spcsubVisit(
     double cap,		// Unused
     ClientData cdata)
 {
+    ARG_UNUSED(res);
+    ARG_UNUSED(cap);
     char **resstr = (char **)CD2PTR(cdata);
     HierName *hierName;
     const char *nsn;
@@ -3953,6 +3963,8 @@ spcnodeVisit(
     double cap,
     ClientData cdata) /* unused */
 {
+    ARG_UNUSED(res);
+    ARG_UNUSED(cdata);
     HierName *hierName;
     bool isConnected = FALSE;
     const char *fmt;
@@ -4018,6 +4030,9 @@ nodeVisitDebug(
     double cap,
     ClientData cdata)	/* unused */
 {
+    ARG_UNUSED(res);
+    ARG_UNUSED(cap);
+    ARG_UNUSED(cdata);
     HierName *hierName;
     const char *nsn;
 
@@ -4154,7 +4169,7 @@ efHNSprintfPrefix(
     HierName *hierName,
     char *str)
 {
-    char *cp, c;
+    char *cp;
     bool convertEqual = (EFOutputFlags & EF_CONVERTEQUAL) ? TRUE : FALSE;
     bool convertComma = (EFOutputFlags & EF_CONVERTCOMMA) ? TRUE : FALSE;
     bool convertBrackets = (EFOutputFlags & EF_CONVERTBRACKETS) ? TRUE : FALSE;
@@ -4740,6 +4755,8 @@ devDistJunctVisit(
     Transform *trans,		/* (unused) */
     ClientData cdata)		/* (unused) */
 {
+    ARG_UNUSED(trans);
+    ARG_UNUSED(cdata);
     EFNode  *n;
     int      i;
     int l, w;

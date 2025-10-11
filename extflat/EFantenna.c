@@ -129,18 +129,13 @@ CmdAntennaCheck(w, cmd)
 {
     int i, flatFlags;
     char *inName;
-    FILE *f;
-    TileType t;
 
     int option = ANTENNACHECK_RUN;
-    int value;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
     const char * const *msg;
     bool err_result;
 
-    short sd_rclass;
-    short sub_rclass;
     char *devname;
     int idx;
 
@@ -295,7 +290,7 @@ antennacheckArgs(pargc, pargv)
     int *pargc;
     char ***pargv;
 {
-    char **argv = *pargv, *cp;
+    char **argv = *pargv;
     int argc = *pargc;
 
     switch (argv[0][1])
@@ -364,15 +359,16 @@ antennacheckVisit(
     Transform *trans,	/* Coordinate transform */
     ClientData cdata)	/* ClientData is edit cell use */
 {
+    ARG_UNUSED(scale);
     CellUse *editUse = (CellUse *) CD2PTR(cdata);
     DevTerm *gate;
     TileType t, conType;
-    int pos, pNum, pNum2, pmax, p, i, j, total;
+    int pos, pNum, pNum2, pmax, p, i, j;
     dlong gatearea, diffarea;
     double anttotal, conttotal;
     float saveRatio, ratioTotal;
     dlong *antennaarea;
-    Rect r, gaterect;
+    Rect r;
     EFNode *gnode;
     SearchContext scx;
     TileTypeBitMask gatemask, saveConMask;

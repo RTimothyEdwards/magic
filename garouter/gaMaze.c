@@ -201,6 +201,7 @@ gaMazeRoute(
 				 * route is possible.
 				 */
 {
+    ARG_UNUSED(side);
     TileTypeBitMask pinLayerMask = *pinLayerMaskp; // TTMaskCopy(&pinLayerMask, pinLayerMaskp);
     Rect routeBounds;
     bool done = FALSE;

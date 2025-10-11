@@ -113,8 +113,6 @@ void BPFree(BPlane *bp)
  */
 void BPAdd(BPlane *bp, void *element)
 {
-  int size;
-  int binDim;
   Element * e = element;
   Rect *r = &e->e_rect;
 

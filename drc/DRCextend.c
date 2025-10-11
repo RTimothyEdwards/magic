@@ -490,8 +490,7 @@ drcCanonicalMaxwidth(starttile, dir, arg, cptr)
     struct	drcClientData	*arg;
     DRCCookie	*cptr;
 {
-    int		    s, edgelimit;
-    Tile	    *tile,*tp;
+    int		    edgelimit;
     TileTypeBitMask wrongtypes;
     static MaxRectsData *mrd = (MaxRectsData *)NULL;
     Rect	    *boundrect, boundorig;

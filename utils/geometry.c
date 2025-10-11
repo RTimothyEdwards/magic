@@ -946,6 +946,8 @@ GeoDummyFunc(
     const Rect *box,
     ClientData cdarg)
 {
+    ARG_UNUSED(box);
+    ARG_UNUSED(cdarg);
     return TRUE;
 }
 

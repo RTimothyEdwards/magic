@@ -1011,6 +1011,8 @@ cifHierElementFunc(
 					 * CIF-generated.
 					 */
 {
+    ARG_UNUSED(x);
+    ARG_UNUSED(y);
     Rect defArea;
     Transform tinv;
     SearchContext scx;

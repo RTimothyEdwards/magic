@@ -1146,13 +1146,13 @@ CmdCellname(
 	"modified	true if modified, false if not",
 	NULL
     };
-    typedef enum { IDX_CHILDREN, IDX_PARENTS, IDX_EXISTS, IDX_SELF,
+    enum optionType { IDX_CHILDREN, IDX_PARENTS, IDX_EXISTS, IDX_SELF,
 		   IDX_INSTANCE, IDX_CHILDINST, IDX_CELLDEF, IDX_ALLCELLS,
 		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE, IDX_DELETE,
 		   IDX_DEREFERENCE, IDX_FILEPATH, IDX_FLAGS, IDX_TIMESTAMP,
 		   IDX_LOCK, IDX_UNLOCK, IDX_PROPERTY, IDX_ABUTMENT,
 		   IDX_ORIENTATION, IDX_RENAME, IDX_READWRITE,
-		   IDX_MODIFIED } optionType;
+		   IDX_MODIFIED };
 
     static const char * const cmdCellnameYesNo[] = {
 		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
@@ -1736,7 +1736,6 @@ CmdCif(
     bool doforall = FALSE;
     float curscale;
     int argc = cmd->tx_argc;
-    int argshift;
     char **argv = cmd->tx_argv;
 
     static const char * const cmdCifWarnOptions[] = { "default", "none", "align",
@@ -2276,6 +2275,7 @@ CmdClockwise(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     Transform trans, t2;
     int degrees, locargc;
     Rect rootBox,  bbox;
@@ -2574,7 +2574,6 @@ cmdContactEraseFunc(
     LinkedRect **lr)
 {
     LinkedRect *newlr;
-    Rect area;
 
     newlr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
 
@@ -3694,6 +3693,7 @@ CmdCrash(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     int option = -1;
     char *filename = NULL;
     static const char * const cmdCrashOpt[] = {"save", "recover", 0};
@@ -3797,6 +3797,7 @@ CmdDelete(
     MagWindow *w,
     TxCommand *cmd)
 {
+    ARG_UNUSED(w);
     if (cmd->tx_argc != 1) goto badusage;
     if (!ToolGetEditBox((Rect *)NULL)) return;
 
@@ -3928,6 +3929,7 @@ cmdDownEnumFunc(
 				 * area, in root coords.
 				 */
 {
+    ARG_UNUSED(selUse);
     Rect defArea, useArea;
 
     /* Save this use as the default next edit cell, regardless of whether
@@ -3999,9 +4001,8 @@ CmdDrc(
     static int	drc_nth = 1;
     int		  option, result, radius;
     Rect	  rootArea, area;
-    CellUse	* rootUse, *use;
+    CellUse	* rootUse;
     CellDef	* rootDef;
-    Transform	  trans;
     MagWindow	* window;
     const char 	* const *msg;
     bool	wizardHelp;
@@ -4565,7 +4566,6 @@ cmdDropPaintCell(
 {
     CellDef *cellDef = cxp->tc_scx->scx_use->cu_def;
     TileTypeBitMask *lMask = (TileTypeBitMask *)cxp->tc_filter->tf_arg;
-    int pNum;
     TileType type;
     Rect area;
 
@@ -4573,7 +4573,7 @@ cmdDropPaintCell(
         type = SplitRightType(tile);
     else
         type = SplitLeftType(tile);
-    pNum = DBPlane(type);
+    (void) type; // FIXME: this silences the set-but-unused warning, but type is apparently not used at all.
 
     TiToRect(tile, &area);
 
@@ -4641,6 +4641,7 @@ cmdDropPaintFunc(
     TileType type,              /* Type of this piece of paint. */
     TileTypeBitMask *mask)      /* Place to OR in type's bit. */
 {
+    ARG_UNUSED(rect);
     if (type & TT_DIAGONAL)
 	type = (type & TT_SIDE) ? (type & TT_RIGHTMASK) >> 14 :
 		(type & TT_LEFTMASK);
@@ -4992,18 +4993,18 @@ cmdDumpParseArgs(
 					"0", "90", "180", "270",
 					"v", "0v", "90v", "180v", "270v",
 					"h", "0h", "90h", "180h", "270h", 0 };
-	typedef enum {
+	enum optionType {
 		IDX_CHILD, IDX_PARENT,
 		IDX_ZERO, IDX_90, IDX_180, IDX_270,
 		IDX_VERT, IDX_ZERO_VERT, IDX_90_VERT, IDX_180_VERT, IDX_270_VERT,
 		IDX_HORZ, IDX_ZERO_HORZ, IDX_90_HORZ, IDX_180_HORZ, IDX_270_HORZ
-	} optionType;
+	};
 
 	static const char * const refPointNames[] = {
 			"ll", "lr", "ul", "ur", "label", 0 };
-	typedef enum {
+	enum refPointType {
 		IDX_LL, IDX_LR, IDX_UL, IDX_UR, IDX_LABEL
-	} refPointType;
+	};
 
 	Label *lab;
 	int n, p;
@@ -5374,6 +5375,8 @@ cmdDumpFunc(
     Label *label,		/* Pointer to label (not used). */
     Point *point)		/* Place to store label's lower-left. */
 {
+    ARG_UNUSED(name);
+    ARG_UNUSED(label);
     *point = rect->r_ll;
     return 1;
 }

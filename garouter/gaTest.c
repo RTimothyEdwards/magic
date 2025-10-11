@@ -91,6 +91,7 @@ GATest(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    ARG_UNUSED(w);
     int n;
     typedef enum { CLRDEBUG, SETDEBUG, SHOWDEBUG} cmdType;
     static const struct
