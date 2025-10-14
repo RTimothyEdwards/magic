@@ -117,6 +117,14 @@ DBCellRename(cellname, newname, doforce)
 	return FALSE;
     }
 
+    /* Cannot rename a cell with the name of an existing cell */
+    entry = HashLookOnly(&dbCellDefTable, newname);
+    if (entry != NULL)
+    {
+	TxError("Cannot rename; cell \"%s\" already exists!\n",  newname);
+	return FALSE;
+    }
+
     /* Disallow renaming if the cell has the READONLY flag set,	*/
     /* because the cellname must match the name in the GDS	*/
     /* file referenced.						*/
