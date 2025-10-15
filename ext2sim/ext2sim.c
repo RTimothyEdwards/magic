@@ -1116,6 +1116,7 @@ simdevVisit(
 	    break;
 	case DEV_MSUBCKT:
 	case DEV_CSUBCKT:
+	case DEV_DSUBCKT:
 	case DEV_RSUBCKT:
 	case DEV_SUBCKT:
 	    /* Use the 'x' type in .sim format.  This is implemented in the */
