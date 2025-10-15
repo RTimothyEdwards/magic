@@ -198,10 +198,10 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
 		result = 1;
 		break;
 	}
-        if (fettype < 0)
+        if ((fettype != MINFINITY) && (fettype < 0))
         {
-	    TxError("Error in Reading device line of sim file:");
-	    TxError("Amgiguous or unknown device.\n");
+	    TxError("Error in Reading device line of sim file: ");
+	    TxError("Ambiguous or unknown device.\n");
 	    result = 1;
 	}
 	else if (fettype == DBNumTypes)
