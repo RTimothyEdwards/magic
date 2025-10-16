@@ -1153,7 +1153,10 @@ proc magic::add_entry {pname ptext parameters} {
 
 #----------------------------------------------------------
 # Default entry callback, without any dependencies.  Each
-# parameter changed
+# parameter changed causes an update to the dialog.  Also
+# add default callbacks on checkboxes and choice menus,
+# using a null function which does not get executed, but
+# the dialog gets updated afterward.
 #----------------------------------------------------------
 
 proc magic::add_check_callbacks {gencell_type library} {
@@ -1165,6 +1168,12 @@ proc magic::add_check_callbacks {gencell_type library} {
 			"magic::update_dialog {} $pname $gencell_type $library"
 	    bind $w <FocusOut> \
 			"magic::update_dialog {} $pname $gencell_type $library"
+	}
+        if {[regexp {\.params\.body\.area\.edits\.(.+)_sel} $w valid pname]} {
+	    magic::add_dependency \{\} $gencell_type $library $pname
+	}
+        if {[regexp {\.params\.body\.area\.edits\.(.+)_chk} $w valid pname]} {
+	    magic::add_dependency \{\} $gencell_type $library $pname
 	}
     }
 }
