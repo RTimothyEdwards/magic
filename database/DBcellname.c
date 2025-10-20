@@ -1944,6 +1944,7 @@ DBCellDeleteDef(cellDef)
     entry = HashFind(&dbCellDefTable, cellDef->cd_name);
     ASSERT(HashGetValue(entry) == (ClientData) cellDef, "DBCellDeleteDef");
     HashSetValue(entry, (ClientData) NULL);
+    HashRemove(&dbCellDefTable, cellDef->cd_name);
     if (cellDef->cd_props)
 	DBPropClearAll(cellDef);
 
