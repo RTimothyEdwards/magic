@@ -2041,7 +2041,7 @@ topVisit(
  * ----------------------------------------------------------------------------
  */
 
-bool
+void
 spcWriteValue(
     Dev *dev,		/* Dev being output */
     HierName *hierName)	/* Hierarchical path down to this dev */
