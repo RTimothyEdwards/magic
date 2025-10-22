@@ -203,13 +203,12 @@ DRCCheckThis (celldef, operation, area)
     /* Insert celldef into list of Defs waiting to be checked, unless	*/
     /* it is already there.						*/
 
-#if (0)
-
     /* The switch to copying up DRC errors from non-interacting	    */
     /* child cells means that the child cells must be processed	    */
     /* first.  So this routine changes from prepending the cell	    */
     /* to the list to appending it.				    */
 
+#if (0)
     pback = &DRCPendingRoot;
     p = DRCPendingRoot;
 
@@ -230,8 +229,8 @@ DRCCheckThis (celldef, operation, area)
     }
     p->dpc_next = DRCPendingRoot;
     DRCPendingRoot = p;
-
 #endif
+
     /* Append new cell to check to the pending list */
     if (DRCPendingRoot == NULL)
     {

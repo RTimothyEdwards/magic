@@ -737,10 +737,11 @@ drcCheckFunc(scx, cdarg)
 		DBStdPaintTbl(TT_CHECKPAINT, PL_DRC_CHECK),
 		(PaintUndoInfo *) NULL);
 
-    DRCCheckThis(def, TT_CHECKPAINT, (Rect *) NULL);
-
-    /* Search children */
+    /* Search children and apply recursively */
     (void) DBCellSrArea(scx, drcCheckFunc, (ClientData) NULL);
+
+    /* Then do self */
+    DRCCheckThis(def, TT_CHECKPAINT, (Rect *) NULL);
 
     /* As a special performance hack, if the complete cell area is
      * handled here, don't bother to look at any more array elements.
