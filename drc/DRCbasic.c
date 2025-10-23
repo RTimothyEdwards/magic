@@ -1135,7 +1135,7 @@ drcTile (tile, arg)
 			    lr = &mrd->rlist[i];
 			    GeoClip(lr, arg->dCD_clip);
 			    if (!GEO_RECTNULL(lr))
-			     {
+			    {
 				(*(arg->dCD_function)) (arg->dCD_celldef,
 					lr, cptr, arg->dCD_clientData);
 				(*(arg->dCD_errors))++;

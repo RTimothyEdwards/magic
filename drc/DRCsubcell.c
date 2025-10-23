@@ -734,9 +734,9 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
      * square separately.
      */
 
-    x = (area->r_xbot/DRCStepSize) * DRCStepSize;
+    x = (area->r_xbot/DRCStepSize) * DRCStepSize - (DRCStepSize / 2);
     if (x > area->r_xbot) x -= DRCStepSize;
-    y = (area->r_ybot/DRCStepSize) * DRCStepSize;
+    y = (area->r_ybot/DRCStepSize) * DRCStepSize - (DRCStepSize / 2);
     if (y > area->r_ybot) y -= DRCStepSize;
     for (square.r_xbot = x; square.r_xbot < area->r_xtop;
 	 square.r_xbot += DRCStepSize)

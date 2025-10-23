@@ -277,20 +277,50 @@ drcPrintError (celldef, rect, cptr, scx)
 {
     HashEntry *h;
     int i;
-    Rect *area, r;
+    Rect *area;
+    int drcsave = DRCErrorCount;
+
+    /* Forward declaration */
+    void drcWhyFunc(SearchContext *scx, ClientData cdarg);
 
     ASSERT (cptr != (DRCCookie *) NULL, "drcPrintError");
 
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
 
-    i = DRCErrorList[cptr->drcc_tag];
-    if (i == 0)
-	TxPrintf("%s\n", drcSubstitute(cptr));
-    if (i >= 0)
+    if (cptr->drcc_tag == DRC_IN_SUBCELL_TAG)
     {
-    	DRCErrorCount += 1;
-	DRCErrorList[cptr->drcc_tag] = i + 1;
+	SearchContext newscx;
+
+	/* Recurse into subcells to find the error being flagged */
+	/* recursive call is drcWhyFunc, clientdata is FALSE	*/
+		
+	newscx.scx_area = *rect;
+	newscx.scx_use = scx->scx_use;
+	newscx.scx_x = scx->scx_use->cu_xlo;
+	newscx.scx_y = scx->scx_use->cu_ylo;
+	newscx.scx_trans = scx->scx_trans;
+
+	DBTreeSrCells(&newscx, 0, drcWhyFunc, (ClientData)FALSE);
+    }
+    /* Hack to avoid printing "no errors found" when recursing on
+     * drcWhyFunc() above.  In some cases like run-length rules,
+     * changing the search area can make the error disappear.  If
+     * that happens, "See error definition in subcell" will be
+     * printed.  The underlying error needs to be fixed, but this
+     * method provides the information the user needs to find the
+     * error.
+     */
+    if (drcsave == DRCErrorCount)
+    {
+	i = DRCErrorList[cptr->drcc_tag];
+	if (i == 0)
+	    TxPrintf("%s\n", drcSubstitute(cptr));
+	if (i >= 0)
+	{
+	    DRCErrorCount += 1;
+	    DRCErrorList[cptr->drcc_tag] = i + 1;
+	}
     }
 }
 
@@ -309,24 +339,47 @@ drcListError (celldef, rect, cptr, scx)
     HashEntry *h;
     int i;
     Rect *area;
+    int drcsave = DRCErrorCount;
+
+    /* Forward declaration */
+    void drcWhyFunc(SearchContext *scx, ClientData cdarg);
 
     ASSERT (cptr != (DRCCookie *) NULL, "drcListError");
 
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
-    i = DRCErrorList[cptr->drcc_tag];
-    if (i == 0)
+
+    if (cptr->drcc_tag == DRC_IN_SUBCELL_TAG)
     {
-	Tcl_Obj *lobj;
-	lobj = Tcl_GetObjResult(magicinterp);
-	Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewStringObj(drcSubstitute(cptr), -1));
-	Tcl_SetObjResult(magicinterp, lobj);
+	SearchContext newscx;
+
+	/* Recurse into subcells to find the error being flagged */
+	/* recursive call is drcWhyFunc, clientdata is TRUE	*/
+		
+	newscx.scx_area = *rect;
+	newscx.scx_use = scx->scx_use;
+	newscx.scx_x = scx->scx_use->cu_xlo;
+	newscx.scx_y = scx->scx_use->cu_ylo;
+	newscx.scx_trans = scx->scx_trans;
+
+	DBTreeSrCells(&newscx, 0, drcWhyFunc, (ClientData)TRUE);
     }
-    if (i >= 0)
+    if (drcsave == DRCErrorCount)
     {
-	DRCErrorCount += 1;
-	DRCErrorList[cptr->drcc_tag] = i + 1;
+	i = DRCErrorList[cptr->drcc_tag];
+	if (i == 0)
+	{
+	    Tcl_Obj *lobj;
+	    lobj = Tcl_GetObjResult(magicinterp);
+	    Tcl_ListObjAppendElement(magicinterp, lobj,
+			Tcl_NewStringObj(drcSubstitute(cptr), -1));
+	    Tcl_SetObjResult(magicinterp, lobj);
+	}
+	if (i >= 0)
+	{
+	    DRCErrorCount += 1;
+	    DRCErrorList[cptr->drcc_tag] = i + 1;
+	}
     }
 }
 
@@ -343,6 +396,10 @@ drcListallError (celldef, rect, cptr, scx)
     Tcl_Obj *lobj, *pobj;
     HashEntry *h;
     Rect *area, r;
+    int drcsave = DRCErrorCount;
+
+    /* Forward declaration */
+    int drcWhyAllFunc(SearchContext *scx, ClientData cdarg);
 
     ASSERT (cptr != (DRCCookie *) NULL, "drcListallError");
 
@@ -350,21 +407,40 @@ drcListallError (celldef, rect, cptr, scx)
     GeoTransRect(&scx->scx_trans, rect, &r);
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
-    DRCErrorCount += 1;
-    h = HashFind(&DRCErrorTable, drcSubstitute(cptr));
-    lobj = (Tcl_Obj *) HashGetValue(h);
-    if (lobj == NULL)
-       lobj = Tcl_NewListObj(0, NULL);
 
-    pobj = Tcl_NewListObj(0, NULL);
+    if (cptr->drcc_tag == DRC_IN_SUBCELL_TAG)
+    {
+	SearchContext newscx;
 
-    Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_xbot));
-    Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_ybot));
-    Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_xtop));
-    Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_ytop));
-    Tcl_ListObjAppendElement(magicinterp, lobj, pobj);
+	/* Recurse into subcells to find the error being flagged */
+	/* recursive call is drcWhyAllFunc, clientdata is NULL	*/
+		
+	newscx.scx_area = *rect;
+	newscx.scx_use = scx->scx_use;
+	newscx.scx_x = scx->scx_use->cu_xlo;
+	newscx.scx_y = scx->scx_use->cu_ylo;
+	newscx.scx_trans = scx->scx_trans;
 
-    HashSetValue(h, lobj);
+	DBTreeSrCells(&newscx, 0, drcWhyAllFunc, (ClientData)NULL);
+    }
+    if (drcsave == DRCErrorCount)
+    {
+	DRCErrorCount += 1;
+	h = HashFind(&DRCErrorTable, drcSubstitute(cptr));
+	lobj = (Tcl_Obj *) HashGetValue(h);
+	if (lobj == NULL)
+	    lobj = Tcl_NewListObj(0, NULL);
+
+	pobj = Tcl_NewListObj(0, NULL);
+
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_xbot));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_ybot));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_xtop));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_ytop));
+	Tcl_ListObjAppendElement(magicinterp, lobj, pobj);
+
+	HashSetValue(h, lobj);
+    }
 }
 
 #else
