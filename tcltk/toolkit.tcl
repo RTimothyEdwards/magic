@@ -893,6 +893,7 @@ proc magic::gencell_change {instname gencell_type library parameters} {
     }
 
     resumeall
+    drc check	;# force a DRC update if DRC is on.
     redraw
 }
 
