@@ -37,7 +37,7 @@
 #define callocMagic calloc
 #define freeMagic free
 
-#else
+#else /* SUPPORT_DIRECT_MALLOC */
 
 extern void *mallocMagicLegacy(size_t);
 #define mallocMagic(size) mallocMagicLegacy(size)
@@ -56,29 +56,15 @@ extern void freeMagicLegacy(void *);
 
 typedef void* free_magic1_t;
 
-/* TODO this should be moved to autoconf/build/toolchain detection, this does exist
- * in autoconf and in another changeset, so I come back and fixup/remove this later.
- */
-#if (defined(__STDC__) && defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
- /* C99 or later */
- #ifndef __inline__
-   /* you'd have thought on linux this was enabled already, TODO check bplane module inlines */
-   #define __inline__ inline
- #endif
-#endif
-
-#if (!defined(_MAGIC__UTILS__MALLOC_H__NOINLINE) && defined(__inline__))
-
-/* TODO this (__extern_inline__) should be moved to autoconf/build/toolchain detection */
-#define __extern_inline__ inline
-
+#ifdef __GNUC_STDC_INLINE__
+/* Provide compiler visibility of STDC 'inline' semantics */
 /*
  *  NOTICE: inline form, keep in sync with malloc.c copied
  */
-__extern_inline__ free_magic1_t freeMagic1_init() {
+inline free_magic1_t freeMagic1_init(void) {
     return NULL;
 }
-__extern_inline__ void freeMagic1(free_magic1_t* m1, void* ptr) {
+inline void freeMagic1(free_magic1_t* m1, void* ptr) {
     if(*m1) /* this if() is here to help inliner remove the call to free() when it can */
     {
 #if (defined(SUPPORT_DIRECT_MALLOC) || defined(SUPPORT_REMOVE_MALLOC_LEGACY))
@@ -89,7 +75,7 @@ __extern_inline__ void freeMagic1(free_magic1_t* m1, void* ptr) {
     }
     *m1 = ptr;
 }
-__extern_inline__ void freeMagic1_end(free_magic1_t* m1) {
+inline void freeMagic1_end(free_magic1_t* m1) {
     if(*m1) /* this if() is here to help inliner remove the call to free() when it can */
     {
 #if (defined(SUPPORT_DIRECT_MALLOC) || defined(SUPPORT_REMOVE_MALLOC_LEGACY))
@@ -99,18 +85,11 @@ __extern_inline__ void freeMagic1_end(free_magic1_t* m1) {
 #endif
     }
 }
-
-#else
-
-#define freeMagic1_init() freeMagic1_init_func()
-#define freeMagic1(m1, ptr) freeMagic1_func((m1), (ptr))
-#define freeMagic1_end(m1) freeMagic1_end_func((m1))
-
-#endif /* !_MAGIC__UTILS__MALLOC_H__NOINLINE && __inline__ */
-
-/* we'll emit a function call interface just in case a platform won't inline and we can redirect */
-extern free_magic1_t freeMagic1_init_func(void);
-extern void freeMagic1_func(free_magic1_t* m1, void* ptr);
-extern void freeMagic1_end_func(free_magic1_t* m1);
+#else /* __GNUC_STDC_INLINE__ */
+/* To support older compilers (that don't auto emit based on -O level) */
+extern free_magic1_t freeMagic1_init(void);
+extern void freeMagic1(free_magic1_t* m1, void* ptr);
+extern void freeMagic1_end(free_magic1_t* m1);
+#endif /* __GNUC_STDC_INLINE__ */
 
 #endif /* _MAGIC__UTILS__MALLOC_H */
