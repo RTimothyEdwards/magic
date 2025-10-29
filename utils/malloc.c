@@ -176,16 +176,20 @@ callocMagicLegacy(nbytes)
 #endif /* SUPPORT_REMOVE_MALLOC_LEGACY */
 
 
+#ifdef __GNUC_STDC_INLINE__
+/* Use of 'extern inline' force an emit of inline code at a symbol */
+extern inline free_magic1_t freeMagic1_init(void);
+extern inline void freeMagic1(free_magic1_t* m1, void* ptr);
+extern inline void freeMagic1_end(free_magic1_t* m1);
+#else /* __GNUC_STDC_INLINE__ */
 /*
  *  NOTICE: non-inline form of emitted functions, keep in sync with malloc.h
  */
-#pragma weak freeMagic1_init = freeMagic1_init_func
-free_magic1_t freeMagic1_init_func() {
+free_magic1_t freeMagic1_init(void) {
     return NULL;
 }
 
-#pragma weak freeMagic1 = freeMagic1_func
-void freeMagic1_func(free_magic1_t* m1, void* ptr) {
+void freeMagic1(free_magic1_t* m1, void* ptr) {
     //if(*m1) /* this if() is here to help inliner remove the call to free() when it can */
     /* this is not the inline form here so if() is commented out */
     {
@@ -199,8 +203,7 @@ void freeMagic1_func(free_magic1_t* m1, void* ptr) {
     *m1 = ptr;
 }
 
-#pragma weak freeMagic1_end = freeMagic1_end_func
-void freeMagic1_end_func(free_magic1_t* m1) {
+void freeMagic1_end(free_magic1_t* m1) {
     //if(*m1) /* this if() is here to help inliner remove the call to free() when it can */
     /* this is not the inline form here so if() is commented out */
     {
@@ -212,3 +215,4 @@ void freeMagic1_end_func(free_magic1_t* m1) {
 #endif
     }
 }
+#endif /* __GNUC_STDC_INLINE__ */
