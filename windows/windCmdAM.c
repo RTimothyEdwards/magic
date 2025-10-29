@@ -1124,13 +1124,17 @@ windDoMacro(w, cmd, interactive)
 	    /* next argument looks like a key, which would indicate	*/
 	    /* an unregistered client as the first argument.  A		*/
 	    /* macro retrieved from an unregistered client returns	*/
-	    /* nothing but does not generate an error.			*/
+	    /* nothing but does not generate an error.  This allows	*/
+	    /* the default macro set to declare macros for, e.g., the	*/
+	    /* wind3d client and fail quietly if magic was compiled	*/
+	    /* without OpenGL support.					*/
 
 	    if (MacroKey(cmd->tx_argv[argstart], &verbose) == 0)
 		if (MacroKey(cmd->tx_argv[argstart + 1], &verbose) != 0)
 		{
 		    wc = 0;
 		    argstart++;
+		    return;
 		}
 	}
     }
@@ -1139,6 +1143,11 @@ windDoMacro(w, cmd, interactive)
 
     if (cmd->tx_argc == argstart)
     {
+	if (wc == (WindClient)0)
+	{
+	    TxError("No such client.\n");
+	    return;
+	}
 	h = HashLookOnly(&MacroClients, (char *)wc);
 	if (h == NULL)
 	    return;
@@ -1302,5 +1311,5 @@ windDoMacro(w, cmd, interactive)
 	return;
     }
 
-    TxError("Usage: %s [macro_name [string] [help_text]]\n", cmd->tx_argv[0]);
+    TxError("Usage: %s [client] [macro_name [string] [help_text]]\n", cmd->tx_argv[0]);
 }
