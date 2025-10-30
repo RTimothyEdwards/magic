@@ -1061,7 +1061,7 @@ DRCTechAddRule(sectionName, argc, argv)
     "layers area horizon why"},
         {"off_grid",	 4,	4,	drcOffGrid,
     "layers pitch why"},
-        {"maxwidth",	 4,	5,	drcMaxwidth,
+        {"maxwidth",	 4,	6,	drcMaxwidth,
     "layers maxwidth bends why"},
 	{"cifstyle",	 2,	2,	drcCifSetStyle,
     "cif_style"},
@@ -1582,7 +1582,7 @@ drcOffGrid(argc, argv)
  * Process a maxwidth rule.
  * This is of the form:
  *
- *	maxwidth layers distance [bends] why
+ *	maxwidth layers distance [bends] [exclude_layers] why
  *
  * This routine was updated 3/6/05 to match the "canonical" definition of
  * a maxwidth region, which is any rectangle containing <layers> that is
@@ -1590,6 +1590,11 @@ drcOffGrid(argc, argv)
  * "bend_illegal" is present, then the definition reverts to the original
  * (see below) for backwards-compatibility.  Otherwise ("bend_ok" or
  * nothing), the new routine is used.
+ *
+ * exclude_layers is optional and indicates a type or types (which if more
+ * than one must all be on the same plane) that prevent "maxwidth" from
+ * being checked.  A common use case is using "glass" (passivation cut) to
+ * exclude top metal on a pad from being checked for maximum metal width.
  *
  *	maxwidth metal1 389 "metal1 width > 35um must be slotted"
  *	maxwidth pmc 4 bend_illegal "poly contact area must be no wider than 4"
@@ -1629,11 +1634,11 @@ drcMaxwidth(argc, argv)
     int distance = atoi(argv[2]);
     char *bends = argv[3];
     int why;
-    TileTypeBitMask set, setC;
+    TileTypeBitMask set, setC, setE;
     DRCCookie *dp, *dpnew;
     TileType i, j;
-    PlaneMask pmask, ptest, pset;
-    int plane;
+    PlaneMask pmask, pmask2, ptest, pset;
+    int plane, plane2;
     int bend;
 
     ptest = DBTechNoisyNameMask(layers, &set);
@@ -1667,8 +1672,34 @@ drcMaxwidth(argc, argv)
 	    TechError("unknown bend option %s\n",bends);
 	    return (0);
 	}
-	why = drcWhyCreate(argv[4]);
+	if (argc == 6)
+	    why = drcWhyCreate(argv[5]);
+	else
+	    why = drcWhyCreate(argv[4]);
     }
+    if (argc == 6)
+    {
+	ptest = DBTechNoisyNameMask(argv[4], &setE);
+	pmask2 = CoincidentPlanes(&setE, ptest);
+	if (pmask2 == 0)
+	{
+	    TechError("All layers for \"maxwidth\" exclude types must "
+			"be on same plane.\n");
+	    return (0);
+	}
+	else
+	{
+	    for (plane2 = PL_TECHDEPBASE; plane2 < DBNumPlanes; plane2++)
+	        if (PlaneMaskHasPlane(pmask2, plane2))
+		    break;
+
+	    if (plane2 == plane)
+		TechError("Warning:  Exclude types for \"maxwidth\" are on the "
+			"same plane and so cannot be checked.\n");
+	}
+    }
+    else
+	plane2 = -1;
 
     for (i = 0; i < DBNumTypes; i++)
     {
@@ -1689,8 +1720,12 @@ drcMaxwidth(argc, argv)
 		    /* find bucket preceding the new one we wish to insert */
 		    dp = drcFindBucket(i, j, distance);
 		    dpnew = (DRCCookie *) mallocMagic(sizeof (DRCCookie));
-		    drcAssign(dpnew, distance, dp->drcc_next, &set, &set, why,
+		    if (plane2 == -1)
+			drcAssign(dpnew, distance, dp->drcc_next, &set, &set, why,
 				    distance, DRC_MAXWIDTH | bend, plane, plane);
+		    else
+			drcAssign(dpnew, distance, dp->drcc_next, &set, &setE, why,
+				    distance, DRC_MAXWIDTH | bend, plane2, plane);
 
 		    dp->drcc_next = dpnew;
 		}

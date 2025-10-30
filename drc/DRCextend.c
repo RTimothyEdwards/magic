@@ -452,6 +452,31 @@ drcCheckRectSize(starttile, arg, cptr)
 /*
  *-------------------------------------------------------------------------
  *
+ * MaxRectsExclude ---
+ *
+ *	Trivial callback function which detects if a type is found
+ *	overlapping a Maxrects area.
+ *
+ * Results:
+ *	Always return 1 to immediately halt the search.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+MaxRectsExclude(
+    Tile *tile,
+    ClientData clientdata)
+{
+    return 1;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * drcCanonicalMaxwidth - checks to see that at least one dimension of a
  *	rectangular region does not exceed some amount.
  *
@@ -563,10 +588,31 @@ drcCanonicalMaxwidth(starttile, dir, arg, cptr)
     mrd->maxdist = edgelimit;
     TTMaskCom2(&wrongtypes, &cptr->drcc_mask);
     boundorig = *boundrect;
-    DBSrPaintArea(starttile, arg->dCD_celldef->cd_planes[cptr->drcc_plane],
+    DBSrPaintArea(starttile, arg->dCD_celldef->cd_planes[cptr->drcc_edgeplane],
 		&boundorig, &wrongtypes, FindMaxRects, mrd);
     if (mrd->entries == 0)
 	return NULL;
+    else if (cptr->drcc_plane != cptr->drcc_edgeplane)
+    {
+	/* If the "exclude" option is used, then the maxrect rule will be
+	 * ignored for any metal area partially or totally covered by any
+	 * type in cptr->drcc_corner on plane cptr->drcc_plane (!=
+	 * cptr->drcc_edgeplane).
+	 */
+	for (s = 0; s < mrd->entries; s++)
+	{
+	    Rect *r = &(mrd->rlist[s]);
+	    if (DBSrPaintArea((Tile *)NULL,
+			arg->dCD_celldef->cd_planes[cptr->drcc_plane],
+			r, &cptr->drcc_corner, MaxRectsExclude, NULL) != 0)
+	    {
+		/* Take this area out of consideration */
+		r->r_xtop = r->r_xbot;
+		r->r_ytop = r->r_ybot;
+	    }
+	}
+	return (MaxRectsData *)mrd;
+    }
     else
 	return (MaxRectsData *)mrd;
 }
