@@ -617,23 +617,20 @@ drcTile (tile, arg)
 		/* Split side changes in the reverse case */
 		dinfo |= TT_SIDE;
 	    }
+
+	    /* The area to check is bounded between the diagonals of
+	     * tile and errRect (which is the tile area, offset).
+	     * Pass errRect and dinfo to areaNMCheck using the
+	     * ClientData structure arg->dCD_rlist and arg->dCD_entries,
+	     * which are not used by areaNMCheck.
+	     */
+	    arg->dCD_rlist = (Rect *)mallocMagic(sizeof(Rect));
+	    *(arg->dCD_rlist) = errRect;
+	    arg->dCD_entries = dinfo;
+	    if (dinfo & TT_SIDE)
+		arg->dCD_entries &= ~TT_SIDE;
 	    else
-	    {
-		/* The area to check is bounded between the diagonals of
-		 * tile and errRect (which is the tile area, offset).
-		 * Pass errRect and dinfo to areaNMCheck using the
-		 * ClientData structure arg->dCD_rlist and arg->dCD_entries,
-		 * which are not used by areaNMCheck.  This is only needed
-		 * for the DRC_REVERSE case.
-		 */
-		arg->dCD_rlist = (Rect *)mallocMagic(sizeof(Rect));
-		*(arg->dCD_rlist) = errRect;
-		arg->dCD_entries = dinfo;
-		if (dinfo & TT_SIDE)
-		    arg->dCD_entries &= ~TT_SIDE;
-		else
-		    arg->dCD_entries |= TT_SIDE;
-	    }
+		arg->dCD_entries |= TT_SIDE;
 
 	    /* errRect is the tile area offset by (deltax, deltay) */
 	    errRect.r_xbot += deltax;
@@ -645,12 +642,9 @@ drcTile (tile, arg)
 			arg->dCD_celldef->cd_planes[cptr->drcc_plane], dinfo,
 			&errRect, &tmpMask, areaNMCheck, (ClientData) arg);
 
-	    if (cptr->drcc_flags & DRC_REVERSE)
-	    {
-		arg->dCD_entries = 0;
-		freeMagic(arg->dCD_rlist);
-		arg->dCD_rlist = (Rect *)NULL;
-	    }
+	    arg->dCD_entries = 0;
+	    freeMagic(arg->dCD_rlist);
+	    arg->dCD_rlist = (Rect *)NULL;
 	}
 	DRCstatEdges++;
     }
