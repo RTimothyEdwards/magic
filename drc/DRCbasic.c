@@ -36,6 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "utils/maxrect.h"
 #include "utils/malloc.h"
+#include "textio/textio.h"
 
 int dbDRCDebug = 0;
 
@@ -287,9 +288,50 @@ areaCheck(tile, arg)
 /*
  * ----------------------------------------------------------------------------
  *
+ * areaNMReject ---
+ *
+ *	Trivial callback function used by areaNMCheck to see if a tile
+ *	found in the error area of a reverse non-manhattan check exists
+ *	only on the other side of the original check boundary.  If it
+ *	is found in this search, return 1 to immediately stop the search.
+ *
+ * Results:
+ *	Returns 1 if the tile indicated in the ClientData argument was
+ *	found in the check area, otherwise return 0 to keep looking.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+areaNMReject(tile, arg)
+    Tile *tile;
+    ClientData *arg;
+{
+    Tile *checktile = (Tile *)arg;
+
+    if (tile == checktile)
+	return 1;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * areaNMCheck ---
  *
- *  Check for errors in triangular area of a tile
+ *	Check for errors in triangular area of a tile.
+ *
+ * Results:
+ *	Return 0 always to keep the search going.
+ *
+ * Side effects:
+ *	If the tile is not rejected due to being outside of the various
+ *	clip areas, then call the function specified in the drcClientData
+ *	argument.	
  *
  * ----------------------------------------------------------------------------
  */
@@ -319,6 +361,26 @@ areaNMCheck(tile, arg)
     GeoClip(&rect, arg->dCD_constraint);
     if ((rect.r_xbot >= rect.r_xtop) || (rect.r_ybot >= rect.r_ytop))
 	return 0;
+
+    if (arg->dCD_entries & TT_DIAGONAL)
+    {
+	TileTypeBitMask mask;
+	int dinfo = arg->dCD_entries;
+
+	/* In the DRC_REVERSE case, the area being searched extends
+	 * behind the edge that triggered the DRC check, but any
+	 * tile that is outside that edge should be ignored.  This
+	 * requires a separate check.
+	 */
+
+	TTMaskSetOnlyType(&mask, TiGetLeftType(tile));
+	TTMaskSetType(&mask, TiGetRightType(tile));
+	if (DBSrPaintNMArea((Tile *)tile,
+		arg->dCD_celldef->cd_planes[arg->dCD_plane],
+		dinfo, arg->dCD_rlist,
+		&mask, areaNMReject, (ClientData)tile) == 0)
+	    return 0;
+    }
 
     (*(arg->dCD_function))(arg->dCD_celldef, &rect, arg->dCD_cptr,
 			arg->dCD_clientData);
@@ -555,6 +617,23 @@ drcTile (tile, arg)
 		/* Split side changes in the reverse case */
 		dinfo |= TT_SIDE;
 	    }
+	    else
+	    {
+		/* The area to check is bounded between the diagonals of
+		 * tile and errRect (which is the tile area, offset).
+		 * Pass errRect and dinfo to areaNMCheck using the
+		 * ClientData structure arg->dCD_rlist and arg->dCD_entries,
+		 * which are not used by areaNMCheck.  This is only needed
+		 * for the DRC_REVERSE case.
+		 */
+		arg->dCD_rlist = (Rect *)mallocMagic(sizeof(Rect));
+		*(arg->dCD_rlist) = errRect;
+		arg->dCD_entries = dinfo;
+		if (dinfo & TT_SIDE)
+		    arg->dCD_entries &= ~TT_SIDE;
+		else
+		    arg->dCD_entries |= TT_SIDE;
+	    }
 
 	    /* errRect is the tile area offset by (deltax, deltay) */
 	    errRect.r_xbot += deltax;
@@ -565,6 +644,13 @@ drcTile (tile, arg)
 	    DBSrPaintNMArea((Tile *) NULL,
 			arg->dCD_celldef->cd_planes[cptr->drcc_plane], dinfo,
 			&errRect, &tmpMask, areaNMCheck, (ClientData) arg);
+
+	    if (cptr->drcc_flags & DRC_REVERSE)
+	    {
+		arg->dCD_entries = 0;
+		freeMagic(arg->dCD_rlist);
+		arg->dCD_rlist = (Rect *)NULL;
+	    }
 	}
 	DRCstatEdges++;
     }
