@@ -92,7 +92,7 @@ DBSrPaintNMArea(hintTile, plane, ttype, rect, mask, func, arg)
 				 * provide a hint tile in case hintTile == NULL.
 				 * The hint tile in the plane is updated to be
 				 * the last tile visited in the area
-				 * enumeration.
+				 * enumeration, if plane is non-NULL.
 				 */
     TileType ttype;		/* Information about the non-manhattan area to
 			 	 * search; zero if area is manhattan.
@@ -129,7 +129,7 @@ DBSrPaintNMArea(hintTile, plane, ttype, rect, mask, func, arg)
     {
 	/* Each iteration enumerates another tile */
 nm_enum:
-	PlaneSetHint(plane, tp);
+	if (plane != (Plane *)NULL) PlaneSetHint(plane, tp);
 	if (SigInterruptPending)
 	    return (1);
 
