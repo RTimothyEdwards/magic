@@ -234,7 +234,7 @@ cifParseLayers(
 				*/
 {
     TileTypeBitMask curCifMask, curPaintMask;
-    char curLayer[40], *p, *cp;
+    char curLayer[512], *p, *cp;
     TileType paintType;
     int i;
     bool allResidues;
@@ -245,6 +245,10 @@ cifParseLayers(
     while (*string != 0)
     {
 	p = curLayer;
+
+	if (*string == '(')
+	    while ((*string != ')') && (*string != 0))
+		*p++ = *string++;
 
 	if (*string == '*')
 	{
@@ -263,7 +267,22 @@ cifParseLayers(
 
 	if (paintMask != NULL)
 	{
-	    paintType = DBTechNameTypes(curLayer, &curPaintMask);
+	    if (*curLayer == '(')
+	    {
+		TileType t;
+
+		/* Layer groups with parentheses can only be paint types,
+		 * and will be parsed accordingly.  Residues will be
+		 * handled within the group.  Set paintType to -3, which
+		 * is flagged and handled below.
+		 */
+		DBTechNoisyNameMask(curLayer, &curPaintMask);
+		paintType = -3;
+		allResidues = FALSE;
+	    }
+	    else
+		paintType = DBTechNameTypes(curLayer, &curPaintMask);
+
 	    if (paintType >= 0) goto okpaint;
 	}
 	else paintType = -2;
@@ -299,7 +318,7 @@ okpaint:
 	    TechError("Ambiguous layer (type) \"%s\".\n", curLayer);
 	    continue;
 	}
-	if (paintType >= 0)
+	if ((paintType >= 0) || (paintType == -3))
 	{
 	    if (paintType == TT_SPACE && spaceOK ==0)
 		TechError("\"Space\" layer not permitted in CIF rules.\n");

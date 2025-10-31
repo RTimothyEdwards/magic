@@ -27,6 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include "utils/magic.h"
 #include "textio/textio.h"
+#include "utils/signals.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
@@ -134,7 +135,7 @@ drcFindOtherCells(use, area)
  *  different for "drc why" commands than for "drc check".
  *
  *  Returns:
- *	0 to keep the search going.
+ *	0 to keep the search going.  In case of an interrupt, return 1.
  *
  * ----------------------------------------------------------------------------
  */
@@ -156,6 +157,9 @@ drcSubCopyErrors(tile, cxp)
 		arg->dCD_clientData);
     (*(arg->dCD_errors))++;
     
+    /* Allow a break here */
+    if (SigInterruptPending) return 1;
+
     return 0;
 }
 

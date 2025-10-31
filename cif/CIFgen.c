@@ -28,6 +28,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
+#include "utils/signals.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "database/database.h"
@@ -1478,19 +1479,28 @@ cifBloatAllFunc(
 
 	if (op->co_distance > 0)
 	{
+	    Rect cifarea;
+
+	    cifarea.r_xbot = area.r_xbot;
+	    cifarea.r_ybot = area.r_ybot;
+	    cifarea.r_xtop = area.r_xtop;
+	    cifarea.r_ytop = area.r_ytop;
+
 	    /* Note:  This is non-optimal, as it causes all tiles
 	     * in the "bloat" group to be re-processed for each
 	     * tile processed in the search group.  However, it
 	     * is difficult to find an optimal method.
 	     */
 	    STACKPUSH(t, ResetStack);
-	    GeoClip(&area, &clipArea);
-	    if (GEO_RECTNULL(&area))
+	    GeoClip(&cifarea, &clipArea);
+	    if (GEO_RECTNULL(&cifarea))
 		continue;
 	}
 
-	/* Diagonal:  If expanding across the edge of a diagonal, */
-	/* then just fill the whole tile.			  */
+	/* Diagonal:  If expanding across the edge of a diagonal, then	*/
+	/* just fill the whole tile.  Note that diagonal tiles are not	*/
+	/* clipped;  the clipping only determines if the tile is	*/
+	/* outside the clip area.					*/
 
 	if (IsSplit(t))
 	{
@@ -1505,8 +1515,11 @@ cifBloatAllFunc(
 			CIFPaintTable, (PaintUndoInfo *) NULL);
 	}
 	else
+	{
+	    GeoClip(&area, &clipArea);
 	    DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
 			CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
 
 	/* Top */
 	for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
@@ -1547,6 +1560,7 @@ cifBloatAllFunc(
 	TiSetClient(t, CIF_UNPROCESSED);
     }
 
+    if (SigInterruptPending) return 1;
     return 0;	/* Keep the search alive. . . */
 }
 
@@ -4695,12 +4709,13 @@ cifBridgeLimFunc2(
 void
 cifInteractingRegions(
     CIFOp *op,
+    const Rect *area,		/* Area of interest to check */
     CellDef *cellDef,
     Plane *temps[],		/* Planes to use for temporaries. */
     Plane *plane)
 {
     Tile *tile = NULL, *t, *tp;
-    Rect area;
+    Rect rect;
     int i;
     TileType type;
     bool interacts;
@@ -4709,7 +4724,7 @@ cifInteractingRegions(
     if (RegStack == (Stack *)NULL)
 	RegStack = StackNew(64);
 
-    while (DBSrPaintArea((Tile *)tile, plane, &TiPlaneRect, &CIFSolidBits,
+    while (DBSrPaintArea((Tile *)tile, plane, area, &CIFSolidBits,
 		cifSquaresInitFunc, (ClientData)NULL) != 0)
     {
 	/* Now, search for (nontrivially) connected tiles in all	*/
@@ -4729,7 +4744,10 @@ cifInteractingRegions(
             TiSetClientINT(t, CIF_PROCESSED);
 
 	    /* Get tile area for interaction search */
-	    TiToRect(t, &area);
+	    TiToRect(t, &rect);
+
+	    /* Ignore tiles outside of the search area */
+	    if (!GEO_SURROUND(area, &rect)) continue;
 
 	    /* "interacting" includes touching as well as overlapping, so expand
 	     * search by one unit in every direction and then check overlap.
@@ -4738,10 +4756,10 @@ cifInteractingRegions(
 	     */
 	    if ((pointertype)op->co_client & CIFOP_INT_TOUCHING)
 	    {
-		area.r_xbot -= 1;
-		area.r_xtop += 1;
-		area.r_ybot -= 1;
-		area.r_ytop += 1;
+		rect.r_xbot -= 1;
+		rect.r_xtop += 1;
+		rect.r_ybot -= 1;
+		rect.r_ytop += 1;
 	    }
 
 	    /* Check if this tile interacts with the rule's types, or skip	*/
@@ -4749,7 +4767,7 @@ cifInteractingRegions(
 
 	    if (!interacts)
 	    {
-		if (cifSrTiles2(op, &area, cellDef, temps, cifInteractFunc, (ClientData)NULL))
+		if (cifSrTiles2(op, &rect, cellDef, temps, cifInteractFunc, (ClientData)NULL))
 		    interacts = TRUE;
 	    }
 
@@ -4802,8 +4820,8 @@ cifInteractingRegions(
 
 	    if (interacts)
 	    {
-		TiToRect(t, &area);
-		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
+		TiToRect(t, &rect);
+		DBPaintPlane(cifPlane, &rect, CIFPaintTable, (PaintUndoInfo *)NULL);
 	    }
 
 	    /* Top */
@@ -4838,6 +4856,9 @@ cifInteractingRegions(
 		    STACKPUSH(tp, RegStack);
 		}
 	}
+
+	/* Allow interrupts here */
+	if (SigInterruptPending) break;
     }
 }
 
@@ -5313,7 +5334,7 @@ CIFGenLayer(
 
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
-		cifInteractingRegions(op, cellDef, temps, curPlane);
+		cifInteractingRegions(op, area, cellDef, temps, curPlane);
 		temp = curPlane;
 		curPlane = nextPlane;
 		nextPlane = temp;
