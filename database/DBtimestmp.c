@@ -137,8 +137,10 @@ DBFixMismatch()
 
 	cellDef = mismatch->mm_cellDef;
 	oldArea = mismatch->mm_oldArea;
-	freeMagic((char *) mismatch);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, (char *) mismatch);
 	mismatch = mismatch->mm_next;
+	freeMagic1_end(&mm1);
 	if (cellDef->cd_flags & CDPROCESSED) continue;
 
 	(void) DBCellRead(cellDef, TRUE, TRUE, NULL);
@@ -182,13 +184,15 @@ DBFixMismatch()
     }
     SigEnableInterrupts();
     TxPrintf("Timestamp mismatches found in these cells: ");
+    free_magic1_t mm1 = freeMagic1_init();
     while (cl != NULL)
     {
 	TxPrintf("%s", cl->cl_cell->cd_name);
 	if (cl->cl_next != NULL) TxPrintf(", ");
-	freeMagic(cl);
+	freeMagic1(&mm1, cl);
 	cl = cl->cl_next;
     }
+    freeMagic1_end(&mm1);
     TxPrintf(".\n");
     TxFlush();
     if (redisplay) WindAreaChanged((MagWindow *) NULL, (Rect *) NULL);

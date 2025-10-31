@@ -268,16 +268,18 @@ NLFree(netList)
     NLTerm *term;
     NLNet *net;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (net = netList->nnl_nets; net; net = net->nnet_next)
     {
 	for (term = net->nnet_terms; term; term = term->nterm_next)
 	{
 	    for (loc = term->nterm_locs; loc; loc = loc->nloc_next)
-		freeMagic((char *) loc);
-	    freeMagic((char *) term);
+		freeMagic1(&mm1, (char *) loc);
+	    freeMagic1(&mm1, (char *) term);
 	}
-	freeMagic((char *) net);
+	freeMagic1(&mm1, (char *) net);
     }
+    freeMagic1_end(&mm1);
 
     HashKill(&netList->nnl_names);
 }

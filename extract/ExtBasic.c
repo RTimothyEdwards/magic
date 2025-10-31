@@ -2361,8 +2361,10 @@ extOutputDevices(def, transList, outFile)
 				    break;
 				}
 			    }
+			    free_magic1_t mm1 = freeMagic1_init();
 			    for (lt = extSpecialDevice; lt; lt = lt->t_next)
-				freeMagic((char *)lt);
+				freeMagic1(&mm1, (char *)lt);
+			    freeMagic1_end(&mm1);
 			}
 		    }
 		    else
@@ -2679,8 +2681,12 @@ extOutputDevices(def, transList, outFile)
 		    /* Free the lists */
 
 		    for (i = 0; i < extTransRec.tr_nterm; i++)
+		    {
+			free_magic1_t mm1 = freeMagic1_init();
 			for (lb = extSpecialBounds[i]; lb != NULL; lb = lb->b_next)
-			    freeMagic((char *)lb);
+			    freeMagic1(&mm1, (char *)lb);
+			freeMagic1_end(&mm1);
+		    }
 		    freeMagic((char *)extSpecialBounds);
 
 		    /* Put the region list back the way we found it: */
@@ -2868,8 +2874,12 @@ extOutputDevices(def, transList, outFile)
 		    /* Free the lists */
 
 		    for (i = 0; i < n; i++)
+		    {
+			free_magic1_t mm1 = freeMagic1_init();
 			for (lb = extSpecialBounds[i]; lb != NULL; lb = lb->b_next)
-			    freeMagic((char *)lb);
+			    freeMagic1(&mm1, (char *)lb);
+			freeMagic1_end(&mm1);
+		    }
 		    freeMagic((char *)extSpecialBounds);
 
 		    /* Put the region list back the way we found it: */
@@ -3016,8 +3026,12 @@ extOutputDevices(def, transList, outFile)
 			/* Free the lists */
 
 			for (i = 0; i < n; i++)
+			{
+			    free_magic1_t mm1 = freeMagic1_init();
 			    for (lb = extSpecialBounds[i]; lb != NULL; lb = lb->b_next)
-				freeMagic((char *)lb);
+				freeMagic1(&mm1, (char *)lb);
+			    freeMagic1_end(&mm1);
+			}
 			freeMagic((char *)extSpecialBounds);
 
 			/* Put the region list back the way we found it: */
@@ -3850,12 +3864,14 @@ extTransPerimFunc(bp)
 					extTermAPFunc, (ClientData)&eapd);
 
 		    shared = 1;
+		    free_magic1_t mm1 = freeMagic1_init();
 		    while (eapd.eapd_shared)
 		    {
 			shared++;
-			freeMagic(eapd.eapd_shared);
+			freeMagic1(&mm1, eapd.eapd_shared);
 			eapd.eapd_shared = eapd.eapd_shared->nl_next;
 		    }
+		    freeMagic1_end(&mm1);
 
 		    extTransRec.tr_termarea[thisterm] = eapd.eapd_area;
 		    extTransRec.tr_termperim[thisterm] = eapd.eapd_perim;
