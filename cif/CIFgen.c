@@ -1516,7 +1516,8 @@ cifBloatAllFunc(
 	}
 	else
 	{
-	    GeoClip(&area, &clipArea);
+	    if (op->co_distance > 0)
+		GeoClip(&area, &clipArea);
 	    DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
 			CIFPaintTable, (PaintUndoInfo *) NULL);
 	}
