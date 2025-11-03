@@ -581,13 +581,15 @@ CmdFill(
     /* Now that we've got all the material, scan over the list
      * painting the material and freeing up the entries on the list.
      */
+    free_magic1_t mm1 = freeMagic1_init();
     while (cmdFillList != NULL)
     {
 	DBPaint(EditCellUse->cu_def, &cmdFillList->cfa_area,
 		cmdFillList->cfa_type);
-	freeMagic((char *) cmdFillList);
+	freeMagic1(&mm1, (char *) cmdFillList);
 	cmdFillList = cmdFillList->cfa_next;
     }
+    freeMagic1_end(&mm1);
 
     SelectClear();
     DBAdjustLabels(EditCellUse->cu_def, &editBox);
