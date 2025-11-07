@@ -1119,6 +1119,7 @@ ExtTechInit()
     if (ExtCurStyle != NULL)
     {
 	extTechStyleInit(ExtCurStyle);
+	freeMagic(ExtCurStyle);
 	ExtCurStyle = NULL;
     }
 

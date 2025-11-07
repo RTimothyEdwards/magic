@@ -85,11 +85,13 @@ struct seeTypesArg
 int
 DBSrCellPlaneArea(BPlane *plane, const Rect *rect, int (*func)(), ClientData arg)
 {
+    BPEnum sbpe;
     BPEnum *bpe;
     CellUse *use;
     int rval = 0;
 
-    bpe = (BPEnum *)mallocMagic(sizeof(BPEnum));
+    /* bpe = (BPEnum *)mallocMagic(sizeof(BPEnum)); */
+    bpe = &sbpe;
     BPEnumInit(bpe, plane, rect, BPE_OVERLAP, "DBSrCellPlaneArea");
 
     while ((use = BPEnumNext(bpe)))
@@ -102,7 +104,7 @@ DBSrCellPlaneArea(BPlane *plane, const Rect *rect, int (*func)(), ClientData arg
     }
 
     BPEnumTerm(bpe);
-    freeMagic(bpe);
+    /* freeMagic(bpe); */
     return rval;
 }
 

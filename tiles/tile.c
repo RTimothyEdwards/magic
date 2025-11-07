@@ -20,6 +20,10 @@
 static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/tiles/tile.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
 #endif	/* not lint */
 
+/* Disable memory mapped tile allocation here and in tiles/tile.h
+ * #undef HAVE_SYS_MMAN_H
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -816,6 +820,7 @@ TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
 {
     TiFreeIf(*delay1);
     TiJoinX(tile1, tile2, plane);
+    *delay1 = tile2;
 }
 
 void
@@ -823,6 +828,7 @@ TiJoinY1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
 {
     TiFreeIf(*delay1);
     TiJoinY(tile1, tile2, plane);
+    *delay1 = tile2;
 }
 #endif
 

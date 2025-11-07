@@ -367,6 +367,9 @@ extern CellUse *CIFDummyUse;		/* Used to dummy up a CellUse for a
 					 * def.
 					 */
 
+extern Plane *CIFTotalPlanes[];		/* Exported for diagnostics */
+extern Plane *CIFComponentPlanes[];	/* Exported for diagnostics */
+
 /* Valid values of CIFWarningLevel (see cif.h) */
 
 typedef enum {CIF_WARN_DEFAULT, CIF_WARN_NONE, CIF_WARN_ALIGN,

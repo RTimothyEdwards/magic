@@ -194,6 +194,8 @@ typedef struct
 extern int dbNumSavedRules;
 extern Rule dbSavedRules[];
 
+extern HashTable dbCellDefTable;	/* Exported for diagnostics */
+
 /* -------------------- Internal procedure headers -------------------- */
 
 extern void DBUndoPutLabel();

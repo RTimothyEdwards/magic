@@ -47,6 +47,10 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/utils.h"
 #include "textio/txcommands.h"
 
+/* For diagnostics */
+#include "cif/CIFint.h"
+#include "database/databaseInt.h"
+
 /* C99 compat */
 #include "extract/extract.h"
 
@@ -189,6 +193,233 @@ CmdExtractTest(
 }
 #endif
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * tileCountProc --
+ *
+ *	Routine to count tiles.
+ *
+ * Return:
+ *	0 to keep the search going
+ *
+ * Side effects:
+ *	Keeps count in clientData
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+tileCountProc(
+    Tile *tile,
+    int *tcount)
+{
+    (*tcount)++;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * showMem --
+ * CmdShowmem --
+ *
+ * Usage:
+ *
+ *	showmem [outfile]
+ *
+ * Display all the (principle) internal memory usage for tiles, including
+ * all cell defs, and all CIF generated planes.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	May write to a disk file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+showMem(
+    FILE *outf,		/* File to which information is to be output */
+    bool verbose)	/* If TRUE, output detailed erase table */
+{
+    int ttotal, ttotal1, ttotal2;
+    int i;
+    Plane *plane;
+    CellDef *def;
+    int pNum;
+    HashSearch hs;
+    HashEntry *entry;
+
+    fprintf(outf, "Tile memory usage summary\n");
+    fprintf(outf, "Technology %s\n", DBTechName);
+
+    /* Search every cell def (including internal ones), count tiles,
+     * and add up the tile memory usage on every plane.
+     */
+
+    /* Search the CIFPlanes and count tiles. */
+    /* CIFPlanes, CIFTotalPlanes, CIFComponentPlanes */
+
+    ttotal2 = 0;
+    if (CIFCurStyle != NULL)
+    {
+	fprintf(outf, "\nCIFPlanes:\n");
+	ttotal1 = 0;
+	for (i = 0; i < MAXCIFLAYERS; i++)
+	{
+	    plane = CIFPlanes[i];
+	    if (plane != NULL)
+	    {
+		ttotal = 0;
+		DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+			&DBAllTypeBits, tileCountProc, &ttotal);
+		ttotal1 += ttotal;
+
+		if (CIFCurStyle->cs_layers[i])
+		    fprintf(outf, "   layer %s: %ld\n",
+				CIFCurStyle->cs_layers[i]->cl_name,
+				(long)ttotal * (long)sizeof(Tile));
+		else
+		    fprintf(outf, "   layer %d: %d\n", i,
+				(long)ttotal * (long)sizeof(Tile));
+	    }
+	}
+	fprintf(outf, "   Subtotal: %ld bytes\n",
+			(long)ttotal1 * (long)sizeof(Tile));
+	ttotal2 += ttotal1;
+
+	fprintf(outf, "\nCIFTotalPlanes\n");
+	ttotal1 = 0;
+	for (i = 0; i < MAXCIFLAYERS; i++)
+	{
+	    plane = CIFTotalPlanes[i];
+	    if (plane != NULL)
+	    {
+		ttotal = 0;
+		DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+			&DBAllTypeBits, tileCountProc, &ttotal);
+		ttotal1 += ttotal;
+
+		if (CIFCurStyle->cs_layers[i])
+		    fprintf(outf, "   layer %s: %ld\n",
+				CIFCurStyle->cs_layers[i]->cl_name,
+				(long)ttotal * (long)sizeof(Tile));
+		else
+		    fprintf(outf, "   layer %d: %d\n", i,
+				(long)ttotal * (long)sizeof(Tile));
+	    }
+	}
+	fprintf(outf, "   Subtotal: %ld bytes\n",
+			(long)ttotal1 * (long)sizeof(Tile));
+	ttotal2 += ttotal1;
+
+	fprintf(outf, "\nCIFComponentPlanes\n");
+	ttotal1 = 0;
+	for (i = 0; i < MAXCIFLAYERS; i++)
+	{
+	    plane = CIFComponentPlanes[i];
+	    if (plane != NULL)
+	    {
+		ttotal = 0;
+		DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+			&DBAllTypeBits, tileCountProc, &ttotal);
+		ttotal1 += ttotal;
+
+		if (CIFCurStyle->cs_layers[i])
+		    fprintf(outf, "   layer %s: %ld bytes\n",
+				CIFCurStyle->cs_layers[i]->cl_name,
+				(long)ttotal * (long)sizeof(Tile));
+		else
+		    fprintf(outf, "   layer %d: %ld bytes\n", i,
+				(long)ttotal * (long)sizeof(Tile));
+	    }
+	}
+	fprintf(outf, "   Subtotal: %ld bytes\n",
+			(long)ttotal1 * (long)sizeof(Tile));
+	ttotal2 += ttotal1;
+    }
+    else
+    {
+	fprintf(outf, "CIF planes:  No memory usage\n");
+    }
+
+    HashStartSearch(&hs);
+    while ((entry = HashNext(&dbCellDefTable, &hs)) != NULL)
+    {
+	def = (CellDef *)HashGetValue(entry);
+	if (def != (CellDef *)NULL)
+	{
+	    fprintf(outf, "\nCell def %s\n", def->cd_name);
+	    ttotal1 = 0;
+	    for (pNum = 0; pNum < DBNumPlanes; pNum++)
+	    {
+		plane = def->cd_planes[pNum];
+		if (plane != NULL)
+		{
+		    ttotal = 0;
+		    DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+				&DBAllTypeBits, tileCountProc, &ttotal);
+
+		    fprintf(outf, "   plane %s: %ld bytes\n",
+				DBPlaneLongNameTbl[pNum],
+				(long)ttotal * (long)sizeof(Tile));
+		    ttotal1 += ttotal;
+		}
+	    }
+	    fprintf(outf, "   Subtotal: %ld bytes\n",
+			(long)ttotal1 * (long)sizeof(Tile));
+	    ttotal2 += ttotal1;
+	}
+    }
+    fprintf(outf, "   Grand total: %ld bytes\n",
+			(long)ttotal2 * (long)sizeof(Tile));
+}
+
+void
+CmdShowmem(
+    MagWindow *w,
+    TxCommand *cmd)
+{
+    FILE *outf;
+    bool verbose;
+    char **av;
+    int ac;
+
+    if (cmd->tx_argc > 3)
+    {
+	TxError("Usage: showmem [-v] [file]\n");
+	return;
+    }
+
+    verbose = FALSE;
+    av = &cmd->tx_argv[1];
+    ac = cmd->tx_argc - 1;
+
+    outf = stdout;
+    if (ac > 0 && strcmp(av[0], "-v") == 0)
+    {
+	verbose = TRUE;
+	av++, ac--;
+    }
+
+    if (ac > 0)
+    {
+	outf = fopen(av[0], "w");
+	if (outf == (FILE *) NULL)
+	{
+	    perror(av[0]);
+	    TxError("Nothing written\n");
+	    return;
+	}
+    }
+
+    showMem(outf, verbose);
+    if (outf != stdout)
+	(void) fclose(outf);
+}
 
 /*
  * ----------------------------------------------------------------------------

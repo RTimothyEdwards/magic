@@ -75,6 +75,7 @@ extern void CmdExtResis();
 extern void CmdPsearch();
 extern void CmdPlowTest();
 extern void CmdShowtech();
+extern void CmdShowmem();
 extern void CmdTilestats();
 extern void CmdTsearch();
 extern void CmdWatch();
@@ -208,6 +209,9 @@ DBWInitCommands()
     WindAddCommand(DBWclientID,
 	"*psearch plane count	invoke point search over box area",
 	CmdPsearch, FALSE);
+    WindAddCommand(DBWclientID,
+	"*showmem [file]	print internal memory usage",
+	CmdShowmem, FALSE);
     WindAddCommand(DBWclientID,
 	"*showtech [file]	print internal technology tables",
 	CmdShowtech, FALSE);

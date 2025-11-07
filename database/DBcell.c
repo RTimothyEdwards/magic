@@ -109,14 +109,23 @@ DBCellFindDup(use, parent)
     while ((dupUse = BPEnumNext(&bpe)))
 	if (dupUse->cu_def == use->cu_def)
 	    /* Transforms must be equal---Aligned bounding boxes are
-	     * an insufficient measure of exact overlap.
+	     * an insufficient measure of exact overlap.  Also, array
+	     * counts and separation must match for arrayed devices
 	     */
 	    if ((dupUse->cu_transform.t_a == use->cu_transform.t_a) &&
 			(dupUse->cu_transform.t_b == use->cu_transform.t_b) &&
 			(dupUse->cu_transform.t_c == use->cu_transform.t_c) &&
 			(dupUse->cu_transform.t_d == use->cu_transform.t_d) &&
 			(dupUse->cu_transform.t_e == use->cu_transform.t_e) &&
-			(dupUse->cu_transform.t_f == use->cu_transform.t_f))
+			(dupUse->cu_transform.t_f == use->cu_transform.t_f) &&
+			((dupUse->cu_xhi > dupUse->cu_xlo) &&
+				((dupUse->cu_xhi - dupUse->cu_xlo) ==
+				(use->cu_xhi - use->cu_xlo)) &&
+				(dupUse->cu_xsep == use->cu_xsep)) &&
+			((dupUse->cu_yhi > dupUse->cu_ylo) &&
+				((dupUse->cu_yhi - dupUse->cu_ylo) ==
+				(use->cu_yhi - use->cu_ylo)) &&
+				(dupUse->cu_ysep == use->cu_ysep)))
 		break;
 
     BPEnumTerm(&bpe);

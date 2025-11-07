@@ -23,6 +23,14 @@
 #ifndef _MAGIC__TILES__TILE_H
 #define	_MAGIC__TILES__TILE_H
 
+/* Disable memory mapped tile allocation here and in tiles/tile.h
+ * #undef HAVE_SYS_MMAN_H
+ */
+
+
+#ifndef HAVE_SYS_MMAN_H
+#include "utils/malloc.h"
+#endif
 #ifndef _MAGIC__UTILS__MAGIC_H
 #include "utils/magic.h"
 #endif
@@ -299,6 +307,7 @@ TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
 {
     TiFreeIf(*delay1);
     TiJoinX(tile1, tile2, plane);
+    *delay1 = tile2;
 }
 
 inline void
@@ -306,6 +315,7 @@ TiJoinY1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
 {
     TiFreeIf(*delay1);
     TiJoinY(tile1, tile2, plane);
+    *delay1 = tile2;
 }
 #else
 /* To support older compilers (that don't auto emit based on -O level) */
