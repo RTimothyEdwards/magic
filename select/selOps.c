@@ -60,6 +60,7 @@ typedef struct planeAndArea
     int pa_plane;			/* Plane of interest */
     Rect *pa_area;			/* Area affected */
     TileTypeBitMask *pa_mask;		/* Mask used in plane search */
+    TileTypeBitMask pa_rmask;		/* Mask to generate during search */
 } planeAndArea;
 
 /* The following structure type is used to build up a list of areas
@@ -1739,8 +1740,17 @@ selStretchEraseFunc(tile, plane)
     pa.pa_area = &editArea;
     pa.pa_plane = planeNum;
     pa.pa_mask = &tmpmask;
+    TTMaskZero(&pa.pa_rmask);
+
+    /* Find all the types that need to be erased inside editArea and
+     * generate a mask from them.  Then erase each type.
+     */
     DBSrPaintArea((Tile *)NULL, EditCellUse->cu_def->cd_planes[planeNum],
 		&editArea, &tmpmask, selStretchEraseFunc2, (ClientData)&pa);
+
+    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+	if (TTMaskHasType(&pa.pa_rmask, t))
+	    DBErase(EditCellUse->cu_def, &editArea, t);
 
     ui.pu_pNum = planeNum;
     ui.pu_def = EditCellUse->cu_def;
@@ -1755,18 +1765,21 @@ selStretchEraseFunc2(tile, pa)
     Tile *tile;
     planeAndArea *pa;
 {
+    TileType type = TT_SPACE;
+
     if (IsSplit(tile))
     {
 	if (TTMaskHasType(pa->pa_mask, TiGetLeftType(tile)))
-	    DBErase(EditCellUse->cu_def, pa->pa_area,
-			DBPlaneToResidue(TiGetLeftType(tile), pa->pa_plane));
+	    type = DBPlaneToResidue(TiGetLeftType(tile), pa->pa_plane);
 	if (TTMaskHasType(pa->pa_mask, TiGetRightType(tile)))
-	    DBErase(EditCellUse->cu_def, pa->pa_area,
-			DBPlaneToResidue(TiGetRightType(tile), pa->pa_plane));
+	    type = DBPlaneToResidue(TiGetRightType(tile), pa->pa_plane);
     }
     else
-	DBErase(EditCellUse->cu_def, pa->pa_area,
-		DBPlaneToResidue(TiGetType(tile), pa->pa_plane));
+	type = DBPlaneToResidue(TiGetType(tile), pa->pa_plane);
+
+    if (type != TT_SPACE)
+	TTMaskSetType(&pa->pa_rmask, type);
+
     return 0;
 }
 
