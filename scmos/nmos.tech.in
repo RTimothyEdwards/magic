@@ -158,14 +158,14 @@ style lambda=2
 	calma 5 1
     layer NC pmc
 	squares 400
-	calma 6 1
+	calma 5 1
     layer NG glass
-	calma 7 1
+	calma 6 1
     layer NB
 	bloat-or bc * 200 diff,dmc 400 dfet 0
 	grow 100
 	shrink 100
-	calma 8 1
+	calma 7 1
 end
 
 #  Information on how to read CIF files.  Read in all the CIF layers,
@@ -202,6 +202,14 @@ style lambda=2
 	and NP
 	and ND
     layer glass NG
+
+    calma NP 1 *
+    calma ND 2 *
+    calma NM 3 *
+    calma NI 4 *
+    calma NC 5 *
+    calma NG 6 *
+    calma NB 7 *
 end
 
 mzrouter
