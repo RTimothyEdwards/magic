@@ -343,6 +343,22 @@ edge4way tran	diff	2	diff,dmc   diff	2 \
 no_overlap	efet,dfet	efet,dfet
 end
 
+#---------------------------------------------------
+# LEF format definitions
+#---------------------------------------------------
+
+lef
+    # Define routing layers
+    routing metal    metal M1 metal1 met1
+    
+    # Define contacts/vias  
+    contact pmc  via1 via V1 v1
+    contact dmc  via1 via V1 v1
+    
+    # Define pin layers
+    pin metal    metal PIN metal1 met1
+end
+
 # 
 # Parameters for circuit extraction.
 # A type may appear both as a node and as a transistor.  When it
