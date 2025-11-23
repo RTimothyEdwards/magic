@@ -2176,7 +2176,8 @@ DefReadComponents(
     Transform t;
     const char *token;
     char *dptr;
-    char usename[512];
+    char *usename, usename_buf[512];
+    int usename_len;
     int keyword, subkey;
     int processed = 0;
 
@@ -2223,12 +2224,25 @@ DefReadComponents(
 
 		/* Get use and macro names */
 		token = LefNextToken(f, TRUE);
-		if (sscanf(token, "%511s", usename) != 1)
+
+		usename_len = strlen(token);
+		if (!usename_len)
 		{
 		    LefError(DEF_ERROR, "Bad component statement:  Need "
 			    "use and macro names\n");
 		    LefEndStatement(f);
 		    break;
+		}
+
+		/* Use stack buffer if we can , else go for the heap */
+		if (strlen(token) < sizeof(usename_buf))
+		{
+			strcpy(usename_buf, token);
+			usename = usename_buf;
+		}
+		else
+		{
+			usename = StrDup(NULL, token);
 		}
 
 		/* Magic prohibits slashes and commas in use names	*/
@@ -2274,11 +2288,18 @@ DefReadComponents(
 
 		/* Create a use for this celldef in the edit cell */
 		/* Don't process properties for cells we could not find */
+		if (defMacro == NULL)
+		    break;
 
-		if ((defMacro == NULL) || ((defUse = DBCellNewUse(defMacro, usename))
-				== NULL))
+		defUse = DBCellNewUse(defMacro, usename);
+
+		if (usename != usename_buf)
+		    freeMagic(usename);
+		usename = NULL;
+
+		if (defUse == NULL)
 		{
-		    if (defMacro != NULL) LefEndStatement(f);
+		    LefEndStatement(f);
 		    break;
 		}
 		DBLinkCell(defUse, rootDef);
