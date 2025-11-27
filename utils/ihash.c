@@ -73,7 +73,7 @@ extern IHashTable *IHashInit(
   IHashTable *table;
 
   table = (IHashTable *)mallocMagic(sizeof(IHashTable));
-  table->iht_table = (void **)callocMagic(sizeof(void *)*nBuckets);
+  table->iht_table = (void **)callocMagic(nBuckets, sizeof(void *));
   table->iht_nBucketsInit = nBuckets;
   table->iht_nBuckets = nBuckets;
   table->iht_nEntries = 0;
@@ -99,7 +99,7 @@ void IHashClear(IHashTable *table)
 {
   /* reinitial bucket array */
   freeMagic((char *) table->iht_table);
-  table->iht_table = (void **)callocMagic(sizeof(void *)*table->iht_nBucketsInit);
+  table->iht_table = (void **)callocMagic(table->iht_nBucketsInit, sizeof(void *));
 
   table->iht_nBuckets = table->iht_nBucketsInit;
   table->iht_nEntries = 0;
@@ -217,7 +217,7 @@ static void iHashResize(IHashTable *table)
   int bucket;
 
   /* alloc a new table */
-  table->iht_table = (void **)callocMagic(sizeof(void *)*newSize);
+  table->iht_table = (void **)callocMagic(newSize, sizeof(void *));
   table->iht_nBuckets = newSize;
   table->iht_nEntries = 0;
 

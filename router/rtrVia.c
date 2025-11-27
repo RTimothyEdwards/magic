@@ -386,11 +386,13 @@ rtrViaCheck(area, def)
      */
 
     DBErase(def, area, RtrContactType);
+    free_magic1_t mm1 = freeMagic1_init();
     for ( pl = rtrPaintList; pl; pl = pl->pl_next)
     {
 	DBPaint(def, &pl->pl_area, type);
-	freeMagic( (char *)pl );
+	freeMagic1(&mm1, (char *)pl );
     }
+    freeMagic1_end(&mm1);
 
     rtrVias++;
     return;
@@ -523,21 +525,29 @@ RtrViaMinimize(def)
      * Replace poly with metal where appropriate.
      */
 
-    for ( ap = rtrAreaList; ap; ap = ap->ap_next)
     {
-	DBErase(def, &ap->ap_erase, ap->ap_oldtype);
-	DBPaint(def, &ap->ap_paint, ap->ap_newtype);
-	freeMagic( (char *)ap);
+	free_magic1_t mm1 = freeMagic1_init();
+	for ( ap = rtrAreaList; ap; ap = ap->ap_next)
+	{
+	    DBErase(def, &ap->ap_erase, ap->ap_oldtype);
+	    DBPaint(def, &ap->ap_paint, ap->ap_newtype);
+	    freeMagic1(&mm1, (char *)ap);
+	}
+	freeMagic1_end(&mm1);
     }
 
     /*
      * Eliminate unnecessary vias.
      */
 
-    for ( vp = rtrViaList; vp; vp = vp->vp_next)
     {
-	rtrViaCheck(&vp->vp_area, def);
-	freeMagic( (char *)vp);
+	free_magic1_t mm1 = freeMagic1_init();
+	for ( vp = rtrViaList; vp; vp = vp->vp_next)
+	{
+	    rtrViaCheck(&vp->vp_area, def);
+	    freeMagic1(&mm1, (char *)vp);
+	}
+	freeMagic1_end(&mm1);
     }
 
     /*
@@ -558,21 +568,29 @@ RtrViaMinimize(def)
      * Erase poly and replace with metal.
      */
 
-    for ( ap = rtrAreaList; ap; ap = ap->ap_next)
     {
-	DBErase(def, &ap->ap_erase, ap->ap_oldtype);
-	DBPaint(def, &ap->ap_paint, ap->ap_newtype);
-	freeMagic( (char *)ap);
+	free_magic1_t mm1 = freeMagic1_init();
+	for ( ap = rtrAreaList; ap; ap = ap->ap_next)
+	{
+	    DBErase(def, &ap->ap_erase, ap->ap_oldtype);
+	    DBPaint(def, &ap->ap_paint, ap->ap_newtype);
+	    freeMagic1(&mm1, (char *)ap);
+	}
+	freeMagic1_end(&mm1);
     }
 
     /*
      * Eliminate unnecessary vias.
      */
 
-    for ( vp = rtrViaList; vp; vp = vp->vp_next)
     {
-	rtrViaCheck(&vp->vp_area, def);
-	freeMagic( (char *)vp);
+	free_magic1_t mm1 = freeMagic1_init();
+	for ( vp = rtrViaList; vp; vp = vp->vp_next)
+	{
+	    rtrViaCheck(&vp->vp_area, def);
+	    freeMagic1(&mm1, (char *)vp);
+	}
+	freeMagic1_end(&mm1);
     }
 
     return rtrVias;

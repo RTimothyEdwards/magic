@@ -181,23 +181,35 @@ PlotPSTechInit()
 
     /* Clear out any old information */
 
-    for (style = plotPSStyles; style != NULL; style = style->grs_next)
     {
-	freeMagic((char *) style);
+	free_magic1_t mm1 = freeMagic1_init();
+	for (style = plotPSStyles; style != NULL; style = style->grs_next)
+	{
+	    freeMagic1(&mm1, (char *) style);
+	}
+	freeMagic1_end(&mm1);
+	plotPSStyles = NULL;
     }
-    plotPSStyles = NULL;
 
-    for (pattern = plotPSPatterns; pattern != NULL; pattern = pattern->pat_next)
     {
-	freeMagic((char *) pattern);
+	free_magic1_t mm1 = freeMagic1_init();
+	for (pattern = plotPSPatterns; pattern != NULL; pattern = pattern->pat_next)
+	{
+	    freeMagic1(&mm1, (char *) pattern);
+	}
+	freeMagic1_end(&mm1);
+	plotPSPatterns = NULL;
     }
-    plotPSPatterns = NULL;
 
-    for (color = plotPSColors; color != NULL; color = color->col_next)
     {
-	freeMagic((char *) color);
+	free_magic1_t mm1 = freeMagic1_init();
+	for (color = plotPSColors; color != NULL; color = color->col_next)
+	{
+	    freeMagic1(&mm1, (char *) color);
+	}
+	freeMagic1_end(&mm1);
+	plotPSColors = NULL;
     }
-    plotPSColors = NULL;
 
     if (!PlotPSIdFont)
 	StrDup(&PlotPSIdFont, defaultFont);

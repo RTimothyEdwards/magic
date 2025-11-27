@@ -93,7 +93,7 @@ static BinArray *bpBinArrayNew(int dx,      /* x diameter of bins */
 
   /* allocate array */
   size = sizeof(BinArray) + numBins*(sizeof(void *));
-  new = (BinArray *)callocMagic(size);
+  new = (BinArray *)callocMagic(1, size);
 
   /* initial */
   new->ba_bbox = *bbox;
