@@ -227,7 +227,7 @@ DBUpdateStamps(def)
 
     else if (def->cd_flags & CDGETNEWSTAMP)
     {
-	if (def->cd_flags & CDFIXEDSTAMP)
+	if (def->cd_flags & (CDNOEDIT | CDFIXEDSTAMP))
 	    def->cd_flags &= ~CDGETNEWSTAMP;
 	else
 	    dbStampFunc(def);
