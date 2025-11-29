@@ -247,18 +247,29 @@ dbStampFunc(cellDef)
 
     if (cellDef->cd_timestamp == timestamp) return 0;
 
-    /*
-     * Do not force a non-edit cell or a cell with a fixed timestamp
-     * to update its timestamp, as it cannot or should not.  Just clear
-     * any flag suggesting that it needs a new timestamp.
+    /* Non-editable cells should not try to update timestamps, as the
+     * new timestamp cannot be written back to the file.  This is
+     * basically a hack solution for the problem that running DRC on
+     * all cells causes all cells, including non-editable ones, to be
+     * marked as modified, even if there were no DRC changes in the
+     * cell.  It is possible to get into trouble this way by modifying
+     * a cell and then marking it as non-editable
      */
-    if (!(cellDef->cd_flags & (CDNOEDIT | CDFIXEDSTAMP)))
+
+    if (cellDef->cd_flags & CDNOEDIT)
     {
 	cellDef->cd_flags &= ~CDGETNEWSTAMP;
 	return 0;
     }
 
-    cellDef->cd_timestamp = timestamp;
+    /*
+     * Do not force a non-edit cell or a cell with a fixed timestamp
+     * to update its timestamp, as it cannot or should not.  Just clear
+     * any flag suggesting that it needs a new timestamp.
+     */
+    if (!(cellDef->cd_flags & CDFIXEDSTAMP))
+	cellDef->cd_timestamp = timestamp;
+
     cellDef->cd_flags &= ~CDGETNEWSTAMP;
 
     // printf("Writing new timestamp %d for %s.\n", timestamp, cellDef->cd_name);
