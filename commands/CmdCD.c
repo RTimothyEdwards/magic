@@ -4308,6 +4308,8 @@ CmdDrc(
 #endif
 		    TxPrintf("Error area #%d:\n", result);
 		    if (DRCWhy(dolist, rootUse, &area, findonly)) break;
+		    /* Check for interrupt or this will go into an infinite loop */
+		    else if (SigInterruptPending) break;
 		    drc_nth++;
 		}
 		else if (result < 0)

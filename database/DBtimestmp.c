@@ -247,9 +247,18 @@ dbStampFunc(cellDef)
 
     if (cellDef->cd_timestamp == timestamp) return 0;
 
-    if (!(cellDef->cd_flags & CDFIXEDSTAMP))
-	cellDef->cd_timestamp = timestamp;
+    /*
+     * Do not force a non-edit cell or a cell with a fixed timestamp
+     * to update its timestamp, as it cannot or should not.  Just clear
+     * any flag suggesting that it needs a new timestamp.
+     */
+    if (!(cellDef->cd_flags & (CDNOEDIT | CDFIXEDSTAMP)))
+    {
+	cellDef->cd_flags &= ~CDGETNEWSTAMP;
+	return 0;
+    }
 
+    cellDef->cd_timestamp = timestamp;
     cellDef->cd_flags &= ~CDGETNEWSTAMP;
 
     // printf("Writing new timestamp %d for %s.\n", timestamp, cellDef->cd_name);
