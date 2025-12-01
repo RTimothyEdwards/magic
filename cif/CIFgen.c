@@ -4747,9 +4747,6 @@ cifInteractingRegions(
 	    /* Get tile area for interaction search */
 	    TiToRect(t, &rect);
 
-	    /* Ignore tiles outside of the search area */
-	    if (!GEO_SURROUND(area, &rect)) continue;
-
 	    /* "interacting" includes touching as well as overlapping, so expand
 	     * search by one unit in every direction and then check overlap.
 	     * NOTE:  This catches catecorner-touching material, which is
