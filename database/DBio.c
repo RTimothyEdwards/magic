@@ -98,6 +98,9 @@ extern bool FileLocking;
 
 /* Suffix for all Magic files */
 char *DBSuffix = ".mag";
+#ifdef HAVE_ZLIB
+char *DBZSuffix = ".mag.gz";
+#endif
 
 /* Magic units per lambda (2 integers, representing (n / d) */
 int DBLambda[2] = {1, 1};
@@ -1483,8 +1486,16 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 
 	/* If dereferencing, then use search paths first */
 	if (!dereference)
+	{
 	    f = PaLockZOpen(cellDef->cd_file, "r", DBSuffix, ".",
 			(char *) NULL, &filename, &is_locked, &fd);
+
+#ifdef HAVE_ZLIB
+	    if (f == NULL)
+		f = PaLockZOpen(cellDef->cd_file, "r", DBZSuffix, ".",
+			(char *) NULL, &filename, &is_locked, &fd);
+#endif
+	}
 
 	/* Fall back on the original method of using search paths. */
 
@@ -1492,6 +1503,11 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 	{
 	    f = PaLockZOpen(cellDef->cd_name, "r", DBSuffix, Path,
 			CellLibPath, &filename, &is_locked, &fd);
+#ifdef HAVE_ZLIB
+	    if (f == NULL)
+		f = PaLockZOpen(cellDef->cd_file, "r", DBZSuffix, Path,
+			CellLibPath, &filename, &is_locked, &fd);
+#endif
 
 	    if (f != NULL)
 	    {
@@ -1524,6 +1540,11 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 	    {
 		f = PaLockZOpen(cellDef->cd_file, "r", DBSuffix, ".",
 			(char *) NULL, &filename, &is_locked, &fd);
+#ifdef HAVE_ZLIB
+		if (f == NULL)
+		    f = PaLockZOpen(cellDef->cd_file, "r", DBZSuffix, ".",
+				(char *) NULL, &filename, &is_locked, &fd);
+#endif
 		if (f != NULL)
 		    if (DBVerbose)
 			TxError("Warning:  Dereferenced cell \"%s\" not "
@@ -1541,6 +1562,11 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
     {
 	f = PaLockZOpen(cellDef->cd_name, "r", DBSuffix, Path,
 			CellLibPath, &filename, &is_locked, &fd);
+#ifdef HAVE_ZLIB
+	if (f == NULL)
+	    f = PaLockZOpen(cellDef->cd_name, "r", DBZSuffix, Path,
+			CellLibPath, &filename, &is_locked, &fd);
+#endif
 	if (errptr != NULL) *errptr = errno;
     }
 
