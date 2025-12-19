@@ -828,6 +828,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 	CellDef *orig_def = scx->scx_use->cu_def;
 	Label *slab;
 	int lidx = lab->lab_port;
+	bool foundOne;
 	const TileTypeBitMask *connectMask;
 
 	/* Check for equivalent ports. For any found, call	*/
@@ -839,6 +840,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 	/* are more equivalent ports, they will be found when	*/
 	/* processing this label's area.			*/
 
+	foundOne = FALSE;
 	for (slab = orig_def->cd_labels; slab != NULL; slab = slab->lab_next)
 	    if ((slab->lab_flags & PORT_DIR_MASK) && (slab != lab))
 		if (slab->lab_port == lidx)
@@ -898,6 +900,20 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 		    csa2->csa2_list[csa2->csa2_top].area = newarea;
 		    csa2->csa2_list[csa2->csa2_top].connectMask = connectMask;
 		    csa2->csa2_list[csa2->csa2_top].dinfo = 0;
+
+#if 0
+		    /* This warning is useful but currently is generating
+		     * multiple messages per instance and so its more of
+		     * an annoyance than an aid.
+		     */
+
+		    if (foundOne == FALSE)
+			TxError("Warning:  Port %s at location (%d %d) connects"
+				" a net across multiple disconnected areas!\n",
+				lab->lab_text, lab->lab_rect.r_xbot,
+				lab->lab_rect.r_ybot);
+#endif
+		    foundOne = TRUE;
 
 		    /* See above:  Process only one equivalent port at a time */
 		    break;
@@ -1247,7 +1263,8 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 	    if (DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
 			dbcConnectLabelFunc, (ClientData) &csa2) != 0)
 	    {
-		TxError("Connection search hit memory limit and stopped.\n");
+		TxError("Connection search was interrupted or hit "
+			"memory limit and stopped.\n");
 		break;
 	    }
     }

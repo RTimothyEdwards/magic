@@ -3318,7 +3318,8 @@ dbFindPropGCFFunc(key, value, ggcf)
 		break;
 	    else if (numvals != 4)
 	    {
-		TxError("Error:  Cannot parse %s property value!\n", key);
+		TxError("Error:  Cannot parse %s property value at \"%s\"!\n",
+			key, vptr);
 		break;
 	    }
 	    else
@@ -3337,7 +3338,7 @@ dbFindPropGCFFunc(key, value, ggcf)
 	    /* Skip forward four values in value */
 	    for (n = 0; n < 4; n++)
 	    {
-		while (!isspace(*vptr)) vptr++;
+		while (!isspace(*vptr) && (*vptr != '\0')) vptr++;
 		while (isspace(*vptr) && (*vptr != '\0')) vptr++;
 	    }
 	}

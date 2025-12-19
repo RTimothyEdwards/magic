@@ -373,7 +373,13 @@ if {[info commands magic::openwrapper] != {}} {
 
       foreach cellname $celllist {
 	 set fext [file extension $cellname]
-         puts stdout "handling file entry $cellname extension $fext"
+	 switch $fext {
+	    .gz {}
+	    "" {}
+	    default {
+	       puts stdout "Handling file entry $cellname extension $fext"
+	    }
+	 }
 	 switch $fext {
 	     .lef -
 	     .LEF {lef read $cellname}
@@ -390,6 +396,16 @@ if {[info commands magic::openwrapper] != {}} {
 	     .tcl {source $cellname}
 	     .mag -
 	     "" {magic::load $cellname}
+	     .gz {
+		 set rootname [file root $cellname]
+	 	 set fext [file extension $rootname]
+		 puts stdout "Handling compressed entry $cellname extension $fext"
+		 switch $fext {
+		    .gds {gds read $cellname}
+		    .mag {magic::load $cellname}
+		    default {puts stderr "only compressed .mag and .gds are handled."}
+		 }
+	     }
 	     default {puts stderr "don't know how to load file $cellname"}
 	 }
       }
