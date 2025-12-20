@@ -10,8 +10,8 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  simple_build_macos13:
-    runs-on: macos-13
+  simple_build_macos15:
+    runs-on: macos-15-intel # only and last supported intel MacOS
     timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
     steps:
       - name: Checkout
@@ -235,10 +235,10 @@ jobs:
           cp *.mak dist/BUILD-INFO/
           cp *.LOG dist/BUILD-INFO/
 
-      - name: Upload archive magic-macos13
+      - name: Upload archive magic-macos15
         uses: actions/upload-artifact@v4
         with:
-          name: magic-macos13
+          name: magic-macos15
           path: |
             ${{ github.workspace }}/dist
 
