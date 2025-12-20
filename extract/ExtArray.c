@@ -95,6 +95,7 @@ extOutputGeneratedLabels(parentUse, f)
 
     parentDef = parentUse->cu_def;
 
+    free_magic1_t mm1 = freeMagic1_init();
     while ((lab = parentDef->cd_labels) != NULL)
     {
 	if ((lab->lab_flags & LABEL_GENERATE) == 0) return;
@@ -106,9 +107,10 @@ extOutputGeneratedLabels(parentUse, f)
 	for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
 	    fprintf(f, " 0 0");
 	putc('\n', f);
-	freeMagic(lab);
+	freeMagic1(&mm1, lab);
 	parentDef->cd_labels = lab->lab_next;
     }
+    freeMagic1_end(&mm1);
 }
 
 #endif
