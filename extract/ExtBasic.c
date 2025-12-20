@@ -2776,8 +2776,12 @@ extOutputDevices(def, transList, outFile)
 			/* Free the lists */
 
 			for (i = 0; i < n; i++)
+			{
+			    free_magic1_t mm1 = freeMagic1_init();
 			    for (lb = extSpecialBounds[i]; lb != NULL; lb = lb->b_next)
-				freeMagic((char *)lb);
+				freeMagic1(&mm1, (char *)lb);
+			    freeMagic1_end(&mm1);
+			}
 			freeMagic((char *)extSpecialBounds);
 
 			/* Put the region list back the way we found it: */

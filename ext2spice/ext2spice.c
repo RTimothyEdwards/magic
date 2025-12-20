@@ -1345,9 +1345,12 @@ main(
 	TxPrintf("Devs merged: %d\n", esSpiceDevsMerged);
 	esFMIndex = 0 ;
 	{
-	  const devMerge *p;
+	    const devMerge *p;
 
-	  for ( p = devMergeList ; p != NULL ; p=p->next ) freeMagic((char *)p);
+	    free_magic1_t mm1 = freeMagic1_init();
+	    for (p = devMergeList; p != NULL; p = p->next)
+		freeMagic1(&mm1, (char *)p);
+	    freeMagic1_end(&mm1);
 	}
     } else if ( esDistrJunct )
      	EFVisitDevs(devDistJunctVisit, (ClientData) NULL);
