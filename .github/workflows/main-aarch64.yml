@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Get Dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install -y tcl-dev tk-dev libcairo-dev
       - name: Build
         run: |
