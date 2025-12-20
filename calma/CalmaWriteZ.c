@@ -1867,6 +1867,7 @@ calmaProcessBoundaryZ(
 		freeMagic1(&mm1, lbref);
 		lbref = lbref->lb_next;
 	    }
+	    freeMagic1(&mm1, lbref);
 	    freeMagic1_end(&mm1);
 	}
     }
