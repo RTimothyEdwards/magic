@@ -562,7 +562,8 @@ efAddNodes(
 	    HashSetValue(he, (char *) newname);
 	    newname->efnn_node = newnode;
 	    newname->efnn_hier = hierName;
-	    newname->efnn_port = -1;
+	    // keep the port number
+	    newname->efnn_port = node->efnode_name->efnn_port;
 	    newname->efnn_refc = 0;
 	    if (newnode->efnode_name)
 	    {

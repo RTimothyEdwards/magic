@@ -652,7 +652,14 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
 	    if (efWarn)
 		efReadError("Merged nodes %s and %s\n", nodeName1, nodeName2);
 	    lostnode = efNodeMerge(&nn1->efnn_node, &nn2->efnn_node);
-	    if (nn1->efnn_port > 0) nn2->efnn_port = nn1->efnn_port;
+	    // keep the lowest valid port number
+	    if (nn1->efnn_port > 0)
+	    {
+		if (nn2->efnn_port > 0 && nn2->efnn_port < nn1->efnn_port)
+			nn1->efnn_port = nn2->efnn_port;
+		else
+			nn2->efnn_port = nn1->efnn_port;
+	    }
 	    else if (nn2->efnn_port > 0) nn1->efnn_port = nn2->efnn_port;
 
 	    /* Check if there are any device terminals pointing to the
@@ -1940,7 +1947,7 @@ EFNode *
 efNodeMerge(node1ptr, node2ptr)
     EFNode **node1ptr, **node2ptr;	/* Pointers to hierarchical nodes */
 {
-    EFNodeName *nn, *nnlast;
+    EFNodeName *nn, *nnlast, *nn1, *nn2;
     EFAttr *ap;
     int n;
     EFNode *keeping, *removing;
@@ -1951,8 +1958,22 @@ efNodeMerge(node1ptr, node2ptr)
 
     /* Keep the node with the greater number of entries, and merge  */
     /* the node with fewer entries into it.			    */
+    /* If one node is a port, keep that node                        */
+    /* If both nodes are ports, keep the lowest numbered port       */
+    /* Since duplicate ports always have higher numbers, this       */
+    /* should keep the original.                                    */
 
-    if ((*node1ptr)->efnode_num >= (*node2ptr)->efnode_num)
+    int keep = 0; // unknown
+    nn1 = (*node1ptr)->efnode_name;
+    nn2 = (*node2ptr)->efnode_name;
+    if ( nn1 && nn1->efnn_port > 0 )
+    {
+        if ( nn2 && nn2->efnn_port > 0 && nn2->efnn_port < nn1->efnn_port ) keep = 2;
+        else keep = 1;
+    }
+    else if ( nn2 && nn2->efnn_port > 0 ) keep = 2;
+
+    if (keep == 1 || ((keep == 0 && (*node1ptr)->efnode_num >= (*node2ptr)->efnode_num)))
     {
 	keeping = *node1ptr;
 	removing = *node2ptr;
