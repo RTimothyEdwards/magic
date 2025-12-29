@@ -242,9 +242,20 @@ spcHierWriteParams(
 
     /* Write all requested parameters to the subcircuit call.	*/
 
+    bool checkme = FALSE;
+
+    if ((!strcmp(EFDevTypes[dev->dev_type], "pfet_06v0_dss")) ||
+	(!strcmp(EFDevTypes[dev->dev_type], "nfet_06v0_dss")))
+    {
+	checkme = TRUE;
+	TxPrintf("Diagnostic:  Parameter list for %s\n", EFDevTypes[dev->dev_type]);
+    }
+
     plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
     while (plist != NULL)
     {
+	if (checkme) TxPrintf("Plist entry %s %s\n", plist->parm_name, plist->parm_type);
+
 	switch (plist->parm_type[0])
 	{
 	    case 'a':
@@ -345,6 +356,7 @@ spcHierWriteParams(
 		// Check for device length vs. terminal length
 		if (plist->parm_type[1] == '\0' || plist->parm_type[1] == '0')
 		{
+		    if (checkme) TxPrintf("Handling entry l or l0\n");
 		    fprintf(esSpiceF, " %s=", plist->parm_name);
 		    if (esScale < 0)
 			fprintf(esSpiceF, "%g", l * scale);
@@ -359,8 +371,10 @@ spcHierWriteParams(
 		{
 		    /* l1, l2, etc. used to indicate the length of the terminal */
 		    /* Find value in dev_params */
+		    if (checkme) TxPrintf("Handling entry l1 or l2\n");
 		    for (dparam = dev->dev_params; dparam; dparam = dparam->parm_next)
 		    {
+		        if (checkme) TxPrintf("Checking dev_params entry %s\n", dparam->parm_name);
 			if ((strlen(dparam->parm_name) > 2) &&
 			    	(dparam->parm_name[0] == 'l') &&
 			    	(dparam->parm_name[1] == plist->parm_type[1]) &&
@@ -369,6 +383,8 @@ spcHierWriteParams(
 			    int dval;
 			    if (sscanf(&dparam->parm_name[3], "%d", &dval) == 1)
 			    {
+		 		if (checkme) TxPrintf("Handling dev_params entry %s (to be "
+						"culled at end)\n", dparam->parm_name);
 		    		fprintf(esSpiceF, " %s=", plist->parm_name);
 				if (esScale < 0)
 				    fprintf(esSpiceF, "%g", dval * scale);
@@ -378,6 +394,7 @@ spcHierWriteParams(
 				else
 				    esSIvalue(esSpiceF, (dval + plist->parm_offset)
 						* scale * esScale * 1.0E-6);
+				/* Why is this here? */
 				dparam->parm_name[0] = '\0';
 				break;
 			    }

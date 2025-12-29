@@ -926,20 +926,22 @@ efBuildDevice(
     /* Parse initial arguments for parameters */
     while ((pptr = strchr(argv[argstart], '=')) != NULL)
     {
-	// Check if this parameter is in the table.
-	// If so, handle appropriately.  Otherwise, the
-	// parameter gets saved verbatim locally.  The
-	// "parameters" line comes before any "device" line
-	// in the .ext file, so the table should be complete.
+	/* If the parameter is in the parameter list "devp", then save
+	 * the value as appropriate.  If not, then the entire phrase
+	 * will be output verbatim, so just save the whole string.
+	 *
+	 * The "parameters" line comes before any "device" line in the
+	 * .ext file, so the "devp" list should be complete.
+	 */
 
 	*pptr = '\0';
 	for (sparm = devp; sparm; sparm = sparm->parm_next)
-	    if (!strcasecmp(sparm->parm_type, argv[argstart]))
+	    if (!strncasecmp(sparm->parm_type, argv[argstart], 2))
 		break;
 	*pptr = '=';
 	if (sparm == NULL)
 	{
-	    /* Copy the parameter into dev_params */
+	    /* Copy the whole string into dev_params */
 	    /* (parm_type and parm_scale records are not used) */
 	    newparm = (DevParam *)mallocMagic(sizeof(DevParam));
 	    newparm->parm_name = StrDup((char **)NULL, argv[argstart]);
@@ -954,30 +956,59 @@ efBuildDevice(
 	{
 	    case 'a':
 		if ((pptr - argv[argstart]) == 2)
-		    devtmp.dev_area = atoi(pptr);
+		    devtmp.dev_area = (int)(0.5 + (float)atoi(pptr)
+				* locScale * locScale);
 		else
 		{
+		    /* Check for a0, a1, a2, ...  If a0, handle like "a".
+		     * Otherwise, don't handle it here.
+		     */
 		    pn = *(argv[argstart] + 1) - '0';
 		    if (pn == 0)
 			devtmp.dev_area = (int)(0.5 + (float)atoi(pptr)
 				* locScale * locScale);
-		    /* Otherwise, punt */
 		}
 		break;
+
 	    case 'p':
 		if ((pptr - argv[argstart]) == 2)
-		    devtmp.dev_perim = atoi(pptr);
+		    devtmp.dev_perim = (int)(0.5 + (float)atoi(pptr) * locScale);
 		else
 		{
+		    /* Check for p0, p1, p2, ...  If p0, handle like "p".
+		     * Otherwise, don't handle it here.
+		     */
 		    pn = *(argv[argstart] + 1) - '0';
 		    if (pn == 0)
 			devtmp.dev_perim = (int)(0.5 + (float)atoi(pptr) * locScale);
-		    /* Otherwise, use verbatim */
 		}
 		break;
+
 	    case 'l':
-		devtmp.dev_length = (int)(0.5 + (float)atoi(pptr) * locScale);
+		if ((pptr - argv[argstart]) == 2)
+		    devtmp.dev_length = (int)(0.5 + (float)atoi(pptr) * locScale);
+		else
+		{
+		    /* Check for l0, l1, l2, ...  If l0, handle like "l".
+		     * Otherwise, save it verbatim like an unknown parameter,
+		     * because its value will not be calculated from terminal
+		     * values like "a1, a2, ..." or "p1, p2, ...".
+		     */
+
+		    pn = *(argv[argstart] + 1) - '0';
+		    if (pn == 0)
+			devtmp.dev_length = (int)(0.5 + (float)atoi(pptr) * locScale);
+		    else
+		    {
+			/* Copy the whole string into dev_params */
+			newparm = (DevParam *)mallocMagic(sizeof(DevParam));
+			newparm->parm_name = StrDup((char **)NULL, argv[argstart]);
+			newparm->parm_next = devtmp.dev_params;
+			devtmp.dev_params = newparm;
+		    }
+		}
 		break;
+
 	    case 'w':
 		devtmp.dev_width = (int)(0.5 + (float)atoi(pptr) * locScale);
 		break;
