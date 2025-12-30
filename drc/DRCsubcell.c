@@ -27,6 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include "utils/magic.h"
 #include "textio/textio.h"
+#include "utils/malloc.h"
 #include "utils/signals.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
@@ -37,18 +38,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "commands/commands.h"
 #include "utils/undo.h"
 
-/* The variables below are made owns so that they can be used to
+/* The variables below are made global so that they can be used to
  * pass information to the various search functions.
  */
 
-static Rect drcSubIntArea;	/* Accumulates area of interactions. */
-static CellDef *drcSubDef;	/* Cell definition we're checking. */
-static int drcSubRadius;	/* Interaction radius. */
-static CellUse *drcCurSub;	/* Holds current use while searching for interactions */
-static Rect drcSubLookArea;	/* Area where we're looking for interactions */
-static void (*drcSubFunc)();	/* Error function. */
-static ClientData drcSubClientData;
-				/* To be passed to error function. */
+static void (*drcSubFunc)();	    /* Error function. */
+static ClientData drcSubClientData; /* To be passed to error function. */
 
 /* The cookie below is dummied up to provide an error message for
  * errors that occur because of inexact overlaps between subcells.
@@ -92,6 +87,28 @@ static DRCCookie drcOffGridCookie = {
 extern int DRCErrorType;
 extern CellDef *DRCErrorDef;
 
+/* Structure used to hold information about child uses found in the
+ * search area during DRCFindInteractions(), so these can be
+ * subsequently searched for sibling interactions.
+ */
+
+struct drcLinkedUse {
+    CellUse		*dlu_use;	// Use being checked
+    Rect		 dlu_area;	// Area of use to check (w/halo)
+    struct drcLinkedUse *dlu_next;	// For linked list
+};
+
+/* Structure used to pass information to and from drcSubcellFunc() */
+
+struct drcSubcellArg {
+    CellDef    *dsa_def;	/* Cell use being checked */
+    int         dsa_radius;	/* Halo radius around area to check */
+    Rect       *dsa_searchArea;	/* Area of cell use being searched */
+    Rect       *dsa_intArea;	/* Total interaction area */
+    bool	dsa_found;	/* At least one interacting cell was found */
+    struct drcLinkedUse *dsa_dlu;
+};
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -113,12 +130,12 @@ extern CellDef *DRCErrorDef;
  */
 
 int
-drcFindOtherCells(use, area)
+drcFindOtherCells(use, dlu)
     CellUse *use;
-    Rect *area;
+    struct drcLinkedUse *dlu;
 {
-    if (use != drcCurSub)
-    	GeoInclude(&use->cu_bbox, area);
+    if (use != dlu->dlu_use)
+    	GeoInclude(&use->cu_bbox, &dlu->dlu_area);
 
     return 0;
 }
@@ -228,68 +245,56 @@ drcSubCopyFunc(scx, cdarg)
  */
 
 int
-drcSubcellFunc(subUse, flags)
-    CellUse *subUse;		/* Subcell instance. */
-    int *flags;			/* Information to propagate up */
+drcSubcellFunc(subUse, dsa)
+    CellUse *subUse;		/* Subcell instance found in area. */
+    struct drcSubcellArg *dsa; 	/* Information needed for funtion and to pass
+				 * back to the caller.
+				 */
 {
-    Rect area, haloArea, intArea, subIntArea, locIntArea;
+    Rect area, haloArea, intArea;
     int i;
 
-    /* A subcell has been seen, so set the "cell found" flag */
-    *flags |= CELLFOUND_FLAG;
+    /* Record that a subcell has been seen in the search area. */
+    dsa->dsa_found = TRUE;
 
     /* To determine interactions, find the bounding box of
      * all paint and other subcells within one halo of this
      * subcell (and also within the original area where
      * we're recomputing errors).
      */
-
     area = subUse->cu_bbox;
 
-    GEO_EXPAND(&area, drcSubRadius, &haloArea);
-    GeoClip(&haloArea, &drcSubLookArea);
+    GEO_EXPAND(&area, dsa->dsa_radius, &haloArea);
+    GeoClip(&haloArea, dsa->dsa_searchArea);
 
     intArea = GeoNullRect;
     for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
     {
-	(void) DBSrPaintArea((Tile *) NULL, drcSubDef->cd_planes[i],
-	    &haloArea, &DBAllButSpaceBits, drcIncludeArea,
-	    (ClientData) &intArea);
+	(void) DBSrPaintArea((Tile *) NULL, dsa->dsa_def->cd_planes[i],
+			&haloArea, &DBAllButSpaceBits, drcIncludeArea,
+			(ClientData) &intArea);
     }
 
-    /* DRC error tiles in a subcell are automatically pulled into the	*/
-    /* interaction area of the parent.	Ultimately this is recursive as	*/
-    /* all cells are checked and errors propagate to the top level.	*/
+    /* To check sibling interactions, DBSrCellPlaneArea() must not be
+     * called from within itself, so save the information about this
+     * cell and its area in a linked list.  If haloArea is already
+     * inside intArea, then do nothing.
+     */
 
-    subIntArea = GeoNullRect;
-
-#if (0)
-    /* NOTE:  DRC errors inside a subcell should be ignored for	*/
-    /* the purpose of finding interactions.  Errors should only	*/
-    /* be copied up into the parent when in a non-interaction	*/
-    /* area.  This is done below in DRCFindInteractions().	*/
-    /* (Method added by Tim, 10/15/2020)			*/
-
-    /* Maybe S and PS errors should be pulled here? */
-
-    DBSrPaintArea((Tile *) NULL, subUse->cu_def->cd_planes[PL_DRC_ERROR],
-		&TiPlaneRect, &DBAllButSpaceBits, drcIncludeArea,
-		(ClientData) &subIntArea);
-
-    GeoTransRect(&(subUse->cu_transform), &subIntArea, &locIntArea);
-    GeoInclude(&locIntArea, &intArea);
-#endif
-
-    if (!GEO_RECTNULL(&subIntArea)) *flags |= PROPAGATE_FLAG;
-
-    drcCurSub = subUse;
-    (void) DBSrCellPlaneArea(drcSubDef->cd_cellPlane, &haloArea,
-		drcFindOtherCells, (ClientData)(&intArea));
+    if (!GEO_SURROUND(&intArea, &haloArea))
+    {
+	struct drcLinkedUse *newdlu;
+	newdlu = (struct drcLinkedUse *)mallocMagic(sizeof(struct drcLinkedUse));
+	newdlu->dlu_use = subUse;
+	newdlu->dlu_area = haloArea;
+	newdlu->dlu_next = dsa->dsa_dlu;
+	dsa->dsa_dlu = newdlu;
+    }
     if (GEO_RECTNULL(&intArea)) return 0;
 
-    GEO_EXPAND(&intArea, drcSubRadius, &intArea);
+    GEO_EXPAND(&intArea, dsa->dsa_radius, &intArea);
     GeoClip(&intArea, &haloArea);
-    (void) GeoInclude(&intArea, &drcSubIntArea);
+    (void) GeoInclude(&intArea, dsa->dsa_intArea);
     return 0;
 }
 
@@ -413,10 +418,11 @@ DRCFindInteractions(def, area, radius, interaction)
     int i;
     CellUse *use;
     SearchContext scx;
+    Rect searchArea, intArea;
     int flags;
+    struct drcSubcellArg dsa;
+    struct drcLinkedUse *curDLU;
 
-    drcSubDef = def;
-    drcSubRadius = radius;
     DRCDummyUse->cu_def = def;
 
     /* Find all the interactions in the area and compute the
@@ -426,20 +432,61 @@ DRCFindInteractions(def, area, radius, interaction)
      * each cell has material everywhere within its bounding box.
      */
 
-    drcSubIntArea = GeoNullRect;
-    GEO_EXPAND(area, radius, &drcSubLookArea);
-    flags = 0;
-    (void) DBSrCellPlaneArea(def->cd_cellPlane, &drcSubLookArea,
-		drcSubcellFunc, (ClientData)(&flags));
+    GEO_EXPAND(area, radius, &searchArea);
+    intArea = GeoNullRect; 
 
+    /* Copy drcSubLookArea to a local Rect structure because it
+     * gets modified by drcSubcellFunc().
+     */
+
+    dsa.dsa_def = def;
+    dsa.dsa_radius = radius;
+    dsa.dsa_searchArea = &searchArea;
+    dsa.dsa_intArea = &intArea;
+    dsa.dsa_found = FALSE;
+    dsa.dsa_dlu = (struct drcLinkedUse *)NULL;
+
+    (void) DBSrCellPlaneArea(def->cd_cellPlane, &searchArea,
+		drcSubcellFunc, (ClientData)&dsa);
+
+    /* If no subcells were in the search area, there is nothing
+     * more to do.
+     */
+    if (dsa.dsa_found == FALSE) return -1;
+
+    /* If drcSubcellFunc() returned a list of uses, then check
+     * the area of each use for interacting sibling uses, and
+     * add the overlap to the potential interaction area.
+     */
+    curDLU = dsa.dsa_dlu;
+    while (curDLU != NULL)
+    {
+	Rect subIntArea, subSearchArea;
+	struct drcLinkedUse *nextdlu = curDLU->dlu_next;
+
+	subSearchArea = curDLU->dlu_area;
+	curDLU->dlu_area = GeoNullRect;
+
+	(void) DBSrCellPlaneArea(def->cd_cellPlane, &subSearchArea,
+		drcFindOtherCells, (ClientData)curDLU);
+
+	/* Re-clip interaction area to subcell halo area */
+	GEO_EXPAND(&curDLU->dlu_area, radius, &curDLU->dlu_area);
+	GeoClip(&curDLU->dlu_area, &subSearchArea);
+	(void) GeoInclude(&curDLU->dlu_area, &intArea);
+
+	/* Free entry and move to next entry in linked list */
+	freeMagic((char *)curDLU);
+	curDLU = nextdlu;
+    }
+	
     /* If there seems to be an interaction area, make a second pass
      * to make sure there's more than one cell with paint in the
      * area.  This will save us a lot of work where two cells
      * have overlapping bounding boxes without overlapping paint.
      */
 
-    if (!(flags & CELLFOUND_FLAG)) return -1;
-    if (GEO_RECTNULL(&drcSubIntArea)) return 0;
+    if (GEO_RECTNULL(&intArea)) return 0;
     use = NULL;
 
     /* If errors are being propagated up from child to parent,	*/
@@ -450,7 +497,7 @@ DRCFindInteractions(def, area, radius, interaction)
 	for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
 	{
 	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[i],
-			&drcSubIntArea, &DBAllButSpaceBits, drcAlwaysOne,
+			&intArea, &DBAllButSpaceBits, drcAlwaysOne,
 			(ClientData) NULL) != 0)
 	    {
 		use = (CellUse *) -1;
@@ -459,14 +506,14 @@ DRCFindInteractions(def, area, radius, interaction)
 	}
 	scx.scx_use = DRCDummyUse;
 	scx.scx_trans = GeoIdentityTransform;
-	scx.scx_area = drcSubIntArea;
+	scx.scx_area = intArea;
 	if (DBTreeSrCells(&scx, 0, drcSubCheckPaint, (ClientData) &use) == 0)
 	    return 0;
     }
 
     /* OK, no more excuses, there's really an interaction area here. */
 
-    *interaction = drcSubIntArea;
+    *interaction = intArea;
     GeoClip(interaction, area);
     if (GEO_RECTNULL(interaction)) return 0;
     return 1;
