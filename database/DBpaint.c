@@ -487,8 +487,6 @@ enumerate:
 			newType = (method == (unsigned char)PAINT_XOR) ?
 				 *resultTbl : resultTbl[oldType];
 
-			if (mergeFlags & MRG_RIGHT)
-			    tile = TiNMMergeRight(tile, plane);  // was commented out?
 			if (mergeFlags & MRG_LEFT)
 			    TiNMMergeLeft(LB(newtile), plane);
 		    }
@@ -496,8 +494,6 @@ enumerate:
 		    {
 			if (mergeFlags & MRG_LEFT)
 			    TiNMMergeLeft(newtile, plane);
-			if (mergeFlags & MRG_RIGHT)
-			    TiNMMergeRight(LB(tile), plane);	// was commented out?
 		    }
 		}
 		else
