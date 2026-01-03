@@ -69,8 +69,10 @@ Node *extHierNewNode();
 /*----------------------------------------------------------------------*/
 
 int
-extHierSubShieldFunc(tile)
-    Tile *tile;
+extHierSubShieldFunc(tile, dinfo, clientdata)
+    Tile *tile;			/* (unused) */
+    TileType dinfo;		/* (unused) */
+    ClientData clientdata;	/* (unused) */
 {
     return 1;
 }
@@ -325,8 +327,9 @@ extHierConnections(ha, cumFlat, oneFlat)
  */
 
 int
-extHierConnectFunc1(oneTile, ha)
+extHierConnectFunc1(oneTile, dinfo, ha)
     Tile *oneTile;	/* Comes from 'oneFlat' in extHierConnections */
+    TileType dinfo;	/* Split tile information (unused) */
     HierExtractArg *ha;	/* Extraction context */
 {
     CellDef *cumDef = extHierCumFlat->et_use->cu_def;
@@ -475,8 +478,9 @@ extHierConnectFunc1(oneTile, ha)
  */
 
 int
-extHierConnectFunc2(cum, ha)
+extHierConnectFunc2(cum, dinfo, ha)
     Tile *cum;		/* Comes from extHierCumFlat->et_use->cu_def */
+    TileType dinfo;	/* Split tile information */
     HierExtractArg *ha;	/* Extraction context */
 {
     HashTable *table = &ha->ha_connHash;
@@ -507,7 +511,7 @@ extHierConnectFunc2(cum, ha)
     ttype = TiGetTypeExact(cum);
 
     if (IsSplit(cum))
-	ttype = (ttype & TT_SIDE) ? SplitRightType(cum) : SplitLeftType(cum);
+	ttype = (dinfo & TT_SIDE) ? SplitRightType(cum) : SplitLeftType(cum);
 
     if (extConnectsTo(ha->hierType, ttype, ExtCurStyle->exts_nodeConn))
     {
@@ -584,8 +588,9 @@ extHierConnectFunc2(cum, ha)
  */
 
 int
-extHierConnectFunc3(cum, ha)
+extHierConnectFunc3(cum, dinfo, ha)
     Tile *cum;		/* Comes from extHierCumFlat->et_use->cu_def */
+    TileType dinfo;	/* Split tile information */
     HierExtractArg *ha;	/* Extraction context */
 {
     HashTable *table = &ha->ha_connHash;
@@ -616,7 +621,7 @@ extHierConnectFunc3(cum, ha)
     ttype = TiGetTypeExact(cum);
 
     if (IsSplit(cum))
-	ttype = (ttype & TT_SIDE) ? SplitRightType(cum) : SplitLeftType(cum);
+	ttype = (dinfo & TT_SIDE) ? SplitRightType(cum) : SplitLeftType(cum);
 
     if (extConnectsTo(ha->hierType, ttype, ExtCurStyle->exts_nodeConn))
     {
@@ -774,7 +779,7 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
 	/* Ignore orphaned nodes (non-Manhattan shards outside the clip box) */
 	if (np->nreg_pnum == DBNumPlanes) continue;
 
-	tp = extNodeToTile(np, lookFlat);
+	tp = extNodeToTile(np, lookFlat, NULL);
 
 	/* Ignore regions that do not participate in extraction */
 	if (!extHasRegion(tp, extUnInit)) continue;
@@ -946,8 +951,9 @@ extHierNewNode(he)
 
     /*ARGSUSED*/
 ExtRegion *
-extHierLabFirst(tile, arg)
+extHierLabFirst(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     FindRegion *arg;
 {
     LabRegion *new;
@@ -966,15 +972,16 @@ extHierLabFirst(tile, arg)
 
     /*ARGSUSED*/
 int
-extHierLabEach(tile, pNum, arg)
+extHierLabEach(tile, dinfo, pNum, arg)
     Tile *tile;
+    TileType dinfo;
     int pNum;
     FindRegion *arg;
 {
     LabRegion *reg;
 
     reg = (LabRegion *) arg->fra_region;
-    extSetNodeNum(reg, pNum, tile);
+    extSetNodeNum(reg, pNum, tile, dinfo);
     return (0);
 }
 

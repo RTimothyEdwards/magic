@@ -171,11 +171,12 @@ done:
  */
 
 int
-rtrMakeChannel(tile, clipBox)
+rtrMakeChannel(tile, dinfo, clipBox)
     Tile *tile;		/* Potential channel tile; we create a channel whose
 			 * area is equal to that of this tile if the type of
 			 * this tile is TT_SPACE.
 			 */
+    TileType dinfo;	/* Split tile information (unused) */
     Rect *clipBox;	/* If non-NULL, clip the channel area to this box */
 {
     int length, width;

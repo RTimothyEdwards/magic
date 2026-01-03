@@ -664,8 +664,9 @@ plotVersRect(area, widen, raster)
  */
 
 int
-plotVersTile(tile, cxp)
-    Tile *tile;	/* Tile that's of type to be output. */
+plotVersTile(tile, dinfo, cxp)
+    Tile *tile;			/* Tile that's of type to be output. */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* Describes search in progress. */
 {
     Rect tileArea, rootArea, swathArea, edge;
@@ -701,18 +702,19 @@ plotVersTile(tile, cxp)
     if (IsSplit(tile))
     {
 	int i, j;
-	TileType dinfo;
+	TileType newdinfo;
 	Rect r;
 
-	dinfo = DBTransformDiagonal(TiGetTypeExact(tile), &cxp->tc_scx->scx_trans);
+	newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo,
+			&cxp->tc_scx->scx_trans);
 	if (!(curStyle->vs_flags & VS_BORDER) && !(curStyle->vs_flags & VS_CROSS))
-	    PlotPolyRaster(raster, &swathArea, &swathClip, dinfo,
+	    PlotPolyRaster(raster, &swathArea, &swathClip, newdinfo,
 				curStyle->vs_stipple);
 
 	/* Diagonal is always drawn (clipping handled in plotVersLine) */
 
 	r = rootArea;
-	if (dinfo & TT_DIRECTION)
+	if (newdinfo & TT_DIRECTION)
 	{
 	    /* swap X to make diagonal go the other way */
 	    r.r_xbot = r.r_xtop;
@@ -740,7 +742,7 @@ plotVersTile(tile, cxp)
      * (unless it is at infinity).
      */
 
-    if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
+    if (IsSplit(tile) && (!((dinfo & TT_SIDE) ? 1 : 0) ^ SplitDirection(tile)))
 	goto searchleft;	/* nothing on bottom of split */
 
     if (tileArea.r_ybot > TiPlaneRect.r_ybot)
@@ -761,7 +763,7 @@ plotVersTile(tile, cxp)
     }
 
 searchleft:
-    if (IsSplit(tile) && (SplitSide(tile)))
+    if (IsSplit(tile) && (dinfo & TT_SIDE))
 	goto searchtop;		/* Nothing on left side of split */
 
     /* Now go along the tile's left border, doing the same thing.   Ignore
@@ -788,7 +790,7 @@ searchleft:
     /* Same thing for the tile's top border. */
 
 searchtop:
-    if (IsSplit(tile) && (SplitSide(tile) ^ SplitDirection(tile)))
+    if (IsSplit(tile) && (((dinfo & TT_SIDE) ? 1 : 0) ^ SplitDirection(tile)))
 	goto searchright;		/* Nothing on top side of tile */
 
     if (tileArea.r_ytop < TiPlaneRect.r_ytop)
@@ -811,7 +813,7 @@ searchtop:
     /* Finally, the right border. */
 
 searchright:
-    if (IsSplit(tile) && !(SplitSide(tile)))
+    if (IsSplit(tile) && !(dinfo & TT_SIDE))
 	return 0;		/* Nothing on right side of tile */
 
     if (tileArea.r_xtop < TiPlaneRect.r_xtop)

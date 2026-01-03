@@ -249,7 +249,10 @@ DBWFeedbackRedraw(window, plane)
 }
 
 int
-dbwFeedbackAlways1()
+dbwFeedbackAlways1(
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     return 1;
 }

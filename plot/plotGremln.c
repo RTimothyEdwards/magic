@@ -362,8 +362,9 @@ plotGremlinRect(rect, lineStyle)
  */
 
 int
-plotGremlinPaint(tile, cxp)
+plotGremlinPaint(tile, dinfo, cxp)
     Tile *tile;			/* Tile that's of type to be output. */
+    TileType dinfo;		/* Split tile information (unused) */
     TreeContext *cxp;		/* Describes search in progress. */
 {
     Rect tileArea, edge, rootArea;

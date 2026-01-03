@@ -317,7 +317,9 @@ drcSubcellFunc(subUse, dsa)
  */
 
 int
-drcAlwaysOne()
+drcAlwaysOne(Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)
 {
     return 1;
 }
@@ -540,8 +542,9 @@ DRCFindInteractions(def, area, radius, interaction)
  */
 
 int
-drcExactOverlapCheck(tile, arg)
+drcExactOverlapCheck(tile, dinfo, arg)
     Tile *tile;			/* Tile to check. */
+    TileType dinfo;		/* Split tile information (unused) */
     struct drcClientData *arg;	/* How to detect and process errors. */
 {
     Rect rect;
@@ -579,8 +582,9 @@ drcExactOverlapCheck(tile, arg)
  */
 
 int
-drcExactOverlapTile(tile, cxp)
+drcExactOverlapTile(tile, dinfo, cxp)
     Tile *tile;			/* Tile that must overlap exactly. */
+    TileType dinfo;		/* Split tile information (unused) */
     TreeContext *cxp;		/* Tells how to translate out of subcell.
 				 * The client data must be a drcClientData
 				 * record, and the caller must have filled

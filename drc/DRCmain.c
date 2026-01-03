@@ -957,9 +957,10 @@ drcCountFunc(scx, dupTable)
 }
 
 int
-drcCountFunc2(tile, countptr)
-    Tile *tile;		    /* Tile found in error plane.   */
-    int *countptr;	    /* Address of count word.	    */
+drcCountFunc2(tile, dinfo, countptr)
+    Tile *tile;		/* Tile found in error plane.		*/
+    TileType dinfo;	/* Split tile information (unused)	*/
+    int *countptr;	/* Address of count word.		*/
 {
     if (TiGetType(tile) != (TileType) TT_SPACE) (*countptr)++;
     return 0;
@@ -1106,8 +1107,9 @@ drcFindFunc(scx, finddata)
 }
 
 int
-drcFindFunc2(tile, finddata)
+drcFindFunc2(tile, dinfo, finddata)
     Tile *tile;			/* Tile in error plane. */
+    TileType dinfo;		/* Split tile information (unused) */
     Sindx *finddata;		/* Information about error to find */
 
 {

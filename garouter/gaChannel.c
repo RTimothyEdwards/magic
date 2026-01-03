@@ -482,8 +482,9 @@ gaPropagateBlockages(list)
  */
 
 int
-gaSetClient(tile, cdata)
+gaSetClient(tile, dinfo, cdata)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     ClientData cdata;
 {
     tile->ti_client = (ClientData) cdata;
@@ -511,8 +512,9 @@ gaSetClient(tile, cdata)
  */
 
 int
-gaSplitTile(tile, r)
+gaSplitTile(tile, dinfo, r)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     Rect *r;
 {
     Tile *tp;
@@ -632,7 +634,7 @@ gaInitRiverBlockages(routeUse, ch)
 }
 
 int
-gaAlwaysOne()
+gaAlwaysOne(Tile *tile, TileType dinfo, ClientData clientdata)
 {
     return (1);
 }

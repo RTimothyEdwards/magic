@@ -345,8 +345,9 @@ done:
 
 #ifdef	exactinteractions
 int
-extSubtreeCopyPlane(tile, plane)
+extSubtreeCopyPlane(tile, dinfo, plane)
     Tile *tile;
+    TileType dinfo;
     Plane *plane;
 {
     Rect r;
@@ -358,8 +359,9 @@ extSubtreeCopyPlane(tile, plane)
 }
 
 int
-extSubtreeShrinkPlane(tile, plane)
+extSubtreeShrinkPlane(tile, dinfo, plane)
     Tile *tile;
+    TileType dinfo;
     Plane *plane;
 {
     Rect r;
@@ -374,8 +376,9 @@ extSubtreeShrinkPlane(tile, plane)
 }
 
 int
-extSubtreeInterFunc(tile, ha)
+extSubtreeInterFunc(tile, dinfo, ha)
     Tile *tile;
+    TileType dinfo;
     HierExtractArg *ha;
 {
     TITORECT(tile, &ha->ha_interArea);
@@ -690,12 +693,14 @@ extSubtreeOutputCoupling(ha)
 
 	ck = (CoupleKey *) he->h_key.h_words;
 
-	tp = extNodeToTile(ck->ck_1, &ha->ha_cumFlat);
-	name = extSubtreeTileToNode(tp, ck->ck_1->nreg_pnum, &ha->ha_cumFlat, ha, TRUE);
+	tp = extNodeToTile(ck->ck_1, &ha->ha_cumFlat, NULL);
+	name = extSubtreeTileToNode(tp, (TileType)0, ck->ck_1->nreg_pnum,
+			&ha->ha_cumFlat, ha, TRUE);
 	fprintf(ha->ha_outf, "cap \"%s\" ", name);
 
-	tp = extNodeToTile(ck->ck_2, &ha->ha_cumFlat);
-	name = extSubtreeTileToNode(tp, ck->ck_2->nreg_pnum, &ha->ha_cumFlat, ha, TRUE);
+	tp = extNodeToTile(ck->ck_2, &ha->ha_cumFlat, NULL);
+	name = extSubtreeTileToNode(tp, (TileType)0, ck->ck_2->nreg_pnum,
+			&ha->ha_cumFlat, ha, TRUE);
 	fprintf(ha->ha_outf, "\"%s\" %lg\n", name, cap);
     }
 }
@@ -713,8 +718,9 @@ extSubtreeOutputCoupling(ha)
  */
 
 int
-extFoundProc(tile, clientData)
+extFoundProc(tile, dinfo, clientData)
     Tile *tile;
+    TileType dinfo;
     ClientData clientData;
 {
     return 1;
@@ -1040,9 +1046,10 @@ extSubstrateFunc(scx, ha)
  */
 
 char *
-extSubtreeTileToNode(tp, pNum, et, ha, doHard)
-    Tile *tp;	/* Tile whose node name is to be found */
-    int pNum;	/* Plane of the tile */
+extSubtreeTileToNode(tp, dinfo, pNum, et, ha, doHard)
+    Tile *tp;		/* Tile whose node name is to be found */
+    TileType dinfo;	/* Split tile information */
+    int pNum;		/* Plane of the tile */
     ExtTree *et;	/* Yank buffer to search */
     HierExtractArg *ha;	/* Extraction context */
     bool doHard;	/* If TRUE, we look up this node's name the hard way
@@ -1080,12 +1087,7 @@ extSubtreeTileToNode(tp, pNum, et, ha, doHard)
 	 * can cause problems.
 	 */
 	if (IsSplit(tp))
-	{
-	    if (SplitSide(tp))
-		ttype = SplitRightType(tp);
-	    else
-		ttype = SplitLeftType(tp);
-	}
+	    ttype = (dinfo & TT_SIDE) ? SplitRightType(tp) : SplitLeftType(tp);
 	else
 	    ttype = TiGetTypeExact(tp);
 
@@ -1120,7 +1122,7 @@ extSubtreeTileToNode(tp, pNum, et, ha, doHard)
     /* We have to do it the hard way */
     if (!doHard) return ((char *) NULL);
     if (extHasRegion(tp, extUnInit)
-	    && (reg = extSubtreeHardNode(tp, pNum, et, ha)))
+	    && (reg = extSubtreeHardNode(tp, dinfo, pNum, et, ha)))
     {
 	if (ExtDoWarn & EXTWARN_LABELS)
 	{
@@ -1154,13 +1156,14 @@ extSubtreeTileToNode(tp, pNum, et, ha, doHard)
  */
 
 int
-extConnFindFunc(tp, preg)
+extConnFindFunc(tp, dinfo, preg)
     Tile *tp;
+    TileType dinfo;	// Unused, but needs to be handled
     LabRegion **preg;
 {
     if (extHasRegion(tp, extUnInit))
     {
-	*preg = (LabRegion *) extGetRegion(tp);
+	*preg = (LabRegion *)extGetRegion(tp);
 	return (1);
     }
 
@@ -1198,8 +1201,9 @@ extConnFindFunc(tp, preg)
  */
 
 LabRegion *
-extSubtreeHardNode(tp, pNum, et, ha)
+extSubtreeHardNode(tp, dinfo, pNum, et, ha)
     Tile *tp;
+    TileType dinfo;
     int pNum;
     ExtTree *et;
     HierExtractArg *ha;
@@ -1215,7 +1219,7 @@ extSubtreeHardNode(tp, pNum, et, ha)
 
     if (IsSplit(tp))
     {
-	if (SplitSide(tp))
+	if (dinfo & TT_SIDE)
 	    ttype = SplitRightType(tp);
 	else
 	    ttype = SplitLeftType(tp);

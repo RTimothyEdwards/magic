@@ -209,9 +209,10 @@ extIsUsedFunc(use, clientData)
  */
 
 int
-extEnumFunc(tile, plane)
-    Tile *tile;
-    int *plane;
+extEnumFunc(tile, dinfo, clientdata)
+    Tile	*tile;		/* (unused) */
+    TileType	dinfo;		/* (unused) */
+    ClientData	clientdata;	/* (unused) */
 {
     return 1;
 }
@@ -854,7 +855,10 @@ extContainsCellFunc(
 }
 
 int
-extContainsPaintFunc()
+extContainsPaintFunc(
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     return (1);
 }

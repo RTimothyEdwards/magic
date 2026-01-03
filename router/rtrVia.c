@@ -182,8 +182,9 @@ rtrFollowName(name, firstInNet, area)
  */
 
 int
-rtrCheckTypes(tile, cdata)
+rtrCheckTypes(tile, dinfo, cdata)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     ClientData cdata;
 {
     int type;
@@ -259,8 +260,9 @@ rtrExtend(tile,area,stub)
  */
 
 int
-rtrStubGen(tile, si)
+rtrStubGen(tile, dinfo, si)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct srinfo *si;
 {
     Rect area;
@@ -305,8 +307,9 @@ rtrStubGen(tile, si)
 
 
 int
-rtrReferenceTile(tile, si)
+rtrReferenceTile(tile, dinfo, si)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct srinfo *si;
 {
     si->si_tile = tile;

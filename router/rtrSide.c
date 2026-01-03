@@ -285,8 +285,9 @@ rtrSideProcess(use, side, area, trans)
  */
 
 int
-rtrSideInitClient(tile, client)
+rtrSideInitClient(tile, dinfo, client)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     ClientData client;
 {
     TiSetClient(tile, client);
@@ -315,8 +316,10 @@ rtrSideInitClient(tile, client)
  */
 
 int
-rtrEnumSidesFunc(tile)
+rtrEnumSidesFunc(tile, dinfo, clientdata)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
+    ClientData clientdata;	/* (unused) */
 {
     int ybot, ytop, yprev, sep, x, origin;
     Tile *tp, *tpB;

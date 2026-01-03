@@ -311,8 +311,9 @@ extOutputCoupling(table, outFile)
  */
 
 int
-extBasicOverlap(tile, ecs)
+extBasicOverlap(tile, dinfo, ecs)
     Tile *tile;
+    TileType dinfo;
     extCapStruct *ecs;
 {
     int thisType;
@@ -325,7 +326,7 @@ extBasicOverlap(tile, ecs)
     extCoupleStruct ecpls;
 
     if (IsSplit(tile))
-	thisType = (SplitSide(tile)) ? SplitRightType(tile) :
+	thisType = ((dinfo & TT_SIDE)) ? SplitRightType(tile) :
 		SplitLeftType(tile);
     else
 	thisType = TiGetTypeExact(tile);
@@ -764,11 +765,12 @@ extSubtractSideOverlap2(tile, sov)
  */
 
 int
-extBasicCouple(tile, ecs)
+extBasicCouple(tile, dinfo, ecs)
     Tile *tile;
+    TileType dinfo;
     extCapStruct *ecs;
 {
-    (void) extEnumTilePerim(tile, &ExtCurStyle->exts_sideEdges[TiGetType(tile)],
+    (void) extEnumTilePerim(tile, dinfo, &ExtCurStyle->exts_sideEdges[TiGetType(tile)],
 			ecs->plane, extAddCouple, (ClientData) ecs);
     return (0);
 }
@@ -1478,11 +1480,7 @@ extWalkTop(area, mask, func, bp, esws)
 	tp = tile;
 	while (RIGHT(tp) > area->r_xbot)
 	{
-	    if (IsSplit(tp))
-		ttype = (SplitSide(tp)) ? SplitRightType(tp) : SplitLeftType(tp);
-	    else
-		ttype = TiGetTypeExact(tp);
-
+	    ttype = TiGetBottomType(tp);
 	    if (TTMaskHasType(mask, ttype))
 	    {
 		bool lookLeft, lookRight;
@@ -1590,11 +1588,7 @@ extWalkBottom(area, mask, func, bp, esws)
 	tp = tile;
 	while (LEFT(tp) < area->r_xtop)
 	{
-	    if (IsSplit(tp))
-		ttype = (SplitSide(tp)) ? SplitRightType(tp) : SplitLeftType(tp);
-	    else
-		ttype = TiGetTypeExact(tp);
-
+	    ttype = TiGetTopType(tp);
 	    if (TTMaskHasType(mask, ttype))
 	    {
 		bool lookLeft, lookRight;
@@ -1702,11 +1696,7 @@ extWalkRight(area, mask, func, bp, esws)
 	tp = tile;
 	while (TOP(tp) > area->r_ybot)
 	{
-	    if (IsSplit(tp))
-		ttype = (SplitSide(tp)) ? SplitRightType(tp) : SplitLeftType(tp);
-	    else
-		ttype = TiGetTypeExact(tp);
-
+	    ttype = TiGetLeftType(tp);
 	    if (TTMaskHasType(mask, ttype))
 	    {
 		bool lookDown, lookUp;
@@ -1814,11 +1804,7 @@ extWalkLeft(area, mask, func, bp, esws)
 	tp = tile;
 	while (BOTTOM(tp) < area->r_ytop)
 	{
-	    if (IsSplit(tp))
-		ttype = (SplitSide(tp)) ? SplitRightType(tp) : SplitLeftType(tp);
-	    else
-		ttype = TiGetTypeExact(tp);
-
+	    ttype = TiGetRightType(tp);
 	    if (TTMaskHasType(mask, ttype))
 	    {
 		bool lookDown, lookUp;

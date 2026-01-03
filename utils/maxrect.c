@@ -95,8 +95,9 @@ genCanonicalMaxwidth(bbox, starttile, plane, mask)
  */
 
 int
-FindMaxRects(tile, mrd)
+FindMaxRects(tile, dinfo, mrd)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     MaxRectsData *mrd;
 {
     Rect area;

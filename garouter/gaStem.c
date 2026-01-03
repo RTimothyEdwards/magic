@@ -322,6 +322,7 @@ overlap:
 }
 
 /*
+ * ----------------------------------------------------------------------------
  * gaStemContainingChannelFunc --
  *
  * Called via DBSrPaintArea on behalf of gaStemContainingChannel above
@@ -341,8 +342,9 @@ overlap:
  */
 
 int
-gaStemContainingChannelFunc(tile, pCh)
+gaStemContainingChannelFunc(tile, dinfo, pCh)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     GCRChannel **pCh;
 {
     GCRChannel *ch;

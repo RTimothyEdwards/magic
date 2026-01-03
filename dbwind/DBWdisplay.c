@@ -571,8 +571,9 @@ DBWredisplay(w, rootArea, clipArea)
  */
 
 int
-dbwPaintFunc(tile, cxp)
-    Tile *tile;	/* Tile to be redisplayed. */
+dbwPaintFunc(tile, dinfo, cxp)
+    Tile *tile;			/* Tile to be redisplayed. */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* From DBTreeSrTiles */
 {
     SearchContext *scx = cxp->tc_scx;
@@ -652,7 +653,7 @@ dbwPaintFunc(tile, cxp)
     /* whether to render the outline with a fast rectangle-	*/
     /* drawing routine or to render it segment by segment.	*/
 
-    GrBox(dbwWindow, &scx->scx_trans, tile);
+    GrBox(dbwWindow, &scx->scx_trans, tile, dinfo);
     return 0;
 }
 
@@ -1075,8 +1076,10 @@ dbwBBoxFunc(scx)
  */
 
 int
-dbwTileFunc(tile)
+dbwTileFunc(tile, dinfo, clientdata)
     Tile *tile;				/* A tile to be redisplayed. */
+    TileType dinfo;			/* Split tile information (unused) */
+    ClientData clientdata;		/* (unused) */
 {
     Rect r, r2;
     int xoffset, yoffset;
@@ -1113,7 +1116,7 @@ dbwTileFunc(tile)
 
     if (dbwSeeTypes)
     {
-    	 (void) sprintf(string, "%s",DBTypeShortName(TiGetType(tile)));
+    	 (void) sprintf(string, "%s", DBTypeShortName(TiGetType(tile)));
     }
     else
     {
@@ -1129,7 +1132,7 @@ dbwTileFunc(tile)
 
 #define	XYOFFSET	12
 
-    for (i=0;  i<4;  i++)
+    for (i = 0; i < 4; i++)
     {
 	xoffset = 0;
 	yoffset = 0;
@@ -1172,13 +1175,13 @@ dbwTileFunc(tile)
 	    yoffset = temp;
 	}
 
-	if ( (dbwWatchTrans.t_a < 0) || (dbwWatchTrans.t_b < 0) )
+	if ((dbwWatchTrans.t_a < 0) || (dbwWatchTrans.t_b < 0))
 	{
 	    /* mirror in x */
 	    xoffset = -xoffset;
 	}
 
-	if ( (dbwWatchTrans.t_d < 0) || (dbwWatchTrans.t_e < 0) )
+	if ((dbwWatchTrans.t_d < 0) || (dbwWatchTrans.t_e < 0))
 	{
 	    /* mirror in y */
 	    yoffset = -yoffset;

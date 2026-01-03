@@ -81,6 +81,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 int
 extEnumTilePerim(
     Tile *tpIn,
+    TileType dinfo,
     const TileTypeBitMask *maskp,
     int pNum,			/* Plane of perimeter */
     int (*func)(),
@@ -100,8 +101,8 @@ extEnumTilePerim(
     /* Diagonal */
     if (IsSplit(tpIn))
     {
-	TileType otype = (SplitSide(tpIn)) ? SplitLeftType(tpIn): SplitRightType(tpIn);
-	TileType itype = (SplitSide(tpIn)) ? SplitRightType(tpIn): SplitLeftType(tpIn);
+	TileType otype = (dinfo & TT_SIDE) ? SplitLeftType(tpIn): SplitRightType(tpIn);
+	TileType itype = (dinfo & TT_SIDE) ? SplitRightType(tpIn): SplitLeftType(tpIn);
 	origType = TiGetTypeExact(tpIn);
 	if (TTMaskHasType(&mask, otype))
 	{
@@ -110,8 +111,9 @@ extEnumTilePerim(
 	    perimCorrect = width * width + height * height;
 	    perimCorrect = (int)sqrt((double)perimCorrect);
 	}
-	sides = (SplitSide(tpIn)) ? BD_LEFT : BD_RIGHT;
-	sides |= (SplitSide(tpIn) == SplitDirection(tpIn)) ? BD_BOTTOM : BD_TOP;
+	sides = (dinfo & TT_SIDE) ? BD_LEFT : BD_RIGHT;
+	sides |= (((dinfo & TT_SIDE) ? 1 : 0) == SplitDirection(tpIn)) ?
+		BD_BOTTOM : BD_TOP;
 	TiSetBody(tpIn, itype);
     }
     else

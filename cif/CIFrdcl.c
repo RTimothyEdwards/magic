@@ -505,6 +505,7 @@ CIFParseStart(void)
 
 int cifCheckPaintFunc(
     Tile *tile,
+    TileType dinfo,
     ClientData clientData)
 {
     return 1;
@@ -515,27 +516,28 @@ int cifCheckPaintFunc(
 int
 cifCopyPaintFunc(
     Tile *tile,
+    TileType dinfo,
     CIFCopyRec *cifCopyRec)
 {
     int pNum;
-    TileType dinfo;
+    TileType newdinfo;
     Rect sourceRect, targetRect;
     Transform *trans = cifCopyRec->trans;
     Plane *plane = cifCopyRec->plane;
 
-    dinfo = TiGetTypeExact(tile);
+    newdinfo = TiGetTypeExact(tile) | dinfo;
 
     if (trans)
     {
         TiToRect(tile, &sourceRect);
         GeoTransRect(trans, &sourceRect, &targetRect);
 	if (IsSplit(tile))
-	    dinfo = DBTransformDiagonal(TiGetTypeExact(tile), trans);
+	    newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, trans);
     }
     else
         TiToRect(tile, &targetRect);
 
-    DBNMPaintPlane(plane, dinfo, &targetRect, CIFPaintTable,
+    DBNMPaintPlane(plane, newdinfo, &targetRect, CIFPaintTable,
                 (PaintUndoInfo *)NULL);
 
     return 0;
@@ -561,6 +563,7 @@ cifCopyPaintFunc(
 int
 cifMaskHintFunc(
     Tile *tile,
+    TileType dinfo,	/* Unused, do not support non-manhattan hints */
     LinkedRect **lrecp)
 {
     Rect r;
@@ -597,8 +600,9 @@ int
 CIFPaintCurrent(
     int filetype)
 {
-    extern int cifMakeBoundaryFunc(Tile *tile, ClientData clientdata);	/* Forward declaration. */
-    extern int cifPaintCurrentFunc(Tile *tile, TileType type);	/* Forward declaration. */
+    /* Forward declarations. */
+    extern int cifMakeBoundaryFunc(Tile *tile, TileType dinfo, ClientData clientdata);
+    extern int cifPaintCurrentFunc(Tile *tile, TileType dinfo, TileType type);
 
     Plane *plane, *swapplane;
     int i;
@@ -891,6 +895,7 @@ CIFPaintCurrent(
 int
 cifMakeBoundaryFunc(
     Tile *tile,			/* Tile of CIF information. */
+    TileType dinfo,		/* Split tile information (unused) */
     ClientData clientdata)	/* Pass the file type (CIF or CALMA) */
 {
     /* It is assumed that there is one rectangle for the boundary.  */
@@ -970,6 +975,7 @@ cifMakeBoundaryFunc(
 int
 cifPaintCurrentFunc(
     Tile *tile,			/* Tile of CIF information. */
+    TileType dinfo,		/* Split tile information */
     TileType type)		/* Magic type to be painted. */
 {
     Rect area;
@@ -1019,7 +1025,7 @@ cifPaintCurrentFunc(
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
 	if (DBPaintOnPlane(type, pNum))
 	{
-	    DBNMPaintPlane(cifReadCellDef->cd_planes[pNum], TiGetTypeExact(tile),
+	    DBNMPaintPlane(cifReadCellDef->cd_planes[pNum], TiGetTypeExact(tile) | dinfo,
 		    &area, DBStdPaintTbl(type, pNum), (PaintUndoInfo *) NULL);
 	}
 

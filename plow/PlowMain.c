@@ -305,7 +305,7 @@ PlowRedrawBound(window, plane)
 }
 
 int
-plowBoundAlways1()
+plowBoundAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
 {
     return 1;
 }

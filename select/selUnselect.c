@@ -44,8 +44,9 @@
  */
 
 int
-selUnselFunc(tile, arg)
+selUnselFunc(tile, dinfo, arg)
      Tile *tile;
+     TileType dinfo;	/* unused, but should be handled */
      ClientData *arg;
 {
   TileType type;
@@ -210,8 +211,9 @@ SelRemoveArea(area, mask, globmatch)
  */
 
 int
-selRemoveLabelPaintFunc(tile, label)
+selRemoveLabelPaintFunc(tile, dinfo, label)
      Tile *tile;
+     TileType dinfo;	/* (unused) */
      Label *label;
 {
   (void) DBPutFontLabel(Select2Def, &label->lab_rect, label->lab_font,

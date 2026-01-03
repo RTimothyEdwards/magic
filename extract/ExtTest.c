@@ -316,8 +316,10 @@ ExtractTest(w, cmd)
 }
 
 int
-extShowInter(tile)
+extShowInter(tile, dinfo, clientdata)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
+    ClientData clientdata;	/* (unused) */
 {
     Rect r;
 

@@ -311,8 +311,9 @@ pnmRenderRegion(scale, scale_over_2, normal, temp, func, arg)
  */
 
 int
-pnmBBOX (tile,cxp)
+pnmBBOX (tile, dinfo, cxp)
      Tile *tile;
+     TileType dinfo;
      TreeContext *cxp;
 {
     Rect targetRect, sourceRect;
@@ -368,8 +369,9 @@ pnmBBOX (tile,cxp)
  */
 
 int
-pnmTile (tile, cxp)
+pnmTile (tile, dinfo, cxp)
      Tile *tile;
+     TileType dinfo;
      TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;
@@ -397,11 +399,11 @@ pnmTile (tile, cxp)
     /* Handle non-Manhattan geometry */
     if (IsSplit(tile))
     {
-	TileType dinfo;
+	TileType newdinfo;
 	int w, h, llx, lly, urx, ury;
 	Rect scaledClip;
 
-        type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+        type = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (type == TT_SPACE) return 0;
 	else if (PaintStyles[type].wmask == 0) return 0;
 
@@ -430,15 +432,15 @@ pnmTile (tile, cxp)
 	/* The following structures could be much better	*/
 	/* written for considerable speedup. . .		*/
 
-	dinfo = DBTransformDiagonal(TiGetTypeExact(tile), &scx->scx_trans);
-	if (((dinfo & TT_SIDE) >> 1) != (dinfo & TT_DIRECTION))
+	newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, &scx->scx_trans);
+	if (((newdinfo & TT_SIDE) >> 1) != (newdinfo & TT_DIRECTION))
 	{
 	    /* work top to bottom */
 	    for (y = ury - 1; y >= lly; y--)
 	    {
 		if (y >= scaledClip.r_ytop) continue;
 		else if (y < scaledClip.r_ybot) break;
-		if (dinfo & TT_SIDE)	/* work right to left */
+		if (newdinfo & TT_SIDE)	/* work right to left */
 		{
 		    for (x = urx - 1; x >= llx; x--)
 		    {
@@ -468,7 +470,7 @@ pnmTile (tile, cxp)
 	    {
 		if (y < scaledClip.r_ybot) continue;
 		else if (y >= scaledClip.r_ytop) break;
-		if (dinfo & TT_SIDE)	/* work right to left */
+		if (newdinfo & TT_SIDE)	/* work right to left */
 		{
 		    for (x = urx; x >= llx; x--)
 		    {

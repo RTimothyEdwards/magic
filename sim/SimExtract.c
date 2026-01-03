@@ -63,7 +63,6 @@ typedef struct def_list_elt
  * finished.
  */
 
-
 static DefListElt *DefList = (DefListElt *) NULL;
 			/* list of cell defs used in the node name search */
 
@@ -168,7 +167,7 @@ SimInitDefList(void)
     DefListElt *p, *q;
 
     p = q = DefList;
-    while (p != (DefListElt *) NULL) {
+    while (p != (DefListElt *)NULL) {
 	q = p;
 	p = p->dl_next;
 	ExtResetTiles(q->dl_def, extUnInit);
@@ -197,7 +196,7 @@ void
 SimAddNodeList(
     NodeRegion *newnode)
 {
-    if( NodeRegList != (NodeRegion *) NULL )
+    if (NodeRegList != (NodeRegion *)NULL)
 	newnode->nreg_next = NodeRegList;
     NodeRegList = newnode;
 }
@@ -224,10 +223,10 @@ SimFreeNodeRegs(void)
 {
     NodeRegion *p, *q;
 
-    if( NodeRegList != (NodeRegion *) NULL )		/* sanity */
-	ExtFreeLabRegions((LabRegion *) NodeRegList );
+    if (NodeRegList != (NodeRegion *) NULL)		/* sanity */
+	ExtFreeLabRegions((LabRegion *)NodeRegList);
 
-     NodeRegList = (NodeRegion *) NULL;
+     NodeRegList = (NodeRegion *)NULL;
 }
 
 
@@ -239,6 +238,7 @@ SimFreeNodeRegs(void)
  * to the region being searched.
  *----------------------------------------------------------------
  */
+
 int
 SimInitConnTables(void)
 {
@@ -247,15 +247,15 @@ SimInitConnTables(void)
 
     SimTransMask = ExtCurStyle->exts_deviceMask;
 
-    TTMaskZero( &SimSDMask );
-    for( t = TT_TECHDEPBASE; t < DBNumTypes; t++ )
+    TTMaskZero(&SimSDMask);
+    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
     {
 	devptr = ExtCurStyle->exts_device[t];
 	for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
 			TT_SPACE); i++)
 	{
-	     TTMaskSetMask( &SimSDMask, &devptr->exts_deviceSDTypes[i] );
-	     TTMaskZero( &SimFetMask[t] );
+	     TTMaskSetMask(&SimSDMask, &devptr->exts_deviceSDTypes[i]);
+	     TTMaskZero(&SimFetMask[t]);
 	}
     }
 
@@ -283,8 +283,8 @@ SimInitConnTables(void)
     return 0;
 }
 
-#define	IsTransGate( T )	( TTMaskHasType( &SimTransMask, T ) )
-#define	IsTransTerm( T )	( TTMaskHasType( &SimSDMask, T ) )
+#define	IsTransGate(T)		(TTMaskHasType(&SimTransMask, T))
+#define	IsTransTerm(T)		(TTMaskHasType(&SimSDMask, T))
 
 
 typedef struct
@@ -307,14 +307,18 @@ typedef struct
 } SimTrans;
 
 
+/* NOTE:  This is lazy;  these should not be global variables */
+
 static	Tile		*gateTile;	/* Set to point to a transistor tile
 					 * whose gate is connected to the
 					 * node being searched
 					 */
+static  TileType	gateDinfo;	/* Split tile information, if needed */
 static	Tile		*sdTile;	/* Set to point to a transistor tile
 					 * whose source/drain is connected
 					 * to the node being searched
 					 */
+static  TileType	sdDinfo;	/* Split tile information, if needed */
 static	SimTrans	transistor;	/* Transistor being extracted */
 
 
@@ -351,20 +355,22 @@ SimTxtorLabel(
     r1.r_xtop = r1.r_xbot + 1;
     r1.r_ytop = r1.r_ybot + 1;
     GeoTransRect( tm, &r1, &r2 );
-    if( nterm > 1 )
+    if (nterm > 1)
 	nterm = 1;
-    sprintf( name, "@=%c%d,%d", "gsd"[nterm+1], r2.r_xbot, r2.r_ybot );
+    sprintf(name, "@=%c%d,%d", "gsd"[nterm+1], r2.r_xbot, r2.r_ybot);
 
-    return( name );
+    return name;
 }
 
 int
 SimSDTransFunc(
     Tile  *tile,
-    Tile  **ptile)
+    TileType dinfo)
 {
-    *ptile = tile;
-    return( 1 );
+    /* See above;  these should not be global variables! */
+    sdTile = tile;
+    sdDinfo = dinfo;
+    return  1;
 }
 
 
@@ -477,6 +483,7 @@ SimTermNum(
 int
 SimTransistorTile(
     Tile	*tile,
+    TileType	dinfo,
     int		pNum,
     FindRegion	*arg)
 {
@@ -484,15 +491,15 @@ SimTransistorTile(
     TileType t;
     ExtDevice *devptr;
 
-    extSetNodeNum((LabRegion *)&transistor, pNum, tile);
+    extSetNodeNum((LabRegion *)&transistor, pNum, tile, dinfo);
     if (transistor.t_do_terms)
     {
 	t = TiGetType(tile);
 	devptr = ExtCurStyle->exts_device[t];
 	for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
 			TT_SPACE); i++)
-	    extEnumTilePerim(tile, &devptr->exts_deviceSDTypes[i], pNum,
-			SimTransTerms, (ClientData) &transistor );
+	    extEnumTilePerim(tile, dinfo, &devptr->exts_deviceSDTypes[i],
+			pNum, SimTransTerms, (ClientData) &transistor );
     }
 
     return (0);
@@ -502,39 +509,41 @@ SimTransistorTile(
 int
 SimFindTxtor(
     Tile	*tile,
+    TileType	dinfo,
     int		pNum,
     FindRegion	*arg)
 {
     TileType	type;
 
-    extSetNodeNum( (LabRegion *) arg->fra_region, pNum, tile );
+    extSetNodeNum((LabRegion *)arg->fra_region, pNum, tile, dinfo);
 
-    if( ! SimUseCoords )	/* keep searching, forget transistors */
-	return( 0 );
+    if (!SimUseCoords)		/* keep searching, forget transistors */
+	return 0;
 
-    type = TiGetType( tile );
+    type = TiGetType(tile);
 
-    if( IsTransGate( type ) )
+    if (IsTransGate(type))
     {
 	gateTile = tile;	/* found a transistor gate, stop searching */
+	gateDinfo = dinfo;
 	return( 1 );
     }
-    else if( IsTransTerm( type ) && sdTile == (Tile *) NULL )
+    else if (IsTransTerm(type) && (sdTile == (Tile *)NULL))
     {
 	Rect  area;
 
-	TITORECT( tile, &area );
-	GEO_EXPAND( &area, 1, &area );
-	for( pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++ )
-	    if( PlaneMaskHasPlane( SimFetPlanes, pNum ) )
+	TITORECT(tile, &area);
+	GEO_EXPAND(&area, 1, &area);
+	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    if (PlaneMaskHasPlane(SimFetPlanes, pNum))
 	    {
-		if( DBSrPaintArea((Tile *) NULL,
-		  arg->fra_def->cd_planes[pNum], &area, &SimFetMask[type],
-		  SimSDTransFunc, (ClientData) &sdTile ) )
+		if (DBSrPaintArea((Tile *)NULL,
+		  	arg->fra_def->cd_planes[pNum], &area, &SimFetMask[type],
+		  	SimSDTransFunc, (ClientData)NULL))
 		    break;
 	    }
     }
-    return( 0 );
+    return 0;
 }
 
 
@@ -557,7 +566,8 @@ SimFindTxtor(
 NodeSpec *
 SimFindOneNode(
     SearchContext	*sx,
-    Tile		*tile)
+    Tile		*tile,
+    TileType		dinfo)
 {
     CellDef		*def = sx->scx_use->cu_def;
     NodeRegion		*reg;
@@ -565,7 +575,7 @@ SimFindOneNode(
     TileType		type, loctype;
     static NodeSpec	ret;
 
-	/* Allocate a new node */
+    /* Allocate a new node */
     reg = (NodeRegion *) mallocMagic((unsigned) (sizeof(NodeRegion) ));
     reg->nreg_labels = (LabelList *) NULL;
     reg->nreg_cap = 0;
@@ -573,14 +583,15 @@ SimFindOneNode(
     reg->nreg_pnum = DBNumPlanes;
     reg->nreg_next = (NodeRegion *) NULL;
 
-    gateTile = sdTile = (Tile *) NULL;
+    gateTile = sdTile = (Tile *)NULL;
+    gateDinfo = sdDinfo = (TileType)0;
 
-	/* Find all connected paint in this cell */
+    /* Find all connected paint in this cell */
     arg.fra_connectsTo = ExtCurStyle->exts_nodeConn;
     arg.fra_def = def;
 
     if (IsSplit(tile))
-	type = SplitSide(tile) ? TiGetRightType(tile) : TiGetLeftType(tile);
+	type = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
     else
 	type = TiGetTypeExact(tile);
 
@@ -588,9 +599,9 @@ SimFindOneNode(
     arg.fra_uninit = (ClientData) extUnInit;
     arg.fra_region = (ExtRegion *) reg;
     arg.fra_each = SimFindTxtor;
-    (void) ExtFindNeighbors( tile, arg.fra_pNum, &arg );
+    (void) ExtFindNeighbors(tile, dinfo, arg.fra_pNum, &arg);
 
-    if( gateTile != (Tile *) NULL )
+    if (gateTile != (Tile *)NULL)
     {
 	    /* Determine the transistor position (leftmost-lowest tile) */
 	transistor.t_pnum = DBNumPlanes;
@@ -600,7 +611,7 @@ SimFindOneNode(
 	arg.fra_connectsTo = &SimTransMask;
 
 	if (IsSplit(tile))
-	    loctype = SplitSide(gateTile) ? TiGetRightType(gateTile)
+	    loctype = (gateDinfo & TT_SIDE) ? TiGetRightType(gateTile)
 			: TiGetLeftType(gateTile);
 	else
 	    loctype = TiGetTypeExact(gateTile);
@@ -609,7 +620,7 @@ SimFindOneNode(
 	arg.fra_uninit = (ClientData) extUnInit;
 	arg.fra_region = (ExtRegion *) reg;
 	arg.fra_each = SimTransistorTile;
-	(void) ExtFindNeighbors( gateTile, arg.fra_pNum, &arg );
+	(void) ExtFindNeighbors(gateTile, gateDinfo, arg.fra_pNum, &arg);
 
 	    /* Unmark current region since not all paint was traced */
 	arg.fra_connectsTo = ExtCurStyle->exts_nodeConn;
@@ -617,19 +628,19 @@ SimFindOneNode(
 	arg.fra_uninit = (ClientData) reg;
 	arg.fra_region = (ExtRegion *) extUnInit;
 	arg.fra_each = (int (*)()) NULL;
-	(void) ExtFindNeighbors( tile, arg.fra_pNum, &arg );
+	(void) ExtFindNeighbors(tile, dinfo, arg.fra_pNum, &arg);
 
 	freeMagic( reg );
 
-	ret.nd_name = SimTxtorLabel( -1, &sx->scx_trans, &transistor );
+	ret.nd_name = SimTxtorLabel(-1, &sx->scx_trans, &transistor);
 	ret.nd_what = ND_NAME;
     }
-    else if( sdTile != (Tile *) NULL )
+    else if (sdTile != (Tile *)NULL)
     {
 	int  tNum;
 
-	SimAddNodeList( reg );
-	SimAddDefList( def );
+	SimAddNodeList(reg);
+	SimAddDefList(def);
 
 	transistor.t_pnum = DBNumPlanes;
 	transistor.t_nterm = 0;
@@ -638,44 +649,44 @@ SimFindOneNode(
 	/* collect the transistor position, and its terminals */
 	arg.fra_connectsTo = &SimTransMask;
 
-	if (IsSplit(tile))
-	    loctype = SplitSide(sdTile) ? TiGetRightType(sdTile)
+	if (IsSplit(sdTile))
+	    loctype = (sdDinfo & TT_SIDE) ? TiGetRightType(sdTile)
 			: TiGetLeftType(sdTile);
 	else
 	    loctype = TiGetTypeExact(sdTile);
 
 	arg.fra_pNum = DBPlane(loctype);
 	arg.fra_uninit = TiGetClient(sdTile);
-	arg.fra_region = (ExtRegion *) &ret;
+	arg.fra_region = (ExtRegion *)&ret;
 	arg.fra_each = SimTransistorTile;
-	(void) ExtFindNeighbors( sdTile, arg.fra_pNum, &arg );
+	(void) ExtFindNeighbors(sdTile, sdDinfo, arg.fra_pNum, &arg);
 
 	/* Unmark the transitor, since its not part of this region */
 	arg.fra_region = (ExtRegion *) arg.fra_uninit;
 	arg.fra_uninit = (ClientData) &ret;
 	arg.fra_each = (int (*)()) NULL;
-	(void) ExtFindNeighbors( sdTile, arg.fra_pNum, &arg );
+	(void) ExtFindNeighbors(sdTile, sdDinfo, arg.fra_pNum, &arg);
 
-	if( (tNum = SimTermNum( &transistor, reg )) < 0 )
+	if ((tNum = SimTermNum(&transistor, reg)) < 0)
 	{
-	    TxPrintf( "\tSimFindOneNode: bad transistor terminal number\n" );
+	    TxPrintf("\tSimFindOneNode: bad transistor terminal number\n");
 	    goto use_name;
 	}
 
-	ret.nd_name = SimTxtorLabel( tNum, &sx->scx_trans, &transistor );
+	ret.nd_name = SimTxtorLabel(tNum, &sx->scx_trans, &transistor);
 	ret.nd_what = ND_NAME;
     }
     else		/* no transistors found, get the regions labels */
     {
-	SimAddNodeList( reg );
-	SimAddDefList( def );
+	SimAddNodeList(reg);
+	SimAddDefList(def);
 
       use_name:
-	ExtLabelOneRegion( def, ExtCurStyle->exts_nodeConn, reg );
+	ExtLabelOneRegion(def, ExtCurStyle->exts_nodeConn, reg);
 	ret.nd_region = reg;
 	ret.nd_what = ND_REGION;
     }
-    return( &ret );
+    return &ret;
 }
 
 
@@ -707,6 +718,7 @@ SimGetNodeName(
     Tile		*tp,		/* tile in this cell which is part
 					 * of the node
 					 */
+    TileType		dinfo,		/* Split tile information */
     const char		*path)		/* path name of hierarchy of search */
 {
     CellDef	*def = sx->scx_use->cu_def;
@@ -719,7 +731,7 @@ SimGetNodeName(
 
     SimSawAbortString = FALSE;
 
-    if( SimUseCoords && simExtStyle != ExtCurStyle )
+    if (SimUseCoords && simExtStyle != ExtCurStyle)
 	SimInitConnTables();
 
     /* check to see if this tile has been extracted before */
@@ -728,11 +740,11 @@ SimGetNodeName(
     {
 	NodeSpec  *ns;
 
-	ns = SimFindOneNode(sx, tp);
+	ns = SimFindOneNode(sx, tp, dinfo);
 	if( ns->nd_what == ND_NAME )
 	{
 	    SimSawAbortString = TRUE;
-	    return( ns->nd_name );
+	    return ns->nd_name;
 	}
 	nodeList = ns->nd_region;
     }

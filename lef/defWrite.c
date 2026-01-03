@@ -668,7 +668,9 @@ defnodeVisit(
     TileType magictype;
     LinkedRect *lr;
     EFNodeName *thisnn;
-    int defNetGeometryFunc(Tile *tile, int plane, DefData *defdata);		/* Forward declaration */
+
+    /* Forward declaration */
+    int defNetGeometryFunc(Tile *tile, TileType dinfo, int plane, DefData *defdata);
 
     /* For regular nets, only count those nodes having port	*/
     /* connections.  For special nets, only count those nodes	*/
@@ -781,7 +783,9 @@ defnodeVisit(
 
 	    Rect rport;
 	    SearchContext scx;
-	    int defPortTileFunc(Tile *tile, TreeContext *cx);	/* Fwd declaration */
+
+	    /* Forward declaration */
+	    int defPortTileFunc(Tile *tile, TileType dinfo, TreeContext *cx);
 
 	    scx.scx_area = node->efnode_loc;
 	    scx.scx_use = def->cd_parents;
@@ -842,6 +846,7 @@ defnodeVisit(
 int
 defMaxWireFunc(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     int  *yclip)
 {
     if (BOTTOM(tile) < (*yclip)) *yclip = BOTTOM(tile);
@@ -854,6 +859,7 @@ defMaxWireFunc(
 int
 defMinWireFunc(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     int  *yclip)
 {
     if (TOP(tile) > (*yclip)) *yclip = TOP(tile);
@@ -871,6 +877,7 @@ defMinWireFunc(
 int
 defExemptWireFunc(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     Rect *rect)
 {
     Rect r;
@@ -896,6 +903,7 @@ defExemptWireFunc(
 int
 defPortTileFunc(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     TreeContext *cx)
 {
     SearchContext *scx = cx->tc_scx;
@@ -921,6 +929,7 @@ defPortTileFunc(
 int
 defNetGeometryFunc(
     Tile *tile,			/* Tile being visited */
+    TileType dinfo,		/* Split tile information (unused) */
     int plane,			/* Plane of the tile being visited */
     DefData *defdata)		/* Data passed to this function */
 {
@@ -1654,7 +1663,9 @@ defCountVias(
     TileType ttype, stype;
     int pNum;
     CViaData cviadata;
-    int defCountViaFunc(Tile *tile, CViaData *cviadata);
+
+    /* Forward declaration */
+    int defCountViaFunc(Tile *tile, TileType dinfo, CViaData *cviadata);
 
     cviadata.scale = oscale;
     cviadata.total = 0;
@@ -1699,7 +1710,9 @@ defCountVias(
 
 int
 defCheckFunc(
-    Tile *tile)
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     return 1;
 }
@@ -1709,6 +1722,7 @@ defCheckFunc(
 int
 defCountViaFunc(
     Tile *tile,
+    TileType dinfo,		/* (unused) */
     CViaData *cviadata)
 {
     TileType ttype = TiGetType(tile), ctype, rtype;
@@ -2459,7 +2473,8 @@ defWriteBlockages(
     HashEntry *he;
     TileTypeBitMask ExtraObsLayersMask;
 
-    int defSimpleBlockageFunc(Tile *tile, DefObsData *defobsdata);	/* Forward declaration */
+    /* Forward declarations */
+    int defSimpleBlockageFunc(Tile *tile, TileType dinfo, DefObsData *defobsdata);
     int defblockageVisit(EFNode *node, int res, EFCapValue cap, DefObsData *defobsdata);
 
     defobsdata.def = rootDef;
@@ -2680,9 +2695,10 @@ defBlockageGeometryFunc(
 int
 defSimpleBlockageFunc(
     Tile *tile,			/* Tile being visited */
+    TileType dinfo,		/* Split tile information */
     DefObsData *defobsdata)	/* Data passed to this function */
 {
-    TileType ttype = TiGetTypeExact(tile);
+    TileType ttype = TiGetTypeExact(tile) | dinfo;
     TileType loctype;
     Rect r;
     LinkedRect *lr;

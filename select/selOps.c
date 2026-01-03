@@ -410,8 +410,9 @@ typedef struct _shortsearchdata {
  */
 
 int
-selShortTileProc(tile, ssd)
+selShortTileProc(tile, dinfo, ssd)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     ShortSearchData *ssd;
 {
     const int curr = (int)TiGetClientINT(tile);
@@ -1629,8 +1630,9 @@ SelectStretch(x, y)
  */
 
 int
-selStretchEraseFunc(tile, plane)
+selStretchEraseFunc(tile, dinfo, plane)
     Tile *tile;			/* Tile being moved in a stretch operation. */
+    TileType dinfo;		/* Split tile information */
     int *plane;			/* Plane of tiles being searched */
 {
     Rect area, editArea;
@@ -1643,7 +1645,7 @@ selStretchEraseFunc(tile, plane)
     extern int selStretchEraseFunc2();
 
     if (IsSplit(tile))
-	type = (SplitSide(tile)) ? SplitRightType(tile) :
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) :
 			SplitLeftType(tile);
     else
 	type = TiGetType(tile);
@@ -1763,8 +1765,9 @@ selStretchEraseFunc(tile, plane)
 }
 
 int
-selStretchEraseFunc2(tile, pa)
+selStretchEraseFunc2(tile, dinfo, pa)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     planeAndArea *pa;
 {
     TileType type = TT_SPACE;
@@ -1805,8 +1808,9 @@ selStretchEraseFunc2(tile, pa)
  */
 
 int
-selStretchFillFunc(tile, plane)
+selStretchFillFunc(tile, dinfo, plane)
     Tile *tile;			/* Tile in the old selection. */
+    TileType dinfo;		/* Split tile information (unused) */
     int *plane;			/* Plane of tile being searched */
 {
     Rect area;
@@ -1873,10 +1877,11 @@ selStretchFillFunc(tile, plane)
  */
 
 int
-selStretchFillFunc2(tile, area)
+selStretchFillFunc2(tile, dinfo, area)
     Tile *tile;				/* Space tile that borders selected
 					 * paint.
 					 */
+    TileType dinfo;			/* Split tile information (unused) */
     Rect *area;				/* A one-unit wide strip along the
 					 * border (i.e. the area in which
 					 * we're interested in space).
@@ -1921,10 +1926,11 @@ selStretchFillFunc2(tile, area)
  */
 
 int
-selStretchFillFunc3(tile, area)
+selStretchFillFunc3(tile, dinfo, area)
     Tile *tile;			/* Tile of edit material that's about to
 				 * be left behind selection.
 				 */
+    TileType dinfo;		/* Split tile information (unused) */
     Rect *area;			/* The border area we're interested in,
 				 * in root coords.
 				 */

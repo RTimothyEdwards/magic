@@ -962,8 +962,9 @@ prCell(edge)
  */
 
 int
-plowCellDragPaint(tile, ar)
+plowCellDragPaint(tile, dinfo, ar)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct applyRule *ar;
 {
     Edge *movingEdge = ar->ar_moving;

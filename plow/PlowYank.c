@@ -280,8 +280,9 @@ plowYankUpdateCell(yankChildUse)
  */
 
 int
-plowYankUpdatePaint(yankTp, pNum)
+plowYankUpdatePaint(yankTp, dinfo, pNum)
     Tile *yankTp;
+    TileType dinfo;	/* (unused) */
     int pNum;
 {
     Tile *spareTp;
@@ -399,8 +400,9 @@ plowUpdateLabels(yankDef, origDef, origArea)
 }
 
 int
-plowCheckLabel(tile, lu)
+plowCheckLabel(tile, dinfo, lu)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct labelUpdate *lu;
 {
     int adjust;
@@ -532,12 +534,13 @@ plowUpdateCell(use, origDef)
  */
 
 int
-plowUpdatePaintTile(tile, ui)
+plowUpdatePaintTile(tile, dinfo, ui)
     Tile *tile;		/* Tile in yanked, plowed def */
+    TileType dinfo;	/* Split tile information */
     PaintUndoInfo *ui;	/* Identifies original cell and plane being searched */
 {
     Rect r, rtrans;
-    TileType type = TiGetTypeExact(tile);
+    TileType type = TiGetTypeExact(tile) | dinfo;
     int pNum, pMask;
 
     r.r_ybot = BOTTOM(tile);
@@ -553,7 +556,7 @@ plowUpdatePaintTile(tile, ui)
 	if (PlaneMaskHasPlane(pMask, pNum))
 	{
 	    ui->pu_pNum = pNum;
-	    DBPaintPlane(ui->pu_def->cd_planes[pNum],
+	    DBNMPaintPlane(ui->pu_def->cd_planes[pNum], type,
 			&rtrans, DBWriteResultTbl[type], ui);
 	}
     }

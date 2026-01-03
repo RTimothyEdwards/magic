@@ -3228,8 +3228,9 @@ DBCellFindScale(cellDef)
 }
 
 int
-dbFindGCFFunc(tile, ggcf)
+dbFindGCFFunc(tile, dinfo, ggcf)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     int *ggcf;
 {
     Rect r;
@@ -4218,8 +4219,9 @@ ioerror:
  */
 
 int
-dbWritePaintCommandsFunc(tile, cdarg)
+dbWritePaintCommandsFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;
     ClientData cdarg;
 {
     char pstring[256];
@@ -4242,7 +4244,7 @@ dbWritePaintCommandsFunc(tile, cdarg)
 
     if (IsSplit(tile))
     {
-	diridx = (SplitDirection(tile) << 1) + SplitSide(tile);
+	diridx = (SplitDirection(tile) << 1) + ((dinfo & TT_SIDE) ? 1 : 0);
 
 	fprintf(f, "box values %d %d %d %d\n",
 			LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
@@ -4707,8 +4709,9 @@ cleanup:
  */
 
 int
-dbWritePaintFunc(tile, cdarg)
+dbWritePaintFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     ClientData cdarg;
 {
     char pstring[256];
@@ -4770,7 +4773,7 @@ dbWritePaintFunc(tile, cdarg)
 	sprintf(pstring, "rect %d %d %d %d\n",
 	    LEFT(tile) / arg->wa_reducer, BOTTOM(tile) / arg->wa_reducer,
 	    RIGHT(tile) / arg->wa_reducer, TOP(tile) / arg->wa_reducer);
-    FPUTSR(arg->wa_file,pstring);
+    FPUTSR(arg->wa_file, pstring);
     return 0;
 }
 

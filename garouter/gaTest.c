@@ -254,8 +254,9 @@ GAGenChans(chanType, area, f)
  */
 
 int
-gaSplitOut(tile, f)
+gaSplitOut(tile, dinfo, f)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     FILE *f;
 {
     Rect r;

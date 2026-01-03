@@ -2396,8 +2396,10 @@ CmdContact(
     CCStruct ccs;
     Rect area;
     LinkedRect *lr = NULL;
-    int cmdContactFunc(Tile *tile, CCStruct *ccs);	/* Forward declaration */
-    int cmdContactEraseFunc(Tile *tile, LinkedRect **lr);	/* Forward declaration */
+
+    /* Forward declarations */
+    int cmdContactFunc(Tile *tile, TileType dinfo, CCStruct *ccs);
+    int cmdContactEraseFunc(Tile *tile, TileType dinfo, LinkedRect **lr);
 
     windCheckOnlyWindow(&w, DBWclientID);
     if ((w == (MagWindow *) NULL) || (w->w_client != DBWclientID))
@@ -2531,11 +2533,14 @@ CmdContact(
 int
 cmdContactFunc(
     Tile *tile,
+    TileType dinfo,
     CCStruct *ccs)
 {
     TileType stype;
     TileTypeBitMask smask;
-    int cmdContactFunc2(Tile *tile, CCStruct *ccs);	/* Forward declaration */
+
+    /* Forward declaration */
+    int cmdContactFunc2(Tile *tile, TileType dinfo, CCStruct *ccs);
 
     TiToRect(tile, &ccs->area);
     GeoClip(&ccs->area, &ccs->clip);
@@ -2545,7 +2550,7 @@ cmdContactFunc(
 	    break;
 
     TTMaskSetOnlyType(&smask, stype);
-    DBSrPaintArea((Tile *) NULL, ccs->rootDef->cd_planes[DBPlane(stype)],
+    DBSrPaintNMArea((Tile *)NULL, ccs->rootDef->cd_planes[DBPlane(stype)], dinfo,
 		&ccs->area, &smask, cmdContactFunc2, (ClientData)ccs);
     return 0;
 }
@@ -2553,6 +2558,7 @@ cmdContactFunc(
 int
 cmdContactFunc2(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     CCStruct *ccs)
 {
     LinkedRect *newlr;
@@ -2575,6 +2581,7 @@ cmdContactFunc2(
 int
 cmdContactEraseFunc(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     LinkedRect **lr)
 {
     LinkedRect *newlr;
@@ -2828,13 +2835,14 @@ CmdCorner(
     TileTypeBitMask maskBits;
     Rect editBox;
     SearchContext scx;
-    extern int cmdCornerFunc(Tile *tile, TreeContext *cxp);
     bool hasErr = FALSE;
     int locargc = cmd->tx_argc;
-
-    extern int cmdBevelFunc(Tile *tile, TreeContext *cxp);
     bool dobevel = FALSE;
     NMCornerPath cmdPathList;
+
+    /* Forward declarations */
+    extern int cmdCornerFunc(Tile *tile, TileType dinfo, TreeContext *cxp);
+    extern int cmdBevelFunc(Tile *tile, TileType dinfo, TreeContext *cxp);
 
     if (cmd->tx_argc < 3 || cmd->tx_argc > 5)
     {
@@ -3030,6 +3038,7 @@ CmdCorner(
 int
 cmdCornerFunc(
     Tile *tile,			/* Tile to fill with. */
+    TileType dinfo,		/* Split tile information (unused) */
     TreeContext *cxp)		/* Describes state of search. */
 {
     Rect r1, r2, r3;
@@ -3196,6 +3205,7 @@ AddNewPoint(
 int
 cmdBevelFunc(
     Tile *tile,			/* Tile to fill with. */
+    TileType dinfo,		/* Split tile information (unused) */
     TreeContext *cxp)		/* Describes state of search. */
 {
     Rect r1, r2, r3;
@@ -4585,6 +4595,7 @@ CmdDrc(
 int
 cmdDropPaintCell(
     Tile *tile,
+    TileType dinfo,
     TreeContext *cxp)
 {
     CellDef *cellDef = cxp->tc_scx->scx_use->cu_def;
@@ -4593,7 +4604,7 @@ cmdDropPaintCell(
     TileType type;
     Rect area;
 
-    if (SplitSide(tile))
+    if (dinfo & TT_SIDE)
         type = SplitRightType(tile);
     else
         type = SplitLeftType(tile);
@@ -4626,6 +4637,7 @@ cmdDropPaintCell(
 int
 cmdDropFunc(
     Tile *tile,
+    TileType dinfo,
     ClientData clientData)
 {
     TileTypeBitMask tMask, *lMask = (TileTypeBitMask *)clientData;
@@ -4636,7 +4648,7 @@ cmdDropFunc(
     scx.scx_use = EditCellUse;
     scx.scx_trans = GeoIdentityTransform;
 
-    if (SplitSide(tile))
+    if (dinfo & TT_SIDE)
 	type = SplitRightType(tile);
     else
 	type = SplitLeftType(tile);

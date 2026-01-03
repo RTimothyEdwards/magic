@@ -714,11 +714,11 @@ extArrayNodeName(np, ha, et1, et2)
 {
     Tile *tp;
 
-    tp = extNodeToTile(np, et1);
+    tp = extNodeToTile(np, et1, NULL);
     if (tp && TiGetType(tp) != TT_SPACE && extHasRegion(tp, extUnInit))
 	return (extArrayTileToNode(tp, np->nreg_pnum, et1, ha, TRUE));
 
-    tp = extNodeToTile(np, et2);
+    tp = extNodeToTile(np, et2, NULL);
     if (tp && TiGetType(tp) != TT_SPACE && extHasRegion(tp, extUnInit))
 	return (extArrayTileToNode(tp, np->nreg_pnum, et2, ha, TRUE));
 

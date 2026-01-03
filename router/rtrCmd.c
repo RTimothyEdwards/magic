@@ -227,8 +227,10 @@ CmdChannel(w, cmd)
 }
 
 int
-cmdChannelFunc(tile)
+cmdChannelFunc(tile, dinfo, clientdata)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
+    ClientData clientdata;	/* (unused) */
 {
     Rect area, rootArea;
 

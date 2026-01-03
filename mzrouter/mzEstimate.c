@@ -487,8 +487,9 @@ mzCleanEstimate()
  */
 
 int
-mzReclaimTCFunc(tile, notUsed)
+mzReclaimTCFunc(tile, dinfo, notUsed)
     Tile *tile;
+    TileType dinfo;
     ClientData notUsed;
 {
     if (tile->ti_client != (ClientData)CLIENTDEFAULT)
@@ -536,8 +537,9 @@ mzReclaimTCFunc(tile, notUsed)
  */
 
 int
-mzProcessDestEstFunc(tile, cxp)
+mzProcessDestEstFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;
@@ -608,8 +610,9 @@ mzProcessDestEstFunc(tile, cxp)
  */
 
 int
-mzDestTileEstFunc(tile, cdarg)
+mzDestTileEstFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;
     ClientData cdarg;
 {
     Rect rect;
@@ -658,8 +661,9 @@ mzDestTileEstFunc(tile, cdarg)
  */
 
 int
-mzAddSubcellEstFunc(scx, cdarg)
+mzAddSubcellEstFunc(scx, dinfo, cdarg)
     SearchContext *scx;
+    TileType dinfo;
     ClientData cdarg;
 {
     Rect r, rDest;
@@ -699,8 +703,9 @@ mzAddSubcellEstFunc(scx, cdarg)
  */
 
 int
-mzAddFenceEstFunc(tile, buildArea)
+mzAddFenceEstFunc(tile, dinfo, buildArea)
     Tile *tile;
+    TileType dinfo;
     Rect *buildArea; /* currently ignored */
 {
     Rect r;
@@ -737,8 +742,9 @@ mzAddFenceEstFunc(tile, buildArea)
  */
 
 int
-mzBuildSolidsListFunc(tile, listPtr)
+mzBuildSolidsListFunc(tile, dinfo, listPtr)
     Tile *tile;
+    TileType dinfo;
     List **listPtr; /* pointer to list to add tile to */
 {
     LIST_ADD(tile,*listPtr);
@@ -764,8 +770,9 @@ mzBuildSolidsListFunc(tile, listPtr)
  * ----------------------------------------------------------------------------
  */
 int
-mzAssignCostsFunc(tile, spaceCosts)
+mzAssignCostsFunc(tile, dinfo, spaceCosts)
     Tile *tile;
+    TileType dinfo;
     TileCosts *spaceCosts; /* costs to assign to space tiles */
 {
     Tile *tRight, *tUp;
@@ -862,8 +869,9 @@ mzAssignCostsFunc(tile, spaceCosts)
  * ----------------------------------------------------------------------------
  */
 int
-mzDestInitialAssignFunc(tile, cdarg)
+mzDestInitialAssignFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;
     ClientData cdarg;
 {
     Heap *adjHeap = (Heap *) cdarg;
@@ -904,8 +912,9 @@ mzDestInitialAssignFunc(tile, cdarg)
  */
 
 int
-mzBuildEstimatesFunc(tile, notUsed)
+mzBuildEstimatesFunc(tile, dinfo, notUsed)
     Tile *tile;
+    TileType dinfo;
     ClientData notUsed;
 {
 
@@ -1316,8 +1325,9 @@ AlwaysAsGood(est1, est2, tile)
  */
 
 int
-mzTrimEstimatesFunc(tile, notUsed)
+mzTrimEstimatesFunc(tile, dinfo, notUsed)
     Tile *tile;
+    TileType dinfo;
     ClientData notUsed;
 {
     TileCosts *tc = (TileCosts *) (tile->ti_client);
@@ -1966,8 +1976,9 @@ mzDumpEstimates(area,fd)
  */
 
 int
-mzDumpEstFunc(tile, fd)
+mzDumpEstFunc(tile, dinfo, fd)
     Tile *tile;
+    TileType dinfo;
     FILE *fd;
 {
     Rect r;

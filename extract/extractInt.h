@@ -989,44 +989,43 @@ extern ClientData extUnInit;
 /* because the search algorithm can overwrite it between the	*/
 /* time the tile is pushed and the time that it is popped.	*/
 
-#define	PUSHTILE(tp, pl) \
+#define	PUSHTILE(tp, di, pl) \
 	(tp)->ti_client = VISITPENDING; \
-	STACKPUSH((ClientData)(pointertype)(pl | \
-		((TileType)(spointertype)(tp)->ti_body & TT_SIDE)), extNodeStack); \
+	STACKPUSH((ClientData)(pointertype)pl, extNodeStack); \
+	STACKPUSH((ClientData)(pointertype)di, extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
 
-#define POPTILE(tp, pl) \
+#define POPTILE(tp, di, pl) \
 	tp = (Tile *) STACKPOP(extNodeStack); \
-	pl = (spointertype) STACKPOP(extNodeStack); \
-	if (pl & TT_SIDE) { \
-	   TiSetBody((tp), TiGetTypeExact(tp) | TT_SIDE); \
-	   pl &= (~TT_SIDE); \
-	} \
-	else \
-	   TiSetBody((tp), TiGetTypeExact(tp) & (~TT_SIDE))
+	di = (spointertype) STACKPOP(extNodeStack); \
+	pl = (spointertype) STACKPOP(extNodeStack)
 
 /* Variations of "pushtile" to force a specific value on TT_SIDE */
 
 #define PUSHTILEBOTTOM(tp, pl) \
 	(tp)->ti_client = VISITPENDING; \
-	STACKPUSH((ClientData)(pointertype)(pl | \
-		((SplitDirection(tp)) ? 0 : TT_SIDE)), extNodeStack) ;\
+	STACKPUSH((ClientData)(pointertype)pl, extNodeStack); \
+	STACKPUSH((ClientData)(pointertype) \
+		((SplitDirection(tp)) ? 0 : TT_SIDE), extNodeStack) ;\
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
 
 #define PUSHTILETOP(tp, pl) \
 	(tp)->ti_client = VISITPENDING; \
-	STACKPUSH((ClientData)(pointertype)(pl | \
-		((SplitDirection(tp)) ? TT_SIDE : 0)), extNodeStack) ;\
+	STACKPUSH((ClientData)(pointertype)pl, extNodeStack); \
+	STACKPUSH((ClientData)(pointertype) \
+		((SplitDirection(tp)) ? TT_SIDE : 0), extNodeStack) ;\
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
 
 #define PUSHTILELEFT(tp, pl) \
 	(tp)->ti_client = VISITPENDING; \
 	STACKPUSH((ClientData)(pointertype)(pl), extNodeStack); \
+	STACKPUSH((ClientData)(pointertype)0, extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
 
 #define PUSHTILERIGHT(tp, pl) \
 	(tp)->ti_client = VISITPENDING; \
-	STACKPUSH((ClientData)(pointertype)(pl | TT_SIDE), extNodeStack); \
+	STACKPUSH((ClientData)(pointertype)pl, extNodeStack); \
+	STACKPUSH((ClientData)(pointertype)TT_SIDE, extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
 
 /* ------------------------- Region finding --------------------------- */
@@ -1058,7 +1057,7 @@ extern Tile *extNodeToTile();
 	    Tile *tp; \
  \
 	    (nnew) = (NodeRegion *) NULL; \
-	    tp = extNodeToTile((nold), (et)); \
+	    tp = extNodeToTile((nold), (et), (TileType)NULL); \
 	    if (tp && extHasRegion(tp, extUnInit)) \
 		(nnew) = (NodeRegion *) extGetRegion(tp); \
 	}

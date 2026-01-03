@@ -231,9 +231,10 @@ w3dFillDiagonal(x1, y1, x2, y2, ztop, zbot)
 }
 
 void
-w3dFillOps(trans, tile, cliprect, ztop, zbot)
+w3dFillOps(trans, tile, dinfo, cliprect, ztop, zbot)
     Transform *trans;
     Tile *tile;
+    TileType dinfo;
     Rect *cliprect;
     float ztop;
     float zbot;
@@ -254,15 +255,15 @@ w3dFillOps(trans, tile, cliprect, ztop, zbot)
     if (IsSplit(tile))
     {
 	Rect fullr;
-	TileType dinfo;
+	TileType newdinfo;
 
-	dinfo = DBTransformDiagonal(TiGetTypeExact(tile), trans);
+	newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, trans);
 
 	fullr = r;
 	if (cliprect != NULL)
 	    GeoClip(&r, cliprect);
 
-	GrClipTriangle(&fullr, &r, cliprect != NULL, dinfo, p, &np);
+	GrClipTriangle(&fullr, &r, cliprect != NULL, newdinfo, p, &np);
 
 	if (np > 0)
 	{
@@ -289,7 +290,7 @@ w3dFillOps(trans, tile, cliprect, ztop, zbot)
 
     /* Find tile outline and render sides */
 
-    if (GrBoxOutline(tile, &tilesegs))
+    if (GrBoxOutline(tile, dinfo, &tilesegs))
     {
 	xbot = (float)r.r_xbot;
 	ybot = (float)r.r_ybot;
@@ -380,8 +381,9 @@ w3dFillOps(trans, tile, cliprect, ztop, zbot)
 }
 
 void
-w3dRenderVolume(tile, trans, cliprect)
+w3dRenderVolume(tile, dinfo, trans, cliprect)
     Tile *tile;
+    TileType dinfo;
     Transform *trans;
     Rect *cliprect;
 {
@@ -403,7 +405,7 @@ w3dRenderVolume(tile, trans, cliprect)
 
     if ((grCurFill == GR_STSOLID) || (grCurFill == GR_STSTIPPLE))
     {
-	w3dFillOps(trans, tile, cliprect, ztop, zbot);
+	w3dFillOps(trans, tile, dinfo, cliprect, ztop, zbot);
     }
 
     /* To do:  Outlines and contact crosses */
@@ -411,8 +413,9 @@ w3dRenderVolume(tile, trans, cliprect)
 }
 
 void
-w3dRenderCIF(tile, layer, trans)
+w3dRenderCIF(tile, dinfo, layer, trans)
     Tile *tile;
+    TileType dinfo;
     CIFLayer *layer;
     Transform *trans;
 {
@@ -435,7 +438,7 @@ w3dRenderCIF(tile, layer, trans)
 
     if ((grCurFill == GR_STSOLID) || (grCurFill == GR_STSTIPPLE))
     {
-	w3dFillOps(trans, tile, NULL, ztop, zbot);
+	w3dFillOps(trans, tile, dinfo, NULL, ztop, zbot);
     }
 
     /* To do:  Outlines */
@@ -543,8 +546,9 @@ w3dSetProjection(w)
 /* Magic layer tile painting function */
 
 int
-w3dPaintFunc(tile, cxp)
+w3dPaintFunc(tile, dinfo, cxp)
     Tile *tile;			/* Tile to be displayed */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* From DBTreeSrTiles */
 {
     SearchContext *scx = cxp->tc_scx;
@@ -582,15 +586,16 @@ w3dPaintFunc(tile, cxp)
 	w3dNeedStyle = FALSE;
     }
 
-    w3dRenderVolume(tile, &scx->scx_trans, &scx->scx_area);
+    w3dRenderVolume(tile, dinfo, &scx->scx_trans, &scx->scx_area);
     return 0;			/* keep the search going! */
 }
 
 /* CIF layer tile painting function */
 
 int
-w3dCIFPaintFunc(tile, arg)
+w3dCIFPaintFunc(tile, dinfo, arg)
     Tile *tile;			/* Tile to be displayed */
+    TileType dinfo;		/* Split tile information */
     ClientData *arg;		/* is NULL */
 {
     CIFLayer *layer = (CIFLayer *)arg;
@@ -626,7 +631,7 @@ w3dCIFPaintFunc(tile, arg)
 	w3dNeedStyle = FALSE;
     }
 
-    w3dRenderCIF(tile, layer, &GeoIdentityTransform);
+    w3dRenderCIF(tile, dinfo, layer, &GeoIdentityTransform);
     return 0;			/* keep the search going! */
 }
 

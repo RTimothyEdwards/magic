@@ -392,8 +392,9 @@ DBWHLRedrawWind(window)
  */
 
 int
-dbwhlEraseFunc(tile, window)
+dbwhlEraseFunc(tile, dinfo, window)
     Tile *tile;			/* Tile describing area to be erased.	*/
+    TileType dinfo;		/* Split tile information (unused)	*/
     MagWindow *window;		/* Window that is being altered.	*/
 {
     Rect area;

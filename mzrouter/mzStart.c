@@ -59,7 +59,7 @@ extern bool mzAddInitialContacts();
  */
 
 int
-mzFindSamenodeFunc(Tile *tile, Point *point)
+mzFindSamenodeFunc(Tile *tile, TileType dinfo, Point *point)
 {
     *point = tile->ti_ll;
     return 1;

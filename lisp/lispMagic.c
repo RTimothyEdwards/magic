@@ -169,8 +169,9 @@ LispGetPoint (name,s,f)
  *-----------------------------------------------------------------------------
  */
 static int
-lispprinttile (tile,cxp)
+lispprinttile (tile, dinfo, cxp)
      Tile *tile;
+     TileType dinfo;	/* (unused) */
      TreeContext *cxp;
 {
   TileType type;

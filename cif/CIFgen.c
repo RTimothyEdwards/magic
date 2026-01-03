@@ -103,7 +103,8 @@ extern void cifGenClip(const Rect *area, Rect *expanded, Rect *clip);
 int
 cifPaintFunc(
     Tile *tile,
-    PaintResultType *table)		/* Used for painting. */
+    TileType dinfo,		/* Split tile information */
+    PaintResultType *table)	/* Used for painting. */
 {
     Rect area;
 
@@ -113,7 +114,7 @@ cifPaintFunc(
     area.r_ybot *= cifScale;
     area.r_ytop *= cifScale;
 
-    DBNMPaintPlane(cifPlane, TiGetTypeExact(tile), &area, table,
+    DBNMPaintPlane(cifPlane, TiGetTypeExact(tile) | dinfo, &area, table,
 		(PaintUndoInfo *) NULL);
     CIFTileOps += 1;
     return 0;
@@ -137,8 +138,9 @@ cifPaintFunc(
 
 int
 cifInteractFunc(
-    Tile *tile,
-    ClientData clientdata)		/* Unused */
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     return 1;
 }
@@ -323,6 +325,7 @@ SetMinBoxGrid(
 int
 cifGrowMinFunc(
     Tile *tile,
+    TileType dinfo,
     PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area, parea;
@@ -498,6 +501,7 @@ cifGrowMinFunc(
 int
 cifGrowGridFunc(
     Tile *tile,
+    TileType dinfo,
     PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area;
@@ -574,11 +578,12 @@ cifGrowGridFunc(
 int
 cifGrowEuclideanFunc(
     Tile *tile,
+    TileType dinfo,
     const PaintResultType *table)		/* Table to be used for painting. */
 {
     Tile *tp;
     Rect area, rtmp;
-    TileType oldType = TiGetTypeExact(tile);
+    TileType oldType = TiGetTypeExact(tile) | dinfo;
     unsigned char growDirs = GROW_NORTH | GROW_SOUTH | GROW_EAST | GROW_WEST;
     unsigned char cornerDirs = 0;
 
@@ -787,10 +792,11 @@ cifGrowEuclideanFunc(
 int
 cifGrowFunc(
     Tile *tile,
+    TileType dinfo,
     const PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area;
-    TileType oldType = TiGetTypeExact(tile);
+    TileType oldType = TiGetTypeExact(tile) | dinfo;
 
     TiToRect(tile, &area);
 
@@ -916,6 +922,7 @@ cifGrowFunc(
 int
 cifBloatFunc(
     Tile *tile,
+    TileType dinfo,
     ClientData clientData)
 {
     Rect tileArea, cifArea, bloat;
@@ -925,7 +932,7 @@ cifBloatFunc(
     BloatData *bloats = (BloatData *)clientData;
     int *bloatTable = (int *)bloats->bl_distance;
 
-    oldType = TiGetTypeExact(tile);
+    oldType = TiGetTypeExact(tile) | dinfo;
     TiToRect(tile, &tileArea);
 
     /* Output the original area of the tile. */
@@ -951,7 +958,7 @@ cifBloatFunc(
 	if (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN)
 	{
 	    growDistance = dist;
-	    cifGrowEuclideanFunc(tile, CIFPaintTable);
+	    cifGrowEuclideanFunc(tile, dinfo, CIFPaintTable);
 	}
 	else
 	{
@@ -1222,10 +1229,35 @@ endbloat:
 #define CIF_PROCESSED   1
 #define CIF_IGNORE   	2
 
-#define PUSHTILE(tp, stack) \
+/* Conditional push (if tile is unprocessed) */
+#define PUSHTILE(tp, dinfo, stack) \
     if (TiGetClient(tp) == CIF_UNPROCESSED) { \
 	TiSetClientINT(tp, CIF_PENDING); \
-	STACKPUSH((ClientData) (tp), stack); \
+	STACKPUSH((ClientData)(tp), stack); \
+	STACKPUSH((ClientData)(dinfo), stack); \
+    }
+
+/* Unconditional push */
+#define PUSHTILEALWAYS(tp, dinfo, stack) { \
+	STACKPUSH((ClientData)(tp), stack); \
+	STACKPUSH((ClientData)(dinfo), stack); \
+    }
+
+#define POPTILE(tp, dinfo, stack) { \
+	dinfo = (TileType)STACKPOP(stack); \
+	tp = (Tile *)STACKPOP(stack); \
+    }
+
+/* For routines that don't require split tile information */
+
+#define PUSHTILEONLY(tp, stack) \
+    if (TiGetClient(tp) == CIF_UNPROCESSED) { \
+	TiSetClientINT(tp, CIF_PENDING); \
+	STACKPUSH((ClientData)(tp), stack); \
+    }
+
+#define POPTILEONLY(tp, stack) { \
+	tp = (Tile *)STACKPOP(stack); \
     }
 
 /*
@@ -1243,7 +1275,8 @@ endbloat:
 int
 cifProcessResetFunc(
     Tile *tile,
-    ClientData clientData)	/* unused */
+    TileType dinfo,		/* (unused) */
+    ClientData clientData)	/* (unused) */
 {
     TiSetClient(tile, CIF_UNPROCESSED);
     return 0;
@@ -1263,8 +1296,9 @@ cifProcessResetFunc(
  */
 
 int
-cifProcessSelectiveResetFunc(tile, clipArea)
+cifProcessSelectiveResetFunc(tile, dinfo, clipArea)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     Rect *clipArea;
 {
     Rect area;
@@ -1297,11 +1331,12 @@ cifProcessSelectiveResetFunc(tile, clipArea)
 int
 cifFoundFunc(
     Tile *tile,
+    TileType dinfo,
     Stack **BloatStackPtr)
 {
     if (TiGetClient(tile) == CIF_UNPROCESSED)
     {
-	PUSHTILE(tile, *BloatStackPtr);
+	PUSHTILE(tile, dinfo, *BloatStackPtr);
 	return 1;
     }
     else
@@ -1338,6 +1373,7 @@ typedef struct _bloatStruct {
 int
 cifBloatAllFunc(
     Tile *tile,			/* The tile to be processed. */
+    TileType dinfo,		/* Split tile information */
     BloatStruct *bls)
 {
     Rect area, clipArea;
@@ -1371,8 +1407,9 @@ cifBloatAllFunc(
     /* processed that belongs to the connect mask, and use that as the	*/
     /* starting tile.							*/
 
-    t = tile;
-    type = TiGetType(tile);
+    type = TiGetType(tile);	/* NOTE:  This does not correctly handls
+				 * split tiles.
+				 */
 
     if (type == CIF_SOLIDTYPE)
     {
@@ -1445,8 +1482,8 @@ cifBloatAllFunc(
     }
     else
     {
-	PUSHTILE(t, BloatStack);
-	firstTile = t;
+	PUSHTILE(tile, dinfo, BloatStack);
+	firstTile = tile;
     }
 
     /* Note:  if op->co_distance is 0 then bloat distance is arbitrarily large */
@@ -1465,7 +1502,9 @@ cifBloatAllFunc(
 
     while (!StackEmpty(BloatStack))
     {
-	t = (Tile *) STACKPOP(BloatStack);
+	TileType tt;
+
+	POPTILE(t, dinfo, BloatStack);
 	if (TiGetClientINT(t) != CIF_PENDING) continue;
         TiSetClientINT(t, CIF_PROCESSED);
 
@@ -1492,6 +1531,7 @@ cifBloatAllFunc(
 	     * is difficult to find an optimal method.
 	     */
 	    STACKPUSH(t, ResetStack);
+	    STACKPUSH(dinfo, ResetStack);
 	    GeoClip(&cifarea, &clipArea);
 	    if (GEO_RECTNULL(&cifarea))
 		continue;
@@ -1504,18 +1544,18 @@ cifBloatAllFunc(
 
 	if (IsSplit(t))
 	{
-	    TileType tt;
-	    tt = TiGetTypeExact(t);
+	    tt = TiGetTypeExact(t) | dinfo;
 	    if ((tt & TT_SIDE) && (TTMaskHasType(connect, TiGetLeftType(t))))
 		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
 	    else if (!(tt & TT_SIDE) && (TTMaskHasType(connect, TiGetRightType(t))))
 		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
 	    else
-		DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
+		DBNMPaintPlane(cifPlane, TiGetTypeExact(t) | dinfo, &area,
 			CIFPaintTable, (PaintUndoInfo *) NULL);
 	}
 	else
 	{
+	    tt = TiGetTypeExact(t);
 	    if (op->co_distance > 0)
 		GeoClip(&area, &clipArea);
 	    DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
@@ -1525,22 +1565,28 @@ cifBloatAllFunc(
 	/* Top */
 	for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
 	    if (TTMaskHasType(connect, TiGetBottomType(tp)))
-		PUSHTILE(tp, BloatStack);
+		PUSHTILE(tp,
+			(SplitDirection(tp) == ((tt & TT_DIRECTION) ? 1 : 0)) ?
+			(TileType)0 : (TileType)TT_SIDE,
+			BloatStack);
 
 	/* Left */
 	for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
 	    if (TTMaskHasType(connect, TiGetRightType(tp)))
-		PUSHTILE(tp, BloatStack);
+		PUSHTILE(tp, (TileType)TT_SIDE, BloatStack);
 
 	/* Bottom */
 	for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
 	    if (TTMaskHasType(connect, TiGetTopType(tp)))
-		PUSHTILE(tp, BloatStack);
+		PUSHTILE(tp,
+			(SplitDirection(tp) == ((tt & TT_DIRECTION) ? 1 : 0)) ?
+			(TileType)TT_SIDE : (TileType)0,
+			BloatStack);
 
 	/* Right */
 	for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
 	    if (TTMaskHasType(connect, TiGetLeftType(tp)))
-		PUSHTILE(tp, BloatStack);
+		PUSHTILE(tp, (TileType)0, BloatStack);
     }
 
     /* Clear self */
@@ -1557,7 +1603,7 @@ cifBloatAllFunc(
 
     while (!StackEmpty(ResetStack))
     {
-	t = (Tile *)STACKPOP(ResetStack);
+	POPTILE(t, dinfo, ResetStack);
 	TiSetClient(t, CIF_UNPROCESSED);
     }
 
@@ -1792,6 +1838,7 @@ GetExpandedAreaGrid(
 int
 cifBridgeFunc1(
     Tile *tile,
+    TileType dinfo,
     BridgeStruct *brs)
 {
     Plane *plane = brs->plane;
@@ -1800,7 +1847,9 @@ cifBridgeFunc1(
     int width = brs->bridge->br_width;
     int spacing = growDistance;
     BridgeCheckStruct brcs;
-    int cifBridgeCheckFunc(Tile *tile, BridgeCheckStruct *brcs);	/* Forward reference */
+
+    /* Forward reference */
+    int cifBridgeCheckFunc(Tile *tile, TileType dinfo, BridgeCheckStruct *brcs);
 
     /* If tile is marked, then it has been handled, so ignore it */
     if (TiGetClient(tile) != CIF_UNPROCESSED) return 0;
@@ -1914,6 +1963,7 @@ cifBridgeFunc1(
 int
 cifBridgeFunc2(
     Tile *tile,
+    TileType dinfo,
     BridgeStruct *brs)
 {
     Plane *plane = brs->plane;
@@ -1923,7 +1973,9 @@ cifBridgeFunc2(
     int wtest;
     int spacing = growDistance;
     BridgeCheckStruct brcs;
-    int cifBridgeCheckFunc(Tile *tile, BridgeCheckStruct *brcs);	/* Forward reference */
+
+    /* Forward reference */
+    int cifBridgeCheckFunc(Tile *tile, TileType dinfo, BridgeCheckStruct *brcs);
 
     /* If tile is marked, then it has been handled, so ignore it */
     if (TiGetClient(tile) != CIF_UNPROCESSED) return 0;
@@ -2014,6 +2066,7 @@ cifBridgeFunc2(
 int
 cifBridgeCheckFunc(
     Tile *tile,
+    TileType dinfo,
     BridgeCheckStruct *brcs)
 {
     int dir = brcs->direction;
@@ -2087,10 +2140,11 @@ cifBridgeCheckFunc(
 int
 cifOrthogonalFunc(
     Tile *tile,
+    TileType dinfo,
     const PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area;
-    TileType oldType = TiGetTypeExact(tile);
+    TileType oldType = TiGetTypeExact(tile) | dinfo;
 
     TiToRect(tile, &area);
 
@@ -2137,11 +2191,12 @@ cifOrthogonalFunc(
 int
 cifCloseFunc(
     Tile *tile,
+    TileType dinfo,
     Plane *plane)
 {
     Rect area, newarea;
     int atotal;
-    int cifGatherFunc(Tile *tile, int *atotal, int mode);
+    int cifGatherFunc(Tile *tile, TileType dinfo, int *atotal, int mode);
 
     /* If tile is marked, then it has been handled, so ignore it */
     if (TiGetClient(tile) != CIF_UNPROCESSED) return 0;
@@ -2152,7 +2207,7 @@ cifCloseFunc(
     /* total area.  If any connected tile borders infinity, then stop	*/
     /* searching because the area is not enclosed.			*/
 
-    cifGatherFunc(tile, &atotal, CLOSE_SEARCH);
+    cifGatherFunc(tile, dinfo, &atotal, CLOSE_SEARCH);
 
     /* If the total area is smaller than the rule area, then paint all	*/
     /* the tile areas into the destination plane.  A rule area of zero	*/
@@ -2161,11 +2216,11 @@ cifCloseFunc(
 
     if ((atotal != INFINITY) && ((atotal < growDistance) || (growDistance == 0)))
     {
-	cifGatherFunc(tile, &atotal, CLOSE_FILL);
+	cifGatherFunc(tile, dinfo, &atotal, CLOSE_FILL);
     }
     else
     {
-	cifGatherFunc(tile, &atotal, CLOSE_DONE);
+	cifGatherFunc(tile, dinfo, &atotal, CLOSE_DONE);
     }
     return 0;
 }
@@ -2173,6 +2228,7 @@ cifCloseFunc(
 int
 cifGatherFunc(
     Tile *tile,
+    TileType dinfo,
     int *atotal,
     int mode)
 {
@@ -2188,10 +2244,13 @@ cifGatherFunc(
     if (GatherStack == (Stack *)NULL)
 	GatherStack = StackNew(64);
 
-    STACKPUSH(tile, GatherStack);
+    PUSHTILE(tile, dinfo, GatherStack);
     while (!StackEmpty(GatherStack))
     {
-	tile = (Tile *)STACKPOP(GatherStack);
+	TileType newdinfo;
+
+	POPTILE(tile, dinfo, GatherStack);
+	newdinfo = TiGetTypeExact(tile) | dinfo;
 
 	/* Ignore if tile has already been processed */
 	if (TiGetClient(tile) != cdata) continue;
@@ -2226,8 +2285,6 @@ cifGatherFunc(
         }
         else if (mode == CLOSE_FILL)
         {
-	    TileType dinfo = TiGetTypeExact(tile);
-
 	    /* The tile type cannot be depended on to have the TT_SIDE bit set	*/
 	    /* for the side of the tile that is TT_SPACE.  So set the side bit	*/
 	    /* manually.							*/
@@ -2235,12 +2292,13 @@ cifGatherFunc(
 	    if (IsSplit(tile))
 	    {
 	        if (TiGetLeftType(tile) == TT_SPACE)
-		    dinfo &= ~TT_SIDE;
+		    newdinfo &= ~TT_SIDE;
 	        else
-		    dinfo |= TT_SIDE;
+		    newdinfo |= TT_SIDE;
 	    }
 
-	    DBNMPaintPlane(cifPlane, dinfo, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
+	    DBNMPaintPlane(cifPlane, newdinfo, &area, CIFPaintTable,
+			(PaintUndoInfo *)NULL);
 	    CIFTileOps++;
         }
 
@@ -2255,7 +2313,10 @@ cifGatherFunc(
             for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	        if (TiGetClient(tp) == cdata && TiGetBottomType(tp) == TT_SPACE)
 		{
-		    STACKPUSH(tp, GatherStack);
+		    PUSHTILEALWAYS(tp,
+				((newdinfo & TT_DIRECTION) != (TiGetTypeExact(tp) & TT_DIRECTION)) ?
+				(TileType)TT_SIDE : (TileType)0,
+				GatherStack);
 		}
 
     	/* Check bottom */
@@ -2263,7 +2324,10 @@ cifGatherFunc(
             for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 		if (TiGetClient(tp) == cdata && TiGetTopType(tp) == TT_SPACE)
 		{
-		    STACKPUSH(tp, GatherStack);
+		    PUSHTILEALWAYS(tp,
+				((newdinfo & TT_DIRECTION) == (TiGetTypeExact(tp) & TT_DIRECTION)) ?
+				(TileType)TT_SIDE : (TileType)0,
+				GatherStack);
 		}
 
     	/* Check left */
@@ -2271,7 +2335,7 @@ cifGatherFunc(
 	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 		if (TiGetClient(tp) == cdata && TiGetRightType(tp) == TT_SPACE)
 		{
-		    STACKPUSH(tp, GatherStack);
+		    PUSHTILEALWAYS(tp, (TileType)TT_SIDE, GatherStack);
 		}
 
     	/* Check right */
@@ -2279,7 +2343,7 @@ cifGatherFunc(
 	    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 		if (TiGetClient(tp) == cdata && TiGetLeftType(tp) == TT_SPACE)
 		{
-		    STACKPUSH(tp, GatherStack);
+		    PUSHTILEALWAYS(tp, (TileType)0, GatherStack);
 		}
     }
     return 0;
@@ -2323,9 +2387,10 @@ typedef struct
  */
 
 int
-cifSquaresInitFunc(tile, clientData)
+cifSquaresInitFunc(tile, dinfo, clientData)
     Tile *tile;
-    ClientData clientData;
+    TileType dinfo;		/* (unused) */
+    ClientData clientData;	/* (unused) */
 {
     if (TiGetClient(tile) == CIF_UNPROCESSED)
 	return 1;
@@ -2350,6 +2415,7 @@ cifSquaresInitFunc(tile, clientData)
 int
 cifSquaresStripFunc(
     Tile *tile,
+    TileType dinfo,		/* (unused) */
     StripsData *stripsData)
 {
     bool vertical;
@@ -2477,7 +2543,8 @@ cifSquaresStripFunc(
 int
 cifUnconnectFunc(
     Tile *tile,
-    ClientData clientData)	/* unused */
+    TileType dinfo,		/* (unused) */
+    ClientData clientData)	/* (unused) */
 {
     TileType t = TiGetTypeExact(tile);
     if (t == TT_SPACE) return 1;
@@ -2531,10 +2598,10 @@ cifRectBoundingBox(
 	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
-	PUSHTILE(tile, BoxStack);
+	PUSHTILEONLY(tile, BoxStack);
 	while (!StackEmpty(BoxStack))
 	{
-	    t = (Tile *) STACKPOP(BoxStack);
+	    POPTILEONLY(t, BoxStack);
 	    if (TiGetClientINT(t) != CIF_PENDING) continue;
             TiSetClientINT(t, CIF_PROCESSED);
 
@@ -2549,7 +2616,7 @@ cifRectBoundingBox(
 		if (TTMaskHasType(&CIFSolidBits, TiGetBottomType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, BoxStack);
+		    PUSHTILEONLY(tp, BoxStack);
 		}
 
 	    /* Left */
@@ -2557,7 +2624,7 @@ cifRectBoundingBox(
 		if (TTMaskHasType(&CIFSolidBits, TiGetRightType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, BoxStack);
+		    PUSHTILEONLY(tp, BoxStack);
 		}
 
 	    /* Bottom */
@@ -2565,7 +2632,7 @@ cifRectBoundingBox(
 		if (TTMaskHasType(&CIFSolidBits, TiGetTopType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, BoxStack);
+		    PUSHTILEONLY(tp, BoxStack);
 		}
 
 	    /* Right */
@@ -2573,7 +2640,7 @@ cifRectBoundingBox(
 		if (TTMaskHasType(&CIFSolidBits, TiGetLeftType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, BoxStack);
+		    PUSHTILEONLY(tp, BoxStack);
 		}
 	}
 
@@ -2600,17 +2667,17 @@ cifRectBoundingBox(
 	/* Clear the tiles that were processed in this set */
 
 	TiSetClientINT(tile, CIF_IGNORE);
-	STACKPUSH(tile, BoxStack);
+	PUSHTILEONLY(tile, BoxStack);
 	while (!StackEmpty(BoxStack))
 	{
-	    t = (Tile *) STACKPOP(BoxStack);
+	    POPTILEONLY(t, BoxStack);
 
 	    /* Top */
 	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, BoxStack);
+		    PUSHTILEONLY(tp, BoxStack);
 		}
 
 	    /* Left */
@@ -2618,7 +2685,7 @@ cifRectBoundingBox(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, BoxStack);
+		    PUSHTILEONLY(tp, BoxStack);
 		}
 
 	    /* Bottom */
@@ -2626,7 +2693,7 @@ cifRectBoundingBox(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, BoxStack);
+		    PUSHTILEONLY(tp, BoxStack);
 		}
 
 	    /* Right */
@@ -2634,7 +2701,7 @@ cifRectBoundingBox(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, BoxStack);
+		    PUSHTILEONLY(tp, BoxStack);
 		}
 	}
     }
@@ -2802,10 +2869,10 @@ cifSquaresFillArea(
 	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
-	PUSHTILE(tile, CutStack);
+	PUSHTILEONLY(tile, CutStack);
 	while (!StackEmpty(CutStack))
 	{
-	    t = (Tile *) STACKPOP(CutStack);
+	    POPTILEONLY(t, CutStack);
 	    if (TiGetClientINT(t) != CIF_PENDING) continue;
             TiSetClientINT(t, CIF_PROCESSED);
 
@@ -2820,7 +2887,7 @@ cifSquaresFillArea(
 		if (TTMaskHasType(&CIFSolidBits, TiGetBottomType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Left */
@@ -2828,7 +2895,7 @@ cifSquaresFillArea(
 		if (TTMaskHasType(&CIFSolidBits, TiGetRightType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Bottom */
@@ -2836,7 +2903,7 @@ cifSquaresFillArea(
 		if (TTMaskHasType(&CIFSolidBits, TiGetTopType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Right */
@@ -2844,7 +2911,7 @@ cifSquaresFillArea(
 		if (TTMaskHasType(&CIFSolidBits, TiGetLeftType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 	}
 
@@ -2933,17 +3000,17 @@ cifSquaresFillArea(
 	/* Clear the tiles that were processed */
 
 	TiSetClientINT(tile, CIF_IGNORE);
-	STACKPUSH(tile, CutStack);
+	PUSHTILEONLY(tile, CutStack);
 	while (!StackEmpty(CutStack))
 	{
-	    t = (Tile *) STACKPOP(CutStack);
+	    POPTILEONLY(t, CutStack);
 
 	    /* Top */
 	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Left */
@@ -2951,7 +3018,7 @@ cifSquaresFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Bottom */
@@ -2959,7 +3026,7 @@ cifSquaresFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Right */
@@ -2967,7 +3034,7 @@ cifSquaresFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 	}
     }
@@ -3146,10 +3213,10 @@ cifSlotsFillArea(
 	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
-	PUSHTILE(tile, CutStack);
+	PUSHTILEONLY(tile, CutStack);
 	while (!StackEmpty(CutStack))
 	{
-	    t = (Tile *) STACKPOP(CutStack);
+	    POPTILEONLY(t, CutStack);
 	    if (TiGetClientINT(t) != CIF_PENDING) continue;
             TiSetClientINT(t, CIF_PROCESSED);
 
@@ -3164,7 +3231,7 @@ cifSlotsFillArea(
 		if (TTMaskHasType(&CIFSolidBits, TiGetBottomType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Left */
@@ -3172,7 +3239,7 @@ cifSlotsFillArea(
 		if (TTMaskHasType(&CIFSolidBits, TiGetRightType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Bottom */
@@ -3180,7 +3247,7 @@ cifSlotsFillArea(
 		if (TTMaskHasType(&CIFSolidBits, TiGetTopType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Right */
@@ -3188,7 +3255,7 @@ cifSlotsFillArea(
 		if (TTMaskHasType(&CIFSolidBits, TiGetLeftType(tp)))
 		{
 		    simple = FALSE;
-		    PUSHTILE(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 	}
 
@@ -3298,17 +3365,17 @@ cifSlotsFillArea(
 	/* Clear the tiles that were processed */
 
 	TiSetClientINT(tile, CIF_IGNORE);
-	STACKPUSH(tile, CutStack);
+	PUSHTILEONLY(tile, CutStack);
 	while (!StackEmpty(CutStack))
 	{
-	    t = (Tile *) STACKPOP(CutStack);
+	    POPTILEONLY(t, CutStack);
 
 	    /* Top */
 	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Left */
@@ -3316,7 +3383,7 @@ cifSlotsFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Bottom */
@@ -3324,7 +3391,7 @@ cifSlotsFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 
 	    /* Right */
@@ -3332,7 +3399,7 @@ cifSlotsFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, CutStack);
+		    PUSHTILEONLY(tp, CutStack);
 		}
 	}
     }
@@ -3368,6 +3435,7 @@ cifSlotsFillArea(
 int
 cifBloatMaxFunc(
     Tile *tile,			/* The tile to be processed. */
+    TileType dinfo,		/* Split tile information */
     CIFOp *op)			/* Describes the operation to be performed
 				 * (all we care about is the opcode and
 				 * bloat table).
@@ -3474,7 +3542,7 @@ cifBloatMaxFunc(
 	CIFError(&area, "tile inverted by shrink");
     }
     else
-	DBNMPaintPlane(cifPlane, TiGetTypeExact(tile), &area,
+	DBNMPaintPlane(cifPlane, TiGetTypeExact(tile) | dinfo, &area,
 		CIFPaintTable, (PaintUndoInfo *) NULL);
 
     CIFTileOps += 1;
@@ -3560,6 +3628,7 @@ inside_triangle(
 int
 cifContactFunc(
     Tile *tile,			/* Tile to be diced up. */
+    TileType dinfo,		/* Split tile information (unused) */
     CIFSquaresInfo *csi) 	/* Describes how to generate squares. */
 {
     Rect area;
@@ -4146,6 +4215,7 @@ typedef struct _bridgeLimCheckStruct {
 int
 bridgeLimFound(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     bool calcOverlap)
 {
     if (calcOverlap)
@@ -4229,6 +4299,7 @@ bridgeLimSrTiles(
 int
 cifBridgeLimFunc0(
     Tile *tile,
+    TileType dinfo,		/* (unused) */
     BridgeLimStruct *brlims)
 {
     Plane *plane = brlims->plane;
@@ -4305,6 +4376,7 @@ cifBridgeLimFunc0(
 int
 bridgeLimCheckFunc(
     Tile *tile,
+    TileType dinfo,			/* (unused) */
     BridgeLimCheckStruct *brlimcs)
 {
     int dir = brlimcs->direction;
@@ -4423,6 +4495,7 @@ bridgeErase(
 int
 cifBridgeLimFunc1(
     Tile *tile,
+    TileType dinfo,		/* (unused) */
     BridgeLimStruct *brlims)
 {
     Plane *plane = brlims->plane;
@@ -4585,6 +4658,7 @@ cifBridgeLimFunc1(
 int
 cifBridgeLimFunc2(
     Tile *tile,
+    TileType dinfo,		/* (unused) */
     BridgeLimStruct *brlims)
 {
     Plane *plane = brlims->plane;
@@ -4739,12 +4813,16 @@ cifInteractingRegions(
 	/* to the destination plane or not depending on whether any	*/
 	/* part of the region overlapped the specified type(s).		*/
 
+	/* NOTE: Currently reusing code from cifSquares, but cifSquares	*/
+	/* does not handle non-Manhattan geometry, whereas overlap and	*/
+	/* interaction detection must.					*/
+
 	interacts = FALSE;
 	tile = PlaneGetHint(plane);
-	PUSHTILE(tile, RegStack);
+	PUSHTILEONLY(tile, RegStack);
 	while (!StackEmpty(RegStack))
 	{
-	    t = (Tile *) STACKPOP(RegStack);
+	    POPTILEONLY(t, RegStack);
 	    if (TiGetClientINT(t) != CIF_PENDING) continue;
             TiSetClientINT(t, CIF_PROCESSED);
 
@@ -4777,28 +4855,28 @@ cifInteractingRegions(
 	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
 		if (TTMaskHasType(&CIFSolidBits, TiGetBottomType(tp)))
 		{
-		    PUSHTILE(tp, RegStack);
+		    PUSHTILEONLY(tp, RegStack);
 		}
 
 	    /* Left */
 	    for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
 		if (TTMaskHasType(&CIFSolidBits, TiGetRightType(tp)))
 		{
-		    PUSHTILE(tp, RegStack);
+		    PUSHTILEONLY(tp, RegStack);
 		}
 
 	    /* Bottom */
 	    for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
 		if (TTMaskHasType(&CIFSolidBits, TiGetTopType(tp)))
 		{
-		    PUSHTILE(tp, RegStack);
+		    PUSHTILEONLY(tp, RegStack);
 		}
 
 	    /* Right */
 	    for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
 		if (TTMaskHasType(&CIFSolidBits, TiGetLeftType(tp)))
 		{
-		    PUSHTILE(tp, RegStack);
+		    PUSHTILEONLY(tp, RegStack);
 		}
 	}
 
@@ -4815,10 +4893,10 @@ cifInteractingRegions(
 	/* op->co_paintMask (op->co_cifMask)					*/ 
 
 	TiSetClientINT(tile, CIF_IGNORE);
-	STACKPUSH(tile, RegStack);
+	PUSHTILEONLY(tile, RegStack);
 	while (!StackEmpty(RegStack))
 	{
-	    t = (Tile *) STACKPOP(RegStack);
+	    POPTILEONLY(t, RegStack);
 
 	    if (interacts)
 	    {
@@ -4831,7 +4909,7 @@ cifInteractingRegions(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, RegStack);
+		    PUSHTILEONLY(tp, RegStack);
 		}
 
 	    /* Left */
@@ -4839,7 +4917,7 @@ cifInteractingRegions(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, RegStack);
+		    PUSHTILEONLY(tp, RegStack);
 		}
 
 	    /* Bottom */
@@ -4847,7 +4925,7 @@ cifInteractingRegions(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, RegStack);
+		    PUSHTILEONLY(tp, RegStack);
 		}
 
 	    /* Right */
@@ -4855,7 +4933,7 @@ cifInteractingRegions(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    STACKPUSH(tp, RegStack);
+		    PUSHTILEONLY(tp, RegStack);
 		}
 	}
 

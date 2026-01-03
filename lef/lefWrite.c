@@ -499,6 +499,7 @@ typedef struct
 int
 lefEraseGeometry(
     Tile *tile,
+    TileType dinfo,
     ClientData cdata)
 {
     lefClient *lefdata = (lefClient *)cdata;
@@ -508,7 +509,7 @@ lefEraseGeometry(
 
     TiToRect(tile, &area);
 
-    otype = TiGetTypeExact(tile);
+    otype = TiGetTypeExact(tile) | dinfo;
     if (IsSplit(tile))
 	ttype = (otype & TT_SIDE) ? SplitRightType(tile) :
 			SplitLeftType(tile);
@@ -541,6 +542,7 @@ lefEraseGeometry(
 int
 lefGetBound(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     ClientData cdata)
 {
     Rect *boundary = (Rect *)cdata;
@@ -569,6 +571,7 @@ lefGetBound(
 int
 lefHasPaint(
     Tile *tile,
+    TileType dinfo,
     ClientData clientData)
 {
     return 1;
@@ -588,14 +591,18 @@ lefHasPaint(
 int
 lefAccumulateArea(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     ClientData cdata)
 {
     int *area = (int *)cdata;
+    int locarea;
     Rect rarea;
 
     TiToRect(tile, &rarea);
 
-    *area += (rarea.r_xtop - rarea.r_xbot) * (rarea.r_ytop - rarea.r_ybot);
+    locarea = (rarea.r_xtop - rarea.r_xbot) * (rarea.r_ytop - rarea.r_ybot);
+    if (IsSplit(tile)) locarea /= 2;
+    *area += locarea;
 
     return 0;
 }
@@ -614,6 +621,7 @@ lefAccumulateArea(
 int
 lefFindTopmost(
     Tile *tile,
+    TileType dinfo,
     ClientData cdata)
 {
     return 1;	    /* Stop processing on the first tile found */
@@ -636,6 +644,7 @@ lefFindTopmost(
 int
 lefYankGeometry(
     Tile *tile,
+    TileType dinfo,
     ClientData cdata)
 {
     lefClient *lefdata = (lefClient *)cdata;
@@ -648,7 +657,7 @@ lefYankGeometry(
     /* Ignore marked tiles */
     if (TiGetClient(tile) != CLIENTDEFAULT) return 0;
 
-    otype = TiGetTypeExact(tile);
+    otype = TiGetTypeExact(tile) | dinfo;
     if (IsSplit(tile))
 	ttype = (otype & TT_SIDE) ? SplitRightType(tile) :
 			SplitLeftType(tile);
@@ -727,6 +736,7 @@ lefYankGeometry(
 int
 lefYankContacts(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     ClientData cdata)
 {
     lefClient *lefdata = (lefClient *)cdata;
@@ -795,13 +805,14 @@ lefYankContacts(
 int
 lefWriteGeometry(
     Tile *tile,
+    TileType dinfo,
     ClientData cdata)
 {
     lefClient *lefdata = (lefClient *)cdata;
     FILE *f = lefdata->file;
     float scale = lefdata->oscale;
     char leffmt[6][16];
-    TileType ttype, otype = TiGetTypeExact(tile);
+    TileType ttype, otype = TiGetTypeExact(tile) | dinfo;
     LefMapping *lefMagicToLefLayer = lefdata->lefMagicMap;
 
     /* Ignore tiles that have already been output */

@@ -434,8 +434,9 @@ extLengthYank(use, labList)
  */
 
 int
-extLengthLabels(tile, rootUse)
-    Tile *tile;	/* Some tile in extPathDef */
+extLengthLabels(tile, dinfo, rootUse)
+    Tile *tile;			/* Some tile in extPathDef */
+    TileType dinfo;		/* Split tile information (unused) */
     CellUse *rootUse;		/* The original root cell */
 {
     char name[MAXNAMESIZE];
@@ -727,8 +728,9 @@ extPathResetClient(tile)
  */
 
 int
-extPathPairFunc(tile, epa)
+extPathPairFunc(tile, dinfo, epa)
     Tile *tile;
+    TileType dinfo;		// Unused
     struct extPathArg *epa;
 {
     Point startPoint;
@@ -909,8 +911,9 @@ extPathFlood(tile, p, distance, epa)
 }
 
 int
-extPathFloodFunc(dstTile, epfa)
+extPathFloodFunc(dstTile, dinfo, epfa)
     Tile *dstTile;
+    TileType dinfo;	// Unused
     struct extPathFloodArg *epfa;
 {
     Rect srcRect, dstRect;

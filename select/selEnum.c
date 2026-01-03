@@ -180,8 +180,9 @@ SelEnumPaint(layers, editOnly, foundNonEdit, func, clientData)
  */
 
 int
-selEnumPFunc1(tile, arg)
+selEnumPFunc1(tile, dinfo, arg)
     Tile *tile;			/* Tile of matching type. */
+    TileType dinfo;		/* Split tile information */
     struct searg *arg;		/* Describes the current search. */
 {
     Rect editRect, rootRect;
@@ -193,8 +194,9 @@ selEnumPFunc1(tile, arg)
 
     if (IsSplit(tile))
     {
-	arg->sea_type = TiGetTypeExact(tile) & (TT_DIAGONAL | TT_SIDE | TT_DIRECTION);
-	if (SplitSide(tile))
+	arg->sea_type = (TiGetTypeExact(tile) | dinfo) &
+			(TT_DIAGONAL | TT_SIDE | TT_DIRECTION);
+	if (dinfo & TT_SIDE)
 	    loctype = SplitRightType(tile);
 	else
 	    loctype = SplitLeftType(tile);
@@ -273,8 +275,9 @@ selEnumPFunc1(tile, arg)
  */
 
 int
-selEnumPFunc2(tile, arg)
+selEnumPFunc2(tile, dinfo, arg)
     Tile *tile;			/* Tile found in the edit cell */
+    TileType dinfo;		/* Split tile information */
     struct searg *arg;		/* Describes our search */
 {
     ExtRectList *lr;
@@ -282,7 +285,7 @@ selEnumPFunc2(tile, arg)
     TileType seltype;
 
     if (IsSplit(tile))
-	ttype = SplitSide(tile) ? SplitRightType(tile) : SplitLeftType(tile);
+	ttype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     else
 	ttype = TiGetTypeExact(tile);
     seltype = arg->sea_type & TT_LEFTMASK;
@@ -480,7 +483,8 @@ topbottom:
 	    /* purposes, it suffices to copy the tile if the	*/
 	    /* triangles are similar and to compute the		*/
 	    /* rectangular union are if opposite.		*/
-	    if ((arg->sea_type & TT_SIDE) == (TiGetTypeExact(tile) & TT_SIDE))
+
+	    if ((arg->sea_type & TT_SIDE) == (dinfo  & TT_SIDE))
 		lr->r_type = ttype | (arg->sea_type &
 			(TT_DIAGONAL | TT_SIDE | TT_DIRECTION));
 	    else

@@ -195,7 +195,7 @@ SelRedisplay(window, plane)
  */
 
 int
-selAlways1()
+selAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
 {
     return 1;
 }
@@ -206,8 +206,9 @@ selAlways1()
  */
 
 int
-selRedisplayFunc(tile, window)
+selRedisplayFunc(tile, dinfo, window)
     Tile *tile;			/* Tile to be drawn on highlight layer. */
+    TileType dinfo;		/* Split tile information */
     MagWindow *window;		/* Window in which to redisplay. */
 {
     Rect area, edge, screenEdge, tmpr;
@@ -245,13 +246,13 @@ selRedisplayFunc(tile, window)
 	WindSurfaceToScreenNoClip(window, &tmpr, &screenEdge);
 	if (screenEdge.r_ll.p_x != screenEdge.r_ur.p_x &&
 		screenEdge.r_ll.p_y != screenEdge.r_ur.p_y)
-	    GrDrawTriangleEdge(&screenEdge, TiGetTypeExact(tile));
-	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	    GrDrawTriangleEdge(&screenEdge, TiGetTypeExact(tile) | dinfo);
+	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     }
     else
 	loctype = TiGetTypeExact(tile);
 
-    if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
+    if (IsSplit(tile) && (!((dinfo & TT_SIDE) ? 1 : 0) ^ SplitDirection(tile)))
 	goto searchleft;        /* nothing on bottom of split */
 
     if (area.r_ybot > TiPlaneRect.r_ybot)
@@ -278,7 +279,7 @@ selRedisplayFunc(tile, window)
      */
 
 searchleft:
-    if (IsSplit(tile) && SplitSide(tile)) return 0;
+    if (IsSplit(tile) && (dinfo & TT_SIDE)) return 0;
 
     if (area.r_xbot > TiPlaneRect.r_xbot)
     {
@@ -452,17 +453,19 @@ SelCopyToFeedback(celldef, seluse, style, text)
 /*----------------------------------------------------------------------*/
 
 int
-selFeedbackFunc(tile, fld)
+selFeedbackFunc(tile, dinfo, fld)
     Tile *tile;
+    TileType dinfo;
     FeedLayerData *fld;
 {
     Rect area;
 
     TiToRect(tile, &area);
 
+    /* (preserve information about the geometry of a diagonal tile) */
     DBWFeedbackAdd(&area, fld->text, selDisRoot, 1, fld->style |
-                (TiGetTypeExact(tile) & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE)));
-        /* (preserve information about the geometry of a diagonal tile) */
+                ((TiGetTypeExact(tile) | dinfo) &
+		(TT_DIAGONAL | TT_DIRECTION | TT_SIDE)));
     return 0;
 }
 

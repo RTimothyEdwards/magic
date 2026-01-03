@@ -513,8 +513,9 @@ plotPSRect(rect, style)
  */
 
 int
-plotPSPaint(tile, cxp)
+plotPSPaint(tile, dinfo, cxp)
     Tile *tile;			/* Tile that's of type to be output. */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* Describes search in progress. */
 {
     Rect tileArea, edge, rootArea;
@@ -554,7 +555,7 @@ plotPSPaint(tile, cxp)
     if (IsSplit(tile))
     {
 	int np, i, j;
-	TileType dinfo;
+	TileType newdinfo;
 	Point polyp[5];
 
 	plotPSFlushRect(curStyle->grs_stipple);
@@ -563,12 +564,12 @@ plotPSPaint(tile, cxp)
 
 	/* Side and direction are altered by geometric transformations */
 
-	dinfo = DBTransformDiagonal(TiGetTypeExact(tile), &scx->scx_trans);
+	newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, &scx->scx_trans);
 
 	/* Use GrClipTriangle() routine to get the n-sided polygon that */
 	/* results from clipping a triangle to the clip region.		*/
 
-	GrClipTriangle(&rootArea, &bbox, TRUE, dinfo, polyp, &np);
+	GrClipTriangle(&rootArea, &bbox, TRUE, newdinfo, polyp, &np);
 	for (i = 0; i < np; i++)
 	{
 	   polyp[i].p_x -= bbox.r_xbot;
@@ -651,7 +652,7 @@ plotPSPaint(tile, cxp)
      * (This code is essentially a duplicate of selRedisplayFunc())
      */
 
-    if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
+    if (IsSplit(tile) && (!((dinfo & TT_SIDE) ? 1 : 0) ^ SplitDirection(tile)))
         goto searchleft;        /* nothing on bottom of split */
 
     if (tileArea.r_ybot > TiPlaneRect.r_ybot)
@@ -676,7 +677,7 @@ plotPSPaint(tile, cxp)
      */
 
 searchleft:
-    if (IsSplit(tile) && SplitSide(tile))
+    if (IsSplit(tile) && (dinfo & TT_SIDE))
 	goto searchtop;		/* Nothing on left side of tile */
 
     if (tileArea.r_xbot > TiPlaneRect.r_xbot)
@@ -699,7 +700,7 @@ searchleft:
     /* Same thing for the tile's top border. */
 
 searchtop:
-    if (IsSplit(tile) && (SplitSide(tile) ^ SplitDirection(tile)))
+    if (IsSplit(tile) && (((dinfo & TT_SIDE) ? 1 : 0) ^ SplitDirection(tile)))
 	goto searchright;		/* Nothing on top side of tile */
 
     if (tileArea.r_ytop < TiPlaneRect.r_ytop)
@@ -722,7 +723,7 @@ searchtop:
     /* Finally, the right border. */
 
 searchright:
-    if (IsSplit(tile) && !SplitSide(tile))
+    if (IsSplit(tile) && !(dinfo & TT_SIDE))
 	return 0;		/* Nothing on right side of tile */
 
     if (tileArea.r_xtop < TiPlaneRect.r_xtop)

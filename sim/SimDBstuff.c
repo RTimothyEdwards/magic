@@ -78,6 +78,7 @@ static char 		bestName[256];
 int
 SimConnectFunc(
     Tile *tile,			/* Tile found. */
+    TileType dinfo,		/* Split tile information */
     TreeContext *cx)		/* Describes context of search.  The client
 				 * data is a pointer to the list head of
 				 * the conSrArg2's describing the areas
@@ -90,7 +91,7 @@ SimConnectFunc(
     TileTypeBitMask	notConnectMask;
     const TileTypeBitMask *connectMask;
     TileType		loctype, ctype;
-    TileType		dinfo = 0;
+    TileType		newdinfo = 0;
     int 		i, pNum;
     static char		nodeName[256];
     CellDef 		*def;
@@ -132,7 +133,7 @@ SimConnectFunc(
 	char c = *n;
 
 	SigDisableInterrupts();
-	strcpy(nodeName, SimGetNodeName(cx->tc_scx, tile, tpath->tp_first));
+	strcpy(nodeName, SimGetNodeName(cx->tc_scx, tile, dinfo, tpath->tp_first));
 	SigEnableInterrupts();
 
 	*n = c;
@@ -149,8 +150,8 @@ SimConnectFunc(
 
     if (IsSplit(tile))
     {
-	dinfo = DBTransformDiagonal(loctype, &scx->scx_trans);
-	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	newdinfo = DBTransformDiagonal(loctype | dinfo, &scx->scx_trans);
+	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     }
 
     /* See if the destination cell contains stuff over the whole
@@ -197,13 +198,13 @@ SimConnectFunc(
 
     def = csa2->csa2_use->cu_def;
     if (DBSrPaintNMArea((Tile *) NULL, def->cd_planes[pNum],
-		dinfo, &newarea, &notConnectMask, dbcUnconnectFunc,
+		newdinfo, &newarea, &notConnectMask, dbcUnconnectFunc,
 		(ClientData) connectMask) == 0)
 	return 0;
 
     /* Paint this tile into the destination cell. */
 
-    DBNMPaintPlane(def->cd_planes[pNum], dinfo, &newarea,
+    DBNMPaintPlane(def->cd_planes[pNum], newdinfo, &newarea,
 		DBStdPaintTbl(loctype, pNum), (PaintUndoInfo *) NULL);
 
     /* Since the whole area of this tile hasn't been recorded,
@@ -217,14 +218,14 @@ SimConnectFunc(
 
     /* Only extend those sides bordering the diagonal tile */
 
-    if (dinfo & TT_DIAGONAL)
+    if (newdinfo & TT_DIAGONAL)
     {
-	if (dinfo & TT_SIDE)			/* right */
+	if (newdinfo & TT_SIDE)			/* right */
 	    newarea.r_xtop += 1;
 	else					/* left */
 	    newarea.r_xbot -= 1;
-	if (((dinfo & TT_SIDE) >> 1)
-		== (dinfo & TT_DIRECTION))	/* top */
+	if (((newdinfo & TT_SIDE) >> 1)
+		== (newdinfo & TT_DIRECTION))	/* top */
 	    newarea.r_ytop += 1;
 	else					/* bottom */
 	    newarea.r_ybot -= 1;
@@ -277,7 +278,7 @@ SimConnectFunc(
 
     csa2->csa2_list[csa2->csa2_top].area = newarea;
     csa2->csa2_list[csa2->csa2_top].connectMask = connectMask;
-    csa2->csa2_list[csa2->csa2_top].dinfo = dinfo;
+    csa2->csa2_list[csa2->csa2_top].dinfo = newdinfo;
     return 0;
 }
 
@@ -527,6 +528,7 @@ efPreferredName(
  *	    int
  *	    func(tile, clientData)
  *		Tile *tile;
+ *		TileType dinfo;
  *		ClientData clientData;
  *    	    {
  *	    }
@@ -574,7 +576,7 @@ SimSrConnect(
 {
     struct conSrArg csa;
     int startPlane, result;
-    Tile *startTile;			/* Starting tile for search. */
+    TileAndDinfo tad;
 
     result = 0;
     csa.csa_def = def;
@@ -585,14 +587,14 @@ SimSrConnect(
      * the tile address and returns.
      */
 
-    startTile = NULL;
+    tad.tad_tile = NULL;
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
-	    dbSrConnectStartFunc, PTR2CD(&startTile)) != 0) break;
+	    dbSrConnectStartFunc, PTR2CD(&tad)) != 0) break;
     }
-    if (startTile == NULL) return 0;
+    if (tad.tad_tile == NULL) return 0;
 
     /* Pass 1.  During this pass the client function gets called. */
 
@@ -601,7 +603,7 @@ SimSrConnect(
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
     csa.csa_pNum = startPlane;
-    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
+    if (dbSrConnectFunc(tad.tad_tile, tad.tad_dinfo, PTR2CD(&csa)) != 0) result = 1;
 
     return result;
 }
@@ -622,6 +624,7 @@ SimSrConnect(
  *	int
  *	func(tile, cxp)
  *	    Tile *tile;
+ *	    TileType dinfo;
  *	    TreeContext *cxp;
  *	{
  *	}

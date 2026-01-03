@@ -583,8 +583,9 @@ DBReOrientLabel(cellDef, area, newPos)
  */
 
 int
-dbGetLabelArea(tile, area)
+dbGetLabelArea(tile, dinfo, area)
     Tile *tile;		/* Tile found. */
+    TileType dinfo;	/* Split tile information (unused) */
     Rect *area;		/* Area to be modified. */
 {
     Rect r;
@@ -1085,14 +1086,15 @@ DBPickLabelLayer(def, lab, doCalma)
  */
 
 int
-dbPickFunc1(tile, mask)
+dbPickFunc1(tile, dinfo, mask)
     Tile *tile;			/* Tile found. */
+    TileType dinfo;		/* Split tile information */
     TileTypeBitMask *mask;	/* Mask to be modified. */
 {
     TileType type;
 
     if (IsSplit(tile))
-	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     else
 	type = TiGetType(tile);
 
@@ -1111,15 +1113,16 @@ dbPickFunc1(tile, mask)
  */
 
 int
-dbPickFunc2(tile, mask)
+dbPickFunc2(tile, dinfo, mask)
     Tile *tile;			/* Tile found. */
+    TileType dinfo;		/* Split tile information */
     TileTypeBitMask *mask;	/* Mask to be modified. */
 {
     TileType type;
     TileTypeBitMask tmp, *rMask;
 
     if (IsSplit(tile))
-	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     else
 	type = TiGetType(tile);
 

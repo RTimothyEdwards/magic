@@ -6,7 +6,7 @@
 #include "windows/windows.h"	/* MagWindow */
 
 extern	const char *SimGetNodeCommand(const char *cmd);
-extern	char	*SimGetNodeName(SearchContext *sx, Tile *tp, const char *path);
+extern	char	*SimGetNodeName(SearchContext *sx, Tile *tp, TileType dinfo, const char *path);
 extern	char	*SimSelectNode(SearchContext *scx, TileType type, int xMask, char *buffer);
 extern	bool	SimGetReplyLine(char **replyLine);
 extern	void	SimRsimIt(const char *cmd, const char *nodeName);

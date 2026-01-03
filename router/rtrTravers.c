@@ -197,8 +197,9 @@ rtrSrTraverse(def, startArea, mask, connect, bounds, func, clientData)
 }
 
 int
-rtrSrTraverseStartFunc(tile, pTile)
+rtrSrTraverseStartFunc(tile, dinfo, pTile)
     Tile *tile;			/* This will be the starting tile. */
+    TileType dinfo;		/* Split tile information (unused) */
     Tile **pTile;		/* We store tile's address here. */
 {
     *pTile = tile;
@@ -238,8 +239,9 @@ rtrSrTraverseStartFunc(tile, pTile)
  */
 
 int
-rtrSrTraverseFunc(tile, ts)
+rtrSrTraverseFunc(tile, dinfo, ts)
     Tile *tile;			/* Tile that is connected. */
+    TileType dinfo;		/* Split tile information (unused) */
     struct rtrTileStack *ts;	/* Contains information about the search. */
 {
     Tile *t2;
@@ -401,8 +403,9 @@ rtrSrTraverseFunc(tile, ts)
  */
 
 int
-rtrExamineTile(tile, cdata)
+rtrExamineTile(tile, dinfo, cdata)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     ClientData cdata;
 {
     if ( TiGetType(tile) == rtrTarget )
@@ -439,8 +442,9 @@ rtrExamineTile(tile, cdata)
  */
 
 int
-rtrExamineStack(tile, ts)
+rtrExamineStack(tile, dinfo, ts)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct rtrTileStack *ts;
 {
     int i;

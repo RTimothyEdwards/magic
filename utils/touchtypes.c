@@ -138,8 +138,9 @@ TouchingTypes(cellUse, expansionMask, point)
  */
 
 int
-touchingTypesFunc(tile, cxp)
+touchingTypesFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	/* (unused, but should be handled) */
     TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;

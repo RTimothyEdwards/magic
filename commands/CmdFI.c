@@ -102,15 +102,17 @@ struct cmdFPArg
 int
 feedPolyFunc(
     Tile *tile,
+    TileType dinfo,
     struct cmdFPArg *arg)
 {
     Rect area;
     TiToRect(tile, &area);
 
+    /* (NOTE:  Preserve information about the geometry of a diagonal tile) */
     DBWFeedbackAdd(&area, arg->text, arg->def, FEEDMAGNIFY,
         arg->style |
-                (TiGetTypeExact(tile) & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE)));
-        /* (preserve information about the geometry of a diagonal tile) */
+                ((TiGetTypeExact(tile) | dinfo) &
+		(TT_DIAGONAL | TT_DIRECTION | TT_SIDE)));
     return 0;
 }
 
@@ -507,13 +509,15 @@ struct cmdFillArea *cmdFillList;	/* List of areas to fill. */
 
 void
 CmdFill(
-    MagWindow *w,		/* Window in which command was invoked. */
+    MagWindow *w,	/* Window in which command was invoked. */
     TxCommand *cmd)	/* Describes the command that was invoked. */
 {
     TileTypeBitMask maskBits;
     Rect editBox;
     SearchContext scx;
-    extern int cmdFillFunc(Tile *tile, TreeContext *cxp);
+
+    /* Forward declaration */
+    extern int cmdFillFunc(Tile *tile, TileType dinfo, TreeContext *cxp);
 
     if (cmd->tx_argc < 2 || cmd->tx_argc > 3)
     {
@@ -603,11 +607,16 @@ CmdFill(
  * paint here it may mess up the search.  Instead, the procedures
  * save areas on a list.  The list is post-processed to paint the
  * areas once the search is finished.
+ *
+ * Split tile information is unused because there is no obvious
+ * meaning to "filling" from a split tile, although probably reasonable
+ * methods could be worked out.
  */
 
 int
 cmdFillFunc(
     Tile *tile,			/* Tile to fill with. */
+    TileType dinfo,		/* Split tile information (unused) */
     TreeContext *cxp)		/* Describes state of search. */
 {
     Rect r1, r2;
@@ -1707,7 +1716,7 @@ checklocal:
 
     if (locvalid == TRUE)
     {
-	int findTile(Tile *tile, TileType *rtype);
+	int findTile(Tile *tile, TileType dinfo, TileType *rtype);
 	CellDef	 *targetdef = use->cu_def;
 	Plane *plane = targetdef->cd_planes[pnum];
 
@@ -1841,13 +1850,14 @@ CmdGoto(
 int
 findTile(
     Tile *tile,
+    TileType dinfo,
     TileType *rtype)
 {
     TileType ttype;
 
     if (IsSplit(tile))
     {
-	if (SplitSide(tile))
+	if (dinfo & TT_SIDE)
 	    ttype = SplitRightType(tile);
 	else
 	    ttype = SplitLeftType(tile);

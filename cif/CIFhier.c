@@ -433,15 +433,16 @@ cifHierCopyMaskHints(
 int
 cifHierCopyFunc(
     Tile *tile,			/* Pointer to tile to copy. */
+    TileType dinfo,		/* Split tile information */
     TreeContext *cxp)		/* Describes context of search, including
 				 * transform and client data.
 				 */
 {
-    TileType type = TiGetTypeExact(tile);
+    TileType type = TiGetTypeExact(tile) | dinfo;
     Rect sourceRect, targetRect;
     int pNum;
     CellDef *def = (CellDef *) cxp->tc_filter->tf_arg;
-    int dinfo = 0;
+    TileType newdinfo = 0;
 
     /* Ignore tiles in vendor GDS, unless this is specifically	*/
     /* overridden by the "see-vendor" option.			*/
@@ -457,8 +458,8 @@ cifHierCopyFunc(
 
     if (IsSplit(tile))
     {
-	dinfo = DBTransformDiagonal(type, &cxp->tc_scx->scx_trans);
-	type = (SplitSide(tile)) ? SplitRightType(tile) :
+	newdinfo = DBTransformDiagonal(type, &cxp->tc_scx->scx_trans);
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) :
 		SplitLeftType(tile);
     }
 
@@ -473,7 +474,7 @@ cifHierCopyFunc(
     {
 	if (DBPaintOnPlane(type, pNum))
 	{
-	    DBNMPaintPlane(def->cd_planes[pNum], dinfo, &targetRect,
+	    DBNMPaintPlane(def->cd_planes[pNum], newdinfo, &targetRect,
 		DBStdPaintTbl(type, pNum), (PaintUndoInfo *) NULL);
 	}
     }
@@ -562,9 +563,11 @@ cifHierCellFunc(
 int
 cifHierErrorFunc(
     Tile *tile,			/* Tile that covers area it shouldn't. */
+    TileType dinfo,		/* Split tile information */
     Rect *checkArea)		/* Intersection of this and tile is error. */
 {
     Rect area;
+    bool side = (dinfo & TT_SIDE) ? TRUE : FALSE;
 
     TiToRect(tile, &area);
 
@@ -572,8 +575,8 @@ cifHierErrorFunc(
      * space bounds the checkArea.
      */
     if (IsSplit(tile))
-	if (((area.r_xbot == checkArea->r_xbot) && !SplitSide(tile)) ||
-		((area.r_xtop == checkArea->r_xtop) && SplitSide(tile)))
+	if (((area.r_xbot == checkArea->r_xbot) && !side) ||
+		((area.r_xtop == checkArea->r_xtop) && side))
 	    return 0;
 
     GeoClip(&area, checkArea);
@@ -604,6 +607,7 @@ cifHierErrorFunc(
 int
 cifHierCheckFunc(
     Tile *tile,			/* Tile containing CIF. */
+    TileType dinfo,		/* Split tile information */
     Plane *plane)		/* Plane to check against and modify. */
 {
     Rect area;
@@ -612,7 +616,7 @@ cifHierCheckFunc(
 
     if (IsSplit(tile))
     {
-        DBSrPaintNMArea((Tile *)NULL, plane, TiGetTypeExact(tile),
+        DBSrPaintNMArea((Tile *)NULL, plane, TiGetTypeExact(tile) | dinfo,
 		&area, &DBSpaceBits, cifHierErrorFunc, (ClientData) &area);
 
 	DBNMPaintPlane(plane, TiGetTypeExact(tile), &area, CIFEraseTable,
@@ -651,6 +655,7 @@ cifHierCheckFunc(
 int
 cifHierTempCheckFunc(
     Tile *tile,			/* Tile containing CIF. */
+    TileType dinfo,		/* Information about split tiles */
     Plane *plane)		/* Plane to check against and modify. */
 {
     Rect area;
@@ -658,7 +663,7 @@ cifHierTempCheckFunc(
     TiToRect(tile, &area);
 
     if (IsSplit(tile))
-	DBNMPaintPlane(plane, TiGetTypeExact(tile), &area, CIFEraseTable,
+	DBNMPaintPlane(plane, TiGetTypeExact(tile) | dinfo, &area, CIFEraseTable,
 		(PaintUndoInfo *) NULL);
     else
         DBPaintPlane(plane, &area, CIFEraseTable, (PaintUndoInfo *) NULL);
@@ -686,6 +691,7 @@ cifHierTempCheckFunc(
 int
 cifHierPaintFunc(
     Tile *tile,
+    TileType dinfo,		/* Information about split tiles */
     Plane *plane)		/* Plane in which to paint CIF over tile's
 				 * area.
 				 */
@@ -695,7 +701,7 @@ cifHierPaintFunc(
     TiToRect(tile, &area);
     if (CIFCurStyle->cs_flags & CWF_GROW_SLIVERS) cifGrowSliver(tile, &area);
     if (IsSplit(tile))
-	DBNMPaintPlane(plane, TiGetTypeExact(tile), &area, CIFPaintTable,
+	DBNMPaintPlane(plane, TiGetTypeExact(tile) | dinfo, &area, CIFPaintTable,
 		(PaintUndoInfo *) NULL);
     else
 	DBPaintPlane(plane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
@@ -1127,7 +1133,9 @@ cifGrowSliver(
 
 int
 cifHierPaintArrayFunc(
-    Tile *tile)
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)	/* (unused) */
 {
     Rect area;
     int i, j, xbot, xtop;

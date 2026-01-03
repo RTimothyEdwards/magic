@@ -141,8 +141,9 @@ mzBuildHFR(srcUse, area)
  */
 
 int
-mzBuildHFRFunc(tile, cxp)
+mzBuildHFRFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;

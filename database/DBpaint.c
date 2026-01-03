@@ -1820,14 +1820,15 @@ nextrect:
  */
 
 int
-dbNMEnumFunc(tile, arg)
+dbNMEnumFunc(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;
     LinkedRect **arg;
 {
     LinkedRect *lr;
 
     /* Ignore the second call to any diagonal---only count once! */
-    if (IsSplit(tile) && SplitSide(tile)) return 0;
+    if (IsSplit(tile) && (dinfo & TT_SIDE)) return 0;
 
     lr = (LinkedRect *) mallocMagic(sizeof(LinkedRect));
     TiToRect(tile, &lr->r_r);

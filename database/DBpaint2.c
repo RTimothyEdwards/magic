@@ -119,8 +119,9 @@ DBPaint (cellDef, rect, type)
  */
 
 int
-dbResolveImages(tile, cellDef)
+dbResolveImages(tile, dinfo, cellDef)
     Tile *tile;
+    TileType dinfo;
     CellDef *cellDef;
 {
     Rect rect;
@@ -130,7 +131,7 @@ dbResolveImages(tile, cellDef)
     /* Recursive call back to DBPaint---this will ensure that   */
     /* all of the planes of the image type are painted.         */
 
-    DBPaint(cellDef, &rect, TiGetTypeExact(tile));
+    DBPaint(cellDef, &rect, TiGetTypeExact(tile) | dinfo);
     return 0;
 }
 

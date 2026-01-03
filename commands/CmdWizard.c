@@ -211,7 +211,8 @@ CmdExtractTest(
 
 int
 tileCountProc(
-    Tile *tile,
+    Tile *tile,		/* (unused) */
+    TileType dinfo,	/* (unused) */
     int *tcount)
 {
     (*tcount)++;
@@ -800,10 +801,12 @@ cmdStatsCount(
     CellDef *def,
     struct countClient *cc)
 {
-    int cmdStatsCountTile(Tile *tile, struct cellInfo *ci);
     int pNum;
     struct cellInfo *ci;
     TileType t;
+
+    /* Forward declaration */
+    int cmdStatsCountTile(Tile *tile, TileType dinfo, struct cellInfo *ci);
 
     if (def->cd_client)
 	return (1);
@@ -829,6 +832,7 @@ cmdStatsCount(
 int
 cmdStatsCountTile(
     Tile *tile,
+    TileType dinfo,		/* (unused) */
     struct cellInfo *ci)
 {
     TileType type = TiGetType(tile);
@@ -1099,16 +1103,17 @@ CmdTsearch(
     MagWindow *w,
     TxCommand *cmd)
 {
-    int cmdTsrFunc(Tile *tp);
-    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     char *rstatp;
     static TileTypeBitMask mask;
     static struct tms tlast, tdelta;
     Rect rtool, rsearch;
-    /**** Rect *ebox; ****/
     Plane *plane;
     int i, pNum, count;
     int usPerSearch, usPerTile, usPerL2, us, boxarea;
+
+    /* Forward declarations */
+    int cmdTsrFunc(Tile *tp, TileType dinfo, ClientData clientdata);
+    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
 
     if (cmd->tx_argc < 3 || cmd->tx_argc > 5)
     {
@@ -1209,7 +1214,9 @@ CmdTsearch(
 
 int
 cmdTsrFunc(
-    Tile *tp)
+    Tile *tp,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     if (cmdTsearchDebug)
 	TxPrintf("%lx\n", (intptr_t) tp);

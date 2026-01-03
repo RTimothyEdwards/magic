@@ -270,8 +270,9 @@ extInterSubtreeElement(use, trans, x, y, r)
  */
 
 int
-extInterSubtreeTile(tile, cxp)
+extInterSubtreeTile(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;
     TreeContext *cxp;
 {
     SearchContext newscx;

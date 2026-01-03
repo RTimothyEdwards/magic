@@ -1010,6 +1010,7 @@ DefReadNonDefaultRules(
 int
 defFoundOneFunc(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     Tile **tret)
 {
     *tret = tile;

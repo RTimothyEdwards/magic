@@ -168,11 +168,12 @@ plowFindWidth(
  */
 
 int
-plowInitWidthFunc(tile, wc)
+plowInitWidthFunc(tile, dinfo, wc)
     Tile *tile;	/* Tile whose type is not among the types
 				 * passed to plowFindWidth(), whose LHS will
 				 * provide the right-hand boundary.
 				 */
+    TileType dinfo;	/* (unused) */
     struct wclip *wc;	/* Contains original edge and area to clip */
 {
     Edge *edge = wc->wc_edge;
@@ -217,13 +218,14 @@ plowInitWidthFunc(tile, wc)
  */
 
 int
-plowWidthFunc(tile, wc)
+plowWidthFunc(tile, dinfo, wc)
     Tile *tile;	/* Tile whose type is not among the types
 				 * passed to plowFindWidth(), which will be
 				 * clipped out of the area wc->wc_area in
 				 * such a way that the original edge will
 				 * remain a part of wc->wc_area.
 				 */
+    TileType dinfo;	/* (unused) */
     struct wclip *wc;	/* Contains original edge and area to clip */
 {
     Edge *edge = wc->wc_edge;
@@ -423,11 +425,12 @@ plowFindWidthBack(
  */
 
 int
-plowInitWidthBackFunc(tile, wc)
+plowInitWidthBackFunc(tile, dinfo, wc)
     Tile *tile;	/* Tile whose type is not among the types
 				 * passed to plowFindWidthBack(), whose RHS will
 				 * provide the left-hand boundary.
 				 */
+    TileType dinfo; 	/* (unused) */
     struct wclip *wc;	/* Contains original edge and area to clip */
 {
     Edge *edge = wc->wc_edge;
@@ -472,13 +475,14 @@ plowInitWidthBackFunc(tile, wc)
  */
 
 int
-plowWidthBackFunc(tile, wc)
+plowWidthBackFunc(tile, dinfo, wc)
     Tile *tile;	/* Tile whose type is not among the types
 				 * passed to plowFindWidth(), which will be
 				 * clipped out of the area wc->wc_area in
 				 * such a way that the original edge will
 				 * remain a part of wc->wc_area.
 				 */
+    TileType dinfo;	/* (unused) */
     struct wclip *wc;	/* Contains original edge and area to clip */
 {
     Edge *edge = wc->wc_edge;

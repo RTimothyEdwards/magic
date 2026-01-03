@@ -351,8 +351,9 @@ ResMakeLabelBreakpoints(def, goodies)
  */
 
 int
-ResAddBreakpointFunc(tile, node)
+ResAddBreakpointFunc(tile, dinfo, node)
    Tile *tile;
+   TileType dinfo;		/* (unused) */
    ResSimNode *node;
 {
     tileJunk *junk;
@@ -741,8 +742,9 @@ ResCalcPerimOverlap(tile, dev)
  */
 
 int
-resMakeDevFunc(tile, cx)
+resMakeDevFunc(tile, dinfo, cx)
     Tile	*tile;
+    TileType	dinfo;
     TreeContext *cx;
 {
     ResDevTile	*thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
@@ -753,7 +755,7 @@ resMakeDevFunc(tile, cx)
     GeoTransRect(&cx->tc_scx->scx_trans, &devArea, &thisDev->area);
 
     if (IsSplit(tile))
-	ttype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	ttype = ((dinfo & TT_SIDE)) ? SplitRightType(tile) : SplitLeftType(tile);
     else
 	ttype = TiGetType(tile);
 
@@ -795,8 +797,9 @@ resMakeDevFunc(tile, cx)
 #define DEV_PROCESSED 1
 
 int
-resExpandDevFunc(tile, cx)
+resExpandDevFunc(tile, dinfo, cx)
     Tile	*tile;
+    TileType	dinfo;		/* Split tile information (unused) */
     TreeContext *cx;
 {
     ResDevTile	    *thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
@@ -918,8 +921,9 @@ resExpandDevFunc(tile, cx)
  */
 
 int
-ResShaveContacts(tile, def)
+ResShaveContacts(tile, dinfo, def)
     Tile *tile;
+    TileType dinfo;	/* (unused, see comment below) */
     CellDef *def;
 {
     TileType ttype;
@@ -1287,8 +1291,10 @@ ResCleanUpEverything()
  */
 
 int
-ResGetTileFunc(tile, tpptr)
-    Tile *tile, **tpptr;
+ResGetTileFunc(tile, dinfo, tpptr)
+    Tile *tile;
+    TileType dinfo;		/* (unused) */
+    Tile **tpptr;
 {
     if (TiGetType(tile) != TT_SPACE)
     {

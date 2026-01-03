@@ -468,8 +468,9 @@ drcCheckRectSize(starttile, arg, cptr)
 
 int
 MaxRectsExclude(
-    Tile *tile,
-    ClientData clientdata)
+    Tile 	*tile,		/* (unused) */
+    TileType	dinfo,		/* (unused) */
+    ClientData	clientdata)	/* (unused) */
 {
     return 1;
 }

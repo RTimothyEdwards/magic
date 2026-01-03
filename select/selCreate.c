@@ -265,15 +265,17 @@ selClearFunc(scx)
  */
 
 int
-selIntersectPaintFunc2(tile, rect)
+selIntersectPaintFunc2(tile, dinfo, rect)
     Tile *tile;		/* The tile to copy paint from. */
+    TileType dinfo;	/* Split tile information */
     Rect *rect;		/* Area to clip to */
 {
     Rect r;
 
     TiToRect(tile, &r);
     GEOCLIP(&r, rect);    /* Clip out the intersection area */
-    DBPaint(SelectDef, &r, TiGetTypeExact(tile));	/* Paint back into SelectDef */
+    /* Paint back into SelectDef */
+    DBPaint(SelectDef, &r, TiGetTypeExact(tile) | dinfo);
     return 0;			    /* Keep the search going. */
 }
 
@@ -288,8 +290,10 @@ selIntersectPaintFunc2(tile, rect)
  */
 
 int
-selIntersectPaintFunc(tile)
+selIntersectPaintFunc(tile, dinfo, clientdata)
     Tile *tile;			/* The tile to copy paint from. */
+    TileType dinfo;		/* Split tile information */
+    ClientData clientdata;	/* (unused) */
 {
     TileTypeBitMask tMask;
     Rect r;
@@ -299,9 +303,10 @@ selIntersectPaintFunc(tile)
 
     for (pNum = 0; pNum < DBNumPlanes; pNum++)
     {
-	DBSrPaintArea((Tile *)NULL, Select2Def->cd_planes[pNum], &r,
-		    &DBAllButSpaceAndDRCBits, selIntersectPaintFunc2,
-		    (ClientData)&r);
+	DBSrPaintNMArea((Tile *)NULL, Select2Def->cd_planes[pNum],
+		TiGetTypeExact(tile) | dinfo, &r,
+		&DBAllButSpaceAndDRCBits, selIntersectPaintFunc2,
+		(ClientData)&r);
     }
     return 0;			    /* Keep the search going. */
 }
@@ -628,8 +633,9 @@ selFindChunk(plane, wrongTypes, searchArea, containedArea, bestMin,
  */
 
 int
-selSplitFunc(tile, cxp)
+selSplitFunc(tile, dinfo, cxp)
    Tile *tile;
+   TileType dinfo;	/* (unused) */
    TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;
@@ -651,8 +657,9 @@ selSplitFunc(tile, cxp)
  */
 
 int
-selChunkFunc(tile, wrong)
+selChunkFunc(tile, dinfo, wrong)
     Tile *tile;			/* The offending tile. */
+    TileType dinfo;		/* Split tile information (unused) */
     Rect *wrong;		/* Place to store the tile's area. */
 {
     TiToRect(tile, wrong);
@@ -1323,8 +1330,9 @@ typedef struct {
  */
 
 int
-selACPaintFunc(tile, plane)
+selACPaintFunc(tile, dinfo, plane)
     Tile *tile;			/* Tile in Select2Def. */
+    TileType dinfo;		/* Split tile information */
     int plane;			/* Index of plane this tile came from. */
 {
     Rect area, editArea;
@@ -1336,7 +1344,7 @@ selACPaintFunc(tile, plane)
     selACarg.editClip = &area;
     GeoTransRect(&RootToEditTransform, &area, &editArea);
 
-    selACarg.ttype = TiGetTypeExact(tile);
+    selACarg.ttype = TiGetTypeExact(tile) | dinfo;
 
     if (IsSplit(tile))
     {
@@ -1361,23 +1369,24 @@ selACPaintFunc(tile, plane)
  */
 
 int
-selACPaintFunc2(tile, selACarg)
+selACPaintFunc2(tile, dinfo, selACarg)
     Tile *tile;			/* Tile in edit cell. */
+    TileType dinfo;		/* Split tile information */
     acparg *selACarg;		/* Contains edit-cell area to clip to
 				 * before painting into selection.
 				 */
 {
     Rect *editClip = selACarg->editClip;
     Rect area, selArea;
-    TileType type = TiGetTypeExact(tile);
+    TileType type = TiGetTypeExact(tile) | dinfo;
     TileTypeBitMask tmask, *rmask;
     TileType ttype, rtype;
-    TileType dinfo = selACarg->ttype & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE);
+    TileType newdinfo = selACarg->ttype & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE);
 
     TiToRect(tile, &area);
     GeoTransRect(&EditToRootTransform, &area, &selArea);
 
-    if ((dinfo & TT_DIAGONAL) || (type & TT_DIAGONAL))
+    if ((newdinfo & TT_DIAGONAL) || (type & TT_DIAGONAL))
     {
 	/* If the select area is triangular, then we need to	*/
 	/* clip in a more complicated manner.			*/
@@ -1406,11 +1415,11 @@ selACPaintFunc2(tile, selACarg)
 
 	TTMaskSetOnlyType(&tmask, rtype);
 
-	type = (dinfo & TT_SIDE) ? (rtype << 14) : rtype;
-	type |= dinfo;
+	type = (newdinfo & TT_SIDE) ? (rtype << 14) : rtype;
+	type |= newdinfo;
 
-	if (dinfo & TT_DIAGONAL)
-	    GrClipTriangle(editClip, &selArea, TRUE, dinfo, points, &np);
+	if (newdinfo & TT_DIAGONAL)
+	    GrClipTriangle(editClip, &selArea, TRUE, newdinfo, points, &np);
 	else
 	    GrClipTriangle(&selArea, editClip, TRUE, type, points, &np);
 

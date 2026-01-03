@@ -967,14 +967,15 @@ DBCellGenerateSimpleSubstrate(scx, subType, notSubMask, targetDef)
  */
 
 int
-dbEraseSubFunc(tile, cxp)
+dbEraseSubFunc(tile, dinfo, cxp)
     Tile *tile;			/* Pointer to source tile with shield type */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx;
     Rect sourceRect, targetRect;
     int pNum;
-    TileType dinfo, loctype, subType;
+    TileType newdinfo, loctype, subType;
     Plane *plane;
     struct dbCopySubData *csd;	/* Client data */
 
@@ -983,12 +984,11 @@ dbEraseSubFunc(tile, cxp)
     plane = csd->csd_plane;
     pNum = csd->csd_pNum;
     subType = csd->csd_subtype;
-    dinfo = TiGetTypeExact(tile);
     if (IsSplit(tile))
     {
-	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
-	dinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
+	newdinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
     }
 
     /* Construct the rect for the tile */
@@ -999,7 +999,7 @@ dbEraseSubFunc(tile, cxp)
 
     csd->csd_modified = TRUE;
 
-    return DBNMPaintPlane(plane, dinfo, &targetRect, DBStdEraseTbl(subType, pNum),
+    return DBNMPaintPlane(plane, newdinfo, &targetRect, DBStdEraseTbl(subType, pNum),
 		(PaintUndoInfo *)NULL);
 }
 
@@ -1011,14 +1011,15 @@ dbEraseSubFunc(tile, cxp)
  */
 
 int
-dbPaintSubFunc(tile, cxp)
+dbPaintSubFunc(tile, dinfo, cxp)
     Tile *tile;			/* Pointer to source tile with shield type */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx;
     Rect sourceRect, targetRect;
     int pNum;
-    TileType dinfo, loctype, subType;
+    TileType newdinfo, loctype, subType;
     Plane *plane;
     struct dbCopySubData *csd;	/* Client data */
 
@@ -1027,12 +1028,11 @@ dbPaintSubFunc(tile, cxp)
     plane = csd->csd_plane;
     pNum = csd->csd_pNum;
     subType = csd->csd_subtype;
-    dinfo = TiGetTypeExact(tile);
     if (IsSplit(tile))
     {
-	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
-	dinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
+	newdinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
     }
 
     /* Construct the rect for the tile */
@@ -1043,7 +1043,7 @@ dbPaintSubFunc(tile, cxp)
 
     csd->csd_modified = TRUE;
 
-    return DBNMPaintPlane(plane, dinfo, &targetRect, DBStdPaintTbl(subType, pNum),
+    return DBNMPaintPlane(plane, newdinfo, &targetRect, DBStdPaintTbl(subType, pNum),
 		(PaintUndoInfo *)NULL);
 }
 
@@ -1056,14 +1056,15 @@ dbPaintSubFunc(tile, cxp)
  */
 
 int
-dbEraseNonSub(tile, cxp)
+dbEraseNonSub(tile, dinfo, cxp)
     Tile *tile;			/* Pointer to tile to erase from target */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx;
     Rect sourceRect, targetRect;
     Plane *plane;		/* Plane of target data */
-    TileType dinfo, loctype, subType;
+    TileType newdinfo, loctype, subType;
     struct dbCopySubData *csd;
     int pNum;
 
@@ -1074,12 +1075,11 @@ dbEraseNonSub(tile, cxp)
 
     scx = cxp->tc_scx;
 
-    dinfo = TiGetTypeExact(tile);
     if (IsSplit(tile))
     {
-	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
-	dinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
+	newdinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
     }
 
     /* Construct the rect for the tile */
@@ -1089,7 +1089,7 @@ dbEraseNonSub(tile, cxp)
     GEOTRANSRECT(&scx->scx_trans, &sourceRect, &targetRect);
 
     /* Erase the substrate type from the area of this tile in the target plane. */
-    return DBNMPaintPlane(plane, dinfo, &targetRect, DBStdEraseTbl(subType, pNum),
+    return DBNMPaintPlane(plane, newdinfo, &targetRect, DBStdEraseTbl(subType, pNum),
 		(PaintUndoInfo *)NULL);
 }
 
@@ -1101,8 +1101,9 @@ dbEraseNonSub(tile, cxp)
  */
 
 int
-dbCopySubFunc(tile, csd)
+dbCopySubFunc(tile, dinfo, csd)
     Tile *tile;			/* Pointer to tile to erase from target */
+    TileType dinfo;		/* Split tile information */
     struct dbCopySubData *csd;	/* Client data */
 {
     Rect rect;
@@ -1112,10 +1113,10 @@ dbCopySubFunc(tile, csd)
 
     plane = csd->csd_plane;
     pNum = csd->csd_pNum;
-    type = TiGetTypeExact(tile);
+    type = TiGetTypeExact(tile) | dinfo;
     if (IsSplit(tile))
     {
-	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
     }
     else
@@ -1436,8 +1437,9 @@ DBCellCopyLabels(scx, mask, xMask, targetUse, pArea)
  ***/
 
 int
-dbCopyManhattanPaint(tile, cxp)
-    Tile *tile;	/* Pointer to tile to copy */
+dbCopyManhattanPaint(tile, dinfo, cxp)
+    Tile *tile;			/* Pointer to tile to copy */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx = cxp->tc_scx;
@@ -1483,8 +1485,9 @@ dbCopyManhattanPaint(tile, cxp)
  ***/
 
 int
-dbCopyAllPaint(tile, cxp)
-    Tile *tile;	/* Pointer to tile to copy */
+dbCopyAllPaint(tile, dinfo, cxp)
+    Tile *tile;			/* Pointer to tile to copy */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cxp;		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx = cxp->tc_scx;
@@ -1492,7 +1495,7 @@ dbCopyAllPaint(tile, cxp)
     Rect sourceRect, targetRect;
     PaintUndoInfo ui;
     CellDef *def;
-    TileType type = TiGetTypeExact(tile);
+    TileType type = TiGetTypeExact(tile) | dinfo;
     int pNum = cxp->tc_plane;
     int result;
     TileTypeBitMask *typeMask;
@@ -1505,13 +1508,13 @@ dbCopyAllPaint(tile, cxp)
      */
 
     bool splittile = FALSE;
-    TileType dinfo = 0;
+    TileType newdinfo = 0;
 
     if (IsSplit(tile))
     {
 	splittile = TRUE;
-	dinfo = DBTransformDiagonal(type, &scx->scx_trans);
-	type = (SplitSide(tile)) ? SplitRightType(tile) :
+	newdinfo = DBTransformDiagonal(type, &scx->scx_trans);
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) :
 			SplitLeftType(tile);
     }
 
@@ -1571,7 +1574,7 @@ dbCopyAllPaint(tile, cxp)
 	Rect rrect, orect;
 	int np, i, j;
 
-	GrClipTriangle(&targetRect, &arg->caa_rect, TRUE, dinfo, points, &np);
+	GrClipTriangle(&targetRect, &arg->caa_rect, TRUE, newdinfo, points, &np);
 
 	if (np == 0)
 	   return(0);
@@ -1600,7 +1603,7 @@ dbCopyAllPaint(tile, cxp)
 		rrect.r_ybot = points[0].p_y;
 		rrect.r_ytop = points[2].p_y;
 		GeoCanonicalRect(&rrect, &targetRect);
-		dinfo = 0;
+		newdinfo = 0;
 	    }
 	    else if (np >= 4) /* Process extra rectangles in the area */
 	    {
@@ -1657,7 +1660,7 @@ topbottom:
 
 splitdone:
 
-    result = (*dbCurPaintPlane)(def, pNum, dinfo | type, &targetRect, &ui);
+    result = (*dbCurPaintPlane)(def, pNum, newdinfo | type, &targetRect, &ui);
     if ((result != 0) && (arg->caa_func != NULL))
     {
 	/* result == 1 used exclusively for DRC off-grid error flagging */

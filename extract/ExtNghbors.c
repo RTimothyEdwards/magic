@@ -74,8 +74,9 @@ ClientData extNbrUn;
  */
 
 int
-ExtFindNeighbors(tile, tilePlaneNum, arg)
+ExtFindNeighbors(tile, dinfo, tilePlaneNum, arg)
     Tile *tile;
+    TileType dinfo;
     int tilePlaneNum;
     FindRegion *arg;
 {
@@ -95,15 +96,15 @@ ExtFindNeighbors(tile, tilePlaneNum, arg)
 	extNodeStack = StackNew(64);
 
     /* Mark this tile as pending and push it */
-    PUSHTILE(tile, tilePlaneNum);
+    PUSHTILE(tile, dinfo, tilePlaneNum);
 
     while (!StackEmpty(extNodeStack))
     {
-	POPTILE(tile, tilePlaneNum);
+	POPTILE(tile, dinfo, tilePlaneNum);
 
 	if (IsSplit(tile))
 	{
-            type = (SplitSide(tile)) ? SplitRightType(tile):
+            type = (dinfo & TT_SIDE) ? SplitRightType(tile):
 			SplitLeftType(tile);
 	}
         else
@@ -126,7 +127,8 @@ ExtFindNeighbors(tile, tilePlaneNum, arg)
 
 	/* Top */
 topside:
-        if (IsSplit(tile) && (SplitSide(tile) ^ SplitDirection(tile))) goto leftside;
+        if (IsSplit(tile) && ((dinfo & TT_SIDE) ? 1 : 0) ^ SplitDirection(tile))
+	    goto leftside;
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	{
             if (IsSplit(tp))
@@ -143,14 +145,14 @@ topside:
         	t = TiGetTypeExact(tp);
 		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
-		    PUSHTILE(tp, tilePlaneNum);
+		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
 		}
 	    }
 	}
 
 	/* Left */
 leftside:
-        if (IsSplit(tile) && SplitSide(tile)) goto bottomside;
+        if (IsSplit(tile) && (dinfo & TT_SIDE)) goto bottomside;
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	{
             if (IsSplit(tp))
@@ -167,14 +169,14 @@ leftside:
 		t = TiGetTypeExact(tp);
 		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
-		    PUSHTILE(tp, tilePlaneNum);
+		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
 		}
 	    }
 	}
 
 	/* Bottom */
 bottomside:
-        if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
+        if (IsSplit(tile) && (!(((dinfo & TT_SIDE) ? 1 : 0) ^ SplitDirection(tile))))
 	    goto rightside;
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 	{
@@ -192,14 +194,14 @@ bottomside:
         	t = TiGetTypeExact(tp);
 		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
-		    PUSHTILE(tp, tilePlaneNum);
+		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
 		}
 	    }
 	}
 
 	/* Right */
 rightside:
-        if (IsSplit(tile) && !SplitSide(tile)) goto donesides;
+        if (IsSplit(tile) && !(dinfo & TT_SIDE)) goto donesides;
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	{
             if (IsSplit(tp))
@@ -216,7 +218,7 @@ rightside:
 		t = TiGetTypeExact(tp);
 		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
-		    PUSHTILE(tp, tilePlaneNum);
+		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
 		}
 	    }
 	}
@@ -224,7 +226,7 @@ rightside:
 donesides:
 	/* Apply the client's filter procedure if one exists */
 	if (arg->fra_each)
-	    if ((*arg->fra_each)(tile, tilePlaneNum, arg))
+	    if ((*arg->fra_each)(tile, dinfo, tilePlaneNum, arg))
 		goto fail;
 
 	/* If this is a contact, visit all the other planes */
@@ -248,7 +250,7 @@ donesides:
                     /* tp and tile should have the same geometry for a contact */
                     if (IsSplit(tile) && IsSplit(tp))
                     {
-			if (SplitSide(tile))
+			if (dinfo & TT_SIDE)
 			{
 			    t = SplitRightType(tp);
 			    if (TTMaskHasType(mask, t))
@@ -283,7 +285,7 @@ donesides:
 			t = TiGetTypeExact(tp);
 			if (TTMaskHasType(mask, t))
 			{
-			    PUSHTILE(tp, pNum);
+			    PUSHTILE(tp, (TileType)0, pNum);
 			}
 		    }
 		}
@@ -319,7 +321,7 @@ fail:
     /* Flush the stack */
     while (!StackEmpty(extNodeStack))
     {
-	POPTILE(tile, tilePlaneNum);
+	POPTILE(tile, dinfo, tilePlaneNum);
 	TiSetClientPTR(tile, arg->fra_region);
     }
     return -1;
@@ -349,8 +351,9 @@ fail:
  */
 
 int
-extNbrPushFunc(tile, pla)
+extNbrPushFunc(tile, dinfo, pla)
     Tile *tile;
+    TileType dinfo;
     PlaneAndArea *pla;
 {
     Rect *tileArea;
@@ -372,7 +375,7 @@ extNbrPushFunc(tile, pla)
     }
 
     /* Push tile on the stack and mark as being visited */
-    PUSHTILE(tile, pla->plane);
+    PUSHTILE(tile, dinfo, pla->plane);
 
     return 0;
 }

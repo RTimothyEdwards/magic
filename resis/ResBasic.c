@@ -127,8 +127,10 @@ resAllPortNodes(tile, list)
  */
 
 int
-ResMultiPlaneFunc(tile, tpptr)
-    Tile *tile, **tpptr;
+ResMultiPlaneFunc(tile, dinfo, tpptr)
+    Tile *tile;
+    TileType dinfo;	/* Not used, but needs to be handled */
+    Tile **tpptr;
 {
     Tile *tp = *tpptr;
     int	 xj, yj;
@@ -158,8 +160,10 @@ ResMultiPlaneFunc(tile, tpptr)
  */
 
 int
-ResSubstrateFunc(tile, tpptr)
-    Tile *tile, **tpptr;
+ResSubstrateFunc(tile, dinfo, tpptr)
+    Tile *tile;
+    TileType dinfo;
+    Tile **tpptr;
 {
     Tile *tp = *tpptr;
     int	 xj, yj;
@@ -188,9 +192,10 @@ ResSubstrateFunc(tile, tpptr)
  */
 
 bool
-ResEachTile(tile, startpoint)
+ResEachTile(tile, dinfo, startpoint)
     Tile 	*tile;
-    Point 		*startpoint;
+    TileType	dinfo;
+    Point 	*startpoint;
 
 {
     Tile 	*tp;
@@ -209,7 +214,7 @@ ResEachTile(tile, startpoint)
 
     if (IsSplit(tile))
     {
-	t1 = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	t1 = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     }
     else
 	t1 = TiGetTypeExact(tile);
@@ -473,7 +478,7 @@ ResEachTile(tile, startpoint)
 
     resAllPortNodes(tile, &ResNodeQueue);
 
-    merged = ResCalcTileResistance(tile, tstructs, &ResNodeQueue,
+    merged = ResCalcTileResistance(tile, dinfo, tstructs, &ResNodeQueue,
 			&ResNodeList);
 
     return(merged);

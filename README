@@ -1,0 +1,123 @@
+Having abandoned the attempt to redefine a split tile as
+two separate tile entries, I am returning to the problem
+of removing TT_SIDE from the database.
+
+TT_SIDE has been used to pass information to callback
+routines to indicate which side of a tile should be
+processed.  This should never have been done, because
+it causes the database to be altered during searches,
+which prevents searches from being parallelized.
+
+To remove this dependency:
+
+All the basic search functions will require an
+additional argument which is a boolean and indicates
+which side of a split tile is to be processed by the
+callback.  It is probably fine to treat the argument
+like "dinfo", which is to make it a TileType and
+set TT_DIAGONAL, TT_SIDE, and TT_DIRECTION as
+needed.  For the basic use of callbacks, it will
+generally suffice to set only TT_SIDE.
+
+-----------
+
+Both TT_SIDE and SplitSide() are used frequently.
+Which is why I have not done this before.
+
+First, enumerate all callback functions which use each
+of the above, and the search routine that will require
+the extra argument.
+
+Search functions or functions needing changes:
+(Followed by the number of occurrences)
+	DBSrPaintArea()		401
+	DBTreeSrTiles()		 99	<done>
+	DBSrPaintNMArea()	 16	<done>
+	DBSrPaintClient()	 15	<done>
+	SimTreeSrTiles()
+
+	SelEnumPaint()
+	GrClipTriangle()	 
+	GrDrawTriangleEdge()
+	GrDiagonal()
+	DBTransformDiagonal()
+	GrBox()
+
+SplitSide():
+
+	calmaMergePaintFunc() --- Comment, unused, remove.
+	calmaWritePaintFunc()
+	calmaMergePaintFuncZ() --- Comment, unused, remove.
+	calmaWritePaintFuncZ()
+	cifHierCopyFunc()
+	cifHierErrorFunc()
+	cmdDropPaintCell()
+
+To be fixed:  STACKPUSH/STACKPOP stuff in resis/ResUtils.c
+	      resAddField will need to do something similar to
+		extract to handle two clientData records for split tiles
+		in ResAddPlumbing and ResRemovePlumbing.
+
+	      dbcUnconnectFunc() --- Need to handle side, or is this already handled?
+
+	extConnFindFunc() --- Select proper region depending on side
+	extInterSubtreeTile() --- Should handle non-Manhattan tiles.
+	lefConnectFunc() --- write polygons to LEF?
+	resExpandDevFunc() --- Probably needs to handle split types and replace STACKPUSH.
+		(Lots to do in ResUtils.c)
+	touchingTypesFunc() --- Should distinguish types between sides, and handle
+				triangle geometry.
+
+	cifInteractingRegions() --- Uses the cifSquares code, but cifSquares does not
+			handle non-Manhattan geometry, and interacting/overlapping
+			methods must.
+
+	antennaAccumFunc() --- Needs to handle non-Manhattan geometry.
+
+	extTransPerimFunc() --- Needs to set TT_SIDE based on boundary direction
+			before calling DBSrConnectOnePlane (ExtBasic.c:3882)
+	ResMultiPlaneFunc() --- Needs to call ResNewSDDevice() with dinfo information
+
+Any routine that does not use "dinfo" should do "if (dinfo & TT_SIDE) return 0".
+
+Ought to create a single function for simply returning "1" and replace all the
+assorted functions that do that individually.
+
+---------------------
+First pass is done, minus issues reported above that need to be worked on.  The
+basic issue of adding an extra argument to all the callback functions is basically
+completed.
+
+Moving on to compiling. . .
+CIFgen.c has lots of warnings around PUSHTILE().  Probably an incorrect cast, but
+I need to check all of the uses of PUSH and POP everywhere, anyway.
+
+1/2/2026:
+Compiles now!
+Debug. . .
+Errors in dbwind (missed a DBSrPaintArea() call)
+Need to pass dinfo to GrBox() and GrBoxOutline()
+
+Issue:  Paint square on top of diagonal edge, ends up with one part of the tile
+not properly split at the edge;  the tile goes to infinity and has a non-space
+type.
+
+Reminder:  Need to check for all instances of SplitSide(), as there should not
+be any.  There are still 38 references that need to be removed.
+
+Fix:  extWalkTop (Bottom, Right, Left). . . type should not have been set by
+the split side of tile "tp".  Should be according to the side being searched
+and the diagonal directions of "tile" and "tp".
+
+ResUtils:  Cannot use STACKPUSH and STACKPOP
+
+A number of remaining uses of SplitSide() are in routines that were not fixed
+for dinfo or are not directly called from modified search functions, so will
+need to fix each one in turn.
+
+Add dinfo to extSubtreeTileToNode() and extSubtreeHardNode()
+extNodeToTile needs to return dinfo. . .
+
+extGetRegion() will need to be handled but only when I'm done with this and
+working on being able to attach two regions to a split tile.
+

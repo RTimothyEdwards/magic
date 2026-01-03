@@ -61,7 +61,9 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 
 int
 existFunc(
-    Tile *tile)
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     return 1;
 }
@@ -839,7 +841,8 @@ struct linked_id {
 
 int
 cmdWhatPrintCell(
-   Tile *tile,
+   Tile *tile,		/* (unused) */
+   TileType dinfo,	/* (unused) */
    TreeContext *cxp)
 {
     struct linked_id **lid = (struct linked_id **)cxp->tc_filter->tf_arg;
@@ -894,6 +897,7 @@ static LabelStore *labelBlockTop, *labelEntry;
 int
 cmdFindWhatTileFunc(
     Tile *tile,
+    TileType dinfo,
     ClientData clientData)
 {
     struct linked_id **lid = (struct linked_id **)clientData;
@@ -905,7 +909,7 @@ cmdFindWhatTileFunc(
     scx.scx_use = EditCellUse;
     scx.scx_trans = GeoIdentityTransform;
 
-    if (SplitSide(tile))
+    if (dinfo & TT_SIDE)
 	type = SplitRightType(tile);
     else
 	type = SplitLeftType(tile);

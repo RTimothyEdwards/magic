@@ -78,6 +78,7 @@ typedef struct {
 int
 cifPaintDBFunc(
     Tile *tile,			/* Tile of CIF information. */
+    TileType dinfo,
     PaintLayerData *pld)
 {
     Rect area;
@@ -106,7 +107,7 @@ cifPaintDBFunc(
 	if (DBPaintOnPlane(type, pNum))
 	{
 	    ui.pu_pNum = pNum;
-	    DBNMPaintPlane(paintDef->cd_planes[pNum], TiGetTypeExact(tile),
+	    DBNMPaintPlane(paintDef->cd_planes[pNum], TiGetTypeExact(tile) | dinfo,
 		    &area, DBStdPaintTbl(type, pNum), (PaintUndoInfo *) &ui);
 	}
 
@@ -219,6 +220,7 @@ CIFPaintLayer(
 int
 cifSeeFunc(
     Tile *tile,			/* Tile to be entered as feedback. */
+    TileType dinfo,		/* Split tile information */
     SeeLayerData *sld)		/* Layer and explanation for the feedback. */
 {
     Rect area;
@@ -233,10 +235,10 @@ cifSeeFunc(
 		(float)area.r_ybot / (float)CIFCurStyle->cs_scaleFactor);
     }
 
+    /* (NOTE:  Preserve information about the geometry of a diagonal tile) */
     DBWFeedbackAdd(&area, sld->text, cifSeeDef, CIFCurStyle->cs_scaleFactor,
-	sld->style |
-                (TiGetTypeExact(tile) & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE)));
-        /* (preserve information about the geometry of a diagonal tile) */
+		sld->style | ((TiGetTypeExact(tile) | dinfo) &
+		(TT_DIAGONAL | TT_DIRECTION | TT_SIDE)));
     return 0;
 }
 
@@ -438,8 +440,10 @@ CIFCoverageLayer(
     SearchContext scx;
     TileTypeBitMask mask, depend;
     float fcover;
-    int cifCoverageFunc(Tile *tile, ClientData *arg);
     bool doBox = (area != &rootDef->cd_bbox) ? TRUE : FALSE;
+
+    /* Forward declaration */
+    int cifCoverageFunc(Tile *tile, TileType dinfo, ClientData *arg);
 
     /* Check out the CIF layer name. */
 
@@ -512,6 +516,7 @@ CIFCoverageLayer(
 int
 cifCoverageFunc(
     Tile *tile,
+    TileType dinfo,	/* (unused) */
     ClientData *arg)
 {
     coverstats *cstats = (coverstats *)arg;

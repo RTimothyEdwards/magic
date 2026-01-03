@@ -122,15 +122,16 @@ NMRedrawCell(window, plane)
 }
 
 int
-nmscRedrawFunc(tile, window)
+nmscRedrawFunc(tile, dinfo, window)
     Tile *tile;			/* Tile to be redisplayed on highlight layer.*/
+    TileType dinfo;		/* Split tile information */
     MagWindow *window;		/* Window in which to redisplay. */
 {
     Rect area, screenArea;
     extern int nmscAlways1();	/* Forward reference. */
 
     TiToRect(tile, &area);
-    if (!DBSrPaintArea((Tile *) NULL, nmscPlane, &area,
+    if (!DBSrPaintNMArea((Tile *)NULL, nmscPlane, dinfo, &area,
 	    &DBAllButSpaceBits, nmscAlways1, (ClientData) NULL))
 	return 0;
     WindSurfaceToScreen(window, &area, &screenArea);
@@ -139,7 +140,7 @@ nmscRedrawFunc(tile, window)
 }
 
 int
-nmscAlways1()
+nmscAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
 {
     return 1;
 }

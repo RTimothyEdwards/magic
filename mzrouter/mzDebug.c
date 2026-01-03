@@ -526,8 +526,9 @@ mzDumpTags(area)
  */
 
 int
-mzDumpTagsFunc(tile, cxp)
+mzDumpTagsFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;

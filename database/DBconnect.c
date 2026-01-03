@@ -148,6 +148,7 @@ DBInvTransformDiagonal(oldtype, trans)
  *	    int
  *	    func(tile, clientData)
  *		Tile *tile;
+ *		TileType dinfo;
  *		ClientData clientData;
  *    	    {
  *	    }
@@ -166,8 +167,9 @@ DBInvTransformDiagonal(oldtype, trans)
  */
 
 int
-DBSrConnectOnePlane(startTile, connect, func, clientData)
+DBSrConnectOnePlane(startTile, dinfo, connect, func, clientData)
     Tile *startTile;		/* Starting tile for search */
+    TileType dinfo;		/* Split tile information */
     TileTypeBitMask *connect;	/* Pointer to a table indicating what tile
 				 * types connect to what other tile types.
 				 * Each entry gives a mask of types that
@@ -192,7 +194,7 @@ DBSrConnectOnePlane(startTile, connect, func, clientData)
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
     csa.csa_pNum = -1;
-    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
+    if (dbSrConnectFunc(startTile, dinfo, PTR2CD(&csa)) != 0) result = 1;
 
     /* Pass 2.  Don't call any client function, just clear the marks.
      * Don't allow any interruptions.
@@ -201,7 +203,7 @@ DBSrConnectOnePlane(startTile, connect, func, clientData)
     SigDisableInterrupts();
     csa.csa_clientFunc = NULL;
     csa.csa_clear = TRUE;
-    (void) dbSrConnectFunc(startTile, PTR2CD(&csa));
+    (void) dbSrConnectFunc(startTile, dinfo, PTR2CD(&csa));
     SigEnableInterrupts();
 
     return result;
@@ -276,7 +278,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
 {
     struct conSrArg csa;
     int startPlane, result;
-    Tile *startTile;			/* Starting tile for search. */
+    TileAndDinfo start_tad;	/* Starting tile and split information */
 
     result = 0;
     csa.csa_def = def;
@@ -287,17 +289,17 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
      * the tile address and returns.
      */
 
-    startTile = NULL;
+    start_tad.tad_tile = NULL;
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
     	csa.csa_pNum = startPlane;
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
-	    dbSrConnectStartFunc, PTR2CD(&startTile)) != 0) break;
+	    dbSrConnectStartFunc, PTR2CD(&start_tad)) != 0) break;
     }
-    if (startTile == NULL) return 0;
+    if (start_tad.tad_tile == NULL) return 0;
     /* The following lets us call DBSrConnect recursively */
-    else if (startTile->ti_client == (ClientData)1) return 0;
+    else if (start_tad.tad_tile->ti_client == (ClientData)1) return 0;
 
     /* Pass 1.  During this pass the client function gets called. */
 
@@ -306,7 +308,8 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientDefault = CLIENTDEFAULT;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
+    if (dbSrConnectFunc(start_tad.tad_tile, start_tad.tad_dinfo,
+			PTR2CD(&csa)) != 0) result = 1;
 
     /* Pass 2.  Don't call any client function, just clear the marks.
      * Don't allow any interruptions.
@@ -315,7 +318,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     SigDisableInterrupts();
     csa.csa_clientFunc = NULL;
     csa.csa_clear = TRUE;
-    (void) dbSrConnectFunc(startTile, PTR2CD(&csa));
+    (void) dbSrConnectFunc(start_tad.tad_tile, start_tad.tad_dinfo, PTR2CD(&csa));
     SigEnableInterrupts();
 
     return result;
@@ -325,11 +328,12 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
 int
 dbSrConnectStartFunc(
     Tile *tile,		/* This will be the starting tile. */
-    ClientData cdata)	/* We store tile's address here. */
-			/* (Tile **pTile) */
+    TileType dinfo,	/* (unused) */
+    ClientData cdata)	/* We store tile and split info here. */
 {
-    Tile **pTile = (Tile **)CD2PTR(cdata);
-    *pTile = tile;
+    TileAndDinfo *tad = (TileAndDinfo *)CD2PTR(cdata);
+    tad->tad_tile = tile;
+    tad->tad_dinfo = dinfo;
     return 1;
 }
 
@@ -367,7 +371,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
 {
     struct conSrArg csa;
     int startPlane, result;
-    Tile *startTile;			/* Starting tile for search. */
+    TileAndDinfo tad;
 
     result = 0;
     csa.csa_def = def;
@@ -378,17 +382,17 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
      * the tile address and returns.
      */
 
-    startTile = NULL;
+    tad.tad_tile = NULL;
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
     	csa.csa_pNum = startPlane;
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
-	    dbSrConnectStartFunc, PTR2CD(&startTile)) != 0) break;
+	    dbSrConnectStartFunc, PTR2CD(&tad)) != 0) break;
     }
-    if (startTile == NULL) return 0;
+    if (tad.tad_tile == NULL) return 0;
     /* The following lets us call DBSrConnect recursively */
-    else if (startTile->ti_client == (ClientData)1) return 0;
+    else if (tad.tad_tile->ti_client == (ClientData)1) return 0;
 
     /* Pass 1.  During this pass the client function gets called. */
 
@@ -397,7 +401,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientDefault = CLIENTDEFAULT;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
+    if (dbSrConnectFunc(tad.tad_tile, tad.tad_dinfo, PTR2CD(&csa)) != 0) result = 1;
 
     return result;
 }
@@ -420,12 +424,15 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
  */
 
 int
-dbcFindTileFunc(tile, arg)
+dbcFindTileFunc(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;
     ClientData arg;
 {
-    Tile **tptr = (Tile **)arg;
-    *tptr = tile;
+    TileAndDinfo *tad = (TileAndDinfo *)arg;
+
+    tad->tad_tile = tile;
+    tad->tad_dinfo = dinfo;
     return 1;
 }
 
@@ -465,6 +472,7 @@ dbcFindTileFunc(tile, arg)
 int
 dbSrConnectFunc(
     Tile *tile,		/* Tile that is connected. */
+    TileType dinfo,	/* Split tile information */
     ClientData cdata)	/* Contains information about the search. */
 			/* (struct conSrArg *csa) */
 {
@@ -484,11 +492,13 @@ dbSrConnectFunc(
     /* Drop the first entry on the stack */
     pNum = csa->csa_pNum;
     STACKPUSH(INT2CD(tile), dbConnectStack);
+    STACKPUSH(INT2CD(dinfo), dbConnectStack);
     STACKPUSH(INT2CD(pNum), dbConnectStack);
 
     while (!StackEmpty(dbConnectStack))
     {
 	pNum = (int)CD2INT(STACKPOP(dbConnectStack));
+	dinfo = (int)CD2INT(STACKPOP(dbConnectStack));
 	tile = (Tile *)CD2INT(STACKPOP(dbConnectStack));
 	if (result == 1) continue;
 
@@ -522,7 +532,7 @@ dbSrConnectFunc(
 
 	if (callClient && (csa->csa_clientFunc != NULL))
 	{
-	    if ((*csa->csa_clientFunc)(tile, pNum, csa->csa_clientData) != 0)
+	    if ((*csa->csa_clientFunc)(tile, dinfo, pNum, csa->csa_clientData) != 0)
 	    {
 		result = 1;
 		continue;
@@ -536,7 +546,7 @@ dbSrConnectFunc(
 
 	if (IsSplit(tile))
 	{
-	    if (SplitSide(tile))
+	    if (dinfo & TT_SIDE)
 		loctype = SplitRightType(tile);
 	    else
 		loctype = SplitLeftType(tile);
@@ -547,7 +557,7 @@ dbSrConnectFunc(
 
 	/* Left side: */
 
-	if (IsSplit(tile) && SplitSide(tile)) goto bottomside;
+	if (IsSplit(tile) && (dinfo & TT_SIDE)) goto bottomside;
 
 	for (t2 = BL(tile); BOTTOM(t2) < tileArea.r_ytop; t2 = RT(t2))
 	{
@@ -564,9 +574,11 @@ dbSrConnectFunc(
 		    if (t2->ti_client == csa->csa_clientDefault) continue;
 		}
 		else if (t2->ti_client == (ClientData) 1) continue;
-		if (IsSplit(t2))
-		    TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) | TT_SIDE)); /* bit set */
 		STACKPUSH(INT2CD(t2), dbConnectStack);
+		if (IsSplit(t2))
+		    STACKPUSH(INT2CD((TileType)TT_SIDE), dbConnectStack);
+		else
+		    STACKPUSH(INT2CD(0), dbConnectStack);
 		STACKPUSH(INT2CD(pNum), dbConnectStack);
 	    }
 	}
@@ -574,7 +586,7 @@ dbSrConnectFunc(
 	/* Bottom side: */
 
 bottomside:
-	if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
+	if (IsSplit(tile) && ((!((dinfo & TT_SIDE) ? 1 : 0)) ^ SplitDirection(tile)))
 	    goto rightside;
 
 	for (t2 = LB(tile); LEFT(t2) < tileArea.r_xtop; t2 = TR(t2))
@@ -592,16 +604,17 @@ bottomside:
 		    if (t2->ti_client == csa->csa_clientDefault) continue;
 		}
 		else if (t2->ti_client == (ClientData) 1) continue;
+		STACKPUSH(INT2CD(t2), dbConnectStack);
 		if (IsSplit(t2))
 		{
 		    if (SplitDirection(t2))
-			/* bit set */
-			TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) | TT_SIDE));
+			STACKPUSH(INT2CD((TileType)TT_SIDE), dbConnectStack);
 		    else
 			/* bit clear */
-			TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) & ~TT_SIDE));
+			STACKPUSH(INT2CD(0), dbConnectStack);
 		}
-		STACKPUSH(INT2CD(t2), dbConnectStack);
+		else
+		    STACKPUSH(INT2CD(0), dbConnectStack);
 		STACKPUSH(INT2CD(pNum), dbConnectStack);
 	    }
 	}
@@ -609,7 +622,7 @@ bottomside:
 	/* Right side: */
 
 rightside:
-	if (IsSplit(tile) && !SplitSide(tile)) goto topside;
+	if (IsSplit(tile) && !(dinfo & TT_SIDE)) goto topside;
 
 	for (t2 = TR(tile); ; t2 = LB(t2))
 	{
@@ -626,9 +639,8 @@ rightside:
 		    if (t2->ti_client == csa->csa_clientDefault) goto nextRight;
 		}
 		else if (t2->ti_client == (ClientData) 1) goto nextRight;
-		if (IsSplit(t2))
-		    TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) & ~TT_SIDE)); /* bit clear */
 		STACKPUSH(INT2CD(t2), dbConnectStack);
+		STACKPUSH(INT2CD(0), dbConnectStack);
 		STACKPUSH(INT2CD(pNum), dbConnectStack);
 	    }
 	    nextRight: if (BOTTOM(t2) <= tileArea.r_ybot) break;
@@ -637,7 +649,8 @@ rightside:
 	/* Top side: */
 topside:
 
-	if (IsSplit(tile) && (SplitSide(tile) ^ SplitDirection(tile))) goto donesides;
+	if (IsSplit(tile) && (((dinfo & TT_SIDE) ? 1 : 0) ^ SplitDirection(tile)))
+	    goto donesides;
 
 	for (t2 = RT(tile); ; t2 = BL(t2))
 	{
@@ -654,16 +667,18 @@ topside:
 		    if (t2->ti_client == csa->csa_clientDefault) goto nextTop;
 		}
 		else if (t2->ti_client == (ClientData) 1) goto nextTop;
+		STACKPUSH(INT2CD(t2), dbConnectStack);
 		if (IsSplit(t2))
 		{
 		    if (SplitDirection(t2))
 			/* bit clear */
-			TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) & ~TT_SIDE));
+			STACKPUSH(INT2CD(0), dbConnectStack);
 		    else
 			/* bit set */
-			TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) | TT_SIDE));
+			STACKPUSH(INT2CD((TileType)TT_SIDE), dbConnectStack);
 		}
-		STACKPUSH(INT2CD(t2), dbConnectStack);
+		else
+		    STACKPUSH(INT2CD(0), dbConnectStack);
 		STACKPUSH(INT2CD(pNum), dbConnectStack);
 	    }
 	    nextTop: if (LEFT(t2) <= tileArea.r_xbot) break;
@@ -682,6 +697,7 @@ donesides:
 	{
 	    Rect newArea;
 	    GEO_EXPAND(&tileArea, 1, &newArea);
+	    TileAndDinfo tad;
 
 	    for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
 	    {
@@ -690,17 +706,19 @@ donesides:
 		{
 		    if (DBSrPaintNMArea((Tile *) NULL, csa->csa_def->cd_planes[i],
 				TiGetTypeExact(tile), &newArea, connectMask,
-				dbcFindTileFunc, (ClientData)&t2) != 0)
+				dbcFindTileFunc, (ClientData)&tad) != 0)
 		    {
-			STACKPUSH(INT2CD(t2), dbConnectStack);
+			STACKPUSH(PTR2CD(tad.tad_tile), dbConnectStack);
+			STACKPUSH(INT2CD(tad.tad_dinfo), dbConnectStack);
 			STACKPUSH(INT2CD(i), dbConnectStack);
 		    }
 		}
 		else if (DBSrPaintArea((Tile *) NULL, csa->csa_def->cd_planes[i],
 			&newArea, connectMask, dbcFindTileFunc,
-			(ClientData)&t2) != 0)
+			(ClientData)&tad) != 0)
 		{
-		    STACKPUSH(INT2CD(t2), dbConnectStack);
+		    STACKPUSH(PTR2CD(tad.tad_tile), dbConnectStack);
+		    STACKPUSH(INT2CD(tad.tad_dinfo), dbConnectStack);
 		    STACKPUSH(INT2CD(i), dbConnectStack);
 		}
 	    }
@@ -734,9 +752,10 @@ donesides:
 /** @typedef cb_database_srpaintnmarea_t */
 /** @typedef cb_database_srpaintarea_t */
 int
-dbcUnconnectFunc(tile, clientData)
+dbcUnconnectFunc(tile, dinfo, clientData)
     Tile *tile;				/* Current tile	*/
-    ClientData clientData;		/* Unused.	*/
+    TileType dinfo;			/* Split tile information, unused */
+    ClientData clientData;		/* Unused. */
 
 {
     return 1;
@@ -949,8 +968,9 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
  */
 
 int
-dbcConnectFunc(tile, cx)
+dbcConnectFunc(tile, dinfo, cx)
     Tile *tile;			/* Tile found. */
+    TileType dinfo;		/* Split tile information */
     TreeContext *cx;		/* Describes context of search.  The client
 				 * data is a pointer to a conSrArg2 record
 				 * containing various required information.
@@ -963,8 +983,8 @@ dbcConnectFunc(tile, cx)
     Rect *srArea;
     SearchContext *scx = cx->tc_scx;
     SearchContext scx2;
-    TileType loctype = TiGetTypeExact(tile);
-    TileType dinfo = 0;
+    TileType loctype = TiGetTypeExact(tile) | dinfo;
+    TileType newdinfo = 0;
     int retval, i, pNum = cx->tc_plane;
     CellDef *def;
 
@@ -996,8 +1016,8 @@ dbcConnectFunc(tile, cx)
 
     if (IsSplit(tile))
     {
-	dinfo = DBTransformDiagonal(loctype, &scx->scx_trans);
-	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	newdinfo = DBTransformDiagonal(loctype, &scx->scx_trans);
+	loctype = ((dinfo & TT_SIDE)) ? SplitRightType(tile) : SplitLeftType(tile);
     }
 
     /* See if the destination cell contains stuff over the whole
@@ -1035,7 +1055,7 @@ dbcConnectFunc(tile, cx)
     def = csa2->csa2_use->cu_def;
     retval = 1;
     if (DBSrPaintNMArea((Tile *) NULL, def->cd_planes[pNum],
-		dinfo, &newarea, &notConnectMask, dbcUnconnectFunc,
+		newdinfo, &newarea, &notConnectMask, dbcUnconnectFunc,
 		(ClientData) NULL) == 0)
 	retval = 0;
 
@@ -1044,7 +1064,7 @@ dbcConnectFunc(tile, cx)
      * the storage for the current list element.
      */
 
-    DBNMPaintPlane(def->cd_planes[pNum], dinfo,
+    DBNMPaintPlane(def->cd_planes[pNum], newdinfo,
 		&newarea, DBStdPaintTbl(loctype, pNum),
 		(PaintUndoInfo *) NULL);
 
@@ -1061,14 +1081,14 @@ dbcConnectFunc(tile, cx)
 
     /* Only extend those sides bordering the diagonal tile */
 
-    if (dinfo & TT_DIAGONAL)
+    if (newdinfo & TT_DIAGONAL)
     {
-	if (dinfo & TT_SIDE)			/* right */
+	if (newdinfo & TT_SIDE)			/* right */
 	    newarea.r_xtop += 1;
 	else					/* left */
 	    newarea.r_xbot -= 1;
-	if (((dinfo & TT_SIDE) >> 1)
-		== (dinfo & TT_DIRECTION))	/* top */
+	if (((newdinfo & TT_SIDE) >> 1)
+		== (newdinfo & TT_DIRECTION))	/* top */
 	    newarea.r_ytop += 1;
 	else					/* bottom */
 	    newarea.r_ybot -= 1;
@@ -1108,7 +1128,7 @@ dbcConnectFunc(tile, cx)
 
     csa2->csa2_list[csa2->csa2_top].area = newarea;
     csa2->csa2_list[csa2->csa2_top].connectMask = connectMask;
-    csa2->csa2_list[csa2->csa2_top].dinfo = dinfo;
+    csa2->csa2_list[csa2->csa2_top].dinfo = newdinfo;
 
     return 0;
 }

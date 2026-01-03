@@ -571,8 +571,9 @@ grAddSegment(llx, lly, urx, ury, segments)
  */
 
 bool
-GrBoxOutline(tile, tilesegs)
+GrBoxOutline(tile, dinfo, tilesegs)
     Tile *tile;
+    TileType dinfo;
     LinkedRect **tilesegs;
 {
     Rect rect;
@@ -586,7 +587,7 @@ GrBoxOutline(tile, tilesegs)
     *tilesegs = NULL;
     TiToRect(tile, &rect);
 
-    if (IsSplit(tile) && SplitSide(tile))
+    if (IsSplit(tile) && (dinfo & TT_SIDE))
 	isolate |= 0x1;
     else
     {
@@ -620,7 +621,7 @@ GrBoxOutline(tile, tilesegs)
 	    }
 	}
     }
-    if (IsSplit(tile) && !SplitSide(tile))
+    if (IsSplit(tile) && !(dinfo & TT_SIDE))
 	isolate |= 0x2;
     else
     {
@@ -656,7 +657,7 @@ GrBoxOutline(tile, tilesegs)
     }
 
     if (IsSplit(tile) &&
-		(SplitSide(tile) == SplitDirection(tile)))
+		(((dinfo & TT_SIDE) ? 1 : 0) == SplitDirection(tile)))
 	isolate |= 0x4;
     else
     {
@@ -692,7 +693,7 @@ GrBoxOutline(tile, tilesegs)
     }
 
     if (IsSplit(tile) &&
-		(SplitSide(tile) != SplitDirection(tile)))
+		(((dinfo & TT_SIDE) ? 1 : 0) != SplitDirection(tile)))
 	isolate |= 0x8;
     else
     {
@@ -773,7 +774,7 @@ GrBoxOutline(tile, tilesegs)
  *---------------------------------------------------------
  */
 void
-GrBox(MagWindow *mw, Transform *trans, Tile *tile)
+GrBox(MagWindow *mw, Transform *trans, Tile *tile, TileType dinfo)
 {
     Rect r, r2, clipr;
     bool needClip, needObscure, simpleBox;
@@ -813,16 +814,16 @@ GrBox(MagWindow *mw, Transform *trans, Tile *tile)
     if (IsSplit(tile))
     {
 	/* Perform matrix transformations on split tiles */
-	TileType dinfo;
+	TileType newdinfo;
 	Rect fullr;
 
-	dinfo = DBTransformDiagonal(TiGetTypeExact(tile), trans);
+	newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, trans);
 	clipr = fullr = r;
 
 	if (needClip)
 	    GeoClip(&clipr, &grCurClip);
 
-	GrClipTriangle(&fullr, &clipr, needClip, dinfo, polyp, &np);
+	GrClipTriangle(&fullr, &clipr, needClip, newdinfo, polyp, &np);
 
 	if ((grCurFill == GR_STSOLID) ||
 	(grCurFill == GR_STSTIPPLE) || (grCurFill == GR_STGRID) )
@@ -891,7 +892,7 @@ GrBox(MagWindow *mw, Transform *trans, Tile *tile)
 
     if (grCurOutline != 0)
     {
-	if (GrBoxOutline(tile, &tilesegs))
+	if (GrBoxOutline(tile, dinfo, &tilesegs))
 	{
 	    /* simple box (from GrFastBox)*/
 

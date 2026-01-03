@@ -140,8 +140,9 @@ drcCifPointToSegment(px, py, s1x, s1y, s2x, s2y)
  */
 
 int
-areaCheck(tile, arg)
+areaCheck(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;
     struct drcClientData *arg;
 {
     Rect rect;		/* Area where error is to be recorded. */
@@ -195,7 +196,7 @@ areaCheck(tile, arg)
 			- arg->dCD_constraint->r_ytop + sdist) >= 0)
 			&& ((sqx * sqx + sqy * sqy) >= ssdist))
 		return 0;
-	    else if (IsSplit(tile) && !SplitDirection(tile) && !SplitSide(tile))
+	    else if (IsSplit(tile) && !SplitDirection(tile) && !(dinfo & TT_SIDE))
 	    {
 		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
 			arg->dCD_constraint->r_ytop - sdist,
@@ -210,7 +211,7 @@ areaCheck(tile, arg)
 			- arg->dCD_constraint->r_ytop + sdist) >= 0)
 			&& ((sqx * sqx + sqy * sqy) >= ssdist))
 		return 0;
-	    else if (IsSplit(tile) && SplitDirection(tile) && SplitSide(tile))
+	    else if (IsSplit(tile) && SplitDirection(tile) && (dinfo & TT_SIDE))
 	    {
 		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
 			arg->dCD_constraint->r_ytop - sdist,
@@ -226,7 +227,7 @@ areaCheck(tile, arg)
 			+ sdist - rect.r_ytop) >= 0)
 			&& ((sqx * sqx + sqy * sqy) >= ssdist))
 		return 0;
-	    else if (IsSplit(tile) && SplitDirection(tile) && !SplitSide(tile))
+	    else if (IsSplit(tile) && SplitDirection(tile) && !(dinfo & TT_SIDE))
 	    {
 		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
 			arg->dCD_constraint->r_ybot + sdist,
@@ -242,7 +243,7 @@ areaCheck(tile, arg)
 			+ sdist - rect.r_ytop) >= 0)
 			&& ((sqx * sqx + sqy * sqy) >= ssdist))
 		return 0;
-	    else if (IsSplit(tile) && !SplitDirection(tile) && SplitSide(tile))
+	    else if (IsSplit(tile) && !SplitDirection(tile) && (dinfo & TT_SIDE))
 	    {
 		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
 			arg->dCD_constraint->r_ybot + sdist,
@@ -306,8 +307,9 @@ areaCheck(tile, arg)
  */
 
 int
-areaNMReject(tile, arg)
+areaNMReject(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;
     ClientData *arg;
 {
     Tile *checktile = (Tile *)arg;
@@ -337,8 +339,9 @@ areaNMReject(tile, arg)
  */
 
 int
-areaNMCheck(tile, arg)
+areaNMCheck(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;
     struct drcClientData *arg;
 {
     Rect rect;		/* Area where error is to be recorded. */
@@ -492,8 +495,9 @@ DRCBasicCheck (celldef, checkRect, clipRect, function, cdata)
  */
 
 int
-drcTile (tile, arg)
-    Tile *tile;	/* Tile being examined */
+drcTile (tile, dinfo, arg)
+    Tile *tile;			/* Tile being examined */
+    TileType dinfo;		/* Split tile information */
     struct drcClientData *arg;
 {
     DRCCookie *cptr;	/* Current design rule on list */
@@ -533,7 +537,7 @@ drcTile (tile, arg)
     /* DRC searches only one direction on regular tiles, the split  */
     /* tiles are only processed for one of the two cases.	    */
 
-    if (IsSplit(tile) && !SplitSide(tile))
+    if (IsSplit(tile) && !(dinfo & TT_SIDE))
     {
 	int deltax, deltay;
 	TileType tt, to;
@@ -555,7 +559,7 @@ drcTile (tile, arg)
 	{
 	    int deltax, deltay, w, h;
 	    double r;
-	    TileType dinfo, dsplit;
+	    TileType newdinfo, dsplit;
 
 	    /* Work to be done:  Handle triggering rules for non-Manhattan  */
 	    /* edges;  especially important for the wide-spacing rule.	    */
@@ -605,7 +609,7 @@ drcTile (tile, arg)
 
 	    if (SplitDirection(tile) == 0) deltay = -deltay;
 
-	    dinfo = TiGetTypeExact(tile) & (TT_DIAGONAL | TT_DIRECTION);
+	    newdinfo = TiGetTypeExact(tile) & (TT_DIAGONAL | TT_DIRECTION);
 	    if (!(cptr->drcc_flags & DRC_REVERSE))
 	    {
 		/* Forward case is behind the triangle */
@@ -613,19 +617,19 @@ drcTile (tile, arg)
 		deltay = -deltay;
 
 		/* Split side changes in the reverse case */
-		dinfo |= TT_SIDE;
+		newdinfo |= TT_SIDE;
 	    }
 
 	    /* The area to check is bounded between the diagonals of
 	     * tile and errRect (which is the tile area, offset).
-	     * Pass errRect and dinfo to areaNMCheck using the
+	     * Pass errRect and newdinfo to areaNMCheck using the
 	     * ClientData structure arg->dCD_rlist and arg->dCD_entries,
 	     * which are not used by areaNMCheck.
 	     */
 	    arg->dCD_rlist = (Rect *)mallocMagic(sizeof(Rect));
 	    *(arg->dCD_rlist) = errRect;
-	    arg->dCD_entries = dinfo;
-	    if (dinfo & TT_SIDE)
+	    arg->dCD_entries = newdinfo;
+	    if (newdinfo & TT_SIDE)
 		arg->dCD_entries &= ~TT_SIDE;
 	    else
 		arg->dCD_entries |= TT_SIDE;
@@ -637,7 +641,7 @@ drcTile (tile, arg)
 	    errRect.r_ytop += deltay;
 
 	    DBSrPaintNMArea((Tile *) NULL,
-			arg->dCD_celldef->cd_planes[cptr->drcc_plane], dinfo,
+			arg->dCD_celldef->cd_planes[cptr->drcc_plane], newdinfo,
 			&errRect, &tmpMask, areaNMCheck, (ClientData) arg);
 
 	    arg->dCD_entries = 0;

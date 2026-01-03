@@ -525,8 +525,9 @@ plotPixRect(area, widen, style)
  */
 
 int
-plotPixTile(tile, cxp)
-    Tile *tile;	/* Tile that's of type to be output. */
+plotPixTile(tile, dinfo, cxp)
+    Tile *tile;			/* Tile that's of type to be output. */
+    TileType dinfo;		/* Split tile information (unhandled) */
     TreeContext *cxp;		/* Describes search in progress. */
 {
     Rect tileArea, rootArea, swathArea;

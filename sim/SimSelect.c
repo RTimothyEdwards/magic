@@ -262,7 +262,7 @@ SimSelectArea(
     const Rect * __unused__(rect))
 {
     int plane;
-    int SimSelectFunc(Tile *tile, ClientData cdata); /* cb_database_srpaintarea_t (TileListElt **pHead) */
+    int SimSelectFunc(Tile *tile, TileType dinfo, ClientData cdata); /* cb_database_srpaintarea_t (TileListElt **pHead) */
 
     /* only need to extract node names if the selection has changed or
      * if node aliases are to be printed.
@@ -322,6 +322,7 @@ SimSelectArea(
 int
 SimSelectFunc(
     Tile *tile,		/* Tile in SelectDef. */
+    TileType dinfo,	/* Split tile information */
     ClientData cdata)	/* list of node names found (TileListElt **pHead) */
 {
     TileListElt **pHead = (TileListElt **)CD2PTR(cdata);
@@ -345,7 +346,7 @@ SimSelectFunc(
 
     if (IsSplit(tile))
     {
-	type = (SplitSide(tile)) ? SplitRightType(tile):
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile):
 			SplitLeftType(tile);
     }
     else
@@ -359,9 +360,9 @@ SimSelectFunc(
     /* corner of a split tile.					*/
     if (IsSplit(tile))
     {
-	if (SplitSide(tile))
+	if (dinfo & TT_SIDE)
 	    scx.scx_area.r_xbot = scx.scx_area.r_xtop - 1;
-	if (!(SplitDirection(tile) ^ SplitSide(tile)))
+	if (!(SplitDirection(tile) ^ ((dinfo & TT_SIDE) ? 1 : 0)))
 	    scx.scx_area.r_ybot = scx.scx_area.r_ytop - 1;
     }
 

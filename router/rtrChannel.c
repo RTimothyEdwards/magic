@@ -412,8 +412,9 @@ rtrChannelObstaclePins(ch)
  */
 
 int
-rtrChannelObstacleMark(tile, cxp)
+rtrChannelObstacleMark(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     TreeContext *cxp;
 {
     short **mcol, *mrow, *mrowend, mask;

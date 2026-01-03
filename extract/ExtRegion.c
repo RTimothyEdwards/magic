@@ -53,6 +53,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *	ExtRegion *
  *	(*first)(tile, arg)
  *	    Tile *tile;		/# Tile is on plane arg->fra_pNum #/
+ *	    TileType dinfo;	/# Split tile information #/
  *	    FindRegion *arg;
  *	{
  *	}
@@ -62,6 +63,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *
  *	(*each)(tile, planeNum, arg)
  *	    Tile *tile;
+ *	    TileType dinfo;	/# Split tile information #/
  *	    int planeNum;	/# May be different than arg->fra_pNum #/
  *	    FindRegion *arg;
  *	{
@@ -155,19 +157,20 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
  */
 
 int
-extRegionAreaFunc(tile, arg)
+extRegionAreaFunc(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;
     FindRegion *arg;
 {
     /* Allocate a new region */
     if (arg->fra_first)
-	(void) (*arg->fra_first)(tile, arg);
+	(void) (*arg->fra_first)(tile, dinfo, arg);
 
     if (DebugIsSet(extDebugID, extDebAreaEnum))
 	extShowTile(tile, "area enum", 0);
 
     /* Recursively visit all tiles surrounding this one that we connect to */
-    (void) ExtFindNeighbors(tile, arg->fra_pNum, arg);
+    (void) ExtFindNeighbors(tile, dinfo, arg->fra_pNum, arg);
     return (0);
 }
 

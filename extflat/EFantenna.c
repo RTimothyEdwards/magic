@@ -754,8 +754,9 @@ antennacheckVisit(
  */
 
 int
-areaMarkFunc(tile, ams)
+areaMarkFunc(tile, dinfo, ams)
     Tile *tile;
+    TileType dinfo;
     AntennaMarkStruct *ams;
 {
     Rect rect;
@@ -778,8 +779,9 @@ areaMarkFunc(tile, ams)
  */
 
 int
-areaAccumFunc(tile, gdas)
+areaAccumFunc(tile, dinfo, gdas)
     Tile *tile;
+    TileType dinfo;
     GateDiffAccumStruct *gdas;
 {
     Rect *rect = &(gdas->r);
@@ -788,7 +790,7 @@ areaAccumFunc(tile, gdas)
 
     /* Avoid double-counting the area of contacts */
     if (IsSplit(tile))
-	type = SplitSide(tile) ? SplitRightType(tile) : SplitLeftType(tile);
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     else
 	type = TiGetType(tile);
 
@@ -798,6 +800,7 @@ areaAccumFunc(tile, gdas)
 
     TiToRect(tile, rect);
     area = (dlong)(rect->r_xtop - rect->r_xbot) * (dlong)(rect->r_ytop - rect->r_ybot);
+    if (IsSplit(tile)) area /= 2;
     gdas->accum += area;
     return 0;
 }
@@ -816,8 +819,9 @@ areaAccumFunc(tile, gdas)
  */
 
 int
-antennaAccumFunc(tile, aaptr)
+antennaAccumFunc(tile, dinfo, aaptr)
     Tile *tile;
+    TileType dinfo;		/* Not used, but should be handled */
     AntennaAccumStruct *aaptr;
 {
     Rect *rect = &(aaptr->r);
@@ -1003,6 +1007,7 @@ antennaAccumFunc(tile, aaptr)
 	    TiToRect(tile, rect);
 	    area = (dlong)(rect->r_xtop - rect->r_xbot)
 			* (dlong)(rect->r_ytop - rect->r_ybot);
+	    if (IsSplit(tile)) area /= 2;
 
 	    typeareas[type] += area;
 	}

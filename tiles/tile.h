@@ -205,7 +205,7 @@ extern Tile *TiSrPoint(Tile *hint, Plane *plane, const Point *point);
 
 /*
  *  Non-Manhattan split tiles are defined as follows:
- *  d = SplitDirection, s = SplitSide
+ *  d = SplitDirection, s = split side
  *
  *   d=1      d=0
  *  +---+    +---+
@@ -224,10 +224,21 @@ extern Tile *TiSrPoint(Tile *hint, Plane *plane, const Point *point);
  *
  */
 
+/* NOTE: TT_SIDE is redundant in a tile because left and right sides are already
+ * declared in the body.  However, it can be useful to add TT_SIDE to indicate
+ * which side of the tile is being processed.  This is the way TT_SIDE was
+ * originally used.  But the tile type should not be modified in the database
+ * because that means that the database gets modified during a search, and
+ * prevents searches from being parallelized.  Therefore TT_SIDE is never used
+ * within a tile in the database.  TT_DIAGONAL, TT_SIDE, and TT_DIRECTION may
+ * be used in a TileType variable to pass information between routines.  TT_SIDE
+ * could be removed to recover an extra bit for TileType, but that is just extra
+ * work.
+ */
+
 #define TiGetType(tp)		((TileType)(spointertype)((tp)->ti_body) & TT_LEFTMASK)
 #define TiGetTypeExact(tp)	((TileType)(spointertype) (tp)->ti_body)
 #define SplitDirection(tp)	((TileType)(spointertype)((tp)->ti_body) & TT_DIRECTION ? 1 : 0)
-#define SplitSide(tp)		((TileType)(spointertype)((tp)->ti_body) & TT_SIDE ? 1 : 0)
 #define IsSplit(tp)		((TileType)(spointertype)((tp)->ti_body) & TT_DIAGONAL ? TRUE : FALSE)
 
 #define SplitLeftType(tp)	((TileType)(spointertype)((tp)->ti_body) & TT_LEFTMASK)

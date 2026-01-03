@@ -46,8 +46,8 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
     /* Forward declarations */
 extern int cifWriteInitFunc(CellDef *def);
 extern int cifWriteMarkFunc(CellUse *use);
-extern int cifWritePaintFunc(Tile *tile, FILE *f);
-extern int cifWriteLabelFunc(Tile *tile, FILE *f);
+extern int cifWritePaintFunc(Tile *tile, TileType dinfo, FILE *f);
+extern int cifWriteLabelFunc(Tile *tile, TileType dinfo, FILE *f);
 extern int cifWriteUseFunc(CellUse *use, FILE *f);
 extern void cifOutPreamble(FILE *outf, CellDef *cell);
 extern void cifOut(FILE *outf);
@@ -584,6 +584,7 @@ cifWriteUseFunc(
 int
 cifWriteLabelFunc(
     Tile *tile,		/* Tile to be written out. */
+    TileType dinfo,	/* Split tile information (unused) */
     FILE *f)		/* File in which to write. */
 {
     Rect r;
@@ -643,7 +644,8 @@ cifWriteLabelFunc(
 int
 cifWritePaintFunc(
     Tile *tile,		/* Tile to be written out. */
-    FILE *f)				/* File in which to write. */
+    TileType dinfo,	/* Split tile information */
+    FILE *f)		/* File in which to write. */
 {
     Rect r;
 
@@ -662,7 +664,7 @@ cifWritePaintFunc(
 	Point points[5];
 	int i, np;
 
-	GrClipTriangle(&r, NULL, FALSE, TiGetTypeExact(tile), points, &np);
+	GrClipTriangle(&r, NULL, FALSE, TiGetTypeExact(tile) | dinfo, points, &np);
 
 	/* Write triangle as a CIF polygon */
 

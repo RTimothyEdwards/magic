@@ -603,8 +603,9 @@ drcCifCheck(arg)
  */
 
 int
-drcCifTile (tile, arg)
-    Tile *tile;	/* Tile being examined */
+drcCifTile (tile, dinfo, arg)
+    Tile *tile;			/* Tile being examined */
+    TileType dinfo;		/* Split tile information */
     struct drcClientData *arg;
 {
     DRCCookie *cptr;	/* Current design rule on list */
@@ -628,7 +629,7 @@ drcCifTile (tile, arg)
     /* check.							    */
 
     if (IsSplit(tile))
-	if (SplitSide(tile))
+	if (dinfo & TT_SIDE)
 	    goto tbcheck;
 
     /*
@@ -826,7 +827,7 @@ tbcheck:
     /* bottom check.						    */
 
     if (IsSplit(tile))
-	if (SplitSide(tile) == SplitDirection(tile))
+	if (((dinfo & TT_SIDE) ? 1 : 0) == SplitDirection(tile))
 	    return 0;
 
     /*
@@ -1031,8 +1032,9 @@ tbcheck:
  */
 
 int
-areaCifCheck(tile, arg)
+areaCifCheck(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;
     struct drcClientData *arg;
 {
     Rect rect;		/* Area where error is to be recorded. */
@@ -1085,7 +1087,7 @@ areaCifCheck(tile, arg)
 			- arg->dCD_constraint->r_ytop + sdist) >= 0)
 			&& ((sqx * sqx + sqy * sqy) >= ssdist))
 		return 0;
-	    else if (IsSplit(tile) && !SplitDirection(tile) && !SplitSide(tile))
+	    else if (IsSplit(tile) && !SplitDirection(tile) && !(dinfo & TT_SIDE))
 	    {
 		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
 			arg->dCD_constraint->r_ytop - sdist,
@@ -1100,7 +1102,7 @@ areaCifCheck(tile, arg)
 			- arg->dCD_constraint->r_ytop + sdist) >= 0)
 			&& ((sqx * sqx + sqy * sqy) >= ssdist))
 		return 0;
-	    else if (IsSplit(tile) && SplitDirection(tile) && SplitSide(tile))
+	    else if (IsSplit(tile) && SplitDirection(tile) && (dinfo & TT_SIDE))
 	    {
 		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
 			arg->dCD_constraint->r_ytop - sdist,
@@ -1116,7 +1118,7 @@ areaCifCheck(tile, arg)
 			+ sdist - cifrect.r_ytop) >= 0)
 			&& ((sqx * sqx + sqy * sqy) >= ssdist))
 		return 0;
-	    else if (IsSplit(tile) && SplitDirection(tile) && !SplitSide(tile))
+	    else if (IsSplit(tile) && SplitDirection(tile) && !(dinfo & TT_SIDE))
 	    {
 		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
 			arg->dCD_constraint->r_ybot + sdist,
@@ -1132,7 +1134,7 @@ areaCifCheck(tile, arg)
 			+ sdist - cifrect.r_ytop) >= 0)
 			&& ((sqx * sqx + sqy * sqy) >= ssdist))
 		return 0;
-	    else if (IsSplit(tile) && !SplitDirection(tile) && SplitSide(tile))
+	    else if (IsSplit(tile) && !SplitDirection(tile) && (dinfo & TT_SIDE))
 	    {
 		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
 			arg->dCD_constraint->r_ybot + sdist,

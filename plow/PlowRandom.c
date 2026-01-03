@@ -189,7 +189,7 @@ PlowRandomTest(def)
  */
 
 int
-plowFindFirstError()
+plowFindFirstError(Tile *tile, TileType dinfo, ClientData clientdata)
 {
     return (1);
 }

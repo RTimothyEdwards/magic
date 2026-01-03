@@ -639,9 +639,10 @@ checkDone:
 
 	/* ARGSUSED */
 int
-drcCheckTile(tile, arg)
-    Tile        * tile;			/* tile in DRC_CHECK plane */
-    ClientData 	  arg;			/* Not used. */
+drcCheckTile(tile, dinfo, arg)
+    Tile        *tile;		/* Tile in DRC_CHECK plane */
+    TileType	dinfo;		/* Split tile information (unused) */
+    ClientData 	arg;		/* Not used. */
 {
     Rect square;		/* Square area of the checkerboard
 				 * being processed right now.
@@ -767,13 +768,15 @@ drcCheckTile(tile, arg)
  */
 
 int
-drcXorFunc(tile)
+drcXorFunc(tile, dinfo, clientdata)
     Tile *tile;
+    TileType dinfo;
+    ClientData clientdata;
 {
     Rect area;
 
     TiToRect(tile, &area);
-    DBPaintPlane(drcDisplayPlane, &area, drcXorTable, (PaintUndoInfo *) NULL);
+    DBNMPaintPlane(drcDisplayPlane, dinfo, &area, drcXorTable, (PaintUndoInfo *) NULL);
     return 0;
 }
 
@@ -782,14 +785,15 @@ drcXorFunc(tile)
  */
 
 int
-drcPutBackFunc(tile, cellDef)
+drcPutBackFunc(tile, dinfo, cellDef)
     Tile *tile;			/* Error tile, from drcTempPlane. */
+    TileType dinfo;		/* Split tile information */
     CellDef *cellDef;		/* Celldef in which to paint error. */
 {
     Rect area;
 
     TiToRect(tile, &area);
-    DBPaintPlane(cellDef->cd_planes[PL_DRC_ERROR], &area,
+    DBNMPaintPlane(cellDef->cd_planes[PL_DRC_ERROR], dinfo, &area,
 	DBStdPaintTbl(TiGetType(tile), PL_DRC_ERROR),
 	(PaintUndoInfo *) NULL);
     return 0;
@@ -816,8 +820,9 @@ drcPutBackFunc(tile, cellDef)
  */
 
 int
-drcIncludeArea(tile, rect)
+drcIncludeArea(tile, dinfo, rect)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     Rect *rect;			/* Rectangle in which to record total area. */
 {
     Rect dum;

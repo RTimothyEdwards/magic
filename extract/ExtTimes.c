@@ -396,8 +396,9 @@ extTimesCellFunc(cs)
  */
 
 int
-extCountTiles(tile, cs)
-    Tile *tile;			/* UNUSED */
+extCountTiles(tile, dinfo, cs)
+    Tile *tile;			/* (unused) */
+    TileType dinfo;		/* (unused) */
     struct cellStats *cs;
 {
     cs->cs_rects++;
@@ -1115,8 +1116,9 @@ extInterAreaFunc(use, f)
 }
 
 int
-extInterCountFunc(tile, pArea)
+extInterCountFunc(tile, dinfo, pArea)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     int *pArea;
 {
     Rect r;

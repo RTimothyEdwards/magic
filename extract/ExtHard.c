@@ -71,8 +71,9 @@ bool extHardSetLabel();
  */
 
 ExtRegion *
-extLabFirst(tile, arg)
+extLabFirst(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     FindRegion *arg;
 {
     TransRegion *reg;
@@ -91,8 +92,9 @@ extLabFirst(tile, arg)
 
     /*ARGSUSED*/
 int
-extLabEach(tile, pNum, arg)
+extLabEach(tile, dinfo, pNum, arg)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     int pNum;
     FindRegion *arg;
 {
@@ -109,7 +111,7 @@ extLabEach(tile, pNum, arg)
     TransRegion *reg = (TransRegion *) arg->fra_region;
 
     if (reg->treg_area == DBNumPlanes) reg->treg_area = pNum;
-    extSetNodeNum((LabRegion *)reg, pNum, tile);
+    extSetNodeNum((LabRegion *)reg, pNum, tile, dinfo);
     return (0);
 }
 

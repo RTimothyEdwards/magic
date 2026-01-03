@@ -56,6 +56,7 @@ int dbCheckMaxHFunc(), dbCheckMaxVFunc();
  *	int
  *	func(tile, cdata)
  *	    Tile *tile;
+ *	    TileType dinfo;
  *	    ClientData cdata;
  *	{
  *	}
@@ -266,17 +267,15 @@ nm_enum:
 
 	    if (!(ignore_sides & IGNORE_LEFT))
 	    {
-		TiSetBody(tp, INT2CD(tpt & ~TT_SIDE)); /* bit clear */
-		if ((*func)(tp, arg)) return (1);
+		if ((*func)(tp, (TileType)TT_DIAGONAL, arg)) return (1);
 	    }
 	    if (!(ignore_sides & IGNORE_RIGHT))
 	    {
-		TiSetBody(tp, INT2CD(tpt | TT_SIDE)); /* bit set */
-		if ((*func)(tp, arg)) return (1);
+		if ((*func)(tp, (TileType)TT_DIAGONAL | TT_SIDE, arg)) return (1);
 	    }
         }
 	else
-	    if (TTMaskHasType(mask, TiGetType(tp)) && (*func)(tp, arg))
+	    if (TTMaskHasType(mask, TiGetType(tp)) && (*func)(tp, (TileType)0, arg))
 		return (1);
 
 enum_next:
@@ -325,6 +324,7 @@ enum_next:
  *	int
  *	func(tile, cdata)
  *	    Tile *tile;
+ *	    TileType dinfo;
  *	    ClientData cdata;
  *	{
  *	}
@@ -416,9 +416,7 @@ enumerate:
 			(dlong)(rect->r_xbot - LEFT(tp)) * theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f1 > f4) : (f2 > f4))
 		{
-		    TiSetBody(tp, INT2CD((TileType)CD2INT(TiGetBody(tp))
-				& ~TT_SIDE));  /* bit clear */
-		    if ((*func)(tp, arg)) return (1);
+		    if ((*func)(tp, (TileType)TT_DIAGONAL, arg)) return (1);
 		}
 	    }
 
@@ -429,14 +427,12 @@ enumerate:
 			(dlong)(RIGHT(tp) - rect->r_xtop) * theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f2 > f3) : (f1 > f3))
 		{
-		    TiSetBody(tp, INT2CD((TileType)CD2INT(TiGetBody(tp))
-				| TT_SIDE));      /* bit set */
-		    if ((*func)(tp, arg)) return (1);
+		    if ((*func)(tp, (TileType)TT_DIAGONAL | TT_SIDE, arg)) return (1);
 		}
 	    }
 	}
 	else
-	    if (TTMaskHasType(mask, TiGetType(tp)) && (*func)(tp, arg))
+	    if (TTMaskHasType(mask, TiGetType(tp)) && (*func)(tp, (TileType)0, arg))
 		return (1);
 
 	tpnew = TR(tp);
@@ -485,6 +481,7 @@ enumerate:
  *	int
  *	func(tile, cdata)
  *	    Tile *tile;
+ *	    TileType dinfo;
  *	    ClientData cdata;
  *	{
  *	}
@@ -576,9 +573,7 @@ enumerate:
 			(dlong)(rect->r_xbot - LEFT(tp)) * (dlong)theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f1 > f4) : (f2 > f4))
 		{
-		    TiSetBody(tp, INT2CD((TileType)CD2INT(TiGetBody(tp))
-				& ~TT_SIDE));  /* bit clear */
-		    if ((tp->ti_client == client) && (*func)(tp, arg))
+		    if ((tp->ti_client == client) && (*func)(tp, (TileType)TT_DIAGONAL, arg))
 			return (1);
 		}
 	    }
@@ -590,16 +585,15 @@ enumerate:
 			(dlong)(RIGHT(tp) - rect->r_xtop) * (dlong)theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f2 > f3) : (f1 > f3))
 		{
-		    TiSetBody(tp, INT2CD((TileType)CD2INT(TiGetBody(tp))
-				| TT_SIDE));      /* bit set */
-		    if ((tp->ti_client == client) && (*func)(tp, arg))
+		    if ((tp->ti_client == client) && (*func)(tp, (TileType)TT_DIAGONAL
+				| TT_SIDE, arg))
 			return (1);
 		}
 	    }
 	}
 	else
 	    if (TTMaskHasType(mask, TiGetType(tp)) && tp->ti_client == client
-				&& (*func)(tp, arg))
+				&& (*func)(tp, (TileType)0, arg))
 		return (1);
 
 	tpnew = TR(tp);
@@ -918,8 +912,9 @@ DBCheckMaxHStrips(plane, area, proc, cdata)
  */
 
 int
-dbCheckMaxHFunc(tile, dbc)
+dbCheckMaxHFunc(tile, dinfo, dbc)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct dbCheck *dbc;
 {
     Tile *tp;
@@ -1010,8 +1005,9 @@ DBCheckMaxVStrips(plane, area, proc, cdata)
  */
 
 int
-dbCheckMaxVFunc(tile, dbc)
+dbCheckMaxVFunc(tile, dinfo, dbc)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct dbCheck *dbc;
 {
     Tile *tp;

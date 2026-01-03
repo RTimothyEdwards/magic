@@ -45,8 +45,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 ExtRegion *
-ResFirst(tile, arg)
+ResFirst(tile, dinfo, arg)
     Tile *tile;
+    TileType dinfo;
     FindRegion *arg;
 {
     ResContactPoint *reg;
@@ -55,7 +56,7 @@ ResFirst(tile, arg)
 
     if (IsSplit(tile))
     {
-	t = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	t = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     }
     else
 	t = TiGetType(tile);
@@ -98,7 +99,10 @@ ResFirst(tile, arg)
  */
 
 int
-resMultiPlaneTerm(Tile *tile, tileJunk *junk2)
+resMultiPlaneTerm(
+    Tile *tile,
+    TileType dinfo,	// Unused (but should be handled)
+    tileJunk *junk2)
 {
     tileJunk *Junk;
     
@@ -119,7 +123,10 @@ resMultiPlaneTerm(Tile *tile, tileJunk *junk2)
  */
 
 int
-resSubstrateTerm(Tile *tile)
+resSubstrateTerm(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)	/* (unused) */
 {
     tileJunk *Junk;
     
@@ -144,15 +151,16 @@ resSubstrateTerm(Tile *tile)
  */
 
 int
-ResEach(tile, pNum, arg)
+ResEach(tile, dinfo, pNum, arg)
     Tile	*tile;
+    TileType	dinfo;
     int		pNum;
     FindRegion	*arg;
 {
 
     if (((ResContactPoint *)(arg->fra_region))->cp_contactTile != tile)
     {
-	ResFirst(tile, arg);
+	ResFirst(tile, dinfo, arg);
     }
     return(0);
 }
@@ -175,8 +183,9 @@ ResEach(tile, pNum, arg)
  */
 
 int
-ResAddPlumbing(tile, arg)
+ResAddPlumbing(tile, dinfo, arg)
     Tile	*tile;
+    TileType	dinfo;
     ClientData	*arg;
 {
     tileJunk		*Junk, *junk2;
@@ -193,7 +202,7 @@ ResAddPlumbing(tile, arg)
     if (TiGetClient(tile) == CLIENTDEFAULT)
     {
 	if (IsSplit(tile))
-	    loctype = (SplitSide(tile)) ? SplitRightType(tile) :
+	    loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) :
 			SplitLeftType(tile);
 	else
 	    loctype = TiGetTypeExact(tile);
@@ -220,7 +229,7 @@ ResAddPlumbing(tile, arg)
 	     */
 	    nterms += 2;
 
-   	    resDev = (resDevice *) mallocMagic((unsigned)(sizeof(resDevice)));
+   	    resDev = (resDevice *)mallocMagic((unsigned)(sizeof(resDevice)));
 	    resDev->rd_nterms = nterms;
 	    resDev->rd_terminals = (resNode **) mallocMagic(nterms * sizeof(resNode *));
 	    for (i = 0; i != nterms; i++)
@@ -238,7 +247,7 @@ ResAddPlumbing(tile, arg)
 	    resDev->rd_perim = 0;
 	    resDev->rd_area = 0;
 	    resDev->rd_status = 0;
-            resDev->rd_nextDev = (resDevice *) *arg;
+            resDev->rd_nextDev = (resDevice *)*arg;
 	    *arg = (ClientData)resDev;
 	    junk2->deviceList =  resDev;
 	    junk2->tj_status |= RES_TILE_DEV;
@@ -340,7 +349,7 @@ ResAddPlumbing(tile, arg)
 	       	tp1 = (Tile *) STACKPOP(resDevStack);
 		if (IsSplit(tp1))
 		{
-		    t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
+		    t1 = (dinfo & TT_SIDE) ? SplitRightType(tp1) :
 				SplitLeftType(tp1);
 		}
 		else
@@ -426,11 +435,11 @@ ResAddPlumbing(tile, arg)
 		tp1 = (Tile *) STACKPOP(resDevStack);
 		if (IsSplit(tp1))
 		{
-		    t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
+		    t1 = (dinfo & TT_SIDE) ? SplitRightType(tp1) :
 				SplitLeftType(tp1);
 		    /* Check in case this is the wrong side */
 		    if (ExtCurStyle->exts_device[t1] == NULL)
-			t1 = (SplitSide(tp1)) ? SplitLeftType(tp1) :
+			t1 = (dinfo & TT_SIDE) ? SplitLeftType(tp1) :
 				SplitRightType(tp1);
 		}
 		else
@@ -574,7 +583,7 @@ ResAddPlumbing(tile, arg)
 	        tp1 = (Tile *) STACKPOP(resDevStack);
 		if (IsSplit(tp1))
 		{
-		    t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
+		    t1 = (dinfo & TT_SIDE) ? SplitRightType(tp1) :
 				SplitLeftType(tp1);
 		}
 		else
@@ -651,8 +660,9 @@ ResAddPlumbing(tile, arg)
  */
 
 int
-ResRemovePlumbing(tile, arg)
+ResRemovePlumbing(tile, dinfo, arg)
     Tile	*tile;
+    TileType	dinfo;		// Unused, but should be handled.
     ClientData	*arg;
 
 {

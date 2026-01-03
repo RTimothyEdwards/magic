@@ -147,7 +147,7 @@ NMRedrawPoints(window, plane)
 }
 
 int
-nmspAlways1()
+nmspAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
 {
     return 1;
 }

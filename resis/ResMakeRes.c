@@ -52,8 +52,9 @@ bool ResCalcEastWest();
  */
 
 bool
-ResCalcTileResistance(tile, junk, pendingList, doneList)
+ResCalcTileResistance(tile, dinfo, junk, pendingList, doneList)
     Tile 	*tile;
+    TileType	dinfo;
     tileJunk 	*junk;
     resNode	**pendingList, **doneList;
 
@@ -87,15 +88,15 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
 
     if (device)
     {
-	merged |= ResCalcNearDevice(tile, pendingList, doneList, &ResResList);
+	merged |= ResCalcNearDevice(tile, dinfo, pendingList, doneList, &ResResList);
     }
     else if (MaxY-MinY > MaxX-MinX)
     {
-	merged |= ResCalcNorthSouth(tile, pendingList, doneList, &ResResList);
+	merged |= ResCalcNorthSouth(tile, dinfo, pendingList, doneList, &ResResList);
     }
     else
     {
-	merged |= ResCalcEastWest(tile, pendingList, doneList, &ResResList);
+	merged |= ResCalcEastWest(tile, dinfo, pendingList, doneList, &ResResList);
     }
 
     /*
@@ -120,8 +121,9 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
  */
 
 bool
-ResCalcEastWest(tile, pendingList, doneList, resList)
+ResCalcEastWest(tile, dinfo, pendingList, doneList, resList)
     Tile	*tile;
+    TileType	dinfo;
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 {
@@ -243,7 +245,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 
 	    if (IsSplit(tile))
 	    {
-		resistor->rr_tt = (SplitSide(tile)) ? SplitRightType(tile)
+		resistor->rr_tt = (dinfo & TT_SIDE) ? SplitRightType(tile)
 			: SplitLeftType(tile);
 		resistor->rr_status = RES_DIAGONAL;
 		resistor->rr_status |= (SplitDirection(tile)) ? RES_NS
@@ -291,8 +293,9 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
  */
 
 bool
-ResCalcNorthSouth(tile, pendingList, doneList, resList)
+ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList)
     Tile	*tile;
+    TileType	dinfo;
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 {
@@ -411,7 +414,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    resistor->rr_width = width;
 	    if (IsSplit(tile))
 	    {
-		resistor->rr_tt = (SplitSide(tile)) ? SplitRightType(tile)
+		resistor->rr_tt = (dinfo & TT_SIDE) ? SplitRightType(tile)
 			: SplitLeftType(tile);
 		resistor->rr_status = RES_DIAGONAL;
 		resistor->rr_status |= (SplitDirection(tile)) ? RES_NS
@@ -463,8 +466,9 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
  */
 
 bool
-ResCalcNearDevice(tile, pendingList, doneList, resList)
+ResCalcNearDevice(tile, dinfo, pendingList, doneList, resList)
     Tile	*tile;
+    TileType	dinfo;
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 
@@ -642,11 +646,11 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	}
 	if (deltay > deltax)
 	{
-	    return ResCalcNorthSouth(tile, pendingList, doneList, resList);
+	    return ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList);
 	}
 	else
 	{
-	    return ResCalcEastWest(tile, pendingList, doneList, resList);
+	    return ResCalcEastWest(tile, dinfo, pendingList, doneList, resList);
 	}
     }
 
@@ -712,7 +716,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 		    }
 		}
 	    }
-	    return ResCalcNorthSouth(tile, pendingList, doneList, resList);
+	    return ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList);
 	}
 	else
 	{
@@ -752,7 +756,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 		    }
 		}
 	    }
-	    return ResCalcEastWest(tile, pendingList, doneList, resList);
+	    return ResCalcEastWest(tile, dinfo, pendingList, doneList, resList);
 	}
     }
 }

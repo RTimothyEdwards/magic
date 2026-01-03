@@ -245,7 +245,9 @@ calmaExact(void)
     int pNum;
     Plane *newplane;
     Plane **parray;
-    int gdsCopyPaintFunc(Tile *tile, GDSCopyRec *gdsCopyRec);	/* Forward reference */
+
+    /* Forward reference */
+    int gdsCopyPaintFunc(Tile *tile, TileType dinfo, GDSCopyRec *gdsCopyRec);
 
     parray = (Plane **)mallocMagic(MAXCIFRLAYERS * sizeof(Plane *));
 
@@ -751,6 +753,7 @@ calmaParseElement(
 int
 calmaEnumFunc(
     Tile *tile,
+    TileType dinfo,
     int *plane)
 {
     return 1;
@@ -789,11 +792,12 @@ calmaElementSref(
     Point refarray[3], refunscaled[3], p;
     CellUse *use;
     CellDef *def;
-    int gdsCopyPaintFunc(Tile *tile, GDSCopyRec *gdsCopyRec);	/* Forward reference */
-    int gdsHasUses(CellUse *use, ClientData clientdata);		/* Forward reference */
-    /* Added by NP */
     char *useid = NULL, *arraystr = NULL;
     int propAttrType;
+
+    /* Forward reference */
+    int gdsCopyPaintFunc(Tile *tile, TileType dinfo, GDSCopyRec *gdsCopyRec);
+    int gdsHasUses(CellUse *use, ClientData clientdata);
 
     /* Skip CALMA_ELFLAGS, CALMA_PLEX */
     calmaSkipSet(calmaElementIgnore);
@@ -1289,27 +1293,28 @@ gdsHasUses(
 int
 gdsCopyPaintFunc(
     Tile *tile,
+    TileType dinfo,
     GDSCopyRec *gdsCopyRec)
 {
     int pNum;
-    TileType dinfo;
+    TileType newdinfo;
     Rect sourceRect, targetRect;
     Transform *trans = gdsCopyRec->trans;
     Plane *plane = gdsCopyRec->plane;
 
-    dinfo = TiGetTypeExact(tile);
+    newdinfo = TiGetTypeExact(tile) | dinfo;
 
     if (trans)
     {
 	TiToRect(tile, &sourceRect);
 	GeoTransRect(trans, &sourceRect, &targetRect);
 	if (IsSplit(tile))
-	    dinfo = DBTransformDiagonal(TiGetTypeExact(tile), trans);
+	    newdinfo = DBTransformDiagonal(TiGetTypeExact(tile), trans);
     }
     else
 	TiToRect(tile, &targetRect);
 
-    DBNMPaintPlane(plane, dinfo, &targetRect, CIFPaintTable,
+    DBNMPaintPlane(plane, newdinfo, &targetRect, CIFPaintTable,
 		(PaintUndoInfo *)NULL);
 
     return 0;

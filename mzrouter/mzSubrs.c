@@ -412,8 +412,9 @@ mzMarkConnectedTiles(rect, type, expandType)
  */
 
 int
-mzConnectedTileFunc(tile, cxp)
+mzConnectedTileFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     TreeContext *cxp;
 {
     /* If tile not marked, mark it, add it to marked list, and add

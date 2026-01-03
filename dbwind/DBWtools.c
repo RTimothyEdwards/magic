@@ -764,7 +764,10 @@ DBWDrawBox(window, plane)
 }
 
 int
-dbwBoxAlways1()
+dbwBoxAlways1(
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     return 1;
 }

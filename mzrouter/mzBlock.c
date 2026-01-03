@@ -234,9 +234,9 @@ mzBuildMaskDataBlocks(buildArea)
  */
 
 int
-mzBuildBlockFunc(tile, cxp)
-
+mzBuildBlockFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	// Unused
     TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;
@@ -317,7 +317,7 @@ mzBlockSubcellsFunc(scx, cdarg)
  */
 
 int
-mzPaintSameNodeFunc(Tile *t, Rect *buildArea)
+mzPaintSameNodeFunc(Tile *t, TileType dinfo, Rect *buildArea)
 {
     Rect r;
     TileType ttype;
@@ -580,8 +580,9 @@ mzBuildFenceBlocks(buildArea)
  */
 
 int
-mzBuildFenceBlocksFunc(tile, buildArea)
+mzBuildFenceBlocksFunc(tile, dinfo, buildArea)
     Tile *tile;
+    TileType dinfo;
     Rect *buildArea; /* clip to this area before painting */
 {
     RouteType *rT;
@@ -723,8 +724,9 @@ mzExtendBlockBoundsR(rect)
  */
 
 int
-mzExtendBlockFunc(tile, cdarg)
+mzExtendBlockFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;
     ClientData cdarg;
 {
     Rect area;
@@ -932,8 +934,9 @@ mzBuildDestAreaBlocks()
  */
 
 int
-mzDestAreaFunc(tile, cxp)
+mzDestAreaFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;
@@ -1011,8 +1014,9 @@ mzDestAreaFunc(tile, cxp)
  */
 
 int
-mzDestWalksFunc(tile, cxp)
+mzDestWalksFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;
@@ -1096,8 +1100,9 @@ mzDestWalksFunc(tile, cxp)
  */
 
 int
-mzHWalksFunc(tile, cdarg)
+mzHWalksFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;
     ClientData cdarg;
 {
     RouteType *rT = (RouteType *) cdarg;
@@ -1184,8 +1189,9 @@ mzHWalksFunc(tile, cdarg)
  */
 
 int
-mzVWalksFunc(tile, cdarg)
+mzVWalksFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;
     ClientData cdarg;
 {
     RouteType  *rT = (RouteType *) cdarg;
@@ -1282,8 +1288,9 @@ typedef struct walkContactFuncData
  */
 
 int
-mzLRCWalksFunc(tile, cdarg)
+mzLRCWalksFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     ClientData cdarg;
 {
     RouteType *rT = (RouteType *) cdarg; /* RouteType of this dest area */
@@ -1365,8 +1372,9 @@ mzLRCWalksFunc(tile, cdarg)
  */
 
 int
-mzUDCWalksFunc(tile, cdarg)
+mzUDCWalksFunc(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;	/* (unused) */
     ClientData cdarg;
 {
     RouteType *rT = (RouteType *) cdarg; /* RouteType of this dest area */

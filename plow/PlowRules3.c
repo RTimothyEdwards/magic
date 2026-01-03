@@ -111,8 +111,9 @@ prInSliver(edge)
 }
 
 int
-plowInSliverProc(tile, inarg)
+plowInSliverProc(tile, dinfo, inarg)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct inarg *inarg;
 {
     Edge *movingEdge = inarg->ina_moving;

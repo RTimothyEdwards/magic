@@ -107,10 +107,10 @@ typedef struct {
 } calmaOutputStructZ;
 
     /* Forward declarations */
-extern int calmaWritePaintFuncZ(Tile *tile, calmaOutputStructZ *cos);
-extern int calmaMergePaintFuncZ(Tile *tile, calmaOutputStructZ *cos);
+extern int calmaWritePaintFuncZ(Tile *tile, TileType dinfo, calmaOutputStructZ *cos);
+extern int calmaMergePaintFuncZ(Tile *tile, TileType dinfo, calmaOutputStructZ *cos);
 extern int calmaWriteUseFuncZ(CellUse *use, gzFile f);
-extern int calmaPaintLabelFuncZ(Tile *tile, calmaOutputStructZ *cos);
+extern int calmaPaintLabelFuncZ(Tile *tile, TileType dinfo, calmaOutputStructZ *cos);
 extern void calmaWriteContactsZ(gzFile f);
 extern void calmaOutFuncZ(CellDef *def, gzFile f, const Rect *cliprect);
 extern void calmaOutStructNameZ(int type, CellDef *def, gzFile f);
@@ -1899,6 +1899,7 @@ calmaProcessBoundaryZ(
 int
 calmaMergePaintFuncZ(
     Tile *tile,			/* Tile to be written out. */
+    TileType dinfo,		/* Split tile information (unused) */
     calmaOutputStructZ *cos)	/* Information needed by algorithm */
 {
     gzFile f = cos->f;
@@ -1929,11 +1930,10 @@ calmaMergePaintFuncZ(
 	split_type = -1;
 	if (IsSplit(t))
 	{
-	    /* If we use SplitSide, then we need to set it when	the	*/
+	    /* If we use TT_SIDE, then we need to set it when the	*/
 	    /* tile is pushed.  Since these are one-or-zero mask layers	*/
 	    /* I assume it is okay to just check which side is TT_SPACE	*/
 
-	    /* split_type = (SplitSide(t) << 1) | SplitDirection(t); */
 	    split_type = SplitDirection(t);
 	    if (TiGetLeftType(t) == TT_SPACE) split_type |= 2;
 	    num_points = 2;
@@ -2156,7 +2156,9 @@ right_search:
 done_searches:
 	if (intedges == 0)
 	{
-	    calmaWritePaintFuncZ(t, cos);
+	    calmaWritePaintFuncZ(t,
+			(split_type & 2) ? (TileType)TT_SIDE : (TileType)0,
+			cos);
 
 	    /* Although calmaWritePaintFunc is called only on isolated	*/
 	    /* tiles, we may have expanded it.  This could use a LOT of	*/
@@ -2226,6 +2228,7 @@ done_searches:
 int
 calmaWritePaintFuncZ(
     Tile *tile,			/* Tile to be written out. */
+    TileType dinfo,		/* Split tile information */
     calmaOutputStructZ *cos)	/* File for output and clipping area */
 {
     gzFile f = cos->f;
@@ -2261,7 +2264,7 @@ calmaWritePaintFuncZ(
 	/* Coordinates */
 	calmaOutRHZ(36, CALMA_XY, CALMA_I4, f);
 
-	switch ((SplitSide(tile) << 1) | SplitDirection(tile))
+	switch (((dinfo & TT_SIDE) ? 2 : 0) | SplitDirection(tile))
 	{
 	    case 0x0:
 		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
@@ -2502,6 +2505,7 @@ calmaWriteLabelFuncZ(
 int
 calmaPaintLabelFuncZ(
     Tile *tile,			/* Tile contains area for label. */
+    TileType dinfo,		/* Split tile information (unused) */
     calmaOutputStructZ *cos)	/* File for output and clipping area */
 {
     gzFile f = cos->f;

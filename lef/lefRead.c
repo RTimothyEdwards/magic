@@ -1156,6 +1156,7 @@ typedef struct _plane_type {
 int
 lefConnectFunc(
     Tile *tile,
+    TileType dinfo,	// Not handled, but should be.
     TreeContext *cxp)
 {
     SearchContext *scx = cxp->tc_scx;
@@ -1189,7 +1190,8 @@ lefConnectFunc(
 
 int
 lefUnconnectFunc(
-    Tile *tile,
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
     ClientData clientdata)	/* (unused) */
 {
     return 1;

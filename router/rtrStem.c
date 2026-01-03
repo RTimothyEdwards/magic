@@ -403,7 +403,7 @@ fail:
 /* Routine to expand rectangle into touching tiles of a label's type. */
 
 int
-rtrStemExpandFunc(Tile *t, TreeContext *cxp)
+rtrStemExpandFunc(Tile *t, TileType dinfo, TreeContext *cxp)
 {
     SearchContext *scx = cxp->tc_scx;
     Rect rsrc;
@@ -518,8 +518,9 @@ rtrStemTip(loc, si, use)
  */
 
 int
-rtrAbort(tile)
-    Tile *tile;
+rtrAbort(Tile *tile,
+    TileType dinfo,
+    ClientData cliendata)
 {
     return 1;
 }

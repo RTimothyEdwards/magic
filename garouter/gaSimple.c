@@ -572,8 +572,9 @@ gaIsClear(use, r, mask)
  */
 
 int
-gaIsClearFunc(tile, cxp)
+gaIsClearFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;
     TreeContext *cxp;
 {
     return 1;

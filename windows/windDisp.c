@@ -896,9 +896,10 @@ WindUpdate()
  */
 
 int
-windUpdateFunc(tile, w)
+windUpdateFunc(tile, dinfo, w)
     Tile *tile;			/* Tile in the redisplay plane. */
-    MagWindow *w;			/* Window we're currently interested in. */
+    TileType dinfo;		/* Split tile information (unused) */
+    MagWindow *w;		/* Window we're currently interested in. */
 {
     Rect area;
 
@@ -963,9 +964,10 @@ windUpdateFunc(tile, w)
 
 	/* ARGSUSED */
 int
-windBackgroundFunc(tile, notUsed)
+windBackgroundFunc(tile, dinfo, notUsed)
     Tile *tile;
-    ClientData notUsed;
+    TileType dinfo;		/* (unused) */
+    ClientData notUsed;		/* (unused) */
 {
     Rect area;
 

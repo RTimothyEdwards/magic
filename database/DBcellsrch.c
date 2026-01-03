@@ -120,6 +120,7 @@ DBSrCellPlaneArea(BPlane *plane, const Rect *rect, int (*func)(), ClientData arg
  *	int
  *	func(tile, cxp)
  *	    Tile *tile;
+ *	    TileType dinfo;
  *	    TreeContext *cxp;
  *	{
  *	}
@@ -416,6 +417,7 @@ dbCellUniqueTileSrFunc(scx, fp)
  *	int
  *	func(tile, cxp)
  *	    Tile *tile;
+ *	    TileType dinfo;
  *	    TreeContext *cxp;
  *	{
  *	}
@@ -914,8 +916,9 @@ DBSeeTypesAll(rootUse, rootRect, xMask, mask)
  */
 
 int
-dbSeeTypesAllSrFunc(tile, cxp)
+dbSeeTypesAllSrFunc(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;
     TreeContext *cxp;
 {
     Rect tileRect;
@@ -926,7 +929,7 @@ dbSeeTypesAllSrFunc(tile, cxp)
     if (GEO_OVERLAP((&tileRect), area))
     {
 	if (IsSplit(tile))
-	    TTMaskSetType(mask, SplitSide(tile) ?
+	    TTMaskSetType(mask, (dinfo & TT_SIDE) ?
 			SplitRightType(tile) : SplitLeftType(tile));
         else
 	    TTMaskSetType(mask, TiGetType(tile));
@@ -1607,8 +1610,9 @@ dbScalePlane(oldplane, newplane, pnum, scalen, scaled, doCIF)
  */
 
 int
-dbTileScaleFunc(tile, scvals)
+dbTileScaleFunc(tile, dinfo, scvals)
     Tile *tile;
+    TileType dinfo;
     struct scaleArg *scvals;
 {
     TileType type;
@@ -1631,10 +1635,10 @@ dbTileScaleFunc(tile, scvals)
 	return 0;
     }
 
-    type = TiGetTypeExact(tile);
+    type = TiGetTypeExact(tile) | dinfo;
     exact = type;
     if (IsSplit(tile))
-	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     DBNMPaintPlane(scvals->ptarget, exact, &targetRect,
 		(
 #ifdef CIF_MODULE
@@ -1689,8 +1693,9 @@ dbMovePlane(oldplane, newplane, pnum, origx, origy)
  */
 
 int
-dbTileMoveFunc(tile, mvvals)
+dbTileMoveFunc(tile, dinfo, mvvals)
     Tile *tile;
+    TileType dinfo;
     struct moveArg *mvvals;
 {
     TileType type;
@@ -1703,10 +1708,10 @@ dbTileMoveFunc(tile, mvvals)
     DBMovePoint(&targetRect.r_ll, mvvals->origx, mvvals->origy);
     DBMovePoint(&targetRect.r_ur, mvvals->origx, mvvals->origy);
 
-    type = TiGetTypeExact(tile);
+    type = TiGetTypeExact(tile) | dinfo;
     exact = type;
     if (IsSplit(tile))
-	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     DBNMPaintPlane(mvvals->ptarget, exact, &targetRect,
 		DBStdPaintTbl(type, mvvals->pnum),
 		(PaintUndoInfo *)NULL);

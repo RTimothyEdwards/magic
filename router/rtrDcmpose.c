@@ -522,8 +522,9 @@ rtrSplitToArea(area, def)
  */
 
 int
-rtrSrClear(tile, area)
+rtrSrClear(tile, dinfo, area)
     Tile *tile;
+    TileType dinfo;
     Rect *area;
 {
     /* Clear all */
@@ -580,8 +581,9 @@ rtrSrClear(tile, area)
  */
 
 int
-rtrSrFunc(tile, plane)
+rtrSrFunc(tile, dinfo, plane)
     Tile *tile;		/* Candidate cell tile */
+    TileType dinfo;	/* Split tile information (unused) */
     Plane *plane;	/* Plane in which searches take place */
 {
     Tile *tiles[3];
