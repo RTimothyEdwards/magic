@@ -411,8 +411,9 @@ struct sideoverlap
 };
 
 int
-extAddOverlap(tbelow, ecpls)
+extAddOverlap(tbelow, dinfo, ecpls)
     Tile *tbelow;
+    TileType dinfo;		/* unused, but needs to be handled */
     extCoupleStruct *ecpls;
 {
     int extSubtractOverlap(), extSubtractOverlap2();
@@ -540,8 +541,9 @@ extAddOverlap(tbelow, ecpls)
 /* Simple overlap.  The area of overlap is subtracted from ov->o_area */
 
 int
-extSubtractOverlap(tile, ov)
+extSubtractOverlap(tile, dinfo, ov)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct overlap *ov;
 {
     Rect r;
@@ -550,6 +552,7 @@ extSubtractOverlap(tile, ov)
     TITORECT(tile, &r);
     GEOCLIP(&r, &ov->o_clip);
     area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    if (IsSplit(tile)) area /= 2;
     if (area > 0)
 	ov->o_area -= area;
 
@@ -562,8 +565,9 @@ extSubtractOverlap(tile, ov)
 /* shielding plane.						*/
 
 int
-extSubtractOverlap2(tile, ov)
+extSubtractOverlap2(tile, dinfo, ov)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct overlap *ov;
 {
     struct overlap ovnew;
@@ -575,6 +579,7 @@ extSubtractOverlap2(tile, ov)
     area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
     if (area <= 0)
 	return (0);
+    if (IsSplit(tile)) area /= 2;
 
     /* This tile shields everything below */
     if (TTMaskHasType(&ov->o_tmask, TiGetType(tile)))
@@ -615,8 +620,9 @@ extSubtractOverlap2(tile, ov)
  */
 
 int
-extSubtractSideOverlap(tile, sov)
+extSubtractSideOverlap(tile, dinfo, sov)
     Tile *tile;
+    TileType dinfo;			/* (unused) */
     struct sideoverlap *sov;
 {
     Rect r;
@@ -692,13 +698,20 @@ extSubtractSideOverlap(tile, sov)
 /* shielding plane.						*/
 
 int
-extSubtractSideOverlap2(tile, sov)
+extSubtractSideOverlap2(tile, dinfo, sov)
     Tile *tile;
+    TileType dinfo;
     struct sideoverlap *sov;
 {
+    TileType ttype;
     struct sideoverlap sovnew;
     int area, pNum;
     Rect r;
+
+    if (IsSplit(tile))
+	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+    else
+	ttype = TiGetTypeExact(tile);
 
     TITORECT(tile, &r);
     GEOCLIP(&r, &sov->so_clip);
@@ -707,9 +720,9 @@ extSubtractSideOverlap2(tile, sov)
 	return (0);
 
     /* This tile shields everything below */
-    if (TTMaskHasType(&sov->so_tmask, TiGetType(tile)))
+    if (TTMaskHasType(&sov->so_tmask, ttype))
     {
-	extSubtractSideOverlap(tile, sov);
+	extSubtractSideOverlap(tile, dinfo, sov);
 	return (0);
     }
 
@@ -1057,8 +1070,9 @@ extFindOverlap(tp, area, esws)
  */
 
 int
-extSideOverlapHalo(tp, esws)
+extSideOverlapHalo(tp, dinfo, esws)
     Tile *tp;			/* Overlapped tile */
+    TileType dinfo;		/* Split tile information */
     extSidewallStruct *esws;	/* Overlapping edge and plane information */
 {
     Boundary *bp = esws->bp;	/* Overlapping edge */
@@ -1078,7 +1092,10 @@ extSideOverlapHalo(tp, esws)
 
     /* Nothing to do for space tiles, so just return. */
     /* (TO DO:  Make sure TT_SPACE is removed from all exts_sideOverlapOtherTypes */
-    tb = TiGetType(tp);
+    if (IsSplit(tp))
+	tb = (dinfo & TT_SIDE) ? TiGetRightType(tp) : TiGetLeftType(tp);
+    else
+	tb = TiGetTypeExact(tp);
     if (tb == TT_SPACE) return (0);
 
     /* Get the area of the coupling tile, and clip to the fringe area	*/
@@ -1154,7 +1171,7 @@ extSideOverlapHalo(tp, esws)
 	if (!PlaneMaskHasPlane(e->ec_pmask, esws->plane_checked)) continue;
 
 	/* Does this rule "e" include the tile we found? */
-	if (TTMaskHasType(&e->ec_near, TiGetType(tp)))
+	if (TTMaskHasType(&e->ec_near, tb))
 	{
 	    /* We have a possible capacitor, but are the tiles shielded from
 	     * each other part of the way?
@@ -1284,8 +1301,9 @@ extSideOverlapHalo(tp, esws)
  */
 
 int
-extSideOverlap(tp, esws)
+extSideOverlap(tp, dinfo, esws)
     Tile *tp;			/* Overlapped tile */
+    TileType dinfo;		/* Split tile information */
     extSidewallStruct *esws;	/* Overlapping edge and plane information */
 {
     Boundary *bp = esws->bp;	/* Overlapping edge */
@@ -1303,7 +1321,10 @@ extSideOverlap(tp, esws)
 
     /* Nothing to do for space tiles, so just return. */
     /* (TO DO:  Make sure TT_SPACE is removed from all exts_sideOverlapOtherTypes */
-    tb = TiGetType(tp);
+    if (IsSplit(tp))
+	tb = (dinfo & TT_SIDE) ? TiGetRightType(tp) : TiGetLeftType(tp);
+    else
+	tb = TiGetTypeExact(tp);
     if (tb == TT_SPACE) return (0);
 
     if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
@@ -1338,7 +1359,7 @@ extSideOverlap(tp, esws)
 	if (!PlaneMaskHasPlane(e->ec_pmask, esws->plane_checked)) continue;
 
 	/* Does this rule "e" include the tile we found? */
-	if (TTMaskHasType(&e->ec_near, TiGetType(tp)))
+	if (TTMaskHasType(&e->ec_near, tb))
 	{
 	    /* We have a possible capacitor, but are the tiles shielded from
 	     * each other part of the way?

@@ -713,14 +713,15 @@ extArrayNodeName(np, ha, et1, et2)
     ExtTree *et1, *et2;
 {
     Tile *tp;
+    TileType dinfo;
 
-    tp = extNodeToTile(np, et1, NULL);
+    tp = extNodeToTile(np, et1, &dinfo);
     if (tp && TiGetType(tp) != TT_SPACE && extHasRegion(tp, extUnInit))
-	return (extArrayTileToNode(tp, np->nreg_pnum, et1, ha, TRUE));
+	return (extArrayTileToNode(tp, dinfo, np->nreg_pnum, et1, ha, TRUE));
 
-    tp = extNodeToTile(np, et2, NULL);
+    tp = extNodeToTile(np, et2, &dinfo);
     if (tp && TiGetType(tp) != TT_SPACE && extHasRegion(tp, extUnInit))
-	return (extArrayTileToNode(tp, np->nreg_pnum, et2, ha, TRUE));
+	return (extArrayTileToNode(tp, dinfo, np->nreg_pnum, et2, ha, TRUE));
 
     return ("(none)");
 }
@@ -768,8 +769,9 @@ extArrayNodeName(np, ha, et1, et2)
  */
 
 char *
-extArrayTileToNode(tp, pNum, et, ha, doHard)
+extArrayTileToNode(tp, dinfo, pNum, et, ha, doHard)
     Tile *tp;
+    TileType dinfo;
     int pNum;
     ExtTree *et;
     HierExtractArg *ha;
@@ -799,7 +801,7 @@ extArrayTileToNode(tp, pNum, et, ha, doHard)
     }
 
     if (!DebugIsSet(extDebugID, extDebNoHard))
-	if ((reg = (LabRegion *) extArrayHardNode(tp, pNum, def, ha)))
+	if ((reg = (LabRegion *) extArrayHardNode(tp, dinfo, pNum, def, ha)))
 	    goto found;
 
     /* Blew it */
@@ -934,16 +936,22 @@ extArrayRange(dstp, lo, hi, prevRange, followRange)
  */
 
 LabRegion *
-extArrayHardNode(tp, pNum, def, ha)
+extArrayHardNode(tp, dinfo, pNum, def, ha)
     Tile *tp;
+    TileType dinfo;
     int pNum;
     CellDef *def;
     HierExtractArg *ha;
 {
-    TileType type = TiGetType(tp);
+    TileType type;
     char labelBuf[4096];
     SearchContext scx;
     HardWay arg;
+
+    if (IsSplit(tp))
+	type = (dinfo & TT_SIDE) ? TiGetRightType(tp) : TiGetLeftType(tp);
+    else
+	type = TiGetType(tp);
 
     arg.hw_ha = ha;
     arg.hw_label = (Label *) NULL;

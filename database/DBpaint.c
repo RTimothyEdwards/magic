@@ -1435,10 +1435,6 @@ DBDiagonalProc(oldtype, dinfo)
     else
 	return -1;
 
-    /* For purposes of "undo" recording, record which side we just painted */
-    if (dinfo->side)
-	newtype |= TT_SIDE;
-
     return newtype;
 }
 

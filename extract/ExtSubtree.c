@@ -197,6 +197,7 @@ extSubtree(parentUse, reg, f)
     ha.ha_parentUse = parentUse;
     ha.ha_parentReg = reg;
     ha.ha_nodename = extSubtreeTileToNode;
+    ha.ha_interArea = GeoNullRect;
     ha.ha_cumFlat.et_use = extYuseCum;
     HashInit(&ha.ha_connHash, 32, 0);
 
@@ -687,19 +688,21 @@ extSubtreeOutputCoupling(ha)
     HashStartSearch(&hs);
     while ((he = HashNext(&ha->ha_cumFlat.et_coupleHash, &hs)))
     {
+	TileType dinfo;
+
 	cap = extGetCapValue(he) / ExtCurStyle->exts_capScale;
 	if (cap == 0)
 	    continue;
 
 	ck = (CoupleKey *) he->h_key.h_words;
 
-	tp = extNodeToTile(ck->ck_1, &ha->ha_cumFlat, NULL);
-	name = extSubtreeTileToNode(tp, (TileType)0, ck->ck_1->nreg_pnum,
+	tp = extNodeToTile(ck->ck_1, &ha->ha_cumFlat, &dinfo);
+	name = extSubtreeTileToNode(tp, dinfo, ck->ck_1->nreg_pnum,
 			&ha->ha_cumFlat, ha, TRUE);
 	fprintf(ha->ha_outf, "cap \"%s\" ", name);
 
-	tp = extNodeToTile(ck->ck_2, &ha->ha_cumFlat, NULL);
-	name = extSubtreeTileToNode(tp, (TileType)0, ck->ck_2->nreg_pnum,
+	tp = extNodeToTile(ck->ck_2, &ha->ha_cumFlat, &dinfo);
+	name = extSubtreeTileToNode(tp, dinfo, ck->ck_2->nreg_pnum,
 			&ha->ha_cumFlat, ha, TRUE);
 	fprintf(ha->ha_outf, "\"%s\" %lg\n", name, cap);
     }

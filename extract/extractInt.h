@@ -212,12 +212,18 @@ typedef struct treg
 {
     struct treg	*treg_next;	/* Next region in list */
     int		 treg_pnum;	/* UNUSED */
-    int		 treg_type;	/* Type of tile that contains treg_ll */
+    int		 treg_type;	/* Type of treg_tile* */
     Point	 treg_ll;	/* UNUSED */
     LabelList	*treg_labels;	/* Attribute list */
     Tile	*treg_tile;	/* Some tile in the channel */
     int		 treg_area;	/* Area of channel */
 } TransRegion;
+
+/* *NOTE: If treg_tile is a split tile, then treg_type consists of
+ * the transistor type in the left-side position (lower bits).  This
+ * assumes that only one side of a split tile can be a transistor
+ * type.
+ */
 
 typedef struct {	/* Maintain plane information when pushing	*/
     Rect area;		/* tiles on the node stack.  For use with	*/
@@ -342,6 +348,7 @@ typedef struct extTree
      *	char *
      *	proc(tp, et, ha)
      *	    Tile *tp;
+     *	    TileType dinfo;
      *	    ExtTree *et;
      *	    HierExtractArg *ha;
      *	{
@@ -372,7 +379,7 @@ typedef struct
 				 */
     Tile	*hierOneTile;	/* Used in ExtHier.c, tile from extHierOneFlat */
     int		hierPNum;	/* Used in ExtHier.c, plane of tile above */
-    TileType	hierType;	/* Used in ExtHier.c, type of tile above */
+    TileType	hierType;	/* Used in ExtHier.c, type of tile above, incl. TT_SIDE */
     int		hierPNumBelow;	/* Used in ExtHier.c, plane of tile below */
 } HierExtractArg;
 
@@ -1057,7 +1064,7 @@ extern Tile *extNodeToTile();
 	    Tile *tp; \
  \
 	    (nnew) = (NodeRegion *) NULL; \
-	    tp = extNodeToTile((nold), (et), (TileType)NULL); \
+	    tp = extNodeToTile((nold), (et), (TileType *)NULL); \
 	    if (tp && extHasRegion(tp, extUnInit)) \
 		(nnew) = (NodeRegion *) extGetRegion(tp); \
 	}

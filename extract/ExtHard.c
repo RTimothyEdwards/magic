@@ -83,6 +83,7 @@ extLabFirst(tile, dinfo, arg)
     reg->treg_pnum = DBNumPlanes;
     reg->treg_area = DBNumPlanes;
     reg->treg_tile = tile;
+    reg->treg_type = dinfo;
 
     /* Prepend it to the region list */
     reg->treg_next = (TransRegion *) arg->fra_region;
@@ -98,16 +99,6 @@ extLabEach(tile, dinfo, pNum, arg)
     int pNum;
     FindRegion *arg;
 {
-
-    /* Avoid setting the region's tile pointer to a split tile if we can */
-    /*
-    if (IsSplit(reg->treg_tile) && !IsSplit(tile))
-    {
-	reg->treg_tile = tile;
-	reg->treg_area = pNum;
-    }
-    */
-
     TransRegion *reg = (TransRegion *) arg->fra_region;
 
     if (reg->treg_area == DBNumPlanes) reg->treg_area = pNum;
@@ -174,7 +165,7 @@ extHardProc(scx, arg)
     CellDef *def = scx->scx_use->cu_def;
     TransRegion *reg;
     TransRegion *labRegList;
-    LabelList *subList;
+    LabelList *subList = NULL;
     char *savenext;
     int ret = 0;
 
@@ -242,7 +233,8 @@ extHardProc(scx, arg)
 	 */
 	if (ExtCurStyle->exts_globSubstrateDefaultType != -1)
 	    for (reg = labRegList; reg; reg = reg->treg_next)
-		if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, reg->treg_type))
+		if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes,
+				reg->treg_type & TT_LEFTMASK))
 		    if (reg->treg_pnum != ExtCurStyle->exts_globSubstratePlane)
 		    {
 			reg->treg_labels = subList;
@@ -263,6 +255,7 @@ extHardProc(scx, arg)
     goto done;
 
 success:
+    if (subList != NULL) freeMagic(subList);
     extHardFreeAll(def, labRegList);
     ret = 1;
 
@@ -505,7 +498,7 @@ extHardFreeAll(def, tReg)
 	if (reg->treg_tile)
 	{
 	    arg.fra_pNum = reg->treg_area;
-	    ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
+	    ExtFindNeighbors(reg->treg_tile, reg->treg_type, arg.fra_pNum, &arg);
 	}
 
 	/* Free all LabelLists and then the region */

@@ -988,8 +988,10 @@ dbEraseSubFunc(tile, dinfo, cxp)
     {
 	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
-	newdinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
+	newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, &scx->scx_trans);
     }
+    else
+	newdinfo = (TileType)0;
 
     /* Construct the rect for the tile */
     TITORECT(tile, &sourceRect);
@@ -1032,8 +1034,10 @@ dbPaintSubFunc(tile, dinfo, cxp)
     {
 	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
-	newdinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
+	newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, &scx->scx_trans);
     }
+    else
+	newdinfo = (TileType)0;
 
     /* Construct the rect for the tile */
     TITORECT(tile, &sourceRect);
@@ -1079,8 +1083,10 @@ dbEraseNonSub(tile, dinfo, cxp)
     {
 	loctype = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
-	newdinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
+	newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, &scx->scx_trans);
     }
+    else
+	newdinfo = (TileType)0;
 
     /* Construct the rect for the tile */
     TITORECT(tile, &sourceRect);

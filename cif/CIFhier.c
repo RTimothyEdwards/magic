@@ -619,7 +619,7 @@ cifHierCheckFunc(
         DBSrPaintNMArea((Tile *)NULL, plane, TiGetTypeExact(tile) | dinfo,
 		&area, &DBSpaceBits, cifHierErrorFunc, (ClientData) &area);
 
-	DBNMPaintPlane(plane, TiGetTypeExact(tile), &area, CIFEraseTable,
+	DBNMPaintPlane(plane, TiGetTypeExact(tile) | dinfo, &area, CIFEraseTable,
 		(PaintUndoInfo *) NULL);
     }
     else
@@ -699,7 +699,7 @@ cifHierPaintFunc(
     Rect area;
 
     TiToRect(tile, &area);
-    if (CIFCurStyle->cs_flags & CWF_GROW_SLIVERS) cifGrowSliver(tile, &area);
+    if (CIFCurStyle->cs_flags & CWF_GROW_SLIVERS) cifGrowSliver(tile, dinfo, &area);
     if (IsSplit(tile))
 	DBNMPaintPlane(plane, TiGetTypeExact(tile) | dinfo, &area, CIFPaintTable,
 		(PaintUndoInfo *) NULL);
@@ -1073,6 +1073,7 @@ cifHierElementFunc(
 int
 cifGrowSliver(
     Tile *tile,
+    TileType dinfo,		/* Split tile information, needs to be handled */
     Rect *area)
 {
     int height, width, expand_up, expand_side;
@@ -1141,16 +1142,16 @@ cifHierPaintArrayFunc(
     int i, j, xbot, xtop;
 
     TiToRect(tile, &area);
-    if (CIFCurStyle->cs_flags & CWF_GROW_SLIVERS) cifGrowSliver(tile, &area);
+    if (CIFCurStyle->cs_flags & CWF_GROW_SLIVERS) cifGrowSliver(tile, dinfo, &area);
     xbot = area.r_xbot;
     xtop = area.r_xtop;
     for (i=0; i<cifHierYCount; i++)
     {
-	for (j=0; j<cifHierXCount; j++)
+	for (j = 0; j < cifHierXCount; j++)
 	{
-	    DBPaintPlane(cifHierCurPlane, &area, CIFPaintTable,
-		(PaintUndoInfo *) NULL);
-	    CIFTileOps += 1;
+	    DBNMPaintPlane(cifHierCurPlane, TiGetTypeExact(tile) | dinfo,
+			&area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    CIFTileOps++;
 	    area.r_xbot += cifHierXSpacing;
 	    area.r_xtop += cifHierXSpacing;
 	}

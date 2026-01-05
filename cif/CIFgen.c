@@ -1233,18 +1233,18 @@ endbloat:
 #define PUSHTILE(tp, dinfo, stack) \
     if (TiGetClient(tp) == CIF_UNPROCESSED) { \
 	TiSetClientINT(tp, CIF_PENDING); \
-	STACKPUSH((ClientData)(tp), stack); \
-	STACKPUSH((ClientData)(dinfo), stack); \
+	STACKPUSH(PTR2CD(tp), stack); \
+	STACKPUSH(INT2CD(dinfo), stack); \
     }
 
 /* Unconditional push */
 #define PUSHTILEALWAYS(tp, dinfo, stack) { \
-	STACKPUSH((ClientData)(tp), stack); \
-	STACKPUSH((ClientData)(dinfo), stack); \
+	STACKPUSH(PTR2CD(tp), stack); \
+	STACKPUSH(INT2CD(dinfo), stack); \
     }
 
 #define POPTILE(tp, dinfo, stack) { \
-	dinfo = (TileType)STACKPOP(stack); \
+	dinfo = (TileType)CD2INT(STACKPOP(stack)); \
 	tp = (Tile *)STACKPOP(stack); \
     }
 
@@ -1253,7 +1253,7 @@ endbloat:
 #define PUSHTILEONLY(tp, stack) \
     if (TiGetClient(tp) == CIF_UNPROCESSED) { \
 	TiSetClientINT(tp, CIF_PENDING); \
-	STACKPUSH((ClientData)(tp), stack); \
+	STACKPUSH(PTR2CD(tp), stack); \
     }
 
 #define POPTILEONLY(tp, stack) { \
@@ -1407,9 +1407,7 @@ cifBloatAllFunc(
     /* processed that belongs to the connect mask, and use that as the	*/
     /* starting tile.							*/
 
-    type = TiGetType(tile);	/* NOTE:  This does not correctly handls
-				 * split tiles.
-				 */
+    type = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
 
     if (type == CIF_SOLIDTYPE)
     {

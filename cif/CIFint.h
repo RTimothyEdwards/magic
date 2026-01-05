@@ -346,7 +346,7 @@ extern bool CIFWriteFlat(CellDef *rootDef, FILE *f);
 extern void CIFScalePlanes(int scalen, int scaled, Plane **planearray);
 extern void CIFInputRescale(int n, int d);
 extern int CIFScaleCoord(int cifCoord, int snap_type);
-extern int cifGrowSliver(Tile *tile, Rect *area);
+extern int cifGrowSliver(Tile *tile, TileType dinfo, Rect *area);
 extern int cifHierElementFunc(CellUse *use, Transform *transform, int x, int y, Rect *checkArea);
 extern int cifSquareFunc(Rect *area, CIFOp *op, int *rows, int *columns, Rect *cut);
 extern int cifSquareGridFunc(Rect *area, CIFOp *op, int *rows, int *columns, Rect *cut);

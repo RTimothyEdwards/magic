@@ -158,8 +158,9 @@ drcFindOtherCells(use, dlu)
  */
 
 int
-drcSubCopyErrors(tile, cxp)
+drcSubCopyErrors(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     TreeContext *cxp;
 {
     Rect area;
@@ -421,7 +422,6 @@ DRCFindInteractions(def, area, radius, interaction)
     CellUse *use;
     SearchContext scx;
     Rect searchArea, intArea;
-    int flags;
     struct drcSubcellArg dsa;
     struct drcLinkedUse *curDLU;
 
@@ -494,24 +494,21 @@ DRCFindInteractions(def, area, radius, interaction)
     /* If errors are being propagated up from child to parent,	*/
     /* then the interaction area is always valid.		*/
 
-    if (!(flags & PROPAGATE_FLAG))
+    for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
     {
-	for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
+	if (DBSrPaintArea((Tile *) NULL, def->cd_planes[i],
+		&intArea, &DBAllButSpaceBits, drcAlwaysOne,
+		(ClientData) NULL) != 0)
 	{
-	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[i],
-			&intArea, &DBAllButSpaceBits, drcAlwaysOne,
-			(ClientData) NULL) != 0)
-	    {
-		use = (CellUse *) -1;
-		break;
-	    }
+	    use = (CellUse *) -1;
+	    break;
 	}
-	scx.scx_use = DRCDummyUse;
-	scx.scx_trans = GeoIdentityTransform;
-	scx.scx_area = intArea;
-	if (DBTreeSrCells(&scx, 0, drcSubCheckPaint, (ClientData) &use) == 0)
-	    return 0;
     }
+    scx.scx_use = DRCDummyUse;
+    scx.scx_trans = GeoIdentityTransform;
+    scx.scx_area = intArea;
+    if (DBTreeSrCells(&scx, 0, drcSubCheckPaint, (ClientData) &use) == 0)
+	return 0;
 
     /* OK, no more excuses, there's really an interaction area here. */
 

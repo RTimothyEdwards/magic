@@ -350,12 +350,16 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 
     if (IsSplit(oneTile))
     {
-	rtype = ha->hierType;
-	ha->hierType = (rtype & TT_SIDE) ? SplitRightType(oneTile) :
+	/* For split tiles, move the tile type to lower (right side) field
+	 * but retain the TT_SIDE bit, to indicate which side of hierOneTile
+	 * is the connected side.
+	 */
+	ha->hierType = (dinfo & TT_SIDE) ? SplitRightType(oneTile) :
 		SplitLeftType(oneTile);
+	ha->hierType |= (dinfo & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE));
     }
 
-    connected = &(ExtCurStyle->exts_nodeConn[ha->hierType]);
+    connected = &(ExtCurStyle->exts_nodeConn[ha->hierType & TT_LEFTMASK]);
     TITORECT(oneTile, &r);
     GEOCLIP(&r, &ha->ha_subArea);
     r.r_xbot--, r.r_ybot--, r.r_xtop++, r.r_ytop++;
@@ -367,7 +371,7 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 	{
 	    if (IsSplit(oneTile))
 		DBSrPaintNMArea((Tile *) NULL, cumDef->cd_planes[i],
-			rtype, &r,
+			ha->hierType, &r,
 			((i == ha->hierPNum) ? &ExtCurStyle->exts_activeTypes
 			: connected), extHierConnectFunc2, (ClientData) ha);
 	    else
@@ -415,7 +419,7 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 		nn = (NodeName *) HashGetValue(he);
 		node1 = nn ? nn->nn_node : extHierNewNode(he);
 
-		name = (*ha->ha_nodename)(ha->hierOneTile, ha->hierPNum,
+		name = (*ha->ha_nodename)(ha->hierOneTile, ha->hierType, ha->hierPNum,
 			extHierOneFlat, ha, TRUE);
 		he = HashFind(table, name);
 		nn = (NodeName *) HashGetValue(he);
@@ -513,14 +517,14 @@ extHierConnectFunc2(cum, dinfo, ha)
     if (IsSplit(cum))
 	ttype = (dinfo & TT_SIDE) ? SplitRightType(cum) : SplitLeftType(cum);
 
-    if (extConnectsTo(ha->hierType, ttype, ExtCurStyle->exts_nodeConn))
+    if (extConnectsTo(ha->hierType & TT_LEFTMASK, ttype, ExtCurStyle->exts_nodeConn))
     {
-	name1 = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
+	name1 = (*ha->ha_nodename)(cum, dinfo, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
 	he = HashFind(table, name1);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
-	name2 = (*ha->ha_nodename)(ha->hierOneTile, ha->hierPNum, extHierOneFlat,
+	name2 = (*ha->ha_nodename)(ha->hierOneTile, ha->hierType, ha->hierPNum, extHierOneFlat,
 		ha, TRUE);
 	he = HashFind(table, name2);
 	nn = (NodeName *) HashGetValue(he);
@@ -566,7 +570,7 @@ extHierConnectFunc2(cum, dinfo, ha)
 
 	snprintf(message, sizeof(message),
 		"Illegal overlap between %s and %s (types do not connect)",
-		DBTypeLongNameTbl[ha->hierType], DBTypeLongNameTbl[ttype]);
+		DBTypeLongNameTbl[ha->hierType & TT_LEFTMASK], DBTypeLongNameTbl[ttype]);
 
 	extNumErrors++;
 	if (!DebugIsSet(extDebugID, extDebNoFeedback))
@@ -623,9 +627,10 @@ extHierConnectFunc3(cum, dinfo, ha)
     if (IsSplit(cum))
 	ttype = (dinfo & TT_SIDE) ? SplitRightType(cum) : SplitLeftType(cum);
 
-    if (extConnectsTo(ha->hierType, ttype, ExtCurStyle->exts_nodeConn))
+    if (extConnectsTo(ha->hierType & TT_LEFTMASK, ttype, ExtCurStyle->exts_nodeConn))
     {
-	name1 = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
+	name1 = (*ha->ha_nodename)(cum, ha->hierType, ha->hierPNumBelow,
+			extHierCumFlat, ha, TRUE);
 	he = HashFind(table, name1);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
@@ -675,7 +680,7 @@ extHierConnectFunc3(cum, dinfo, ha)
 
 	snprintf(message, sizeof(message),
 		"Illegal overlap between %s and %s (types do not connect)",
-		DBTypeLongNameTbl[ha->hierType], DBTypeLongNameTbl[ttype]);
+		DBTypeLongNameTbl[ha->hierType & TT_LEFTMASK], DBTypeLongNameTbl[ttype]);
 
 	extNumErrors++;
 	if (!DebugIsSet(extDebugID, extDebNoFeedback))
@@ -776,10 +781,12 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
      */
     for (np = oneFlat->et_nodes; np; np = np->nreg_next)
     {
+	TileType dinfo;
+
 	/* Ignore orphaned nodes (non-Manhattan shards outside the clip box) */
 	if (np->nreg_pnum == DBNumPlanes) continue;
 
-	tp = extNodeToTile(np, lookFlat, NULL);
+	tp = extNodeToTile(np, lookFlat, &dinfo);
 
 	/* Ignore regions that do not participate in extraction */
 	if (!extHasRegion(tp, extUnInit)) continue;
@@ -787,7 +794,7 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
 	/* Ignore substrate nodes (failsafe:  should not happen) */
 	if (TiGetTypeExact(tp) == TT_SPACE) continue;
 
-	if (tp	&& (name = (*ha->ha_nodename)(tp, np->nreg_pnum, lookFlat, ha, FALSE))
+	if (tp	&& (name = (*ha->ha_nodename)(tp, dinfo, np->nreg_pnum, lookFlat, ha, FALSE))
 		&& (he = HashLookOnly(&ha->ha_connHash, name))
 		&& (nn = (NodeName *) HashGetValue(he)))
 	{

@@ -1309,7 +1309,7 @@ gdsCopyPaintFunc(
 	TiToRect(tile, &sourceRect);
 	GeoTransRect(trans, &sourceRect, &targetRect);
 	if (IsSplit(tile))
-	    newdinfo = DBTransformDiagonal(TiGetTypeExact(tile), trans);
+	    newdinfo = DBTransformDiagonal(TiGetTypeExact(tile) | dinfo, trans);
     }
     else
 	TiToRect(tile, &targetRect);

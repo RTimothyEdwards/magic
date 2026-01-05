@@ -110,6 +110,8 @@ ExtFindNeighbors(tile, dinfo, tilePlaneNum, arg)
         else
 	    type = TiGetTypeExact(tile);
 
+	ASSERT(type != TT_SPACE, "ExtFindNeighbors");
+
 	mask = &connTo[type];
 
 	/*
@@ -134,8 +136,8 @@ topside:
             if (IsSplit(tp))
 	    {
                 t = SplitBottomType(tp);
-		// if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
-		if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
+		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
+		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
 		}
@@ -145,7 +147,7 @@ topside:
         	t = TiGetTypeExact(tp);
 		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
-		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
+		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
 	    }
 	}
@@ -158,8 +160,8 @@ leftside:
             if (IsSplit(tp))
 	    {
                 t = SplitRightType(tp);
-		// if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
-		if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
+		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
+		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
 		    PUSHTILERIGHT(tp, tilePlaneNum);
 		}
@@ -169,7 +171,7 @@ leftside:
 		t = TiGetTypeExact(tp);
 		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
-		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
+		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
 	    }
 	}
@@ -183,8 +185,8 @@ bottomside:
             if (IsSplit(tp))
 	    {
                 t = SplitTopType(tp);
-		// if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
-		if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
+		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
+		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
 		    PUSHTILETOP(tp, tilePlaneNum);
 		}
@@ -194,7 +196,7 @@ bottomside:
         	t = TiGetTypeExact(tp);
 		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
-		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
+		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
 	    }
 	}
@@ -207,8 +209,8 @@ rightside:
             if (IsSplit(tp))
 	    {
                 t = SplitLeftType(tp);
-		// if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
-		if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
+		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
+		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
 		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
@@ -218,7 +220,7 @@ rightside:
 		t = TiGetTypeExact(tp);
 		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
-		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
+		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
 	    }
 	}
@@ -285,7 +287,7 @@ donesides:
 			t = TiGetTypeExact(tp);
 			if (TTMaskHasType(mask, t))
 			{
-			    PUSHTILE(tp, (TileType)0, pNum);
+			    PUSHTILELEFT(tp, pNum);
 			}
 		    }
 		}
@@ -308,8 +310,8 @@ donesides:
 		if ((pNum != tilePlaneNum) && PlaneMaskHasPlane(pMask, pNum))
 		{
 		    pla.plane = pNum;
-		    (void) DBSrPaintArea((Tile *) NULL,
-			    arg->fra_def->cd_planes[pNum], &biggerArea,
+		    (void) DBSrPaintNMArea((Tile *) NULL,
+			    arg->fra_def->cd_planes[pNum], dinfo, &biggerArea,
 			    mask, extNbrPushFunc, (ClientData) &pla);
 		}
 	}

@@ -58,6 +58,9 @@ To be fixed:  STACKPUSH/STACKPOP stuff in resis/ResUtils.c
 		extract to handle two clientData records for split tiles
 		in ResAddPlumbing and ResRemovePlumbing.
 
+	Some changes to stack handling were pretty hastily done and all should
+	be checked for consistency.  
+
 	      dbcUnconnectFunc() --- Need to handle side, or is this already handled?
 
 	extConnFindFunc() --- Select proper region depending on side
@@ -79,6 +82,7 @@ To be fixed:  STACKPUSH/STACKPOP stuff in resis/ResUtils.c
 	ResMultiPlaneFunc() --- Needs to call ResNewSDDevice() with dinfo information
 
 Any routine that does not use "dinfo" should do "if (dinfo & TT_SIDE) return 0".
+No, that's not needed.
 
 Ought to create a single function for simply returning "1" and replace all the
 assorted functions that do that individually.
@@ -90,7 +94,7 @@ completed.
 
 Moving on to compiling. . .
 CIFgen.c has lots of warnings around PUSHTILE().  Probably an incorrect cast, but
-I need to check all of the uses of PUSH and POP everywhere, anyway.
+I need to check all of the uses of PUSH and POP everywhere, anyway. (done)
 
 1/2/2026:
 Compiles now!
@@ -98,26 +102,274 @@ Debug. . .
 Errors in dbwind (missed a DBSrPaintArea() call)
 Need to pass dinfo to GrBox() and GrBoxOutline()
 
-Issue:  Paint square on top of diagonal edge, ends up with one part of the tile
-not properly split at the edge;  the tile goes to infinity and has a non-space
-type.
-
 Reminder:  Need to check for all instances of SplitSide(), as there should not
-be any.  There are still 38 references that need to be removed.
+be any.  There are still 38 references that need to be removed. (done)
 
 Fix:  extWalkTop (Bottom, Right, Left). . . type should not have been set by
 the split side of tile "tp".  Should be according to the side being searched
-and the diagonal directions of "tile" and "tp".
+and the diagonal directions of "tile" and "tp". (done)
 
 ResUtils:  Cannot use STACKPUSH and STACKPOP
 
 A number of remaining uses of SplitSide() are in routines that were not fixed
 for dinfo or are not directly called from modified search functions, so will
-need to fix each one in turn.
+need to fix each one in turn. (done)
 
 Add dinfo to extSubtreeTileToNode() and extSubtreeHardNode()
-extNodeToTile needs to return dinfo. . .
+extNodeToTile needs to return dinfo. . . (done)
 
 extGetRegion() will need to be handled but only when I'm done with this and
 working on being able to attach two regions to a split tile.
 
+===============
+To do:  Fix the several places where the compiler spits out warnings.
+(1) ExtHier.c:43 use of TileType in extNodeToTile (extractInt.h:1060) (done)
+
+(2) CIFgen.c:1237, 1339:  Issues with using PUSHTILE and STACKPUSH,
+    should not cast dinfo to type ClientData; use INT2CD(dinfo).
+    Also didn't like (TileType)STACKPOP. . .  Use (TileType)CD2INT(STACKPOP(...))
+    (done)
+  
+Okay, those are fixed.
+
+===============
+Large-scale tests:
+(1) Ran on gf180mcu_ocd_sram_test;
+    Running full DRC.	(passed) (not exhaustive!)
+
+Also need to test:
+	GDS output	(passed) (eh, not exactly) (okay, good now)
+	GDS input	(passed)
+	extraction	(oops, segfault) (ExtHier.c:518)
+	extresist
+	net selection
+	antenna checks
+	LEF read
+	LEF write
+	DEF read
+	DEF write
+
+Especially need to check the sky130 I/O where there are split tiles with both
+sides active.  Still need to resolve the issue with attaching two net regions
+to a single split tile, and to return the correct region entry.
+
+Oops, reading gf180mcu_ocd_sram_top.gds.gz back after writing, then letting
+DRC run, crashed at some point.  Probably in DRC, but unsure.  Will try to
+repeat.  Yes, missed a routine drcSubCopyErrors().  Because it's run from
+DBNoTreeSrTiles().
+
+Another issue---GDS input failed to read in some non-manhattan tiles;  use
+klayout to make sure that GDS output was correct.  (yes)  GDS may have just
+been corrected after an error was found;  check GDS read again (nope).
+Doesn't happen with metal1, for example, only with psd (in the GF tech).
+Issue is that PPLUS triangles are inverted in a number of places, so
+output generation was messed up somewhere.
+
+Tested and found "shrink" to be the cause.
+DBDiagonalProc() was the cause.  Its setting of TT_SIDE at the end was
+non-functional (DBUndo does not use it, as claimed), and the bit was
+getting set in the tile and disrupting any code using "TiGetTypeExact(tile) | dinfo".
+Maybe there should be a guard against anything setting the TT_SIDE bit in a
+Tile's ti_body field?
+
+Re-running run_gen_gds.sh on the SRAM test chip to see if that fixed the I/O
+corner cell.
+
+Well. . .  Almost.  cifoutput hierarchical checks generated extra non-manhattan
+geometry on the top level which is not *wrong* but shouldn't be there and was
+not there before the code changes.
+
+Found a place where "dinfo" was not handled;  fixed, and retrying. . .  Good.
+
+-------------------------
+
+Next major error:  PUSHTILE caused a "corrupted double-linked list (not small)"
+error, from ExtNghbors.c:197.  Modifications to the code that shouldn't have
+changed anything seem to have made this pass, although can't tell yet if it
+works correctly.  Getting another error "free(): invalid next size (fast)"
+error on ExtFreeLabRegions() now. . .
+
+Maybe best debugged with valgrind. . .
+Looks like it comes down to "extSubtreeHardNode()" being passed a split tile.
+Before that, extSubtreeTileToNode() on a split tile.
+From extHierConnectFunc2(),
+	ha->hierOneTile is split.
+	Split dir = 1, right type = 117 (metal 3), left type = space
+	Typical case. . .
+	ha->hierType looks correct. TT_SIDE set, looking at right side,
+	which is metal3.
+Down in extSubtreeHardNode(), ttype = 117 (okay)
+extSubtreeHardUseFunc called on POWER_RAIL_COR_1_0.
+Then it calls ExtFindRegions on POWER_RAIL_COR_1, which created the label region,
+and then calls ExtLabelRegions, where tile tp is a simple metal 3 tile
+at (46068, 14000), "reg" is its ti_client, but reg had been freed.
+
+Therefore, ExtFindNeighbors() at extract/ExtHard.c:509 did not search all of the
+tiles that were originally tagged by ExtFindRegions() at extract/ExtHard.c:207.
+Maybe this is due to how reg->treg_tile and reg->treg_type are set?
+
+ExtFindRegions calls DBSrPaintClient() with callback extRegionAreaFunc()
+extRegionAreaFunc() calls ExtFindNeighbors().
+
+ExtFindNeighbors() uses macros like PUSHTILERIGHT, etc., which could always be
+wrong, as could the use use of dinfo when deciding what to check and what to
+skip.  Double-check everything in this routine. (looks okay)
+
+The most problematic case is if a region's tile is set to a split tile.
+This will eventually not be a problem when the regions are handled between
+splits.  But for now, it might cause serious problems.  Try breaking when
+this happens and see if that might be related (as it, it only happens right
+before magic crashes).
+
+Or. . . just rewrite some of this so that magic doesn't try to move the
+region's tile off of the split tile?  (There was one instance of this.
+Changed it and re-running).  Presumably was a good thing to do, but didn't
+change anything regarding the crash condition.
+Hm.  But also:  ExtBasic.c:4547 is doing the same thing.
+Changed that, still no luck.  Grrr.
+Might be the missing treg_type in ExtLabFirst, which would need to be added;
+the routine does not depend on the tile type, but would still require the
+dinfo to be saved.
+And. . . Still no luck.  *sob*
+"sublist" is related to sticky labels and is not being freed under some
+circumstances.  I don't think this is related, but should be fixed.
+
+Huh.  Maybe try a careful check between the original and new versions of
+each of these files?
+	extract/ExtRegion.c
+	extract/ExtNghbors.c
+	extract/ExtHard.c
+	extract/ExtSubtree.c
+	extract/ExtHier.c
+
+If all else fails, create a routine to dump a list of tiles being set to
+regions, and tiles being cleared of regions, to be activated on POWER_RAIL_COR_0,
+so that the complete list of tiles being visted to set regions and tiles being
+visited to clear regions can be compared directly.
+
+Actually, this is probably more productive than looking at the file differences.
+Run again so that at the point of failure, can move up the call stack to find
+a routine where a node or def can be checked for turning the diagnostic on or
+off.
+
+When valgrind catches the use of freed memory, ExtLabelRegions def->cd_name is
+"POWER_RAIL_COR_1", although the last printed statement said that POWER_RAIL_COR_0
+was being extracted;  I think it's because this is a use.
+The routine common to both the error and the place where the memory was freed
+is extSubtreeHardUseFunc().  So:
+1) At extSubtreeHardUseFunc, if use->cu_id is "POWER_RAIL_COR_1_0", enable the
+   diagnostic
+2) With the diagnostic enabled, list every region and every tile encountered by
+   ExtFindNeighbors() that is connected to that region.
+   Or maybe can get more targeted than that?
+
+Oh, no, . . .  when I output diagnostics, the error doesn't occur. . .   
+So how does LVS validation do?
+The diagnostic output is long.  May need to redo it as two files, so that
+the "set" and "reset" lists can be checked side by side for any discrepancies.
+But if no error occurs when diagnostic output is enabled, then how can I catch
+the error?
+
+Well, divergent behavior *did* show up.  At line 22266 of the output:
+It appears that ExtFindNeighbors() called from extHardFreeAll() stopped after
+the first tile.
+
+Tile @(46528 17492) type 0x50000075
+Confirmed that this is
+(1) Not the first time that a split tile is the first encountered, BUT
+(2) This is the first time that a split tile is encountered with the active tile
+    type on the left.
+Need to redo this and print the diagonal information.  Not really necessary, though.
+Can stop printing diagnostics now and concentrate on finding what happens when
+ExtFindNeighbors encounters the tile at (46528, 17492) immediately after being
+called from extRegionAreaFunc or from FreeAll.
+
+Now can break on ExtNghbors.c:138 and 142 when tile->ti_ll.p_x == 46528 &&
+tile->ti_ll.p_y == 17492 and see what's going on.
+
+Dinfo is 0x40000000 = TT_DIAGONAL.
+topside skips.
+leftside is run, pushes m3 (not split) tile at 42868, 17492.
+Dinfo is 0x70000075 -->  TT_SIDE has been set here, but should not have been.
+Moving up, treg_type has been set to 0x70000075 for this region.  Note that
+treg_ll is not the location of treg_tile (treg_ll = 14000, 42497).
+
+Need to find when treg_type was set inappropriately.
+Note that extractInt.h says that "treg_type" is the type of treg_tile, which was
+changed from "type of tile that contains treg_ll", which may be an indicator of
+the issue. . .
+
+Watch where treg_type is set in ExtBasic.c and ExtHard.c. . .
+We've got:  ExtHard.c:91
+	    ExtBasic.c:4610 (not relevant)
+
+Setting reg->treg_type to dinfo is missing from extTransFirst.
+
+Still not clear what's going on.
+The "labRegList" generated by ExtFindRegions() should be the same one as originally
+added in extLabFirst().
+
+So rerun (again), break as above on ExtHard.c:91, and track when the reg->treg_type
+changed.
+
+Looks like "extSetNodeNum" is the culprit.  The type is changed to the new tile
+representing the lower left-hand corner and plane.  It is not immediately clear if
+not saving dinfo with the the lreg_ll and lreg_pnum information will cause problems,
+but that information should be recoverable in other ways (i.e., if the tile at point
+lreg_ll on lreg_pnum is split and the type at lreg_ll is not lreg_type, then the
+side must be changed).
+
+$$#!@ still caused a segfault.
+Okay, I screwed something up badly.
+The two processes now diverge on the very first call.
+Now fails at tile (42868, 14000)
+I do see an error, so try again. . .
+Ah, some light at the end of the tunnel!  Maybe joy!
+
+Looks right.  Removing diagnostics from the code and re-running with valgrind.
+. . . And now it seems to have gone into an infinite loop.  But I forgot to
+do a "make install" and may have just caused a massive issue.
+Did the install and re-ran.  POWER_RAIL_COR does take a long time to run,
+so each parent cell will be worse, so it's likely just an issue with this cell,
+extraction, and valgrind.  Let it run to completion, and then later compare to
+running without valgrind.  Make sure that in both cases, the final netlist
+result passes LVS.  (Conclusion:  Yes, it finished running under valgrind,
+eventually, and valgrind did not have any more issues.  But that was a long
+running process and I will try to do that as little as possible.)
+
+Side note:  This example has another interesting feature which is that halfway
+through, it goes back to the prompt, which is a known issue with "extract" but
+it hasn't been obvious how it happens.  It should be possible to Ctrl-C out of
+a long-running extraction but it should *not* be possible to run commands while
+the extraction is ongoing.  It appears to happen because only part of the design
+is loaded when extraction starts.  When magic goes to load the rest of the design,
+it returns to the prompt.
+
+---------------
+
+NOTE to self:  The main thing now needing handling for extraction is to have
+	extGetRegion(tp, dinfo)
+and call this appropriately everywhere.  Where tp is part of a boundary
+record, it should be possible to derive dinfo.
+
+---------------
+For now, from January 5:
+Back to general checks:
+Repeating the list from above:
+Need to test:
+
+	GDS output	(passed)
+	GDS input	(passed)
+	extraction	(pending)	(fixed cap coupling issues)
+	net selection	(seems okay)
+	antenna checks
+	LEF read
+	LEF write
+	DEF read
+	DEF write
+	extresist
+
+Tested extraction on sky130_fd_io__top_gpiov2_flat, which crashed immediately;
+however, it is known that it has split tiles with different nodes and will
+require split nodes to be handled properly.  Make sure that's the issue, though.
+No, actually it's extAddOverlap needing an extra argument.
