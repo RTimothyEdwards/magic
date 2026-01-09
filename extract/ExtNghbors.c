@@ -45,9 +45,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * the value VISITPENDING in its ti_client field.
  */
 
-/* Used for communicating with extNbrPushFunc */
-ClientData extNbrUn;
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -82,16 +79,16 @@ ExtFindNeighbors(tile, dinfo, tilePlaneNum, arg)
 {
     TileTypeBitMask *connTo = arg->fra_connectsTo;
     Tile *tp;
-    TileType type, t;
+    TileType type, t, tpdinfo;
     TileTypeBitMask *mask;
     Rect biggerArea;
     int pNum, tilesfound;
     PlaneMask pMask;
     PlaneAndArea pla;
+    ClientData extNbrUn = arg->fra_uninit;
 
     tilesfound = 0;
 
-    extNbrUn = arg->fra_uninit;
     if (extNodeStack == (Stack *) NULL)
 	extNodeStack = StackNew(64);
 
@@ -120,9 +117,9 @@ ExtFindNeighbors(tile, dinfo, tilePlaneNum, arg)
 	 * been visited in the meantime.  If it's still unvisited,
 	 * visit it and process its neighbors.
 	 */
-	if (TiGetClientPTR(tile) == arg->fra_region)
+	if (ExtGetRegion(tile, dinfo) == arg->fra_region);
 	    continue;
-	TiSetClientPTR(tile, arg->fra_region);
+	ExtSetRegion(tile, dinfo, arg->fra_region);
 	tilesfound++;
 	if (DebugIsSet(extDebugID, extDebNeighbor))
 	    extShowTile(tile, "neighbor", 1);
@@ -136,8 +133,9 @@ topside:
             if (IsSplit(tp))
 	    {
                 t = SplitBottomType(tp);
+		tpdinfo = SplitDirection(tp) ? (TileType)0 : (TileType)TT_SIDE;
 		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
-		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
+		if (ExtGetRegion(tp, tpdinfo) == CD2PTR(extNbrUn) && TTMaskHasType(mask, t))
 		{
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
 		}
@@ -161,7 +159,8 @@ leftside:
 	    {
                 t = SplitRightType(tp);
 		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
-		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
+		if (ExtGetRegion(tp, (TileType)TT_SIDE) == CD2PTR(extNbrUn)
+				&& TTMaskHasType(mask, t))
 		{
 		    PUSHTILERIGHT(tp, tilePlaneNum);
 		}
@@ -185,8 +184,9 @@ bottomside:
             if (IsSplit(tp))
 	    {
                 t = SplitTopType(tp);
+		tpdinfo = SplitDirection(tp) ? (TileType)TT_SIDE : (TileType)0;
 		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
-		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
+		if (ExtGetRegion(tp, tpdinfo) == CD2PTR(extNbrUn) && TTMaskHasType(mask, t))
 		{
 		    PUSHTILETOP(tp, tilePlaneNum);
 		}
@@ -210,7 +210,8 @@ rightside:
 	    {
                 t = SplitLeftType(tp);
 		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
-		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
+		if (ExtGetRegion(tp, (TileType)0) == CD2PTR(extNbrUn)
+				&& TTMaskHasType(mask, t))
 		{
 		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
@@ -239,6 +240,7 @@ donesides:
 	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 		if (PlaneMaskHasPlane(pMask, pNum))
 		{
+		    ExtRegion *tpreg;
 		    Plane *plane = arg->fra_def->cd_planes[pNum];
 
 		    /* Find the point on the new plane */
@@ -246,14 +248,14 @@ donesides:
 		    GOTOPOINT(tp, &tile->ti_ll);
 		    PlaneSetHint(plane, tp);
 
-		    /* If not yet visited, process tp */
-		    if (TiGetClient(tp) != extNbrUn) continue;
-
                     /* tp and tile should have the same geometry for a contact */
                     if (IsSplit(tile) && IsSplit(tp))
                     {
 			if (dinfo & TT_SIDE)
 			{
+			    /* Only process tp if not yet visited */
+			    tpreg = ExtGetRegion(tp, (TileType)TT_SIDE);
+			    if (tpreg != CD2PTR(extNbrUn)) continue;
 			    t = SplitRightType(tp);
 			    if (TTMaskHasType(mask, t))
 			    {
@@ -262,6 +264,9 @@ donesides:
 			}
 			else
 			{
+			    /* Only process tp if not yet visited */
+			    tpreg = ExtGetRegion(tp, (TileType)0);
+			    if (tpreg != CD2PTR(extNbrUn)) continue;
 			    t = SplitLeftType(tp);
 			    if (TTMaskHasType(mask, t))
 			    {
@@ -271,19 +276,32 @@ donesides:
                     }
                     else if (IsSplit(tp))
 		    {
-			t = SplitRightType(tp);
-			if (TTMaskHasType(mask, t))
+			/* Only process tp if not yet visited */
+			tpreg = ExtGetRegion(tp, (TileType)TT_SIDE);
+			if (tpreg == CD2PTR(extNbrUn))
 			{
-			    PUSHTILERIGHT(tp, pNum);
+			    t = SplitRightType(tp);
+			    if (TTMaskHasType(mask, t))
+			    {
+				PUSHTILERIGHT(tp, pNum);
+			    }
 			}
-			t = SplitLeftType(tp);
-			if (TTMaskHasType(mask, t))
+			/* Try both sides */
+			tpreg = ExtGetRegion(tp, (TileType)0);
+			if (tpreg == CD2PTR(extNbrUn))
 			{
-			    PUSHTILELEFT(tp, pNum);
+			    t = SplitLeftType(tp);
+			    if (TTMaskHasType(mask, t))
+			    {
+				PUSHTILELEFT(tp, pNum);
+			    }
 			}
 		    }
 		    else
 		    {
+			/* Only process tp if not yet visited */
+			tpreg = ExtGetRegion(tp, (TileType)0);
+			if (tpreg != CD2PTR(extNbrUn)) continue;
 			t = TiGetTypeExact(tp);
 			if (TTMaskHasType(mask, t))
 			{
@@ -324,7 +342,7 @@ fail:
     while (!StackEmpty(extNodeStack))
     {
 	POPTILE(tile, dinfo, tilePlaneNum);
-	TiSetClientPTR(tile, arg->fra_region);
+	ExtSetRegion(tile, dinfo, arg->fra_region);
     }
     return -1;
 }
@@ -339,9 +357,9 @@ fail:
  * with tileArea, and it hasn't already been visited, push it on the stack
  * extNodeStack.
  *
- * Uses the global parameter extNbrUn to determine whether or not a tile
- * has been visited; if the tile's client field is equal to extNbrUn, then
- * this is the first time the tile has been seen.
+ * Uses the value pla->uninit to determine whether or not a tile has been
+ * visited; if the tile's client field is equal to pla->uninit, then this
+ * is the first time the tile has been seen.
  *
  * Results:
  *	Always returns 0.
@@ -364,7 +382,7 @@ extNbrPushFunc(tile, dinfo, pla)
     tileArea = &pla->area;
 
     /* Ignore tile if it's already been visited */
-    if (TiGetClient(tile) != extNbrUn)
+    if (ExtGetRegion(tile, dinfo) != CD2PTR(pla->uninit))
 	return 0;
 
     /* Only consider tile if it overlaps tileArea or shares part of a side */

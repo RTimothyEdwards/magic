@@ -134,7 +134,7 @@ extHierSubstrate(ha, use, x, y)
     nodeList = extFindNodes(use->cu_def, (Rect *) NULL, TRUE);
     if (nodeList == NULL)
     {
-    	ExtResetTiles(use->cu_def, extUnInit);
+    	ExtResetTiles(use->cu_def, CLIENTDEFAULT);
 	return;
     }
 
@@ -174,7 +174,7 @@ extHierSubstrate(ha, use, x, y)
 			extHierSubShieldFunc, (ClientData)NULL) != 0)
     	    {
     		freeMagic(nodeList);
-    		ExtResetTiles(use->cu_def, extUnInit);
+    		ExtResetTiles(use->cu_def, CLIENTDEFAULT);
 		return;
 	    }
 	}
@@ -183,7 +183,7 @@ extHierSubstrate(ha, use, x, y)
     /* Make sure substrate labels are represented */
     ExtLabelRegions(use->cu_def, ExtCurStyle->exts_nodeConn, &nodeList,
 			&TiPlaneRect);
-    ExtResetTiles(use->cu_def, extUnInit);
+    ExtResetTiles(use->cu_def, CLIENTDEFAULT);
 
     name2 = extNodeName(temp_subsnode);
 
@@ -789,7 +789,7 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
 	tp = extNodeToTile(np, lookFlat, &dinfo);
 
 	/* Ignore regions that do not participate in extraction */
-	if (!extHasRegion(tp, extUnInit)) continue;
+	if (!extHasRegion(tp, CLIENTDEFAULT)) continue;
 
 	/* Ignore substrate nodes (failsafe:  should not happen) */
 	if (TiGetTypeExact(tp) == TT_SPACE) continue;

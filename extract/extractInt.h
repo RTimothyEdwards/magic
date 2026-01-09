@@ -155,6 +155,17 @@ typedef struct reg
 } ExtRegion;
 
     /*
+     * Special structure for split tiles which have something other than
+     * TT_SPACE on both sides and require two regions to represent both
+     * nets connected to the tile.
+     */
+typedef struct split_reg
+{
+    ExtRegion *reg_left;	// Region belonging to tile left side
+    ExtRegion *reg_right;	// Region belonging to tile right side
+} ExtSplitRegion;
+
+    /*
      * GENERIC region with labels.
      * Any other structure that wants to reference node names
      * must include the same fields as this one as its first part.
@@ -228,6 +239,7 @@ typedef struct treg
 typedef struct {	/* Maintain plane information when pushing	*/
     Rect area;		/* tiles on the node stack.  For use with	*/
     int  plane;		/* function extNbrPushFunc().			*/
+    ClientData uninit;	/* Value of an unvisited region			*/
 } PlaneAndArea;
 
 /* Structure to be kept in a hash table of node regions for the current	*/
@@ -259,7 +271,7 @@ typedef struct
     CellDef		*fra_def;	 /* Def being searched */
     int			 fra_pNum;	 /* Plane currently searching */
     ClientData		 fra_uninit;	 /* This value appears in the ti_client
-					  * field of a tile if it's not yet
+					  * field of a tile if it has not yet
 					  * been visited.
 					  */
     ExtRegion	      *(*fra_first)();	 /* Function to init new region */
@@ -975,16 +987,9 @@ typedef struct node
 
 /* -------------------------------------------------------------------- */
 
-/*
- * Value normally resident in the ti_client field of a tile,
- * indicating that the tile has not yet been visited in a
- * region search.
- */
-extern ClientData extUnInit;
+extern ExtRegion *ExtGetRegion(Tile *tile, TileType dinfo);
 
-#define extGetRegion(tp)	( (tp)->ti_client )
 #define extHasRegion(tp,und)	( (tp)->ti_client != (und) )
-
 
 /* For non-recursive flooding algorithm */
 #define	VISITPENDING	((ClientData) NULL)	/* Marks tiles on stack */
@@ -1062,11 +1067,12 @@ extern Tile *extNodeToTile();
 #define	NODETONODE(nold, et, nnew) \
 	if (1) { \
 	    Tile *tp; \
+	    TileType di; \
  \
 	    (nnew) = (NodeRegion *) NULL; \
-	    tp = extNodeToTile((nold), (et), (TileType *)NULL); \
-	    if (tp && extHasRegion(tp, extUnInit)) \
-		(nnew) = (NodeRegion *) extGetRegion(tp); \
+	    tp = extNodeToTile((nold), (et), (TileType *)&di); \
+	    if (tp && extHasRegion(tp, CLIENTDEFAULT)) \
+		(nnew) = (NodeRegion *) ExtGetRegion(tp, di); \
 	}
 
 /* -------------------- Miscellaneous procedures ---------------------- */
@@ -1078,6 +1084,7 @@ extern ExtTree *extHierNewOne();
 extern int extNbrPushFunc();
 extern TileType extGetDevType();
 extern void extMakeNodeNumPrint();
+extern void ExtSetRegion();
 
 /* --------------------- Miscellaneous globals ------------------------ */
 

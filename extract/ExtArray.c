@@ -716,11 +716,11 @@ extArrayNodeName(np, ha, et1, et2)
     TileType dinfo;
 
     tp = extNodeToTile(np, et1, &dinfo);
-    if (tp && TiGetType(tp) != TT_SPACE && extHasRegion(tp, extUnInit))
+    if (tp && TiGetType(tp) != TT_SPACE && extHasRegion(tp, CLIENTDEFAULT))
 	return (extArrayTileToNode(tp, dinfo, np->nreg_pnum, et1, ha, TRUE));
 
     tp = extNodeToTile(np, et2, &dinfo);
-    if (tp && TiGetType(tp) != TT_SPACE && extHasRegion(tp, extUnInit))
+    if (tp && TiGetType(tp) != TT_SPACE && extHasRegion(tp, CLIENTDEFAULT))
 	return (extArrayTileToNode(tp, dinfo, np->nreg_pnum, et2, ha, TRUE));
 
     return ("(none)");
@@ -793,9 +793,9 @@ extArrayTileToNode(tp, dinfo, pNum, et, ha, doHard)
     LabRegion *reg;
     Rect r;
 
-    if (extHasRegion(tp, extUnInit))
+    if (extHasRegion(tp, CLIENTDEFAULT))
     {
-	reg = (LabRegion *) extGetRegion(tp);
+	reg = (LabRegion *) ExtGetRegion(tp, dinfo);
 	if (reg->lreg_labels)
 	    goto found;
     }
@@ -979,7 +979,7 @@ extArrayHardNode(tp, dinfo, pNum, def, ha)
 	LabRegion *lreg;
 	LabelList *ll;
 
-	lreg = (LabRegion *) extGetRegion(tp);
+	lreg = (LabRegion *) ExtGetRegion(tp, dinfo);
 	ll = (LabelList *) mallocMagic((unsigned) (sizeof (LabelList)));
 	lreg->lreg_labels = ll;
 	ll->ll_next = (LabelList *) NULL;

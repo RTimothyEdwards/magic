@@ -36,6 +36,49 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extract/extractInt.h"
 #include "utils/signals.h"
 
+/* 
+ * ----------------------------------------------------------------------------
+ * ExtGetRegion ---
+ *
+ * Get the region from the ClientData of a tile.  Normally this is just the
+ * ClientData record recast as an ExtRegion pointer.  However, if the tile
+ * is split and neither tile side is TT_SPACE, then the Tile will be given
+ * an ExtSplitRegion structure, and the returned region depends on the side
+ * specified by "dinfo" (bit TT_SIDE).
+ *
+ * Results:
+ *	Returns the tile's client data record cast to a region pointer.
+ *
+ * Side effects:
+ *	None.
+ *
+ * Notes:
+ *	This routine was previously implemented as an in-line definition
+ *	"extGetRegion(Tile *tp)".
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+ExtRegion *
+ExtGetRegion(Tile *tp,		/* Tile to get region record from */
+	TileType dinfo)		/* Split tile information, if relevant */
+{
+    ExtSplitRegion *esr;
+
+    if (IsSplit(tp))
+    {
+	if ((TiGetLeftType(tp) == TT_SPACE) || (TiGetRightType(tp) == TT_SPACE))
+	    return (ExtRegion *)tp->ti_client;
+	else
+	{
+	    esr = (ExtSplitRegion *)tp->ti_client;
+	    return (dinfo & TT_SIDE) ? esr->reg_right : esr->reg_left;
+	}
+    }
+    else
+	return (ExtRegion *)tp->ti_client;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -87,7 +130,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 ExtRegion *
-ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
+ExtFindRegions(def, area, mask, connectsTo, first, each)
     CellDef *def;		/* Cell definition being searched */
     Rect *area;			/* Area to search initially for tiles */
     TileTypeBitMask *mask;	/* In the initial area search, only visit
@@ -103,9 +146,6 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
 				 * so this is the same as:
 				 *	TTMaskHasType(&connectsTo[t2], t1)
 				 */
-    ClientData uninit;		/* Contents of a ti_client field indicating
-				 * that the tile has not yet been visited.
-				 */
     ExtRegion * (*first)();	/* Applied to first tile in region */
     int (*each)();		/* Applied to each tile in region */
 {
@@ -115,7 +155,7 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
     ASSERT(first != NULL, "ExtFindRegions");
     arg.fra_connectsTo = connectsTo;
     arg.fra_def = def;
-    arg.fra_uninit = uninit;
+    arg.fra_uninit = CLIENTDEFAULT;
     arg.fra_first = first;
     arg.fra_each = each;
     arg.fra_region = (ExtRegion *) NULL;
@@ -126,7 +166,7 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
     SigDisableInterrupts();
     for (arg.fra_pNum=PL_TECHDEPBASE; arg.fra_pNum<DBNumPlanes; arg.fra_pNum++)
 	(void) DBSrPaintClient((Tile *) NULL, def->cd_planes[arg.fra_pNum],
-		area, mask, uninit, extRegionAreaFunc, (ClientData) &arg);
+		area, mask, CLIENTDEFAULT, extRegionAreaFunc, (ClientData) &arg);
     SigEnableInterrupts();
 
     return (arg.fra_region);
@@ -183,7 +223,7 @@ extRegionAreaFunc(tile, dinfo, arg)
  * Given a CellDef whose tiles have been set to point to LabRegions
  * by ExtFindRegions, walk down the label list and assign labels
  * to regions.  If the tile over which a label lies is still uninitialized
- * ie, points to extUnInit, we skip the label.
+ * ie, points to CLIENTDEFAULT, we skip the label.
  *
  * A label is attached to the LabRegion for a tile if the label's
  * type and the tile's type are connected according to the table
@@ -248,10 +288,10 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	    GOTOPOINT(tp, &p);
 	    PlaneSetHint(def->cd_planes[pNum], tp);
 	    if (extConnectsTo(TiGetType(tp), lab->lab_type, connTo)
-		    && extHasRegion(tp, extUnInit))
+		    && extHasRegion(tp, CLIENTDEFAULT))
 	    {
 		found = TRUE;
-		reg = (LabRegion *) extGetRegion(tp);
+		reg = (LabRegion *) ExtGetRegion(tp, (TileType)0);
 		ll = (LabelList *) mallocMagic((unsigned) (sizeof (LabelList)));
 		ll->ll_label = lab;
 		if (lab->lab_flags & PORT_DIR_MASK)
@@ -415,7 +455,7 @@ ExtLabelOneRegion(def, connTo, reg)
 	    GOTOPOINT(tp, &p);
 	    PlaneSetHint(def->cd_planes[pNum], tp);
 	    if (extConnectsTo(TiGetType(tp), lab->lab_type, connTo)
-		    && (NodeRegion *) extGetRegion(tp) == reg)
+		    && (NodeRegion *) ExtGetRegion(tp, (TileType)0) == reg)
 	    {
 		ll = (LabelList *) mallocMagic((unsigned) (sizeof (LabelList)));
 		ll->ll_label = lab;
@@ -447,7 +487,6 @@ ExtLabelOneRegion(def, connTo, reg)
     }
 }
 
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -478,7 +517,7 @@ ExtResetTiles(def, resetTo)
     int pNum;
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	DBResetTilePlane(def->cd_planes[pNum], resetTo);
+	DBResetTilePlaneSpecial(def->cd_planes[pNum], resetTo);
 }
 
 /*

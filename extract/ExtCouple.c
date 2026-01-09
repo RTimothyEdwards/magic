@@ -67,6 +67,7 @@ typedef struct _ecs {
 
 typedef struct _ecpls {
     Tile *tile;
+    TileType dinfo;
     int  plane_of_tile;
     int  plane_checked;
 } extCoupleStruct;
@@ -345,6 +346,7 @@ extBasicOverlap(tile, dinfo, ecs)
     }
 
     ecpls.tile = tile;
+    ecpls.dinfo = dinfo;
     ecpls.plane_of_tile = thisPlane;
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
@@ -432,8 +434,8 @@ extAddOverlap(tbelow, dinfo, ecpls)
     /* subtract off any substrate (area) capacitance previously added   */
     /* (Correction made 4/29/04 by Tim from a tip by Jeff Sondeen).     */
 
-    rabove = (NodeRegion *) extGetRegion(tabove);
-    rbelow = (NodeRegion *) extGetRegion(tbelow);
+    rabove = (NodeRegion *) ExtGetRegion(tabove, ecpls->dinfo);
+    rbelow = (NodeRegion *) ExtGetRegion(tbelow, dinfo);
 
     /* Quick check on validity of tile's ti_client record */
     if (rbelow == (NodeRegion *)CLIENTDEFAULT) return 0;
@@ -450,8 +452,16 @@ extAddOverlap(tbelow, dinfo, ecpls)
     }
     ov.o_area = (ov.o_clip.r_ytop - ov.o_clip.r_ybot)
 	      * (ov.o_clip.r_xtop - ov.o_clip.r_xbot);
-    ta = TiGetType(tabove);
-    tb = TiGetType(tbelow);
+
+    if (IsSplit(tabove))
+	ta = (ecpls->dinfo & TT_SIDE) ? TiGetRightType(tabove) : TiGetLeftType(tabove);
+    else
+	ta = TiGetTypeExact(tabove);
+
+    if (IsSplit(tbelow))
+	tb = (dinfo & TT_SIDE) ? TiGetRightType(tbelow) : TiGetLeftType(tbelow);
+    else
+	tb = TiGetTypeExact(tbelow);
 
     /* Revert any contacts to their residues */
 
@@ -570,6 +580,7 @@ extSubtractOverlap2(tile, dinfo, ov)
     TileType dinfo;		/* (unused) */
     struct overlap *ov;
 {
+    TileType ttype;
     struct overlap ovnew;
     int area, pNum;
     Rect r;
@@ -579,10 +590,16 @@ extSubtractOverlap2(tile, dinfo, ov)
     area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
     if (area <= 0)
 	return (0);
-    if (IsSplit(tile)) area /= 2;
+    if (IsSplit(tile))
+    {
+	area /= 2;
+	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+    }
+    else
+	ttype = TiGetTypeExact(tile);
 
     /* This tile shields everything below */
-    if (TTMaskHasType(&ov->o_tmask, TiGetType(tile)))
+    if (TTMaskHasType(&ov->o_tmask, ttype))
     {
 	ov->o_area -= area;
 	return (0);
@@ -716,8 +733,8 @@ extSubtractSideOverlap2(tile, dinfo, sov)
     TITORECT(tile, &r);
     GEOCLIP(&r, &sov->so_clip);
     area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
-    if (area <= 0)
-	return (0);
+    if (area <= 0) return (0);
+    if (IsSplit(tile)) area /= 2;
 
     /* This tile shields everything below */
     if (TTMaskHasType(&sov->so_tmask, ttype))
@@ -783,9 +800,243 @@ extBasicCouple(tile, dinfo, ecs)
     TileType dinfo;
     extCapStruct *ecs;
 {
-    (void) extEnumTilePerim(tile, dinfo, &ExtCurStyle->exts_sideEdges[TiGetType(tile)],
+    TileType ttype;
+
+    if (IsSplit(tile))
+	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+    else
+	ttype = TiGetTypeExact(tile);
+
+    (void) extEnumTilePerim(tile, dinfo, &ExtCurStyle->exts_sideEdges[ttype],
 			ecs->plane, extAddCouple, (ClientData) ecs);
     return (0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extGetBoundaryTypes ---
+ *
+ * 	Return the tile types of the boundary inside and outside type in the
+ *	argument pointers.  The routine takes care of deciding if either side
+ *	of the boundary is a split tile, and choosing the correct type based
+ *	on the direction of the boundary.
+ *
+ * Result:
+ *	None.
+ *
+ * Side effects:
+ *	The tile types are passed by pointer reference in the arguments.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extGetBoundaryTypes(Boundary *bp,
+    TileType *tin,
+    TileType *tout)
+{
+    TileType loctin, loctout;
+
+    if (IsSplit(bp->b_inside))
+    {
+	switch (bp->b_direction)
+	{
+	    case BD_LEFT:
+		loctin = TiGetLeftType(bp->b_inside);
+		break;
+	    case BD_RIGHT:
+		loctin = TiGetRightType(bp->b_inside);
+		break;
+	    case BD_TOP:
+		loctin = TiGetTopType(bp->b_inside);
+		break;
+	    case BD_BOTTOM:
+		loctin = TiGetBottomType(bp->b_inside);
+		break;
+	}
+    }
+    else
+	loctin = TiGetTypeExact(bp->b_inside);
+
+    if (IsSplit(bp->b_outside))
+    {
+	switch (bp->b_direction)
+	{
+	    case BD_LEFT:
+		loctout = TiGetRightType(bp->b_outside);
+		break;
+	    case BD_RIGHT:
+		loctout = TiGetLeftType(bp->b_outside);
+		break;
+	    case BD_TOP:
+		loctout = TiGetBottomType(bp->b_outside);
+		break;
+	    case BD_BOTTOM:
+		loctout = TiGetTopType(bp->b_outside);
+		break;
+	}
+    }
+    else
+	loctout = TiGetTypeExact(bp->b_outside);
+
+    *tin = loctin;
+    *tout = loctout;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extGetBoundaryTypes2 ---
+ *
+ *	Similar to extGetBoundaryTypes(), but where the tiles for which we
+ *	want to get the tile type are not necessarily the ones in the boundary
+ *	record;  the boundary just provides the direction that determines which
+ *	side the tile type is on, in the case of a split tile.
+ *
+ * Result:
+ *	None.
+ *
+ * Side effects:
+ *	The tile types are passed by pointer reference in the arguments.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extGetBoundaryTypes2(int bdir,
+    Tile *tbin,
+    Tile *tbout,
+    TileType *tin,
+    TileType *tout)
+{
+    TileType loctin, loctout;
+
+    if (IsSplit(tbin))
+    {
+	switch (bdir)
+	{
+	    case BD_LEFT:
+		loctin = TiGetLeftType(tbin);
+		break;
+	    case BD_RIGHT:
+		loctin = TiGetRightType(tbin);
+		break;
+	    case BD_TOP:
+		loctin = TiGetTopType(tbin);
+		break;
+	    case BD_BOTTOM:
+		loctin = TiGetBottomType(tbin);
+		break;
+	}
+    }
+    else
+	loctin = TiGetTypeExact(tbin);
+
+    if (IsSplit(tbout))
+    {
+	switch (bdir)
+	{
+	    case BD_LEFT:
+		loctout = TiGetRightType(tbout);
+		break;
+	    case BD_RIGHT:
+		loctout = TiGetLeftType(tbout);
+		break;
+	    case BD_TOP:
+		loctout = TiGetBottomType(tbout);
+		break;
+	    case BD_BOTTOM:
+		loctout = TiGetTopType(tbout);
+		break;
+	}
+    }
+    else
+	loctout = TiGetTypeExact(tbout);
+
+    *tin = loctin;
+    *tout = loctout;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extGetBoundaryRegions ---
+ *
+ *	Given a boundary direction and two tiles, one on the boundary inside
+ *	and one on the boundary outside, find the two node regions associated
+ *	with the facing sides of the two tiles.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	The tile types are passed by pointer reference in the arguments.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extGetBoundaryRegions(int bdir,
+    Tile *tbin,
+    Tile *tbout,
+    NodeRegion **rinptr,
+    NodeRegion **routptr)
+{
+    NodeRegion *locrin, *locrout;
+
+    if (IsSplit(tbin))
+    {
+	switch (bdir)
+	{
+	    case BD_LEFT:
+		locrin = (NodeRegion *)ExtGetRegion(tbin, (TileType)0);
+		break;
+	    case BD_RIGHT:
+		locrin = (NodeRegion *)ExtGetRegion(tbin, (TileType)TT_SIDE);
+		break;
+	    case BD_TOP:
+		locrin = (NodeRegion *)ExtGetRegion(tbin,
+				TiGetTypeExact(tbin) & TT_DIRECTION ?
+				(TileType)TT_SIDE : (TileType)0);
+		break;
+	    case BD_BOTTOM:
+		locrin = (NodeRegion *)ExtGetRegion(tbin,
+				TiGetTypeExact(tbin) & TT_DIRECTION ?
+				(TileType)0 : (TileType)TT_SIDE);
+		break;
+	}
+    }
+    else
+	locrin = (NodeRegion *)ExtGetRegion(tbin, (TileType)0);
+
+    if (IsSplit(tbout))
+    {
+	switch (bdir)
+	{
+	    case BD_LEFT:
+		locrout = (NodeRegion *)ExtGetRegion(tbout, (TileType)TT_SIDE);
+		break;
+	    case BD_RIGHT:
+		locrout = (NodeRegion *)ExtGetRegion(tbout, (TileType)0);
+		break;
+	    case BD_TOP:
+		locrout = (NodeRegion *)ExtGetRegion(tbout,
+				TiGetTypeExact(tbin) & TT_DIRECTION ?
+				(TileType)0 : (TileType)TT_SIDE);
+		break;
+	    case BD_BOTTOM:
+		locrout = (NodeRegion *)ExtGetRegion(tbout,
+				TiGetTypeExact(tbin) & TT_DIRECTION ?
+				(TileType)TT_SIDE : (TileType)0);
+		break;
+	}
+    }
+    else
+	locrout = (NodeRegion *)ExtGetRegion(tbout, (TileType)0);
+
+    *rinptr = locrin;
+    *routptr = locrout;
 }
 
 /*
@@ -823,13 +1074,16 @@ extAddCouple(bp, ecs)
     Boundary *bp;	/* Boundary being considered */
     extCapStruct *ecs;
 {
-    TileType tin = TiGetType(bp->b_inside), tout = TiGetType(bp->b_outside);
+    TileType tin, tout;
     int pNum;
     PlaneMask pMask;
     Boundary bpCopy;
     Rect r, ovr;
     extSidewallStruct esws;
     int distFringe;
+
+    /* Get the types on the inside and outside of the boundary */
+    extGetBoundaryTypes(bp, &tin, &tout);
 
     /* Check here for a zero exts_sideCoupleOtherEdges mask.
      * that handles cases such as FET types not being declared in
@@ -951,9 +1205,10 @@ extRemoveSubcap(bp, clip, esws)
 
     if (!esws->fringe_halo) return;
 
-    ta = TiGetType(bp->b_inside);
-    tb = TiGetType(bp->b_outside);
-    rbp = (NodeRegion *)extGetRegion(bp->b_inside);
+    /* Get the types on the inside and outside of the boundary */
+    extGetBoundaryTypes(bp, &ta, &tb);
+
+    rbp = (NodeRegion *)ExtGetRegion(bp->b_inside, (TileType)0);
 
     if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
 	length = bp->b_segment.r_ytop - bp->b_segment.r_ybot;
@@ -1076,8 +1331,8 @@ extSideOverlapHalo(tp, dinfo, esws)
     extSidewallStruct *esws;	/* Overlapping edge and plane information */
 {
     Boundary *bp = esws->bp;	/* Overlapping edge */
-    NodeRegion *rtp = (NodeRegion *) extGetRegion(tp);
-    NodeRegion *rbp = (NodeRegion *) extGetRegion(bp->b_inside);
+    NodeRegion *rtp = (NodeRegion *) ExtGetRegion(tp, dinfo);
+    NodeRegion *rbp = (NodeRegion *) ExtGetRegion(bp->b_inside, (TileType)0);
     TileType ta, tb;
     Rect tpr;
     struct sideoverlap sov;
@@ -1307,8 +1562,8 @@ extSideOverlap(tp, dinfo, esws)
     extSidewallStruct *esws;	/* Overlapping edge and plane information */
 {
     Boundary *bp = esws->bp;	/* Overlapping edge */
-    NodeRegion *rtp = (NodeRegion *) extGetRegion(tp);
-    NodeRegion *rbp = (NodeRegion *) extGetRegion(bp->b_inside);
+    NodeRegion *rtp = (NodeRegion *) ExtGetRegion(tp, dinfo);
+    NodeRegion *rbp = (NodeRegion *) ExtGetRegion(bp->b_inside, (TileType)0);
     TileType ta, tb;
     Rect tpr;
     struct overlap ov;
@@ -1924,11 +2179,13 @@ extSideLeft(tpfar, bp, esws)
     Boundary *bp;
     extSidewallStruct *esws;
 {
-    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
-    NodeRegion *rfar = (NodeRegion *) extGetRegion(tpfar);
+    NodeRegion *rinside, *rfar;
     Tile *tpnear;
 
-    if (rfar != (NodeRegion *) extUnInit && rfar != rinside)
+    /* Get the regions associated with bp->b_inside and tpfar */
+    extGetBoundaryRegions(bp->b_direction, bp->b_inside, tpfar, &rinside, &rfar);
+
+    if (rfar != (NodeRegion *)CLIENTDEFAULT && rfar != rinside)
     {
 	int sep = bp->b_segment.r_xbot - RIGHT(tpfar);
 	int limit = MAX(bp->b_segment.r_ybot, BOTTOM(tpfar));
@@ -1938,8 +2195,8 @@ extSideLeft(tpfar, bp, esws)
 	{
 	    int overlap = MIN(TOP(tpnear), start) - MAX(BOTTOM(tpnear), limit);
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep,
-				esws->extCoupleList);
+		extSideCommon(rinside, rfar, tpnear, tpfar, bp->b_direction,
+				overlap, sep, esws->extCoupleList);
 	}
     }
 
@@ -1974,11 +2231,13 @@ extSideRight(tpfar, bp, esws)
     Boundary *bp;
     extSidewallStruct *esws;
 {
-    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
-    NodeRegion *rfar = (NodeRegion *) extGetRegion(tpfar);
+    NodeRegion *rinside, *rfar;
     Tile *tpnear;
 
-    if (rfar != (NodeRegion *) extUnInit && rfar != rinside)
+    /* Get the regions associated with bp->b_inside and tpfar */
+    extGetBoundaryRegions(bp->b_direction, bp->b_inside, tpfar, &rinside, &rfar);
+
+    if (rfar != (NodeRegion *) CLIENTDEFAULT && rfar != rinside)
     {
 	int sep = LEFT(tpfar) - bp->b_segment.r_xtop;
 	int limit = MIN(bp->b_segment.r_ytop, TOP(tpfar));
@@ -1988,8 +2247,8 @@ extSideRight(tpfar, bp, esws)
 	{
 	    int overlap = MIN(TOP(tpnear), limit) - MAX(BOTTOM(tpnear), start);
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep,
-				esws->extCoupleList);
+		extSideCommon(rinside, rfar, tpnear, tpfar, bp->b_direction,
+				overlap, sep, esws->extCoupleList);
 	}
     }
 
@@ -2024,11 +2283,13 @@ extSideTop(tpfar, bp, esws)
     Boundary *bp;
     extSidewallStruct *esws;
 {
-    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
-    NodeRegion *rfar = (NodeRegion *) extGetRegion(tpfar);
+    NodeRegion *rinside, *rfar;
     Tile *tpnear;
 
-    if (rfar != (NodeRegion *) extUnInit && rfar != rinside)
+    /* Get the regions associated with bp->b_inside and tpfar */
+    extGetBoundaryRegions(bp->b_direction, bp->b_inside, tpfar, &rinside, &rfar);
+
+    if (rfar != (NodeRegion *) CLIENTDEFAULT && rfar != rinside)
     {
 	int sep = BOTTOM(tpfar) - bp->b_segment.r_ytop;
 	int limit = MIN(bp->b_segment.r_xtop, RIGHT(tpfar));
@@ -2038,8 +2299,8 @@ extSideTop(tpfar, bp, esws)
 	{
 	    int overlap = MIN(RIGHT(tpnear), limit) - MAX(LEFT(tpnear), start);
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep,
-				esws->extCoupleList);
+		extSideCommon(rinside, rfar, tpnear, tpfar, bp->b_direction,
+				overlap, sep, esws->extCoupleList);
 	}
     }
 
@@ -2074,11 +2335,13 @@ extSideBottom(tpfar, bp, esws)
     Boundary *bp;
     extSidewallStruct *esws;
 {
-    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
-    NodeRegion *rfar = (NodeRegion *) extGetRegion(tpfar);
+    NodeRegion *rinside, *rfar;
     Tile *tpnear;
 
-    if (rfar != (NodeRegion *) extUnInit && rfar != rinside)
+    /* Get the regions associated with bp->b_inside and tpfar */
+    extGetBoundaryRegions(bp->b_direction, bp->b_inside, tpfar, &rinside, &rfar);
+
+    if (rfar != (NodeRegion *) CLIENTDEFAULT && rfar != rinside)
     {
 	int sep = bp->b_segment.r_ybot - TOP(tpfar);
 	int limit = MAX(bp->b_segment.r_xbot, LEFT(tpfar));
@@ -2088,8 +2351,8 @@ extSideBottom(tpfar, bp, esws)
 	{
 	    int overlap = MIN(RIGHT(tpnear), start) - MAX(LEFT(tpnear), limit);
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep,
-				esws->extCoupleList);
+		extSideCommon(rinside, rfar, tpnear, tpfar, bp->b_direction,
+				overlap, sep, esws->extCoupleList);
 	}
     }
 
@@ -2103,7 +2366,7 @@ extSideBottom(tpfar, bp, esws)
  *
  * Perform the actual update to the hash table entry for
  * the regions 'rinside' and 'rfar'.  We assume that neither
- * 'rinside' nor 'rfar' are extUnInit, and further that they
+ * 'rinside' nor 'rfar' are CLIENTDEFAULT, and further that they
  * are not equal.
  *
  * Walk along the rules in extCoupleList, applying the appropriate
@@ -2120,19 +2383,23 @@ extSideBottom(tpfar, bp, esws)
  */
 
 void
-extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep, extCoupleList)
+extSideCommon(rinside, rfar, tpnear, tpfar, bdir, overlap, sep, extCoupleList)
     NodeRegion *rinside, *rfar;	/* Both must be valid */
     Tile *tpnear, *tpfar;	/* Tiles on near and far side of edge */
+    int bdir;			/* Boundary direction */
     int overlap, sep;		/* Overlap of this edge with original one,
 				 * and distance between the two.
 				 */
     EdgeCap  *extCoupleList;	/* List of sidewall capacitance rules */
 {
-    TileType near = TiGetType(tpnear), far = TiGetType(tpfar);
+    TileType near, far;
     HashEntry *he;
     EdgeCap *e;
     CoupleKey ck;
     CapValue cap;
+
+    /* Get the tile types of tpnear and tpfar */
+    extGetBoundaryTypes2(bdir, tpnear, tpfar, &near, &far);
 
     if (rinside < rfar) ck.ck_1 = rinside, ck.ck_2 = rfar;
     else ck.ck_1 = rfar, ck.ck_2 = rinside;

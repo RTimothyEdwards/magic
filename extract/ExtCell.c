@@ -46,15 +46,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/main.h"
 #include "utils/undo.h"
 
-/* --------------------------- Global data ---------------------------- */
-
-/*
- * Value normally present in ti_client to indicate tiles that have not
- * been marked with their associated region.
- */
-ClientData extUnInit = (ClientData) CLIENTDEFAULT;
-
-
 /* ------------------------ Data local to this file ------------------- */
 
 /* Forward declarations */
@@ -517,7 +508,7 @@ extCellFile(def, f, doLength)
 
     /* Clean up from basic extraction */
     if (reg) ExtFreeLabRegions((LabRegion *) reg);
-    ExtResetTiles(def, extUnInit);
+    ExtResetTiles(def, CLIENTDEFAULT);
 
     /* Final pass: extract length information if desired */
     if (!SigInterruptPending && doLength && (ExtOptions & EXT_DOLENGTH))

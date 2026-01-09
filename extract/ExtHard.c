@@ -196,7 +196,7 @@ extHardProc(scx, arg)
      * single child.
      */
     labRegList = (TransRegion *) ExtFindRegions(def, &scx->scx_area,
-		    &arg->hw_mask, ExtCurStyle->exts_nodeConn, extUnInit,
+		    &arg->hw_mask, ExtCurStyle->exts_nodeConn,
 		    extLabFirst, extLabEach);
     if (labRegList)
     {
@@ -333,7 +333,7 @@ extHardSetLabel(scx, reg, arg)
 	 tp = PlaneGetHint(scx->scx_use->cu_def->cd_planes[pNum]);
 	 GOTOPOINT(tp, &r.r_ll);
 	 PlaneSetHint(scx->scx_use->cu_def->cd_planes[pNum], tp);
-	 if ((TransRegion *)extGetRegion(tp) == reg)
+	 if ((TransRegion *)ExtGetRegion(tp, (TileType)0) == reg)
 	 {
 	      /* found an OK point */
 	      r.r_ur.p_x =r.r_ll.p_x+1;
@@ -342,7 +342,7 @@ extHardSetLabel(scx, reg, arg)
 	 else
 	 {
 	      GOTOPOINT(tp, &r.r_ur);
-	      if ((TransRegion *)extGetRegion(tp) == reg)
+	      if ((TransRegion *)ExtGetRegion(tp, (TileType)0) == reg)
 	      {
 	      	   r.r_ll = r.r_ur;
 	      }
@@ -488,12 +488,12 @@ extHardFreeAll(def, tReg)
     arg.fra_connectsTo = ExtCurStyle->exts_nodeConn;
     arg.fra_def = def;
     arg.fra_each = (int (*)()) NULL;
-    arg.fra_region = (ExtRegion *) extUnInit;
+    arg.fra_region = (ExtRegion *) CLIENTDEFAULT;
 
     free_magic1_t mm1 = freeMagic1_init();
     for (reg = tReg; reg; reg = reg->treg_next)
     {
-	/* Reset all ti_client fields to extUnInit */
+	/* Reset all ti_client fields to CLIENTDEFAULT */
 	arg.fra_uninit = (ClientData) reg;
 	if (reg->treg_tile)
 	{

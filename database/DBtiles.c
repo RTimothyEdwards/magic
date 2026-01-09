@@ -659,8 +659,85 @@ DBResetTilePlane(plane, cdata)
     /* Each iteration visits another tile on the LHS of the search area */
     while (TOP(tp) > rect->r_ybot)
     {
-	/* Each iteration frees another tile */
+	/* Each iteration resets another tile */
 enumerate:
+	tp->ti_client = cdata;
+
+	/* Move along to the next tile */
+	tpnew = TR(tp);
+	if (LEFT(tpnew) < rect->r_xtop)
+	{
+	    while (BOTTOM(tpnew) >= rect->r_ytop) tpnew = LB(tpnew);
+	    if (BOTTOM(tpnew) >= BOTTOM(tp) || BOTTOM(tp) <= rect->r_ybot)
+	    {
+		tp = tpnew;
+		goto enumerate;
+	    }
+	}
+
+	/* Each iteration returns one tile further to the left */
+	while (LEFT(tp) > rect->r_xbot)
+	{
+	    if (BOTTOM(tp) <= rect->r_ybot)
+		return;
+	    tpnew = LB(tp);
+	    tp = BL(tp);
+	    if (BOTTOM(tpnew) >= BOTTOM(tp) || BOTTOM(tp) <= rect->r_ybot)
+	    {
+		tp = tpnew;
+		goto enumerate;
+	    }
+	}
+
+	/* At left edge -- walk down to next tile along the left edge */
+	for (tp = LB(tp); RIGHT(tp) <= rect->r_xbot; tp = TR(tp))
+	    /* Nothing */;
+    }
+}
+
+/*
+ * --------------------------------------------------------------------
+ *
+ * DBResetTilePlaneSpecial --
+ *
+ * This routine works like DBResetTilePlane(), but is designed
+ * specifically to be run after extFindNodes() or ExtFindRegions()
+ * to check for split tiles that have an allocated ExtSplitRegion
+ * structure in the ClientData;  this needs to be freed before
+ * resetting the ClientData value to "cdata".  It is not necessary
+ * to know anything about the ExtSplitRegion structure other than
+ * the condition under which it can be expected to be present,
+ * which is a split tile with neither side having type TT_SPACE.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Resets the ti_client fields of all tiles.
+ *
+ * --------------------------------------------------------------------
+ */
+
+void
+DBResetTilePlaneSpecial(plane, cdata)
+    Plane *plane;	/* Plane whose tiles are to be reset */
+    ClientData cdata;
+{
+    Tile *tp, *tpnew;
+    const Rect *rect = &TiPlaneRect;
+
+    /* Start with the leftmost non-infinity tile in the plane */
+    tp = TR(plane->pl_left);
+
+    /* Each iteration visits another tile on the LHS of the search area */
+    while (TOP(tp) > rect->r_ybot)
+    {
+	/* Each iteration resets another tile */
+enumerate:
+	if (IsSplit(tp))
+	    if ((TiGetLeftType(tp) != TT_SPACE) && (TiGetRightType(tp) != TT_SPACE))
+		freeMagic(tp->ti_client);
+
 	tp->ti_client = cdata;
 
 	/* Move along to the next tile */

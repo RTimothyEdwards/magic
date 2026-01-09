@@ -891,7 +891,7 @@ extSubtreeFunc(scx, ha)
 	    (NodeRegion *) ExtFindRegions(cumUse->cu_def, &TiPlaneRect,
 				&ExtCurStyle->exts_activeTypes,
 				ExtCurStyle->exts_nodeConn,
-				extUnInit, extHierLabFirst, (int (*)()) NULL);
+				extHierLabFirst, (int (*)()) NULL);
 	ExtLabelRegions(cumUse->cu_def, ExtCurStyle->exts_nodeConn,
 			&(ha->ha_cumFlat.et_nodes), &TiPlaneRect);
     }
@@ -928,7 +928,7 @@ extSubtreeFunc(scx, ha)
     /* Free the cumulative node list we extracted above */
     if (ha->ha_cumFlat.et_nodes)
     {
-	ExtResetTiles(cumUse->cu_def, extUnInit);
+	ExtResetTiles(cumUse->cu_def, CLIENTDEFAULT);
 	ExtFreeLabRegions((LabRegion *) ha->ha_cumFlat.et_nodes);
 	ha->ha_cumFlat.et_nodes = (NodeRegion *) NULL;
     }
@@ -1071,9 +1071,9 @@ extSubtreeTileToNode(tp, dinfo, pNum, et, ha, doHard)
     TileType ttype;
 
     /* If there is a label list, use it */
-    if (extHasRegion(tp, extUnInit))
+    if (extHasRegion(tp, CLIENTDEFAULT))
     {
-	reg = (LabRegion *) extGetRegion(tp);
+	reg = (LabRegion *) ExtGetRegion(tp, dinfo);
 	if (reg->lreg_labels)
 	    return (extNodeName(reg));
     }
@@ -1124,7 +1124,7 @@ extSubtreeTileToNode(tp, dinfo, pNum, et, ha, doHard)
 
     /* We have to do it the hard way */
     if (!doHard) return ((char *) NULL);
-    if (extHasRegion(tp, extUnInit)
+    if (extHasRegion(tp, CLIENTDEFAULT)
 	    && (reg = extSubtreeHardNode(tp, dinfo, pNum, et, ha)))
     {
 	if (ExtDoWarn & EXTWARN_LABELS)
@@ -1164,9 +1164,9 @@ extConnFindFunc(tp, dinfo, preg)
     TileType dinfo;	// Unused, but needs to be handled
     LabRegion **preg;
 {
-    if (extHasRegion(tp, extUnInit))
+    if (extHasRegion(tp, CLIENTDEFAULT))
     {
-	*preg = (LabRegion *)extGetRegion(tp);
+	*preg = (LabRegion *)ExtGetRegion(tp, dinfo);
 	return (1);
     }
 
@@ -1211,7 +1211,7 @@ extSubtreeHardNode(tp, dinfo, pNum, et, ha)
     ExtTree *et;
     HierExtractArg *ha;
 {
-    LabRegion *lreg = (LabRegion *) extGetRegion(tp);
+    LabRegion *lreg = (LabRegion *) ExtGetRegion(tp, dinfo);
     CellDef *def = et->et_use->cu_def;
     TileType ttype;
     char labelBuf[4096];

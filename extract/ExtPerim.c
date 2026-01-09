@@ -36,7 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extract/extract.h"
 #include "extract/extractInt.h"
 
-#define	POINTEQUAL(p, q)	((p)->p_x == (q)->p_x && (p)->p_y == (q)->p_y)
+#define	POINTEQUAL(p, q)	(((p)->p_x == (q)->p_x) && ((p)->p_y == (q)->p_y))
 
 /*
  * ----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *	{
  *	}
  *
- * The value returned by this function is ignored.
+ * The value returned by the callback function is ignored.
  *
  * Results:
  *	Returns the total length of the portion of the perimeter of
@@ -87,12 +87,11 @@ extEnumTilePerim(
     int (*func)(),
     ClientData cdata)
 {
-    TileTypeBitMask mask = *maskp; /* TTMaskCopy(&mask, maskp) */
-    TileType origType;
+    TileTypeBitMask mask = *maskp;
     Tile *tpOut;
     int perimCorrect;
     Boundary b;
-    unsigned char sides = 0;
+    unsigned char sides = 0;	/* Sides to be ignored */
 
     b.b_inside = tpIn;
     b.b_plane = pNum;
@@ -101,9 +100,12 @@ extEnumTilePerim(
     /* Diagonal */
     if (IsSplit(tpIn))
     {
+	/* Determine which two sides need to be searched and set the corresponding
+	 * boundary direction bit in "sides".  "dinfo" determines which side of the
+	 * split tile is considered "inside" the boundary and which is "outside".
+	 */
 	TileType otype = (dinfo & TT_SIDE) ? SplitLeftType(tpIn): SplitRightType(tpIn);
 	TileType itype = (dinfo & TT_SIDE) ? SplitRightType(tpIn): SplitLeftType(tpIn);
-	origType = TiGetTypeExact(tpIn);
 	if (TTMaskHasType(&mask, otype))
 	{
 	    int width = RIGHT(tpIn) - LEFT(tpIn);
@@ -111,10 +113,9 @@ extEnumTilePerim(
 	    perimCorrect = width * width + height * height;
 	    perimCorrect = (int)sqrt((double)perimCorrect);
 	}
-	sides = (dinfo & TT_SIDE) ? BD_LEFT : BD_RIGHT;
+	sides = (dinfo & TT_SIDE) ? BD_RIGHT : BD_LEFT;
 	sides |= (((dinfo & TT_SIDE) ? 1 : 0) == SplitDirection(tpIn)) ?
-		BD_BOTTOM : BD_TOP;
-	TiSetBody(tpIn, itype);
+		BD_TOP : BD_BOTTOM;
     }
     else
 	sides = 0;
@@ -178,9 +179,6 @@ extEnumTilePerim(
 	    if (func) (*func)(&b, cdata);
 	}
     }
-
-    if (sides != 0)
-	TiSetBody(tpIn, origType);
 
     return (perimCorrect);
 }

@@ -1121,7 +1121,7 @@ ResExtractNet(node, goodies, cellname)
     }
     DBReComputeBbox(ResUse->cu_def);
 
-    ExtResetTiles(scx.scx_use->cu_def, extUnInit);
+    ExtResetTiles(scx.scx_use->cu_def, CLIENTDEFAULT);
 
     /* To avoid issues with overlapping stacked contact types and	*/
     /* double-counting contacts on multiple planes, erase the top	*/
@@ -1148,9 +1148,8 @@ ResExtractNet(node, goodies, cellname)
     ResContactList = (ResContactPoint *)ExtFindRegions(ResUse->cu_def,
 				     &(ResUse->cu_def->cd_bbox),
 				     &DBAllButSpaceAndDRCBits,
-				     ResConnectWithSD, extUnInit, ResFirst,
-				     ResEach);
-    ExtResetTiles(ResUse->cu_def, extUnInit);
+				     ResConnectWithSD, ResFirst, ResEach);
+    ExtResetTiles(ResUse->cu_def, CLIENTDEFAULT);
 
     /*
      * dissolve the contacts and find which tiles now cover the point

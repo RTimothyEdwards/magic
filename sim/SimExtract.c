@@ -170,7 +170,7 @@ SimInitDefList(void)
     while (p != (DefListElt *)NULL) {
 	q = p;
 	p = p->dl_next;
-	ExtResetTiles(q->dl_def, extUnInit);
+	ExtResetTiles(q->dl_def, CLIENTDEFAULT);
 	freeMagic(q);
     }
     DefList = (DefListElt *) NULL;
@@ -596,7 +596,7 @@ SimFindOneNode(
 	type = TiGetTypeExact(tile);
 
     arg.fra_pNum = DBPlane(type);
-    arg.fra_uninit = (ClientData) extUnInit;
+    arg.fra_uninit = (ClientData) CLIENTDEFAULT;
     arg.fra_region = (ExtRegion *) reg;
     arg.fra_each = SimFindTxtor;
     (void) ExtFindNeighbors(tile, dinfo, arg.fra_pNum, &arg);
@@ -607,7 +607,7 @@ SimFindOneNode(
 	transistor.t_pnum = DBNumPlanes;
 	transistor.t_do_terms = FALSE;
 
-	TiSetClient(gateTile, extUnInit);
+	TiSetClient(gateTile, CLIENTDEFAULT);
 	arg.fra_connectsTo = &SimTransMask;
 
 	if (IsSplit(tile))
@@ -617,7 +617,7 @@ SimFindOneNode(
 	    loctype = TiGetTypeExact(gateTile);
 
 	arg.fra_pNum = DBPlane(loctype);
-	arg.fra_uninit = (ClientData) extUnInit;
+	arg.fra_uninit = (ClientData) CLIENTDEFAULT;
 	arg.fra_region = (ExtRegion *) reg;
 	arg.fra_each = SimTransistorTile;
 	(void) ExtFindNeighbors(gateTile, gateDinfo, arg.fra_pNum, &arg);
@@ -626,7 +626,7 @@ SimFindOneNode(
 	arg.fra_connectsTo = ExtCurStyle->exts_nodeConn;
 	arg.fra_pNum = DBPlane(type);
 	arg.fra_uninit = (ClientData) reg;
-	arg.fra_region = (ExtRegion *) extUnInit;
+	arg.fra_region = (ExtRegion *) CLIENTDEFAULT;
 	arg.fra_each = (int (*)()) NULL;
 	(void) ExtFindNeighbors(tile, dinfo, arg.fra_pNum, &arg);
 
@@ -736,7 +736,7 @@ SimGetNodeName(
 
     /* check to see if this tile has been extracted before */
 
-    if (TiGetClient(tp) == extUnInit)
+    if (TiGetClient(tp) == CLIENTDEFAULT)
     {
 	NodeSpec  *ns;
 

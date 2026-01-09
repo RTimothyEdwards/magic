@@ -232,8 +232,8 @@ extBasic(def, outFile)
     transList = (TransRegion *) ExtFindRegions(def, &TiPlaneRect,
 				    &ExtCurStyle->exts_deviceMask,
 				    ExtCurStyle->exts_deviceConn,
-				    extUnInit, extTransFirst, extTransEach);
-    ExtResetTiles(def, extUnInit);
+				    extTransFirst, extTransEach);
+    ExtResetTiles(def, CLIENTDEFAULT);
 
     for (reg = transList; reg && !SigInterruptPending; reg = reg->treg_next)
     {
@@ -2197,7 +2197,7 @@ extOutputDevices(def, transList, outFile)
 	 *
 	 * Algorithm: first visit all tiles in the transistor, marking
 	 * them with 'reg', then visit them again re-marking them with
-	 * the gate node (extGetRegion(reg->treg_tile)).
+	 * the gate node (ExtGetRegion(reg->treg_tile, reg->treg_type)).
 	 */
 	extTransRec.tr_devrec = (ExtDevice *)NULL;
 	extTransRec.tr_devmatch = 0;
@@ -2224,7 +2224,7 @@ extOutputDevices(def, transList, outFile)
 	arg.fra_def = def;
 	arg.fra_connectsTo = ExtCurStyle->exts_deviceConn;
 
-	extTransRec.tr_gatenode = (NodeRegion *) extGetRegion(reg->treg_tile);
+	extTransRec.tr_gatenode = (NodeRegion *) ExtGetRegion(reg->treg_tile, reg->treg_type);
 	t = reg->treg_type & TT_LEFTMASK;
 
 	arg.fra_pNum = DBPlane(t);
@@ -2518,7 +2518,7 @@ extOutputDevices(def, transList, outFile)
 	    /* are shorted.					   */
 
 	    /* gate */
-	    node = (NodeRegion *)extGetRegion(reg->treg_tile);
+	    node = (NodeRegion *)ExtGetRegion(reg->treg_tile, reg->treg_type);
 	    fprintf(outFile, "\"%s\" ", extNodeName((LabRegion *)node));
 
 	    /* First non-gate terminal */
@@ -3076,7 +3076,7 @@ extOutputDevices(def, transList, outFile)
 	}
 
 	/* gate */
-	node = (NodeRegion *) extGetRegion(reg->treg_tile);
+	node = (NodeRegion *) ExtGetRegion(reg->treg_tile, reg->treg_type);
 	ll = node->nreg_labels;
 	extTransOutTerminal((LabRegion *) node, ll, LL_GATEATTR,
 			extTransRec.tr_gatelen, 0, 0, 0, outFile);
@@ -3173,10 +3173,10 @@ extTransFindSubsFunc1(tile, dinfo, noderecptr)
      * regions under the same device)
      */
 
-    ClientData ticlient = TiGetClient(tile);
-    if (ticlient != extUnInit)
+    ExtRegion *tireg = ExtGetRegion(tile, dinfo);
+    if ((ClientData)tireg != CLIENTDEFAULT)
     {
-	NodeRegion *reg = (NodeRegion *) CD2PTR(ticlient);
+	NodeRegion *reg = (NodeRegion *) CD2PTR(tireg);
 	if ((noderecptr->region != (NodeRegion *)NULL) &&
 		    (noderecptr->region != reg))
 	    TxError("Warning:  Split substrate under device at (%d %d)\n",
@@ -3376,10 +3376,7 @@ extTransTileFunc(tile, dinfo, pNum, arg)
      * that borders on something of a different type.
      */
     if (IsSplit(tile))
-    {
         loctype = (dinfo & TT_SIDE) ? SplitRightType(tile): SplitLeftType(tile);
-	// return (0); 	/* Hack alert!  We must properly handle diagonals! */
-    }
     else
 	loctype = TiGetTypeExact(tile);
 
@@ -3702,9 +3699,9 @@ int
 extTransPerimFunc(bp)
     Boundary *bp;
 {
-    TileType tinside, toutside;
+    TileType tinside, toutside, dinfo;
     Tile *tile;
-    NodeRegion *diffNode = (NodeRegion *) extGetRegion(bp->b_outside);
+    NodeRegion *termNode;
     ExtDevice *devptr, *deventry;
     int i, area, perim, len = BoundaryLength(bp);
     int thisterm;
@@ -3739,6 +3736,7 @@ extTransPerimFunc(bp)
     }
     else
         tinside = TiGetTypeExact(bp->b_inside);
+
     tile = bp->b_outside;
     if (IsSplit(tile))
     {
@@ -3746,20 +3744,30 @@ extTransPerimFunc(bp)
 	{
 	    case BD_LEFT:
 		toutside = TiGetRightType(tile);
+		dinfo = (TileType)TT_SIDE;
 		break;
 	    case BD_TOP:
 		toutside = TiGetBottomType(tile);
+		dinfo = (TiGetTypeExact(tile) & TT_DIRECTION) ?
+				(TileType)0 : (TileType)TT_SIDE;
 		break;
 	    case BD_RIGHT:
 		toutside = TiGetLeftType(tile);
+		dinfo = (TileType)0;
 		break;
 	    case BD_BOTTOM:
 		toutside = TiGetTopType(tile);
+		dinfo = (TiGetTypeExact(tile) & TT_DIRECTION) ?
+				(TileType)TT_SIDE : (TileType)0;
 		break;
 	}
+	termNode = (NodeRegion *) ExtGetRegion(tile, dinfo);
     }
     else
+    {
         toutside = TiGetTypeExact(bp->b_outside);
+	termNode = (NodeRegion *) ExtGetRegion(tile, (TileType)0);
+    }
 
     if (extTransRec.tr_devrec != NULL)
 	devptr = extTransRec.tr_devrec;
@@ -3789,7 +3797,7 @@ extTransPerimFunc(bp)
 		if (TTMaskIsZero(&devptr->exts_deviceSDTypes[1]))
 		{
 		    for (thisterm = 0; thisterm < extTransRec.tr_nterm; thisterm++)
-			if (extTransRec.tr_termnode[thisterm] == diffNode)
+			if (extTransRec.tr_termnode[thisterm] == termNode)
 			    break;
 		}
 		else
@@ -3798,7 +3806,7 @@ extTransPerimFunc(bp)
 		if (extTransRec.tr_termnode[thisterm] == NULL)
 		{
 		    extTransRec.tr_nterm++;
-		    extTransRec.tr_termnode[thisterm] = diffNode;
+		    extTransRec.tr_termnode[thisterm] = termNode;
 		    extTransRec.tr_termlen[thisterm] = 0;
 		    extTransRec.tr_termarea[thisterm] = 0;
 		    extTransRec.tr_termperim[thisterm] = 0;
@@ -3810,19 +3818,19 @@ extTransPerimFunc(bp)
 
 		    /* Find the total area of this terminal */
 		}
-		else if (extTransRec.tr_termnode[thisterm] == diffNode)
+		else if (extTransRec.tr_termnode[thisterm] == termNode)
 		{
 		    TermTilePos  *pos = &(extTransRec.tr_termpos[thisterm]);
 		    Tile         *otile = bp->b_outside;
 
 		    /* update the region tile position */
 
-		    if (DBPlane(TiGetType(otile)) < pos->pnum)
+		    if (DBPlane(toutside) < pos->pnum)
 		    {
-			pos->pnum = DBPlane(TiGetType(otile));
+			pos->pnum = DBPlane(toutside);
 			pos->pt = otile->ti_ll;
 		    }
-		    else if (DBPlane(TiGetType(otile)) == pos->pnum)
+		    else if (DBPlane(toutside) == pos->pnum)
 		    {
 			if (LEFT(otile) < pos->pt.p_x)
 			    pos->pt = otile->ti_ll;
@@ -3855,13 +3863,10 @@ extTransPerimFunc(bp)
 		    eapd.eapd_area = eapd.eapd_perim = 0;
 		    TTMaskCom2(&eapd.eapd_mask, &DBConnectTbl[toutside]);
 		    eapd.eapd_gatemask = &ExtCurStyle->exts_deviceMask;
-		    eapd.eapd_gatenode = (NodeRegion *)extGetRegion(bp->b_inside);
+		    eapd.eapd_gatenode = extTransRec.tr_gatenode;
 		    eapd.eapd_shared = NULL;
 
-		    /* Fix me:  Set dinfo based on split tile and boundary
-		     * direction.
-		     */
-		    DBSrConnectOnePlane(bp->b_outside, (TileType)0, DBConnectTbl,
+		    DBSrConnectOnePlane(bp->b_outside, dinfo, DBConnectTbl,
 					extTermAPFunc, (ClientData)&eapd);
 
 		    shared = 1;
@@ -3973,7 +3978,7 @@ extTransPerimFunc(bp)
     /* 8/30/2022:  The code at line 681 can reassign a transistor	*/
     /* gate node off of the device plane, so the original plane of	*/
     /* the gate node is saved in extTransRec.tr_plane and used here.	*/
-    /* Do *not* user extTransRec.tr_gatenode->nreg_pnum!		*/
+    /* Do *not* use extTransRec.tr_gatenode->nreg_pnum!			*/
 
     if ((!DBIsContact(toutside) && !DBIsContact(tinside)) ||
 		(bp->b_plane == extTransRec.tr_plane))
@@ -4104,7 +4109,7 @@ extSpecialPerimFunc(bp, sense)
     bool sense;
 {
     TileType tinside, toutside;
-    NodeRegion *diffNode = (NodeRegion *) extGetRegion(bp->b_outside);
+    NodeRegion *termNode = (NodeRegion *) ExtGetRegion(bp->b_outside, (TileType)0);
     int thisterm, extended, i;
     LinkedBoundary *newBound, *lb, *lastlb;
     ExtDevice *devptr;
@@ -4155,7 +4160,7 @@ extSpecialPerimFunc(bp, sense)
     {
 	if (toutside == TT_SPACE)
 	    if (glob_subsnode != NULL)
-		diffNode = glob_subsnode;
+		termNode = glob_subsnode;
     }
 
     /* Check for terminal on different plane than the device */
@@ -4172,7 +4177,7 @@ extSpecialPerimFunc(bp, sense)
 
 	    if (!PlaneMaskHasPlane(pmask, DBPlane(tinside)))
 	    {
-		diffNode = extTransRec.tr_termnode[i];
+		termNode = extTransRec.tr_termnode[i];
 		needSurvey = TRUE;
 		break;
 	    }
@@ -4189,7 +4194,7 @@ extSpecialPerimFunc(bp, sense)
 	else
 	{
 	    for (thisterm = 0; thisterm < extTransRec.tr_nterm; thisterm++)
-		if (extTransRec.tr_termnode[thisterm] == diffNode)
+		if (extTransRec.tr_termnode[thisterm] == termNode)
 		    break;
 	    if (thisterm >= extTransRec.tr_nterm)
 	    {
@@ -4444,6 +4449,117 @@ extLabType(text, typeMask)
     /*NOTREACHED*/
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtSetRegion --
+ *
+ *	Sets the client pointer for a tile to the given ExtRegion pointer.
+ *	In the usual case, this just sets TiSetClientPTR().  However, if
+ *	it is a split tile, then if neither side of the split tile is
+ *	TT_SPACE, the tile ClientData will be given an allocated
+ *	ExtSplitRegion structure containing two region pointers, one for
+ *	the left side, and one for the right side.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	A tile's ClientData is modified.  In the case of a split tile, an
+ *	additional structure is allocated.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+ExtSetRegion(Tile *tile,
+    TileType dinfo,
+    ExtRegion *reg)
+{
+    ExtSplitRegion *csr;
+    ClientData clientdata = TiGetClient(tile);
+
+    if ((ExtRegion *)CD2PTR(clientdata) == reg) return;
+
+    if (IsSplit(tile))
+    {
+	if ((TiGetLeftType(tile) != TT_SPACE) && (TiGetRightType(tile) != TT_SPACE))
+	{
+	    /* Tile is a split tile with something that is not space on both sides */
+	    if (clientdata == CLIENTDEFAULT)
+	    {
+		/* First time visit:  tile requires an ExtSplitRegion structure */
+		csr = (ExtSplitRegion *)mallocMagic(sizeof(ExtSplitRegion));
+		TiSetClientPTR(tile, csr);
+		csr->reg_right = CLIENTDEFAULT;
+		csr->reg_left = CLIENTDEFAULT;
+	    }
+	    else
+		csr = (ExtSplitRegion *)CD2PTR(clientdata);
+
+	    /* Set the region for the specified side of the tile */
+	    if (dinfo & TT_SIDE)
+		csr->reg_right = reg;
+	    else
+		csr->reg_left = reg;
+
+	    return;
+	}
+    }
+	
+    /* In all other cases, just set the ClientData of the tile to "reg" */
+    TiSetClientPTR(tile, reg);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtResetRegion --
+ *
+ *	Resets the client pointer for a tile back to CLIENTDEFAULT.
+ *	In the case of a split tile with two regions, the region for the
+ *	side of the tile specified by the TT_SIDE bit in "dinfo" will be
+ *	set to CLIENTDEFAULT.  If both sides have CLIENTDEFAULT, then the split
+ *	region structure is deallocated and the tile's ClientData is set
+ *	to CLIENTDEFAULT.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	A tile's ClientData is modified.  In the case of a split tile, an
+ *	additional structure is allocated.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+ExtResetRegion(Tile *tile,
+    TileType dinfo)
+{
+    if (IsSplit(tile))
+    {
+	if ((TiGetLeftType(tile) != TT_SPACE) && (TiGetRightType(tile) != TT_SPACE))
+	{
+	    /* Tile is a split tile with something that is not space on both sides */
+	    ExtSplitRegion *esr;
+	    if (TiGetClient(tile) == CLIENTDEFAULT) return;
+	    esr = (ExtSplitRegion *)TiGetClientPTR(tile);
+		
+	    if (dinfo & TT_SIDE)
+		esr->reg_right = CLIENTDEFAULT;
+	    else
+		esr->reg_left = CLIENTDEFAULT;
+		    
+	    if ((esr->reg_right == CLIENTDEFAULT) && (esr->reg_left == CLIENTDEFAULT))
+		freeMagic((char *)esr);
+	    else
+		return;
+	}
+    }
+    /* In all other cases, just set the ClientData of the tile to value CLIENTDEFAULT */
+    TiSetClient(tile, CLIENTDEFAULT);
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -4749,7 +4865,7 @@ extFindNodes(def, clipArea, subonly)
     	{
 	    arg.fra_pNum = pNum;
 	    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
-			&TiPlaneRect, &subsTypesNonSpace, extUnInit,
+			&TiPlaneRect, &subsTypesNonSpace, CLIENTDEFAULT,
 			extSubsFunc, (ClientData) &arg);
         }
 
@@ -4764,11 +4880,11 @@ extFindNodes(def, clipArea, subonly)
 	        arg.fra_pNum = pNum;
 	        if (space_is_substrate)
 		    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
-				&TiPlaneRect, &subsTypesNonSpace, extUnInit,
+				&TiPlaneRect, &subsTypesNonSpace, CLIENTDEFAULT,
 				extSubsFunc2, (ClientData) &arg);
 	    	else
 		    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
-				&TiPlaneRect, &subsTypesNonSpace, extUnInit,
+				&TiPlaneRect, &subsTypesNonSpace, CLIENTDEFAULT,
 				extSubsFunc, (ClientData) &arg);
 	    }
     	}
@@ -4811,7 +4927,7 @@ extFindNodes(def, clipArea, subonly)
 	arg.fra_pNum = pNum;
 	(void) DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
 		    &TiPlaneRect, &ExtCurStyle->exts_activeTypes,
-		    extUnInit, extNodeAreaFunc, (ClientData) &arg);
+		    CLIENTDEFAULT, extNodeAreaFunc, (ClientData) &arg);
     }
     SigEnableInterrupts();
 
@@ -4971,7 +5087,7 @@ extNodeAreaFunc(tile, dinfo, arg)
 	 */
 	if (TiGetClientPTR(tile) == reg)
 	    continue;
-	TiSetClientPTR(tile, reg);
+	ExtSetRegion(tile, dinfo, (ExtRegion *)reg);
 	if (DebugIsSet(extDebugID, extDebNeighbor))
 	    extShowTile(tile, "neighbor", 1);
 
@@ -5064,6 +5180,17 @@ topside:
 
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	{
+	    ExtRegion *tireg;
+	    TileType tpdinfo;
+
+	    if (IsSplit(tp))
+	    {
+		tpdinfo = (SplitDirection(tp)) ? (TileType)0 : (TileType)TT_SIDE;
+		tireg = ExtGetRegion(tp, tpdinfo);
+	    }
+	    else
+		tireg = ExtGetRegion(tp, (TileType)0);
+
 	    if (extNodeClipArea)
 	    {
 		r.r_ybot = r.r_ytop = TOP(tile);
@@ -5073,25 +5200,24 @@ topside:
 		len = EDGENULL(&r) ? 0 : r.r_xtop - r.r_xbot;
 	    }
 	    else len = MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
-	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
         	t = SplitBottomType(tp);
-		if (ticlient == extUnInit && TTMaskHasType(mask, t))
+		if ((ClientData)tireg == CLIENTDEFAULT && TTMaskHasType(mask, t))
 		{
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
 		}
-		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)tireg != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
-		    TiSetClient(tp, extUnInit);
+		    ExtResetRegion(tp, tpdinfo);
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
 		}
 	    }
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (ticlient == extUnInit && TTMaskHasType(mask, t))
+		if ((ClientData)tireg == CLIENTDEFAULT && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
 		}
@@ -5110,6 +5236,17 @@ leftside:
 
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	{
+	    ExtRegion *tireg;
+	    TileType tpdinfo;
+
+	    if (IsSplit(tp))
+	    {
+		tpdinfo = (TileType)TT_SIDE;
+		tireg = ExtGetRegion(tp, tpdinfo);
+	    }
+	    else
+		tireg = ExtGetRegion(tp, (TileType)0);
+
 	    if (extNodeClipArea)
 	    {
 		r.r_xbot = r.r_xtop = LEFT(tile);
@@ -5119,25 +5256,24 @@ leftside:
 		len = EDGENULL(&r) ? 0 : r.r_ytop - r.r_ybot;
 	    }
 	    else len = MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
-	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitRightType(tp);
-		if (ticlient == extUnInit && TTMaskHasType(mask, t))
+		if ((ClientData)tireg == CLIENTDEFAULT && TTMaskHasType(mask, t))
 		{
 		    PUSHTILERIGHT(tp, tilePlaneNum);
 		}
-		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)tireg != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
-		    TiSetClient(tp, extUnInit);
+		    ExtResetRegion(tp, tpdinfo);
 		    PUSHTILERIGHT(tp, tilePlaneNum);
 		}
 	    }
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (ticlient == extUnInit && TTMaskHasType(mask, t))
+		if ((ClientData)tireg == CLIENTDEFAULT && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
 		}
@@ -5157,6 +5293,17 @@ bottomside:
 
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 	{
+	    ExtRegion *tireg;
+	    TileType tpdinfo;
+
+	    if (IsSplit(tp))
+	    {
+		tpdinfo = (SplitDirection(tp)) ? (TileType)TT_SIDE : (TileType)0;
+		tireg = ExtGetRegion(tp, tpdinfo);
+	    }
+	    else
+		tireg = ExtGetRegion(tp, (TileType)0);
+
 	    if (extNodeClipArea)
 	    {
 		r.r_ybot = r.r_ytop = BOTTOM(tile);
@@ -5166,25 +5313,24 @@ bottomside:
 		len = EDGENULL(&r) ? 0 : r.r_xtop - r.r_xbot;
 	    }
 	    else len = MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
-	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitTopType(tp);
-		if (ticlient == extUnInit && TTMaskHasType(mask, t))
+		if ((ClientData)tireg == CLIENTDEFAULT && TTMaskHasType(mask, t))
 		{
 		    PUSHTILETOP(tp, tilePlaneNum);
 		}
-		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)tireg != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
-		    TiSetClient(tp, extUnInit);
+		    ExtResetRegion(tp, tpdinfo);
 		    PUSHTILETOP(tp, tilePlaneNum);
 		}
 	    }
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (ticlient == extUnInit && TTMaskHasType(mask, t))
+		if ((ClientData)tireg == CLIENTDEFAULT && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
 		}
@@ -5203,6 +5349,17 @@ rightside:
 
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	{
+	    ExtRegion *tireg;
+	    TileType tpdinfo;
+
+	    if (IsSplit(tp))
+	    {
+		tpdinfo = (TileType)0;
+		tireg = ExtGetRegion(tp, tpdinfo);
+	    }
+	    else
+		tireg = ExtGetRegion(tp, (TileType)0);
+
 	    if (extNodeClipArea)
 	    {
 		r.r_xbot = r.r_xtop = RIGHT(tile);
@@ -5212,25 +5369,24 @@ rightside:
 		len = EDGENULL(&r) ? 0 : r.r_ytop - r.r_ybot;
 	    }
 	    else len = MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
-	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitLeftType(tp);
-		if (ticlient == extUnInit && TTMaskHasType(mask, t))
+		if ((ClientData)tireg == CLIENTDEFAULT && TTMaskHasType(mask, t))
 		{
 		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
-		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)tireg != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to	*/
-		    TiSetClient(tp, extUnInit);
+		    ExtResetRegion(tp, tpdinfo);
 		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
 	    }
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (ticlient == extUnInit && TTMaskHasType(mask, t))
+		if ((ClientData)tireg == CLIENTDEFAULT && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, (TileType)0, tilePlaneNum);
 		}
@@ -5261,7 +5417,7 @@ donesides:
 		    GOTOPOINT(tp, &tile->ti_ll);
 		    PlaneSetHint(plane, tp);
 
-		    if (TiGetClient(tp) != extUnInit) continue;
+		    if (TiGetClient(tp) != CLIENTDEFAULT) continue;
 
 		    /* tp and tile should have the same geometry for a contact */
 		    if (IsSplit(tile) && IsSplit(tp))
@@ -5322,7 +5478,7 @@ donesides:
 	    Rect biggerArea;
 	    bool is_split = IsSplit(tile);
 
-	    extNbrUn = extUnInit;
+	    extNbrUn = CLIENTDEFAULT;
 	    TITORECT(tile, &pla.area);
 	    GEO_EXPAND(&pla.area, 1, &biggerArea);
 	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)

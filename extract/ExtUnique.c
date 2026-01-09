@@ -109,7 +109,7 @@ extUniqueCell(def, option)
     lregList = (LabRegion *) ExtFindRegions(def, &TiPlaneRect,
 				&ExtCurStyle->exts_activeTypes,
 				ExtCurStyle->exts_nodeConn,
-				extUnInit, extHierLabFirst, (int (*)()) NULL);
+				extHierLabFirst, (int (*)()) NULL);
 
     /* Assign the labels to their associated regions */
     ExtLabelRegions(def, ExtCurStyle->exts_nodeConn, &lregList, &TiPlaneRect);
@@ -187,7 +187,7 @@ extUniqueCell(def, option)
     HashKill(&labelHash);
     ExtFreeLabRegions((LabRegion *) lregList);
     if (nodeList) freeMagic(nodeList);
-    ExtResetTiles(def, extUnInit);
+    ExtResetTiles(def, CLIENTDEFAULT);
     if (nwarn)
 	TxError("%s: %d warnings\n", def->cd_name, nwarn);
     return (nwarn);

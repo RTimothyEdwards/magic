@@ -362,14 +362,108 @@ Need to test:
 	GDS input	(passed)
 	extraction	(pending)	(fixed cap coupling issues)
 	net selection	(seems okay)
-	antenna checks
-	LEF read
-	LEF write
-	DEF read
-	DEF write
+	antenna checks	(okay)
+	LEF read	(okay)
+	LEF write	(okay)
+	DEF read*
+	DEF write*
 	extresist
+
+(* knowing that there are some errors with DEF read/write that are unrelated)
+
+"def write" appears to have taken an excessively large amount of memory.  This is
+probably not related to recent code changes but should be investigated.  While the
+design tested is large, it is not large to the tune of 32GB+, which seems to be
+taken up entirely by defblockageVisit.  This is unreasonable and must be fixed.
 
 Tested extraction on sky130_fd_io__top_gpiov2_flat, which crashed immediately;
 however, it is known that it has split tiles with different nodes and will
 require split nodes to be handled properly.  Make sure that's the issue, though.
 No, actually it's extAddOverlap needing an extra argument.
+
+----------------------------------
+Running some of the I/O torture test from sky130 in ~/projects/efabless/sky130_fd_io/.
+These tests are important because they are part of the reason for fixing the
+nonmanhattan code, since the requirement of setting two regions per tile is needed
+for several cells in this I/O set.
+
+In lvs_tests/
+
+First pass, running "run_top_sio.sh" resulted in magic hanging in DRCFindInteractions()
+while extracting "sky130_fd_io__sio_ipath_com".  Here, drcSubcellFunc() is getting
+called alternately on uses sky130_fd_io__sio_com_m2m3_strap_5 and
+sky130_fd_io__sio_com_m2m3_strap_6.  Given the recent work aroudn DRCFindInteractions()
+there is a good chance this has nothing to do with split tiles.  (Confirmed)
+
+Uh oh.
+subUse = sky130_fd_io__sio_com_m2m3_strap_5
+subUse->cu_bbox = 627, 3428 to 1485, 214751792 which sounds bogus.
+
+subUse = sky130_fd_io__sio_com_m2m3_strap_6
+subUse->cu_bbox = 1615, 3248 to 2473, 214641792 which is equally bogus.
+
+But this appears to derive from the .mag files in the library.
+Bogus entry is in the sky130_fd_io__sio_com_m2m3_strap.mag file:
+"rect 164 319 214748364 321" on layer "comment".
+Remove this entry and correct the "box" entries in "sky130_fd_io__sio_ipath_com" to
+"0 0 364 858".
+This requires a separate investigation.  I have not compiled the sky130 PDK for a while.
+There are some arrows drawn with comment that appear to have been mangled on GDS
+input.  They should probably be removed from the database.  However, this suggests an
+issue with GDS read-in.
+
+There are multiple "strap" layouts, all of which have this issue.  Need to recheck
+the GDS read-in.  Maybe just rebuild the sky130 PDK (using the previous version of
+magic)?  That seems to have corrected the issue, which might have been caused by
+building the PDK with a bad version of magic.  Doing "run_top_sio.sh" works now,
+although with the same errors as it had historically (waiting for proper handling
+of regions on split tiles).
+
+The "run_top_sio.sh" script now runs with surprisingly few issues.  Three metal1
+resistors are missing and the grounds are not cleanly separated, and very little
+else.
+
+"top_pwrdetv2" had been a problem but now succeeds, which is pretty significant.
+
+---------------
+Split region handling:
+Still need to fix boundary checks:  extTransPerimFunc(), extSideLeft(), etc., etc.
+Look for "(TileType)0" for places that need fixing.
+
+Boundaries:
+Should define directions for non-Manhattan tiles.
+b_inside = b_outside, b_segment follows the diagonal.
+
+Replace extUnInit with CLIENTDEFAULT and remove extUnInit as a global variable,
+as that is ridiculous.  (Done, along with associated stupidity extNbrUn and
+also passing the value to ExtFindRegions().)
+
+Need to understand these functions better. . . 
+For example, ignoring the coupling cap stuff for now,
+	extOutputDevices() scans transList,
+	sets tr_perim = 0
+	calls ExtFindNeighbors() from the region's tile (a tile belonging to the device)
+	arg.fra_each = extTransTileFunc.
+	Initial perimeter is 0.  For each tile called back by ExtFindNeighbors,
+		call extEnumTilePerim() with function extTransPerimFunc().
+
+Anything currently with (TileType)0 or which calls simply TiGetType() needs fixing:
+	extSideCommon():  Pass boundary and use extGetBoundaryTypes()
+
+Okay, but this still does not account for everything that needs to be done when 
+checking coupling between non-Manhattan edges.  But it should keep things from
+crashing or producing stupid results.
+
+Oh, no.  fra_uninit is being used to process ExtFindNeighbors with a specific node
+like the transistor gate being considered "uninitialized".  
+
+ExtNghbors.c:247 --- Need to handle separately;  move "continue" down into each of
+the conditionals (done)
+ExtNghbors.c:137, 187 --- Set dinfo appropriately for top and bottom sides. (done)
+(may complete the handling of ExtFindNeighbors() and also properly eliminate
+extNbrUn as a global variable.)
+
+Whew.  Is that all?  (Almost certainly not.)  Yes, missed code at ExtBasic.c:5203
+and below. (fixed)
+
+Okay, it compiles again!  Time to test again!

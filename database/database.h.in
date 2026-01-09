@@ -978,6 +978,7 @@ extern int  dbIsPrimary();
 extern void dbTechMatchResidues();
 extern void DBUndoInit();
 extern void DBResetTilePlane();
+extern void DBResetTilePlaneSpecial();
 extern void DBNewYank();
 extern int  DBSrPaintClient();
 extern int  DBSrConnect();
