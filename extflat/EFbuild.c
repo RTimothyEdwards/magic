@@ -898,7 +898,6 @@ efBuildDevice(
 	case DEV_FET:
 	case DEV_MOSFET:
 	case DEV_ASYMMETRIC:
-	case DEV_BJT:
 	    argstart = 3;
 	    break;
 	case DEV_DIODE:
@@ -906,6 +905,7 @@ efBuildDevice(
 	case DEV_PDIODE:
 	    argstart = 0;
 	    break;
+	case DEV_BJT:
 	case DEV_RES:
 	case DEV_CAP:
 	case DEV_CAPREV:
@@ -1010,8 +1010,30 @@ efBuildDevice(
 		break;
 
 	    case 'w':
-		devtmp.dev_width = (int)(0.5 + (float)atoi(pptr) * locScale);
+		if ((pptr - argv[argstart]) == 2)
+		    devtmp.dev_width = (int)(0.5 + (float)atoi(pptr) * locScale);
+		else
+		{
+		    /* Check for w0, w1, w2, ...  If w0, handle like "w".
+		     * Otherwise, save it verbatim like an unknown parameter,
+		     * because its value will not be calculated from terminal
+		     * values like "a1, a2, ..." or "p1, p2, ...".
+		     */
+
+		    pn = *(argv[argstart] + 1) - '0';
+		    if (pn == 0)
+			devtmp.dev_width = (int)(0.5 + (float)atoi(pptr) * locScale);
+		    else
+		    {
+			/* Copy the whole string into dev_params */
+			newparm = (DevParam *)mallocMagic(sizeof(DevParam));
+			newparm->parm_name = StrDup((char **)NULL, argv[argstart]);
+			newparm->parm_next = devtmp.dev_params;
+			devtmp.dev_params = newparm;
+		    }
+		}
 		break;
+
 	    case 'c':
 		devtmp.dev_cap = (float)atof(pptr);
 		break;
@@ -1025,6 +1047,7 @@ efBuildDevice(
     /* Check for optional substrate node */
     switch (class)
     {
+	case DEV_BJT:
 	case DEV_RES:
 	case DEV_CAP:
 	case DEV_CAPREV:
