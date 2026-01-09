@@ -860,13 +860,13 @@ efBuildDevice(
     const Rect *r,	/* Coordinates of 1x1 rectangle entirely inside device */
     int argc,		/* Size of argv */
     char *argv[])	/* Tokens for the rest of the dev line.
-			 * Starts with the last two position values, used to
-			 * hash the device record.  The next arguments depend
-			 * on the type of device.  The rest are taken in groups
-			 * of 3, one for each terminal.  Each group of 3 consists
-			 * of the node name to which the terminal connects, the
-			 * length of the terminal, and an attribute list (or the
-			 * token 0).
+			 * Starts after the four device coordinate arguments.
+			 * The next arguments (0, 1, or 2) depend on the type of
+			 * device, followed by optional parameters.  The rest are
+		  	 * taken in groups of 3, one for each terminal.  Each
+			 * group of 3 consists of the node name to which the
+			 * terminal connects, the length of the terminal, and
+			 * an attribute list (or the token 0).
 			 */
 {
     int n, nterminals, pn;
@@ -878,7 +878,7 @@ efBuildDevice(
     int dev_type;
     char ptype, *pptr, **av;
     char devhash[64];
-    int argstart = 1;	/* start of terminal list in argv[] */
+    int termstart;
     bool hasModel = strcmp(type, "None") ? TRUE : FALSE;
 
     int area, perim;	/* Total area, perimeter of primary type (i.e., channel) */
@@ -893,24 +893,37 @@ efBuildDevice(
     devtmp.dev_width = 0;
     devtmp.dev_params = NULL;
 
+    termstart = 1;	/* Start of terminal list in argv[]; this is a default
+			 * value if none of the cases below applies.  The value
+			 * of termstart does not initially account for parameter
+			 * entries (<param>=<value>) but is adjusted as the
+			 * parameters are parsed.  The first terminal may be an
+			 * (optional) substrate which is determined by whether
+			 * the number of remaining arguments is divisible by 3
+			 * or not.
+			 */
     switch (class)
     {
 	case DEV_FET:
 	case DEV_MOSFET:
 	case DEV_ASYMMETRIC:
 	case DEV_BJT:
-	    argstart = 3;
+	    /* Terminals start after L and W values, plus parameters */
+	    termstart = 2;
 	    break;
 	case DEV_DIODE:
 	case DEV_NDIODE:
 	case DEV_PDIODE:
-	    argstart = 0;
+	    /* Terminals start immediately after parameters */
+	    termstart = 0;
 	    break;
 	case DEV_RES:
 	case DEV_CAP:
 	case DEV_CAPREV:
 	    if (hasModel)
-		argstart = 2;
+	        /* Terminals start after L and W values, plus parameters */
+		termstart = 2;
+	    /* Otherwise, terminals start after device value, plus parameters */
 	    break;
 	case DEV_SUBCKT:
 	case DEV_VERILOGA:
@@ -918,13 +931,14 @@ efBuildDevice(
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
 	case DEV_DSUBCKT:
-	    argstart = 0;
+	    /* Terminals start immediately after parameters */
+	    termstart = 0;
     }
 
     devp = efGetDeviceParams(type);
 
     /* Parse initial arguments for parameters */
-    while ((pptr = strchr(argv[argstart], '=')) != NULL)
+    while ((pptr = strchr(argv[termstart], '=')) != NULL)
     {
 	/* If the parameter is in the parameter list "devp", then save
 	 * the value as appropriate.  If not, then the entire phrase
@@ -936,7 +950,7 @@ efBuildDevice(
 
 	*pptr = '\0';
 	for (sparm = devp; sparm; sparm = sparm->parm_next)
-	    if (!strncasecmp(sparm->parm_type, argv[argstart], 2))
+	    if (!strncasecmp(sparm->parm_type, argv[termstart], 2))
 		break;
 	*pptr = '=';
 	if (sparm == NULL)
@@ -944,18 +958,18 @@ efBuildDevice(
 	    /* Copy the whole string into dev_params */
 	    /* (parm_type and parm_scale records are not used) */
 	    newparm = (DevParam *)mallocMagic(sizeof(DevParam));
-	    newparm->parm_name = StrDup((char **)NULL, argv[argstart]);
+	    newparm->parm_name = StrDup((char **)NULL, argv[termstart]);
 	    newparm->parm_next = devtmp.dev_params;
 	    devtmp.dev_params = newparm;
-	    argstart++;
+	    termstart++;
 	    continue;
 	}
 
 	pptr++;
-	switch(*argv[argstart])
+	switch(*argv[termstart])
 	{
 	    case 'a':
-		if ((pptr - argv[argstart]) == 2)
+		if ((pptr - argv[termstart]) == 2)
 		    devtmp.dev_area = (int)(0.5 + (float)atoi(pptr)
 				* locScale * locScale);
 		else
@@ -963,7 +977,7 @@ efBuildDevice(
 		    /* Check for a0, a1, a2, ...  If a0, handle like "a".
 		     * Otherwise, don't handle it here.
 		     */
-		    pn = *(argv[argstart] + 1) - '0';
+		    pn = *(argv[termstart] + 1) - '0';
 		    if (pn == 0)
 			devtmp.dev_area = (int)(0.5 + (float)atoi(pptr)
 				* locScale * locScale);
@@ -971,21 +985,21 @@ efBuildDevice(
 		break;
 
 	    case 'p':
-		if ((pptr - argv[argstart]) == 2)
+		if ((pptr - argv[termstart]) == 2)
 		    devtmp.dev_perim = (int)(0.5 + (float)atoi(pptr) * locScale);
 		else
 		{
 		    /* Check for p0, p1, p2, ...  If p0, handle like "p".
 		     * Otherwise, don't handle it here.
 		     */
-		    pn = *(argv[argstart] + 1) - '0';
+		    pn = *(argv[termstart] + 1) - '0';
 		    if (pn == 0)
 			devtmp.dev_perim = (int)(0.5 + (float)atoi(pptr) * locScale);
 		}
 		break;
 
 	    case 'l':
-		if ((pptr - argv[argstart]) == 2)
+		if ((pptr - argv[termstart]) == 2)
 		    devtmp.dev_length = (int)(0.5 + (float)atoi(pptr) * locScale);
 		else
 		{
@@ -995,14 +1009,14 @@ efBuildDevice(
 		     * values like "a1, a2, ..." or "p1, p2, ...".
 		     */
 
-		    pn = *(argv[argstart] + 1) - '0';
+		    pn = *(argv[termstart] + 1) - '0';
 		    if (pn == 0)
 			devtmp.dev_length = (int)(0.5 + (float)atoi(pptr) * locScale);
 		    else
 		    {
 			/* Copy the whole string into dev_params */
 			newparm = (DevParam *)mallocMagic(sizeof(DevParam));
-			newparm->parm_name = StrDup((char **)NULL, argv[argstart]);
+			newparm->parm_name = StrDup((char **)NULL, argv[termstart]);
 			newparm->parm_next = devtmp.dev_params;
 			devtmp.dev_params = newparm;
 		    }
@@ -1010,7 +1024,28 @@ efBuildDevice(
 		break;
 
 	    case 'w':
-		devtmp.dev_width = (int)(0.5 + (float)atoi(pptr) * locScale);
+		if ((pptr - argv[termstart]) == 2)
+		    devtmp.dev_width = (int)(0.5 + (float)atoi(pptr) * locScale);
+		else
+		{
+		    /* Check for w0, w1, w2, ...  If w0, handle like "w".
+		     * Otherwise, save it verbatim like an unknown parameter,
+		     * because its value will not be calculated from terminal
+		     * values like "a1, a2, ..." or "p1, p2, ...".
+		     */
+
+		    pn = *(argv[termstart] + 1) - '0';
+		    if (pn == 0)
+			devtmp.dev_width = (int)(0.5 + (float)atoi(pptr) * locScale);
+		    else
+		    {
+			/* Copy the whole string into dev_params */
+			newparm = (DevParam *)mallocMagic(sizeof(DevParam));
+			newparm->parm_name = StrDup((char **)NULL, argv[termstart]);
+			newparm->parm_next = devtmp.dev_params;
+			devtmp.dev_params = newparm;
+		    }
+		}
 		break;
 	    case 'c':
 		devtmp.dev_cap = (float)atof(pptr);
@@ -1019,7 +1054,7 @@ efBuildDevice(
 		devtmp.dev_res = (float)atof(pptr);
 		break;
 	}
-	argstart++;
+	termstart++;
     }
 
     /* Check for optional substrate node */
@@ -1027,6 +1062,7 @@ efBuildDevice(
     {
 	case DEV_RES:
 	case DEV_CAP:
+	case DEV_BJT:
 	case DEV_CAPREV:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
@@ -1037,22 +1073,22 @@ efBuildDevice(
 	case DEV_DIODE:
 	case DEV_NDIODE:
 	case DEV_PDIODE:
-	    n = argc - argstart;
+	    n = argc - termstart;
 	    if ((n % 3) == 1)
 	    {
-		if (strncmp(argv[argstart], "None", 4) != 0)
-		    devtmp.dev_subsnode = efBuildDevNode(def, argv[argstart], TRUE);
+		if (strncmp(argv[termstart], "None", 4) != 0)
+		    devtmp.dev_subsnode = efBuildDevNode(def, argv[termstart], TRUE);
 
-		argstart++;
+		termstart++;
 	    }
 	    break;
     }
 
-    /* Between argstart and argc, we should only have terminal triples */
-    if (((argc - argstart) % 3) != 0)
+    /* Between termstart and argc, we should only have terminal triples */
+    if (((argc - termstart) % 3) != 0)
 	return 1;
 
-    nterminals = (argc - argstart) / 3;
+    nterminals = (argc - termstart) / 3;
 
     dev_type = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, type);
 
@@ -1215,17 +1251,17 @@ efBuildDevice(
 	case DEV_ASYMMETRIC:
 	case DEV_BJT:
 	    /* "None" in the place of the substrate name means substrate is ignored */
-	    if ((argstart == 3) && (strncmp(argv[2], "None", 4) != 0))
+	    if ((termstart == 3) && (strncmp(argv[2], "None", 4) != 0))
 		newdev->dev_subsnode = efBuildDevNode(def, argv[2], TRUE);
 	    break;
 	case DEV_RES:
-	    if ((argstart == 3) && (strncmp(argv[2], "None", 4) != 0))
+	    if ((termstart == 3) && (strncmp(argv[2], "None", 4) != 0))
 		newdev->dev_subsnode = efBuildDevNode(def, argv[2], TRUE);
 
 	    break;
 	case DEV_CAP:
 	case DEV_CAPREV:
-	    if ((argstart == 3) && (strncmp(argv[2], "None", 4) != 0))
+	    if ((termstart == 3) && (strncmp(argv[2], "None", 4) != 0))
 		newdev->dev_subsnode = efBuildDevNode(def, argv[2], TRUE);
 
 	    break;
@@ -1235,7 +1271,7 @@ efBuildDevice(
 #define	TERM_PERIM	1
 #define	TERM_ATTRS	2
 
-    for (av = &argv[argstart], n = 0; n < nterminals; n++, av += 3)
+    for (av = &argv[termstart], n = 0; n < nterminals; n++, av += 3)
     {
 	term = &newdev->dev_terms[n];
 	term->dterm_node = efBuildDevNode(def, av[TERM_NAME], FALSE);
