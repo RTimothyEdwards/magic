@@ -68,10 +68,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *	to each qualifying segment of the boundary.
  *
  * Note:
- *	The width/length calculation method is manhattan-only.  So this
- *	routine is pseudo-manhattan.  It computes the true non-manhattan
- *	perimeter, but calls the function on the perimeter tiles as if
- *	the whole tile is the transistor type.
+ *	The width/length calculation method is manhattan-only, and will
+ *	likely need correcting.  This routine computes the true perimeter
+ *	length and calls the callback function on the perimeter tiles of
+ *	the correct tile type.
  *
  * Non-interruptible.
  *
@@ -113,70 +113,78 @@ extEnumTilePerim(
 	    perimCorrect = width * width + height * height;
 	    perimCorrect = (int)sqrt((double)perimCorrect);
 	}
-	sides = (dinfo & TT_SIDE) ? BD_RIGHT : BD_LEFT;
+	sides = (dinfo & TT_SIDE) ? BD_LEFT : BD_RIGHT;
 	sides |= (((dinfo & TT_SIDE) ? 1 : 0) == SplitDirection(tpIn)) ?
-		BD_TOP : BD_BOTTOM;
+		BD_BOTTOM : BD_TOP;
     }
     else
 	sides = 0;
 
     /* Top */
-    b.b_segment.r_ybot = b.b_segment.r_ytop = TOP(tpIn);
-    b.b_direction = BD_TOP;
-    for (tpOut = RT(tpIn); RIGHT(tpOut) > LEFT(tpIn); tpOut = BL(tpOut))
+    if (!(sides & BD_TOP))
     {
-	if (TTMaskHasType(&mask, TiGetBottomType(tpOut)))
+	b.b_segment.r_ybot = b.b_segment.r_ytop = TOP(tpIn);
+	b.b_direction = BD_TOP;
+	for (tpOut = RT(tpIn); RIGHT(tpOut) > LEFT(tpIn); tpOut = BL(tpOut))
 	{
-	    b.b_segment.r_xbot = MAX(LEFT(tpIn), LEFT(tpOut));
-	    b.b_segment.r_xtop = MIN(RIGHT(tpIn), RIGHT(tpOut));
-	    b.b_outside = tpOut;
-	    if (sides & BD_TOP) perimCorrect -= BoundaryLength(&b);
-	    if (func) (*func)(&b, cdata);
+	    if (TTMaskHasType(&mask, TiGetBottomType(tpOut)))
+	    {
+		b.b_segment.r_xbot = MAX(LEFT(tpIn), LEFT(tpOut));
+		b.b_segment.r_xtop = MIN(RIGHT(tpIn), RIGHT(tpOut));
+		b.b_outside = tpOut;
+		if (func) (*func)(&b, cdata);
+	    }
 	}
     }
 
     /* Bottom */
-    b.b_segment.r_ybot = b.b_segment.r_ytop = BOTTOM(tpIn);
-    b.b_direction = BD_BOTTOM;
-    for (tpOut = LB(tpIn); LEFT(tpOut) < RIGHT(tpIn); tpOut = TR(tpOut))
+    if (!(sides & BD_BOTTOM))
     {
-	if (TTMaskHasType(&mask, TiGetTopType(tpOut)))
+	b.b_segment.r_ybot = b.b_segment.r_ytop = BOTTOM(tpIn);
+	b.b_direction = BD_BOTTOM;
+	for (tpOut = LB(tpIn); LEFT(tpOut) < RIGHT(tpIn); tpOut = TR(tpOut))
 	{
-	    b.b_segment.r_xbot = MAX(LEFT(tpIn), LEFT(tpOut));
-	    b.b_segment.r_xtop = MIN(RIGHT(tpIn), RIGHT(tpOut));
-	    b.b_outside = tpOut;
-	    if (sides & BD_BOTTOM) perimCorrect -= BoundaryLength(&b);
-	    if (func) (*func)(&b, cdata);
+	    if (TTMaskHasType(&mask, TiGetTopType(tpOut)))
+	    {
+		b.b_segment.r_xbot = MAX(LEFT(tpIn), LEFT(tpOut));
+		b.b_segment.r_xtop = MIN(RIGHT(tpIn), RIGHT(tpOut));
+		b.b_outside = tpOut;
+		if (func) (*func)(&b, cdata);
+	    }
 	}
     }
 
     /* Left */
-    b.b_segment.r_xbot = b.b_segment.r_xtop = LEFT(tpIn);
-    b.b_direction = BD_LEFT;
-    for (tpOut = BL(tpIn); BOTTOM(tpOut) < TOP(tpIn); tpOut = RT(tpOut))
+    if (!(sides & BD_LEFT))
     {
-	if (TTMaskHasType(&mask, TiGetRightType(tpOut)))
+	b.b_segment.r_xbot = b.b_segment.r_xtop = LEFT(tpIn);
+	b.b_direction = BD_LEFT;
+	for (tpOut = BL(tpIn); BOTTOM(tpOut) < TOP(tpIn); tpOut = RT(tpOut))
 	{
-	    b.b_segment.r_ybot = MAX(BOTTOM(tpIn), BOTTOM(tpOut));
-	    b.b_segment.r_ytop = MIN(TOP(tpIn), TOP(tpOut));
-	    b.b_outside = tpOut;
-	    if (sides & BD_LEFT) perimCorrect -= BoundaryLength(&b);
-	    if (func) (*func)(&b, cdata);
+	    if (TTMaskHasType(&mask, TiGetRightType(tpOut)))
+	    {
+		b.b_segment.r_ybot = MAX(BOTTOM(tpIn), BOTTOM(tpOut));
+		b.b_segment.r_ytop = MIN(TOP(tpIn), TOP(tpOut));
+		b.b_outside = tpOut;
+		if (func) (*func)(&b, cdata);
+	    }
 	}
     }
 
     /* Right */
-    b.b_segment.r_xbot = b.b_segment.r_xtop = RIGHT(tpIn);
-    b.b_direction = BD_RIGHT;
-    for (tpOut = TR(tpIn); TOP(tpOut) > BOTTOM(tpIn); tpOut = LB(tpOut))
+    if (!(sides & BD_RIGHT))
     {
-	if (TTMaskHasType(&mask, TiGetLeftType(tpOut)))
+	b.b_segment.r_xbot = b.b_segment.r_xtop = RIGHT(tpIn);
+	b.b_direction = BD_RIGHT;
+	for (tpOut = TR(tpIn); TOP(tpOut) > BOTTOM(tpIn); tpOut = LB(tpOut))
 	{
-	    b.b_segment.r_ybot = MAX(BOTTOM(tpIn), BOTTOM(tpOut));
-	    b.b_segment.r_ytop = MIN(TOP(tpIn), TOP(tpOut));
-	    b.b_outside = tpOut;
-	    if (sides & BD_RIGHT) perimCorrect -= BoundaryLength(&b);
-	    if (func) (*func)(&b, cdata);
+	    if (TTMaskHasType(&mask, TiGetLeftType(tpOut)))
+	    {
+		b.b_segment.r_ybot = MAX(BOTTOM(tpIn), BOTTOM(tpOut));
+		b.b_segment.r_ytop = MIN(TOP(tpIn), TOP(tpOut));
+		b.b_outside = tpOut;
+		if (func) (*func)(&b, cdata);
+	    }
 	}
     }
 

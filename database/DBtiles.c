@@ -47,6 +47,296 @@ int dbCheckMaxHFunc(), dbCheckMaxVFunc();
 /*
  * --------------------------------------------------------------------
  *
+ * dbEvalCorner --
+ *
+ *	Used by DBTestNMInteract() to determine whether two non-
+ *	Manhattan areas have crossing diagonals by evaluating the
+ *	corner points of the area of intersection between the two
+ *	tiles.  This routine finds the distance from a point in
+ *	the second triangle to the diagonal of the first, in both
+ *	x and y.  If the point is below or to the left, the
+ *	distance is negative;  otherwise the distance is positive.
+ *
+ * Results:
+ *	1 for a positive result, -1 for a negative result, and 0
+ *	for the same result (point touches the diagonal).
+ *
+ * Side effects:
+ *	None.
+ *
+ * --------------------------------------------------------------------
+ */
+
+int
+dbEvalCorner(Point *p,	// Point to evaluate
+    Rect *rect,		// Triangular area bounding rectangle
+    TileType di)	// Diagonal information for split rect
+{
+    dlong D;
+
+    /* D is the distance from a point to the diagonal of the rectangle.
+     * The magnitude is not important.  It only matters what the sign
+     * is, so return 1 for positive, -1 for negative, or 0.
+     */
+
+    if (di & TT_DIRECTION)
+	D = (p->p_y - rect->r_ybot) * (rect->r_xtop - rect->r_xbot) -
+		(rect->r_xtop - p->p_x) * (rect->r_ytop - rect->r_ybot);
+    else
+	D = (p->p_y - rect->r_ybot) * (rect->r_xtop - rect->r_xbot) -
+		(p->p_x - rect->r_xbot) * (rect->r_ytop - rect->r_ybot);
+
+    if (D > 0) return 1;
+    if (D < 0) return -1;
+    return 0;
+}
+
+/*
+ * --------------------------------------------------------------------
+ *
+ * DBTestNMInteract --
+ *
+ *	Determine if a tile (t2) interacts with (touches or overlaps)
+ *	a triangular area (rect1, with diagonal split information in
+ *	di1).  Tile t2 may or may not be a split tile.  If t2 is
+ *	split, then diagonal split information is in di2.
+ *
+ *	There are two distinct cases:  DBSrPaintNMArea() looks for
+ *	tiles that overlap the area of rect1, but extTestNMInteract()
+ *	looks for tiles that both overlap or touch (indicating
+ *	electrical connectivity between the two).  "overlap_only"
+ *	distinguishes between the two use cases.  Set "overlap_only"
+ *	to TRUE for overlap searches, and FALSE for interaction
+ *	searches.
+ *
+ * Results:
+ *	
+ *	If overlap_only is TRUE:
+ *	    Return TRUE if the indicated areas overlap, FALSE if not.
+ *	If overlap_only is FALSE:
+ *	    Return TRUE if the indicated areas touch or overlap, FALSE if not.
+ *
+ * Side effects:
+ *	None.
+ *
+ * --------------------------------------------------------------------
+ */
+
+bool
+DBTestNMInteract(Rect *rect1,
+    TileType tt1,
+    Tile *t2,
+    TileType di2,
+    bool overlap_only)
+{
+    Rect rect2, r;
+    Point p;
+    int rheight, rwidth, rmax;
+    dlong f1, f2, f3, f4;
+    TileType tt2;
+    int pos, neg, touch, sign;
+
+    TiToRect(t2, &rect2);
+
+    /* Assuming that rect1 is a split area, then check if any part of t2
+     * overlaps the split side of interest in rect1, regardless of whether
+     * t2 is split or not.  If there is no overlap, then return FALSE.
+     */
+
+    rheight = rect1->r_ytop - rect1->r_ybot;
+    rwidth = rect1->r_xtop - rect1->r_xbot;
+    rmax = MAX(rheight, rwidth);
+
+    f1 = (rect2.r_ybot > MINFINITY + 2) ?
+                ((dlong)(rect1->r_ytop - rect2.r_ybot) * rwidth) : DLONG_MAX;
+    f2 = (rect2.r_ytop < INFINITY - 2) ?
+                ((dlong)(rect2.r_ytop - rect1->r_ybot) * rwidth) : DLONG_MAX;
+
+    if (tt1 & TT_SIDE)
+    {
+        /* Outside-of-triangle check---ignore sub-integer slivers */
+        if (rect2.r_xtop < INFINITY - 2)
+        {
+            f3 = (dlong)(rect1->r_xtop - rect2.r_xtop) * rheight;
+            f3 += rmax;
+        }
+        else
+            f3 = DLONG_MIN;
+        if ((tt1 & TT_DIRECTION) ? (f2 < f3) : (f1 < f3))
+            return FALSE;
+    }
+    else
+    {
+        /* Outside-of-triangle check---ignore sub-integer slivers */
+        if (rect2.r_xbot > MINFINITY + 2)
+        {
+            f4 = (dlong)(rect2.r_xbot - rect1->r_xbot) * rheight;
+            f4 += rmax;
+        }
+        else
+            f4 = DLONG_MIN;
+        if ((tt1 & TT_DIRECTION) ? (f1 < f4) : (f2 < f4))
+            return FALSE;
+    }
+
+    /* If t2 is not split, or its diagonal is the opposite of t1,
+     * or its side is the same as that of t1, then they overlap.
+     */
+    if (!IsSplit(t2)) return TRUE;
+
+    tt2 = TiGetTypeExact(t2) | di2;
+
+    if ((tt1 & TT_DIRECTION) != (tt2 & TT_DIRECTION)) return TRUE;
+    // if ((tt1 & TT_SIDE) == (tt2 & TT_SIDE)) return TRUE;
+
+    /* Hard case:  Same diagonal direction, opposite sides.  To determine
+     * overlap, count which of the three points of triangle t2 land on
+     * one side or the other of the rect1 split diagonal.  From those
+     * counts, determine if the triangles are overlapping, touching,
+     * or disjoint.
+     */
+
+    /* Evaluate the three corners of the rect2 triangle */
+    
+    pos = neg = touch = 0;
+    if (!(tt2 & TT_DIRECTION) || !(tt2 & TT_SIDE))
+    {
+	/* Evaluate the lower left corner */
+	sign = dbEvalCorner(&rect2.r_ll, rect1, tt1);
+	if (sign == 1)
+	    pos++;
+	else if (sign == -1)
+	    neg++;
+	else
+	    touch++;
+    }
+    
+    if (!(tt2 & TT_DIRECTION) || (tt2 & TT_SIDE))
+    {
+	/* Evaluate the upper right corner */
+	sign = dbEvalCorner(&rect2.r_ur, rect1, tt1);
+	if (sign == 1)
+	    pos++;
+	else if (sign == -1)
+	    neg++;
+	else
+	    touch++;
+    }
+
+    if ((tt2 & TT_DIRECTION) || !(tt2 & TT_SIDE))
+    {
+	/* Evaluate the upper left corner */
+	p.p_x = rect2.r_xbot;
+	p.p_y = rect2.r_ytop;
+	sign = dbEvalCorner(&p, rect1, tt1);
+	if (sign == 1)
+	    pos++;
+	else if (sign == -1)
+	    neg++;
+	else
+	    touch++;
+    }
+
+    if ((tt2 & TT_DIRECTION) || (tt2 & TT_SIDE))
+    {
+	/* Evaluate the lower right corner */
+	p.p_x = rect2.r_xtop;
+	p.p_y = rect2.r_ybot;
+	sign = dbEvalCorner(&p, rect1, tt1);
+	if (sign == 1)
+	    pos++;
+	else if (sign == -1)
+	    neg++;
+	else
+	    touch++;
+    }
+
+    /* If side and direction match, then pos and neg need to be swapped */
+    if (((tt1 & TT_SIDE) && (tt1 & TT_DIRECTION)) ||
+		(!(tt1 & TT_SIDE) && !(tt1 & TT_DIRECTION)))
+    {
+	int temp = neg;
+	neg = pos;
+	pos = temp;
+    }
+
+    /* Return TRUE or FALSE depending on the values of pos, neg, and
+     * touch, and depending on whether overlap_only is set or not.
+     */
+    if (pos == 3)
+	return FALSE;		/* Fully disjoint */
+    else if (neg == 3)
+    {
+	if ((tt1 & TT_SIDE) != (tt2 & TT_SIDE))
+	    return TRUE;		/* Fully enclosed */
+	else
+	{
+	    /* This is a trickier situation.  Both triangles have
+	     * the same TT_SIDE bit, but the triangular area of t2
+	     * could still be outside of rect1.  Need to check where
+	     * the inside corner of rect1 lands with respect to the
+	     * t2 diagonal.
+	     */
+	    if (((tt1 & TT_SIDE) == 0) && ((tt1 & TT_DIRECTION) != 0))
+	    {
+		sign = dbEvalCorner(&rect1->r_ll, &rect2, tt2);
+	    }
+	    else if (((tt1 & TT_SIDE) == 0) && ((tt1 & TT_DIRECTION) == 0))
+	    {
+		p.p_x = rect1->r_ll.p_x;
+		p.p_y = rect1->r_ur.p_y;
+		sign = dbEvalCorner(&p, &rect2, tt2);
+	    }
+	    else if (((tt1 & TT_SIDE) != 0) && ((tt1 & TT_DIRECTION) == 0))
+	    {
+		p.p_x = rect1->r_ur.p_x;
+		p.p_y = rect1->r_ll.p_y;
+		sign = dbEvalCorner(&p, &rect2, tt2);
+	    }
+	    else /* if (((tt1 & TT_SIDE) != 0) && ((tt1 & TT_DIRECTION) != 0)) */
+	    {
+		sign = dbEvalCorner(&rect1->r_ur, &rect2, tt2);
+	    }
+
+	    /* Again, if side and direction match, then sign is backwards
+	     */
+	    if (((tt2 & TT_SIDE) && (tt2 & TT_DIRECTION)) ||
+			(!(tt2 & TT_SIDE) && !(tt2 & TT_DIRECTION)))
+		sign = -sign;
+
+	    if (sign == 1)
+	 	return FALSE;		/* Fully disjoint */
+	    else if (sign == -1)
+	 	return TRUE;		/* Fully overlapping */
+	    else if (overlap_only)
+		return FALSE;		/* Touching but not overlapping */
+	    else
+		return TRUE;		/* Touching but not overlapping */
+	}
+    }
+    else if (overlap_only)
+    {
+	if ((touch > 0) && (neg + touch == 3))
+	    return TRUE;	/* Enclosed and touching */
+	else if ((touch > 0) && (pos + touch == 3))
+	    return FALSE;	/* Unenclosed but touching */
+	else
+	    return TRUE;	/* Partially overlapping */
+    }
+    else	/* overlap_only == FALSE */
+    {
+	if ((touch > 0) && (neg + touch == 3))
+	    return TRUE;	/* Enclosed and touching */
+	else if ((touch > 0) && (pos + touch == 3))
+	    return TRUE;	/* Unenclosed but touching */
+	else
+	    return TRUE;	/* Partially overlapping */
+    }
+}
+
+/*
+ * --------------------------------------------------------------------
+ *
  * DBSrPaintNMArea --
  *
  * Find all tiles overlapping a given triangular area whose types are
@@ -138,6 +428,28 @@ nm_enum:
 	/* the tile enumeration if it is not.				 */
 	/* Watch for calculations involving (M)INFINITY in tile (tp)!	 */
 
+	if (IsSplit(tp))
+	{
+	    TileType tpdi = TiGetTypeExact(tp);
+
+	    if (TTMaskHasType(mask, SplitLeftType(tp)))
+		if (DBTestNMInteract(rect, ttype, tp, tpdi, TRUE))
+		    if ((*func)(tp, (TileType)TT_DIAGONAL, arg))
+			return 1;
+	    if (TTMaskHasType(mask, SplitRightType(tp)))
+		if (DBTestNMInteract(rect, ttype, tp, tpdi | TT_SIDE, TRUE))
+		    if ((*func)(tp, (TileType)TT_DIAGONAL | TT_SIDE, arg))
+			return 1;
+	}
+	else
+	{
+	    if (TTMaskHasType(mask, TiGetType(tp)))
+		if (DBTestNMInteract(rect, ttype, tp, (TileType)0, TRUE))
+		    if ((*func)(tp, (TileType)0, arg))
+			return 1;
+	}
+
+#if 0
 	rheight = rect->r_ytop - rect->r_ybot;
 	rwidth = rect->r_xtop - rect->r_xbot;
 	rmax = MAX(rheight, rwidth);
@@ -277,6 +589,7 @@ nm_enum:
 	else
 	    if (TTMaskHasType(mask, TiGetType(tp)) && (*func)(tp, (TileType)0, arg))
 		return (1);
+#endif
 
 enum_next:
 	tpnew = TR(tp);
@@ -736,7 +1049,12 @@ DBResetTilePlaneSpecial(plane, cdata)
 enumerate:
 	if (IsSplit(tp))
 	    if ((TiGetLeftType(tp) != TT_SPACE) && (TiGetRightType(tp) != TT_SPACE))
-		freeMagic(tp->ti_client);
+		if (tp->ti_client != cdata)
+		{
+		    ASSERT(TiGetBody((Tile *)tp->ti_client) == CLIENTDEFAULT,
+				"DBResetTilePlaneSpecial");
+		    freeMagic(tp->ti_client);
+		}
 
 	tp->ti_client = cdata;
 

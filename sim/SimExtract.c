@@ -736,12 +736,12 @@ SimGetNodeName(
 
     /* check to see if this tile has been extracted before */
 
-    if (TiGetClient(tp) == CLIENTDEFAULT)
+    if (ExtGetRegion(tp, dinfo) == (ExtRegion *)CLIENTDEFAULT)
     {
 	NodeSpec  *ns;
 
 	ns = SimFindOneNode(sx, tp, dinfo);
-	if( ns->nd_what == ND_NAME )
+	if (ns->nd_what == ND_NAME)
 	{
 	    SimSawAbortString = TRUE;
 	    return ns->nd_name;
@@ -750,7 +750,7 @@ SimGetNodeName(
     }
     else
     {
-	nodeList = (NodeRegion *)TiGetClientPTR(tp);
+	nodeList = (NodeRegion *)ExtGetRegion(tp, dinfo);
     }
 
     /* generate the node name from the label region and the path name */

@@ -1613,7 +1613,7 @@ CmdFindNetProc(
     int			pnum, xpos, ypos;
     char 		*xstr, *ystr;
     bool		locvalid = FALSE, usefound = TRUE;
-    TileType		ttype;
+    TileType		ttype, dinfo = (TileType)0;
 
     scx.scx_use = use;
     scx.scx_trans = GeoIdentityTransform;
@@ -1651,6 +1651,7 @@ CmdFindNetProc(
 
     if ((xstr = strchr(s, '_')) != NULL)
     {
+	char *hashpos;
 	bool isNeg = FALSE;
 
         /* The characters up to the leading '_' should match one of the	*/
@@ -1694,6 +1695,17 @@ CmdFindNetProc(
 		    }
 	        }
 	    }
+
+	    /* Format variant used for node regions where a split tile
+	     * occupies the root position of the node but the tile type
+	     * belonging to the node is on the right side of the tile,
+	     * not at the location encoded into the name.  An 'x' is
+	     * added before the final hash sign.
+	     */
+	    hashpos = strrchr(s, '#');
+	    if (hashpos != NULL)
+		if (*(hashpos - 1) == 'x')
+		    dinfo = TT_DIAGONAL | TT_SIDE;
 	}
     }
 
@@ -1716,17 +1728,23 @@ checklocal:
 
     if (locvalid == TRUE)
     {
-	int findTile(Tile *tile, TileType dinfo, TileType *rtype);
+	int findTile(Tile *tile, TileType dinfo, TileAndDinfo *tad);
 	CellDef	 *targetdef = use->cu_def;
 	Plane *plane = targetdef->cd_planes[pnum];
-
-	ttype = TT_SPACE;	/* revert to space in case of failure */
+        TileAndDinfo tad;
 
 	/* Find the tile type of the tile at the specified point which	*/
-	/* exists on the plane pnum.					*/
+	/* exists on the plane pnum.  Note that in the case of a split	*/
+	/* tile region marked with "x" in the name, it does not work to	*/
+	/* call DBSrPainNMArea() because the diagonal position is not	*/
+	/* known.  findTile() determines the proper type and leaves it	*/
+	/* in the tad.tad_dinfo record.					*/
 
+	tad.tad_tile = (Tile *)NULL;
+	tad.tad_dinfo = dinfo;
 	DBSrPaintArea(NULL, plane, &localrect, &DBAllTypeBits, findTile,
-			(ClientData) &ttype);
+			(ClientData) &tad);
+	ttype = tad.tad_dinfo & TT_LEFTMASK;
     }
     else
     {
@@ -1850,21 +1868,31 @@ CmdGoto(
 int
 findTile(
     Tile *tile,
-    TileType dinfo,
-    TileType *rtype)
+    TileType dinfo,	/* (unused) */
+    TileAndDinfo *tad)
 {
     TileType ttype;
 
+    /* Note that since all types are being searched, a split
+     * tile would cause the callback to be called twice.  But
+     * this routine will pick the indicated side from the
+     * "tad" structure and return 1 so it does not get called
+     * a second time.  The "dinfo" value passed is irrelevant.
+     */
+
     if (IsSplit(tile))
     {
-	if (dinfo & TT_SIDE)
+	if (tad->tad_dinfo & TT_SIDE)
 	    ttype = SplitRightType(tile);
 	else
 	    ttype = SplitLeftType(tile);
     }
     else
 	ttype = TiGetTypeExact(tile);
-    *rtype = ttype;
+
+    /* Leave the tile type in tad_dinfo before returning */
+    tad->tad_dinfo = ttype;
+
     return 1;			/* stop search */
 }
 

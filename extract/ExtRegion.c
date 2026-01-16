@@ -72,6 +72,15 @@ ExtGetRegion(Tile *tp,		/* Tile to get region record from */
 	else
 	{
 	    esr = (ExtSplitRegion *)tp->ti_client;
+
+	    /* If this tile has not been handled and no ExtSplitRegion has
+	     * been created, then ti_client should be either CLIENTDEFAULT
+	     * or VISITPENDING.  It should not have any other values.
+	     */
+	    if ((ClientData)esr == CLIENTDEFAULT)
+		return CD2PTR(CLIENTDEFAULT);
+	    else if ((ClientData)esr == VISITPENDING)
+		return CD2PTR(VISITPENDING);
 	    return (dinfo & TT_SIDE) ? esr->reg_right : esr->reg_left;
 	}
     }

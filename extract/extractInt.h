@@ -161,6 +161,8 @@ typedef struct reg
      */
 typedef struct split_reg
 {
+    ExtRegion *reg_guard;	// Use this to guard against failure to
+				// identify a split region (temporary).
     ExtRegion *reg_left;	// Region belonging to tile left side
     ExtRegion *reg_right;	// Region belonging to tile right side
 } ExtSplitRegion;
@@ -954,12 +956,6 @@ extern ExtStyle *ExtCurStyle;
 /* ------------------- Hierarchical node merging ---------------------- */
 
 /*
- * Table used to hold all merged nodes during hierarchical extraction.
- * Used for duplicate suppression.
- */
-extern HashTable extHierMergeTable;
-
-/*
  * Each hash entry in the above table points to a NodeName struct.
  * Each NodeName points to the Node corresponding to that name.
  * Each Node points back to a list of NodeNames that point to that
@@ -1002,7 +998,7 @@ extern ExtRegion *ExtGetRegion(Tile *tile, TileType dinfo);
 /* time the tile is pushed and the time that it is popped.	*/
 
 #define	PUSHTILE(tp, di, pl) \
-	(tp)->ti_client = VISITPENDING; \
+	ExtSetRegion(tp, di, (ExtRegion *)VISITPENDING); \
 	STACKPUSH((ClientData)(pointertype)pl, extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)di, extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
@@ -1015,27 +1011,31 @@ extern ExtRegion *ExtGetRegion(Tile *tile, TileType dinfo);
 /* Variations of "pushtile" to force a specific value on TT_SIDE */
 
 #define PUSHTILEBOTTOM(tp, pl) \
-	(tp)->ti_client = VISITPENDING; \
+	{ \
+	TileType di = (SplitDirection(tp)) ? 0 : TT_SIDE; \
+	ExtSetRegion(tp, di, (ExtRegion *)VISITPENDING); \
 	STACKPUSH((ClientData)(pointertype)pl, extNodeStack); \
-	STACKPUSH((ClientData)(pointertype) \
-		((SplitDirection(tp)) ? 0 : TT_SIDE), extNodeStack) ;\
-	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
+	STACKPUSH((ClientData)(pointertype)di, extNodeStack); \
+	STACKPUSH((ClientData)(pointertype)tp, extNodeStack); \
+	}
 
 #define PUSHTILETOP(tp, pl) \
-	(tp)->ti_client = VISITPENDING; \
+	{ \
+	TileType di = (SplitDirection(tp)) ? TT_SIDE : 0; \
+	ExtSetRegion(tp, di, (ExtRegion *)VISITPENDING); \
 	STACKPUSH((ClientData)(pointertype)pl, extNodeStack); \
-	STACKPUSH((ClientData)(pointertype) \
-		((SplitDirection(tp)) ? TT_SIDE : 0), extNodeStack) ;\
-	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
+	STACKPUSH((ClientData)(pointertype)di, extNodeStack); \
+	STACKPUSH((ClientData)(pointertype)tp, extNodeStack); \
+	}
 
 #define PUSHTILELEFT(tp, pl) \
-	(tp)->ti_client = VISITPENDING; \
+	ExtSetRegion(tp, (TileType)0, (ExtRegion *)VISITPENDING); \
 	STACKPUSH((ClientData)(pointertype)(pl), extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)0, extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
 
 #define PUSHTILERIGHT(tp, pl) \
-	(tp)->ti_client = VISITPENDING; \
+	ExtSetRegion(tp, (TileType)TT_SIDE, (ExtRegion *)VISITPENDING); \
 	STACKPUSH((ClientData)(pointertype)pl, extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)TT_SIDE, extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
@@ -1117,6 +1117,10 @@ extern Plane *extCellFile();
 extern int  extInterAreaFunc();
 extern int  extTreeSrPaintArea();
 extern int  extMakeUnique();
+extern void extEnumTerminal();
+extern void extEnumTerminal(Tile *tile, TileType dinfo,
+        TileTypeBitMask *connect, void (*func)(), ClientData clientData);
+
 
 /* ------------------ Connectivity table management ------------------- */
 

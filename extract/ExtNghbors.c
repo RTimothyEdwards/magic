@@ -117,9 +117,12 @@ ExtFindNeighbors(tile, dinfo, tilePlaneNum, arg)
 	 * been visited in the meantime.  If it's still unvisited,
 	 * visit it and process its neighbors.
 	 */
-	if (ExtGetRegion(tile, dinfo) == arg->fra_region);
+
+	if (ExtGetRegion(tile, dinfo) == arg->fra_region)
 	    continue;
+
 	ExtSetRegion(tile, dinfo, arg->fra_region);
+
 	tilesfound++;
 	if (DebugIsSet(extDebugID, extDebNeighbor))
 	    extShowTile(tile, "neighbor", 1);
@@ -134,7 +137,6 @@ topside:
 	    {
                 t = SplitBottomType(tp);
 		tpdinfo = SplitDirection(tp) ? (TileType)0 : (TileType)TT_SIDE;
-		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
 		if (ExtGetRegion(tp, tpdinfo) == CD2PTR(extNbrUn) && TTMaskHasType(mask, t))
 		{
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
@@ -158,7 +160,6 @@ leftside:
             if (IsSplit(tp))
 	    {
                 t = SplitRightType(tp);
-		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
 		if (ExtGetRegion(tp, (TileType)TT_SIDE) == CD2PTR(extNbrUn)
 				&& TTMaskHasType(mask, t))
 		{
@@ -185,7 +186,6 @@ bottomside:
 	    {
                 t = SplitTopType(tp);
 		tpdinfo = SplitDirection(tp) ? (TileType)TT_SIDE : (TileType)0;
-		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
 		if (ExtGetRegion(tp, tpdinfo) == CD2PTR(extNbrUn) && TTMaskHasType(mask, t))
 		{
 		    PUSHTILETOP(tp, tilePlaneNum);
@@ -209,7 +209,6 @@ rightside:
             if (IsSplit(tp))
 	    {
                 t = SplitLeftType(tp);
-		// if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
 		if (ExtGetRegion(tp, (TileType)0) == CD2PTR(extNbrUn)
 				&& TTMaskHasType(mask, t))
 		{
@@ -231,6 +230,11 @@ donesides:
 	if (arg->fra_each)
 	    if ((*arg->fra_each)(tile, dinfo, tilePlaneNum, arg))
 		goto fail;
+
+	/* Use tilePlaneNum value -1 to force ExtFindNeighbors to stay
+	 * on a single plane.
+	 */
+	if (tilePlaneNum < 0) continue;
 
 	/* If this is a contact, visit all the other planes */
 	if (DBIsContact(type))
@@ -322,6 +326,7 @@ donesides:
 	 */
 	if ((pMask = DBAllConnPlanes[type]))
 	{
+	    pla.uninit = extNbrUn;
 	    TITORECT(tile, &pla.area);
 	    GEO_EXPAND(&pla.area, 1, &biggerArea);
 	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
@@ -334,7 +339,6 @@ donesides:
 		}
 	}
     }
-
     return tilesfound;
 
 fail:
@@ -399,3 +403,228 @@ extNbrPushFunc(tile, dinfo, pla)
 
     return 0;
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extEnumTerminal ---
+ *
+ *	Search out an area belonging to a device terminal starting with a given
+ *	tile, and running a callback function for each tile found.  Note that
+ *	this routine is called from inside extEnumTilePerim and so is already
+ *	inside an extFindNeighbors() search function.  The function must be
+ *	careful not to modify regions, as the outer search function depends on
+ *	them.  Because a device terminal should be a compact area, it is okay
+ *	to create a linked list of tiles and use the linked list to reset the
+ *	regions at the end, rather than depending on the state of any tile's
+ *	ClientData record.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Whatever the callback function does.  Specifically, changing tile
+ *	ClientData records is *not* supposed to be a side effect of this
+ *	function, and all ClientData modifications must be put back exactly
+ *	as they were found.
+ *
+ * NOTE: This routine should be called only once for each device terminal.
+ * Once the terminal area and perimeter have been measured, it will not be
+ * called again.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extEnumTerminal(Tile *tile,		/* Starting tile for search */
+	TileType dinfo,			/* Split tile information */
+	TileTypeBitMask *connect,	/* Pointer to connection table */
+	void (*func)(),			/* Callback function */
+	ClientData clientData)		/* Client data for callback function */
+{
+    ExtRegion *termreg;
+    TileAndDinfo *pendlist = NULL, *resetlist = NULL;
+    TileAndDinfo *curtad;
+    const TileTypeBitMask *connectMask;
+    Tile *tp, *t2;
+    TileType tpdi, t2di;
+    TileType loctype, checktype;
+    Rect tileArea;
+
+    /* The region attached to the first terminal tile will be the
+     * "uninitialized" value to check.
+     */
+
+    termreg = ExtGetRegion(tile, dinfo);
+    /* Set the ClientData to VISITPENDING */
+    ExtSetRegion(tile, dinfo, (ExtRegion *)VISITPENDING);
+
+    /* Start the linked list with this file */
+    curtad = (TileAndDinfo *)mallocMagic(sizeof(TileAndDinfo));
+    curtad->tad_tile = tile;
+    curtad->tad_dinfo = dinfo;
+    curtad->tad_next = NULL;
+    pendlist = curtad;
+
+    /* Yet another boundary search routine.  Just done with a linked list
+     * and not a stack because it's expected to search only a handful of
+     * tiles.
+     */
+
+    while (pendlist != NULL)
+    {
+	tp = pendlist->tad_tile;
+	tpdi = pendlist->tad_dinfo;
+
+	TiToRect(tp, &tileArea);
+
+	/* Call the client function.  The function has no return value. */
+	(*func)(tp, tpdi, clientData);
+
+	/* Move this tile entry to reset list */
+	curtad = pendlist;
+	pendlist = pendlist->tad_next;
+	curtad->tad_next = resetlist;
+	resetlist = curtad;
+
+	/* Search all sides of the tile for other tiles having the same
+	 * terminal node (same region in the ClientData record),
+	 * and add them to the linked list.  This code is largely copied
+	 * from dbSrConnectFunc().  Note that the connect table is used
+	 * because the device's gate node may have the same region but
+	 * is not part of the terminal.
+	 */
+
+	if (IsSplit(tp))
+	{
+	    if (tpdi & TT_SIDE)
+		loctype = SplitRightType(tp);
+	    else
+		loctype = SplitLeftType(tp);
+	}
+	else
+	    loctype = TiGetTypeExact(tp);
+	connectMask = &connect[loctype];
+
+	/* Left side */
+	if (IsSplit(tp) && (tpdi & TT_SIDE)) goto termbottom;
+
+	for (t2 = BL(tp); BOTTOM(t2) < tileArea.r_ytop; t2 = RT(t2))
+	{
+	    if (IsSplit(t2))
+	 	checktype = SplitRightType(t2);
+	    else
+		checktype = TiGetTypeExact(t2);
+	    if (TTMaskHasType(connectMask, checktype))
+	    {
+		t2di = (TileType)TT_SIDE;
+		/* Tile must belong to the terminal node and not been visited */
+		if (ExtGetRegion(t2, t2di) != termreg) continue;
+		/* Add t2 to the linked list */
+		curtad = (TileAndDinfo *)mallocMagic(sizeof(TileAndDinfo));
+		curtad->tad_tile = t2;
+		curtad->tad_dinfo = t2di;
+		curtad->tad_next = pendlist;
+		pendlist = curtad;
+		/* Set the ClientData to VISITPENDING */
+		ExtSetRegion(t2, t2di, (ExtRegion *)VISITPENDING);
+	    }
+	}
+
+	/* Bottom side */
+termbottom:
+	if (IsSplit(tp) && ((!((tpdi & TT_SIDE) ? 1 : 0)) ^ SplitDirection(tp)))
+	    goto termright;
+
+	for (t2 = LB(tp); LEFT(t2) < tileArea.r_xtop; t2 = TR(t2))
+	{
+	    if (IsSplit(t2))
+		checktype = SplitTopType(t2);
+	    else
+		checktype = TiGetTypeExact(t2);
+	    if (TTMaskHasType(connectMask, checktype))
+	    {
+		t2di = SplitDirection(t2) ? (TileType)TT_SIDE : (TileType)0;
+		/* Tile must belong to the terminal node and not been visited */
+		if (ExtGetRegion(t2, t2di) != termreg) continue;
+		/* Add t2 to the linked list */
+		curtad = (TileAndDinfo *)mallocMagic(sizeof(TileAndDinfo));
+		curtad->tad_tile = t2;
+		curtad->tad_dinfo = t2di;
+		curtad->tad_next = pendlist;
+		pendlist = curtad;
+		/* Set the ClientData to VISITPENDING */
+		ExtSetRegion(t2, t2di, (ExtRegion *)VISITPENDING);
+	    }
+	}
+
+	/* Right side: */
+termright:
+	if (IsSplit(tp) && !(tpdi & TT_SIDE)) goto termtop;
+
+	for (t2 = TR(tp); BOTTOM(t2) > tileArea.r_ybot; t2 = LB(t2))
+	{
+	    if (IsSplit(t2))
+		checktype = SplitLeftType(t2);
+	    else
+		checktype = TiGetTypeExact(t2);
+	    if (TTMaskHasType(connectMask, checktype))
+	    {
+		t2di = (TileType)0;
+		/* Tile must belong to the terminal node and not been visited */
+		if (ExtGetRegion(t2, t2di) != termreg) continue;
+		/* Add t2 to the linked list */
+		curtad = (TileAndDinfo *)mallocMagic(sizeof(TileAndDinfo));
+		curtad->tad_tile = t2;
+		curtad->tad_dinfo = t2di;
+		curtad->tad_next = pendlist;
+		pendlist = curtad;
+		/* Set the ClientData to VISITPENDING */
+		ExtSetRegion(t2, t2di, (ExtRegion *)VISITPENDING);
+	    }
+	}
+
+	/* Top side */
+termtop:
+	if (IsSplit(tp) && (((tpdi & TT_SIDE) ? 1 : 0) ^ SplitDirection(tp)))
+	    goto termdone;
+
+	for (t2 = RT(tp); LEFT(t2) > tileArea.r_xbot; t2 = BL(t2))
+	{
+	    if (IsSplit(t2))
+		checktype = SplitBottomType(t2);
+	    else
+		checktype = TiGetTypeExact(t2);
+	    if (TTMaskHasType(connectMask, checktype))
+	    {
+		t2di = SplitDirection(t2) ? (TileType)0 : (TileType)TT_SIDE;
+		/* Tile must belong to the terminal node and not been visited */
+		if (ExtGetRegion(t2, t2di) != termreg) continue;
+		/* Add t2 to the linked list */
+		curtad = (TileAndDinfo *)mallocMagic(sizeof(TileAndDinfo));
+		curtad->tad_tile = t2;
+		curtad->tad_dinfo = t2di;
+		curtad->tad_next = pendlist;
+		pendlist = curtad;
+		/* Set the ClientData to VISITPENDING */
+		ExtSetRegion(t2, t2di, (ExtRegion *)VISITPENDING);
+	    }
+	}
+
+termdone:
+	/* (continue) */
+    }
+    
+    /* Clean up---Put the ClientData entries in the tiles back to
+     * term reg and free up the linked list memory.
+     */
+
+    while (resetlist != NULL)
+    {
+	curtad = resetlist->tad_next;
+	ExtSetRegion(resetlist->tad_tile, resetlist->tad_dinfo, termreg);
+	freeMagic(resetlist);
+	resetlist = curtad;
+    }
+}
+

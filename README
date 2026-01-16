@@ -467,3 +467,991 @@ Whew.  Is that all?  (Almost certainly not.)  Yes, missed code at ExtBasic.c:520
 and below. (fixed)
 
 Okay, it compiles again!  Time to test again!
+Testing from ~/projects/efabless/sky130_lvs/ script "./run_pad_lvs_2.sh extract".
+Possibly magic crashed while doing the extraction. . . ?
+
+Eww, died at "extract unique notopports".
+ExtRegion.c:304.  reg = NULL.
+Tile type locali in "sky130_fd_io__res75only_small", ended up with NULL ClientData;
+this isn't supposed to happen, is it?
+
+Seems like extHasRegion() failed.  Ah, no, it's defined so that only CLIENTDEFAULT
+is considered "not a region".  But I changed stuff around that. . . so. . .
+ExtSetRegion() never passed reg = 0, so it ended up as 0 some other way.
+Ah, this is the definition of VISITPENDING, so all tiles get ci_client = 0 on
+PUSHTILE.
+Conclusion:  "ExtGetRegion(tile, dinfo) == arg->fra_region" failed for some reason.
+arg->fra_region is non-NULL, and ExtGetRegion returned 0, so this check should have
+failed.  Failed at ExtNghbors.c:120.
+Ah---there's an improper semicolon there!
+But, still died.  But it's further along.  Died where it tried to access the split
+region structure.  "tp" is definitely the known split tile with two regions.
+ExtGetRegion() has been called before a region has been assigned.  Forgot to handle
+this case.
+
+Now deeper. . .  Split tile handling is more or less correct but ExtFindRegions()
+never visited the gate side of the tile, and so its region was still set as 0
+("VISITPENDING"), meaning that it was reached but somehow didn't get handled by
+POPTILE.
+Looking only at cell sky130_fd_io__signal_5_sym_hv_local_5term:
+Breaking on "extTransFirst"---This is a double-node tile.  The region's tile and
+type is set to this tile, but the region isn't attached to the tile here.
+
+extTransFirst sets right region of tile at 695, 1712.
+extTransEach (called from ExtFindNeighbors) calls extSetNodeNum() on the same tile,
+same side.
+Next tile is regular transistor non-split tile at 735, 672
+
+Breaking on ExtSetRegion():
+(1) Tile at 695, 1712 sets right region.  Left type remains unvisited. (Okay)
+(2) Tile at 735, 672 sets only region
+(3) Tile at 855, 672 sets left region.  (okay)
+(4) Tile at 855, 1712 sets left region. (okay)
+(5) Tile at 695, 672 sets right region. (okay)
+(then there is an unrelated rmetal1 device)
+This all looks right. . . so what happened?
+The tile at 695, 672 is left in transList (first entry, end of linked list)
+In loop at ExtBasic.c:2189, "reg" is set to this region pointer.
+But it still seems to be failing at ExtBasic.c:2227.  This should not return 0!
+
+So now the tile at 695, 1712 has a left region set but not a right region!
+I think that the code wrote over the original and created a new ExtSplitRegion. . .
+Look at ExtSetRegion whenever the tile is the one at 695, 1712.  It should be
+visited twice.
+
+2nd time visited:  Okay, this is the drain side. (region is poly tile at 655, 558).
+Except---A poly tile should be part of the gate node??  Assume not, for now.  Check
+afterward.
+
+Houston, we have a problem.  The client for this tile was reset to 0.  Run again and
+check the client value for changes.
+
+Reset happened in DBResetTilePlaneSpecial().
+From: ExtResetTiles() in ExtRegion.c:529
+From: extBasic() at ExtBasic.c:236
+
+So problem is:  extFindNodes() at ExtBasic.c:279 should have marked the tile again,
+but didn't.  See extNodeAreaFunc().  Break here on the same tile as above (at 695, 1712).
+It never got there?
+Never called extNodeAreaFunc() at all.  I have done something improper with CLIENTDEFAULT
+there. . .  ?
+Found a tile in which ti_client was still set to a region, so ExtResetTiles() failed
+to reset all tiles. . .  ?
+Check what DBResetTilePlaneSpecial does;  on plane 10, I'm seeing the tile at (121, 2271),
+which is the first non-space tile in the search, not having been reset.
+(break from ExtRegion.c:529).
+Argh, that doesn't match what I saw before!
+
+Start over. . .
+Try again with the tile at (695, 1712).  Find it when it is first encountered at
+ExtSetRegion and track its changes thereafter.
+(1) break ExtSetRegion if tile->ti_ll.p_x == 695 && tile->ti_ll.p_y == 1712
+(2) print &tile->ti_client
+(3) watch *(this value)
+Result:  1. ExtBasic.c:4496, sets the client pointer to an ExtSplitRegion.
+	 2. DBResetTilePlaneSpecial() sets it back to CLIENTDEFAULT.
+	 3. extNodeAreaFunc() sets it to VISITPENDING
+	 4. ExtResetRegion() sets it back to CLIENTDEFAULT 
+		From ExtBasic.c:5280
+
+Don't understand the use of ExtResetRegion() here.  The "Count split tile twice"
+comment comes from old code.  It should not do that, right?
+
+This code needs to go.  See the similar code in ExtFindRegions which was already
+fixed correctly.
+
+Back to running run_pad_lvs_2.sh. . .
+But do the full pad extraction manually first.
+Oops.
+Crashed.
+Looks like this one died on sky130_fd_io__gpiov2_buf_localesd.
+That has two of the flanged gate transistors, in a different orientation.
+Problem freeing in DBResetTilePlaneSpecial().  But need to recompile with the
+correct malloc. . .
+And may need to go back to valgrind.
+DBResetTilePlaneSpecial() tried to free ti_client which was set to CLIENTDEFAULT.
+May be a trivial error.
+Lookin' good!
+
+(Note:  When running run_pad_lvs_2.sh directly, reading the GDS takes a long time
+because it is reading cells out of order and having to continuously recycle the
+entire file.  Do not be alarmed, but it should be investigated.)
+
+Darn.  Although it worked on the magic database, it crashed on the GDS database.
+Not done yet!
+Will probably need valgrind for this one.
+Running ExtFreeLabRegions() on the node region list passed back from extBasic()
+but somewhere it ended up on a bogus entry.
+
+According to valgrind, there was an entry in nodeList that was also in transList.
+The transList is cleaned up by extBasic(), then magic crashes when extCellFile()
+cleans up nodeList and tries to free the same entry.
+
+Block allocated at extTransFirst()---> TransRegion.
+Then freed by ExtFreeLabRegions() at end of extBasic().
+Suspiciously, this is in cell sky130_fd_io__signal_5_sym_hv_local_5term which
+means that it is almost certainly due to the split tile region code.
+
+With a diagnostic check, confirmed that there is an entry that is in both
+transList and nodeList.  Need another diagnostic check to figure out how that
+happened.  Some part of the code must be confusing the two lists?
+
+Assume this doesn't happen during "extFindNodes".  In that case,
+ExtLabelRegions() has editable access to the nodeList. . .
+Pinned it down to extOutputDevices(). . .
+
+Number of node regions was axed from 9 to 6 by ExtFindNeighbors() called from
+ExtBasic.c:2283.  It has access to the node list in extTransRec, but it should
+not mess with the node list. . .
+
+At least now can check only nodeList and watch for truncation.
+
+Finally pinned it down to ExtSetRegion().
+Suggests that maybe ExtBasic.c:4543 ran but csr was *not* an ExtSplitRegion
+and something gets overwritten. . .
+Yes, exactly.  If the clientdata is a node region, then expecting it to be a split
+region and setting "reg_left" will overwrite "nreg_next" and mess up the node
+list.
+
+Break instead on ExtBasic.c:4534.  It's possible that the tile region is being
+set by something other than ExtSetRegion. . .
+(1) tile at 855, 1712:  client is 0.
+(2) tile at 855, 672:  client is 0.
+(3) tile at 695, 672:  client is 0.
+(4) tile at 695, 1712:  client is 0.	 (1-4 is unrelated def)
+...
+(5) tile at 695, 1712:  client is 0.
+(6) tile at 855, 672:   client is 0.
+(7) tile at 855, 1712:  client is 0.
+(8) tile at 695, 672:   client is 0.
+(9) tile at 855, 1712:  client is 0.
+(10) tile at 855, 672:   client is 0.  <--- Stop here and watch the ti_client space.
+(11) tile at 695, 672:   client is 0.
+(12) tile at 695, 1712:   client is 0.  (all happened before diagnostic checks)
+
+(13) tile at 695, 1712:   client is 0.
+(14) tile at 855, 672:    client is non-zero, points to a node region.
+
+This is not what sets the region, but PUSHTILE and variants are setting the
+client regardless of the split status.
+
+DBconnect.c:533 also sets ti_client directly.
+DBconnect.c:519 also sets ti_client directly, to csa->csa_clientDefault.
+
+The call to DBSrConnectOnePlane() at ExtBasic.c:2140 may be very problematic. . .
+
+For now, changing PUSHTILE and its variants to use ExtSetRegion(), and
+adding a guard band to the split region structure to catch immediately if
+a region pointer is mistaken for a split region structure.
+
+Lost some text during a power outage, not sure why;  thought I had saved all
+that.  Anyway, the current plan is to create extEnumTerminal to replace
+DBSrConnectOnePlane and to use a linked list instead of depending on the
+tile ClientData, which is being modified by the outer loop.
+
+After which DBSrConnectOnePlane can be removed, as it is not used elsewhere.
+
+Also:  extTermAPFunc() also needs to replace ti_client checks with ExtGetRegion().
+All done!  Time to check!
+Ah, well, crash and burn, time for debugging.
+Looks like a problem with boundary types.
+Boundary inside type is tile at 855, 672, dir=1 left type 29, right type 46
+With dir=1, the top and right sides are the same (46) and the bottom and left
+sides are the same (29).  "29" is the transistor type.
+Boundary direction is 2 = BD_TOP, meaning that the "inside" tile is below the
+boundary.  This is wrong, because as noted above, the top of the tile, which
+is the side facing the boundary, is not the transistor type.
+
+Directions get set wrong somewhere.  Good news is that the error is happening
+on a split tile with neither side being space, so this is at least broken new
+code, not broken old code.
+
+Well, it's improper old code.  extEnumTilePerim() does not skip sides of
+split tiles as it should.  It "calls the function on the perimeter tiles
+as if the whole tile is the transistor type".  Fixing this is likely to
+result in having to handle non-Manhattan geometry in the routine that
+determines device width and length.
+"sides" is already set to the two sides of a split tile that need to be
+ignored.  for this case, tpIn is on the bottom of the boundary, dir=1,
+and dinfo=0, so top and right should be ignored.  But "sides" is 9, which
+is BD_LEFT (1) + BD_BOTTOM (8), so "sides" is marking the sides to be
+handled, not the sides to be ignored.  (Fixed)
+
+Okay, both issues fixed but don't know what that does to W, L calculations.
+To be determined!  I have thought about this before, though, and think that
+non-Manhattan edges can just be added together (subtract edges in opposite
+directions) and divide by 2;  need to work out some examples on paper.
+
+Well, that at least extracted the gpiov2 I/O cell without crashing.
+Produced a lot of "Warning:  Device has more terminals than defined for
+type" messages which will need to be investigated.  These appear to be
+related to resistor extraction and don't seem to involve non-Manhattan
+geometry.  There are a lot of feedback entries of the type "Cannot find
+the name of this node (probable extractor error)".
+So the width of the non-manhattan transistor is way off (0.66um, not
+5.4um or something close to it).  Also the drain terminal node of the
+device got lost and was output as "(none)".  However, basically every
+transistor drain node was output as "(none)" so it's apparently not
+related to non-Manhattan geometry.  Except that a handful of cells have
+drain nodes listed.  Don't yet know what the difference is.  The "(none)"
+drain node is in the .ext file.  It has area/perimeter values.  Given
+the amount of non-Manhattan wiring in these cells, I would hazard a guess
+that the problem is deriving node names from regions whose lower corner
+is a non-Manhattan tile.  Previously if the lower corner fell on a non-
+Manhattan tile, it was moved.  Perhaps the node name mechanism can be
+revised, but I think using the lower left corner position for the node
+name should be consistent even if the layer type isn't at the coordinate.
+
+Debugging:
+"(none)" names:
+extTransOutTerminal passed NULL for lreg.
+extTransRec:  tr_termnode indexes are off;  there are entries at 0 and 2 but
+not at 1.  How did the indexes get off?  It all happens within extOutputDevices().
+Index is "termcount".
+On any cell that is generating "none" nodes, break on the next device, at
+ExtBasic.c:2192.
+Uh. . . Problem is that ti_client on a source/drain node tile was set to zero. . .
+Note this is the value of VISITPENDING.  Tile is mvndiff at 5130, -790
+in CellDef "sky130_fd_io__gpiov2_in_buf".
+
+Gate tile is simple "mvnmos" at 5141, -802.
+LB(tile) = poly at 5141, -834 (but check why client is not the same as the gate?)
+BL(tile) = mvndiff at 5085, -802
+TR(tile) = mvndiff at 5241, -280
+RT(tile) = poly at 5141, -202
+Okay, but there's no null region here. . .
+The boundary is at (5141, -790) to (5141, -756)
+Yeah, okay, the S/D region tiles are broken up by contacts.
+The full gate is (5141, -802) to (5241, -202), so the boundary is partway up the
+left side of the gate.
+Walk up the gate left side by looking at BL(tile) then looking at RT():
+	(5085, -802), (5130, -790), (5085, -756), ...
+	*only* the tile at (5130, -790) has clientdata 0.
+
+How did a tile get left with VISITPENDING set and not get visited?
+Something went wrong with the basic PUSHTILE/POPTILE.  But I'm guessing
+that my new code is at fault. . .
+Okay, I think it's fixed now.
+Extracted the subcell properly.
+New problem now:  Goes into an infinite loop on on of the cells in
+sky130_fd_io__top_gpiov2.  Unsurprisingly in extEnumTerminal.
+Cell is "sky130_fd_io__gpiov2_ctl_lsbank"
+Device is rmetal2 at 15028, 104.
+Tile passed to extEnumTerminal is metal2 at 15029, 103.
+The problem may persist;  the tile passed to extEnumTerminal() has ti_client = 0
+Oops again.
+
+Getting better.  Still have an issue with node names that cannot be found.
+These appear in various places in the .ext file, but always a "cap" or "merge"
+line and appear to indicate a problem finding a node in a subcell.
+Start with a small cell: "sky130_fd_io__com_ctl_hldv2".
+Note that the feedback for these errors is always on a split tile.
+Failing at ExtSubtree.c:1141
+Break on ExtSubtree.c:1127.  Error occurs first time.
+"tp" has dir=0, type metal1 on the right side.  dinfo indicates right side.
+The region is set to CLIENTDEFAULT, which is the problem:  The tile was not
+given a region.
+Tile at 4082, 2553.  Everything around it also has CLIENTDEFAULT.  This is
+from the cumulative extraction. . .
+Going into extHierConnectFunc1, sourceDef is __EXTTREE1__ and appears to be
+properly tagged with regions.  Then it searches in __ext_cumulative which
+appears not to be tagged with regions.
+extHierConnectFunc2:  Overlap area is (4082, 2553) to (4118, 2553)
+	Abuts but does not overlap, which is correct.
+extConnectsTo() is TRUE, so it gets "name1" from extSubtreeTileToNode().
+(doHard = TRUE).
+I think that no region on this tile simply means that there wasn't a label
+on the node.
+Try breaking on ExtSubtree.c:1085 if tp->ti_ll.p_x == 4082 && tp->ti_ll.p_y == 2553.
+Ahh, missed fixing a call to DBSrPaintNMArea. . .   That would do it. . .
+Hey, victory!
+Now try LVS. . .
+
+top_gpiov2: fails but with relatively few errors (3 m1 resistors, a handful of nets).
+Not analyzed yet.  
+top_power_hvc_wpadv2:  Passes LVS (yay!)
+
+top_gpiov2 ESD nfet now shows W=5u in layout extraction.  That is a result of
+the non-Manhattan tiles being ignored for width calculations.  Need to see
+what the length and width calculation routine is doing, and how the non-
+Manhattan edges can be incorporated.  Also check some annular FETs with corner
+bevels, including ones with both inside and outside bevels.
+
+Good test:  Run LVS on the GF SRAM test chip top level again.
+Got some "no such node" errors on ext2spice, most related to VSUBS.  Those errors
+were not there before.  Occurs on a handful of SRAM core cell pairs in the 1k block.
+Predictably, LVS on the top level fails due to a section of unconnected substrate
+in the 1k SRAM block.  However, there may be more going on because the VSS and
+DVSS nets are shorted in the layout netlist.
+
+-------------The next 350 lines are basically a digression to fix an
+	     error that has nothing to do with the new code.
+
+The VSS/DVSS mismatch comes from the corner cell.  A similar (the same?) error
+was fixed recently.  Re-running the I/O library validation script.  Note:
+Probably the same error.  My commit message says that "it is still not clear
+what the problem is".  A workaround of collapsing an unnecessary level of
+hierarchy in the cell made the problem go away.  Apparently, reworking the
+magic code has brought it back again.  Ugh.  The weird thing about this error
+is that GF_NI_COR_BASE appears to be correct and has independent VSS and DVSS
+nodes, but the top level shorts them;  and the only thing in the top level is
+the GF_NI_COR_BASE subcell and a bunch of metal5 pins!  Oh, wait, there is a
+cell POWER_RAIL_COR.  And POWER_RAIL_COR_1 has the substrate contacts but no
+isosub;  could be an issue.  POWER_RAIL_COR_0 merges substrate contacts to
+VSUBS.  POWER_RAIL_COR keeps VSUBS as a separate node.  VSUBS appears to be
+kept separate throughout and does not actually appear to be involved in the
+error as far as I can tell.
+
+merge links (not necessarily direct connections):
+"POWER_RAIL_COR_0/VSS"
+"GF_NI_COR_BASE_0/power_via_cor_5_0/m2_6384_44992#"
+"GF_NI_COR_BASE_0/power_via_cor_5_0/m2_6358_25638#"
+"GF_NI_COR_BASE_0/moscap_routing_0/m1_9473_n8392#"
+"POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/DVSS"
+
+Suspiciously, there is feedback left saying that VSS is connected to more
+than one unconnected node.  Try "extract unique"?  Is this just a very
+hard-to-see labeling issue?  Okay, with "extract unique" I see three lines
+merging "VSS" with "DVSS"!  All in the top level. . .
+But this one?: merge "DVSS_uq0" "POWER_RAIL_COR_0/VSS_uq0"
+In POWER_RAIL_COR_0, that's the 4th rail from the inside.
+There is no way to determine from the "merge" lines of the .ext file where
+the short happened.  (ha_connHash)  in ExtHier.c or ExtSubtree.c
+extHierConnections()
+Check at:
+ExtHier.c:213
+ExtHier.c:428
+ExtHier.c:533
+ExtHier.c:643
+For when one node belongs to VSS and the other to DVSS, at the top level.
+Did a special debugging string check
+First failed at the third set:
+node1 (length 3) is POWER_RAIL_COR_0/DVSS
+	next name: GF_NI_COR_BASE_0/moscap_routing_0/m1_9481_n11541#
+	next name: DVSS
+node2 (length 55) is POWER_RAIL_COR_0/VSS
+	next name: GF_NI_COR_BASE_0/comp018green_esd_clamp_v5p0_2_0/top_route_1_0/m1_0_106#
+	next name: GF_NI_COR_BASE_0/power_via_cor_5_0/m2_2497_25638#
+ha->hierOneTile vs. cum
+ha->hierOneTile at (69990, 58532) type metal3
+cum at (70059, 58543) type via2
+-------------
+
+2nd failure seems to be directly downstream of the first and is not worth
+investigating.
+
+1st failure, node2 is already conflating the two nodes, so get a list of all
+the node names and try to pare it down further.  Will take some work.
+
+Here are the 55 names.  There is not necessarily any order to these.
+The string "DVSS" occurs only once in this list, and "VSS" only twice.
+
+POWER_RAIL_COR_0/VSS	(VSS)
+GF_NI_COR_BASE_0/comp018green_esd_clamp_v5p0_2_0/top_route_1_0/m1_0_106# (DVSS)
+GF_NI_COR_BASE_0/power_via_cor_5_0/m2_2497_25638# (DVSS)
+GF_NI_COR_BASE_0/power_via_cor_5_0/m2_2497_11238# (DVSS)
+GF_NI_COR_BASE_0/power_via_cor_5_0/m2_2497_6432# (DVSS)
+GF_NI_COR_BASE_0/power_via_cor_5_0/m2_2497_3232# (DVSS)
+GF_NI_COR_BASE_0/power_via_cor_5_0/m2_2497_32# (DVSS)
+w_14068_57561# (DVSS)
+POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/VSS (VSS)
+GF_NI_COR_BASE_0/power_via_cor_3_0/m2_2517_37527# (VSS)
+VSS (VSS)
+GF_NI_COR_BASE_0/power_via_cor_3_0/m2_12842_35238# (VSS)
+GF_NI_COR_BASE_0/power_via_cor_3_0/m2_8741_35238# (VSS)
+GF_NI_COR_BASE_0/comp018green_esd_clamp_v5p0_1_0/comp018green_esd_rc_v5p0_1_0/VMINUS (VSS)
+GF_NI_COR_BASE_0/power_via_cor_3_0/m2_6358_35238# (VSS)
+GF_NI_COR_BASE_0/moscap_corner_3/VMINUS (DVSS)
+GF_NI_COR_BASE_0/power_via_cor_3_0/m1_14757_35210# (VSS)
+GF_NI_COR_BASE_0/moscap_corner_5/VMINUS (DVSS)
+GF_NI_COR_BASE_0/moscap_corner_6/VMINUS (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n33412_n19921# (DVSS)
+GF_NI_COR_BASE_0/moscap_corner_2/VMINUS (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n39839_n19921# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n43259_n19921# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/a_n47022_n23957# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n27687_n31792# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n32571_n31792# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n30132_n33522# (DVSS)
+GF_NI_COR_BASE_0/moscap_corner_4/VMINUS (DVSS)
+GF_NI_COR_BASE_0/moscap_corner_2_0/VMINUS (DVSS)
+GF_NI_COR_BASE_0/moscap_corner_1/VMINUS (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/a_n40901_n30121# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/a_n36513_n34394# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n22219_n36968# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n27687_n36968# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/a_n34409_n36435# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n24920_n39073# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/a_n30340_n40567# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n14699_n44488# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n20058_n44488# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/a_n28236_n42608# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n17620_n45972# (DVSS)
+POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/DVSS (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n11382_n46725# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n17715_n46725# (DVSS)
+GF_NI_COR_BASE_0/moscap_corner_3_0/VMINUS (DVSS)
+(on active plane offsides, this is the VSS border substrate tap) 
+* POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/a_13097_44708# (VSS)
+(next two:  revised, these are treated as DVSS)
+** GF_NI_COR_BASE_0/dw_13436_13361# (DVSS)
+** w_13448_13361# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n11878_n47667# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/a_n24191_n46716# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n14844_n49493# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n7016_n51467# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n9452_n51467# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/m1_n11878_n51467# (DVSS)
+GF_NI_COR_BASE_0/moscap_routing_0/a_n20244_n50771# (DVSS)
+
+* out in space below the cell's diagonal edge
+** far out in space below the cell's diagonal edge.
+
+Now figure out how many times we land on a node merge that any name
+from the list above show up, and then track that linked list until
+the wrong side gets added.
+
+1st node to show up is "w_13448_13361#", the one that is way offsides.
+Connects to  GF_NI_COR_BASE_0/dw_13436_13361#, the other way offsides one.
+Next to show up is the last of the offsides nodes.  But still VSS.
+Need to break when node1 != node2.
+
+Next is GF_NI_COR_BASE_0/moscap_routing_0/a_n20244_n50771# and
+POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/DVSS.
+
+Okay, caught it at the third spot again:
+name1 is w_13448_13361# (the way offsides one) (VSS)
+name2 is GF_NI_COR_BASE_0/moscap_corner_3_0/VMINUS (DVSS)
+
+Why were these merged?
+cum: Type "pwell" at (39696, 21496)
+ha->hierOneTile type "isosubstrate" at (39696, 21496)
+
+Gotta think about this one. . .
+Okay.  Substrate generation for extraction caused this.  The substrate
+generation must not be honoring split tiles.  The isosub tile that follows
+the angled corner of the cell has been placed over the entire area of
+the tile, where it then overlaps the VSS area and shorts.
+But I don't see that obviously.  Check dbEraseNonSub().
+
+Not there, but did find a place where split tiles were not handled.
+But fixing that didn't fix the problem.  Will need to track down that
+hierOneTile "isosub" type (type 10) 
+
+If breaking at extHierConnectFunc1() when oneTile has type 10, first
+occurrence is x = 43896, 14405 (should probably look for split tiles,
+too, although the problem above appeared to be on a non-split tile).
+(43896, 14405) to (45298, 14498).  The tile below it is split
+(at 43896, 13361 to 44940, 14405).  Check this? (okay; see below)
+
+Then, tried breaking when oneTile is at (39696, 21496)
+oneTile comes from sourceDef which is __EXTTREE1__.
+sourceDef = oneFlat's CellDef.
+No clue.  Break to figure out where these tiles were located.
+(43896, 14405) is fine and located inside the isosub area.
+(39696 21496) is also fine.
+
+The tile that generated the node way out in the middle of nowhere
+that was supposedly an isosub tile was at (13436 13361).  This tile
+would only be found in GF_NI_COR_BASE and would be a split tile.
+The node position by name would be the corner outside the isosub
+area.  As a *node name*, since it is the lowest plane, it would
+refer to any node connected to the area.
+
+Another thought to pursue:  moscap_corner_3_0 and moscap_corner_2_0
+both have bounding boxes that extend over the isosub region.  
+I may be barking up the wrong tree here.  The node name
+"GF_NI_COR_BASE_0/dw_13436_13361#" is probably correctly DVSS, not VSS,
+because it represents the isosub split tile.
+"w_13448_13361#", however, should be a pwell tile that was drawn for
+the generated substrate, and should be VSS.  But the two nodes being
+merged are both DVSS.  One of them got the wrong name.  So go back to
+where the merge occurred and find how the name was generated.
+
+Breaking again at ExtHier.c:522 when cum location is (39696, 21496)
+Breaking before the call to find the name, since it's the name that
+doesn't match the node somehow.
+ha->has_nodename is extSubtreeTileToNode(). 
+First break is in POWER_RAIL_COR_0.  Not what I'm looking for.  Returns DVSS.
+Second break is POWER_RAIL_COR, also not what I'm looking for.  Also returns DVSS.
+Third break is top level.  "cum" has ti_client CLIENTDEFAULT.
+
+In ExtSubtree.c:1085.  r = (39696, 21496) to (41098, 22898).
+type of tile is pwell.  There is no pwell drawn in the cell, so pwell has
+been created by the substrate generation routine.
+et->et_lookNames is the top level cell.
+
+extConnFindFunc() lands on tile at (13448, 13361).  Split tile, area
+	(13448, 13361) -> (44940, 44853)
+	direction = 1, pwell on right side
+	dinfo is the right side, so this checks out.
+Bottom line is that "w_13448_13361#" is the expected node name for this
+	tile and represents DVSS.  It does, however, point to an issue
+	(unrelated to this example) that a tile with two different types
+	neither of which is TT_SPACE would produce the same default node
+	name for both of them, so the default node name generator needs
+	to account for the side of a split tile in the name, with an
+	extra character.  Presumably not the problem here, though.
+
+Moving along, then:
+	First encountered VSS at
+	name1 = GF_NI_COR_BASE_0/power_via_cor_3_0/m2_6358_35238#
+	name2 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/VSS
+
+	Of interest:
+	name1 = GF_NI_COR_BASE_0/dw_13436_13361#
+	name2 = w_14068_57561# (not seen before, but clearly inside DVSS)
+
+Note: power_via_cor_5_0 is the one inside the DVSS domain.
+      comp018green_esd_clamp_v5p0_2_0 is the DVSS domain clamp under it.
+
+	name1 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/VSS
+	name2 = GF_NI_COR_BASE_0/power_via_cor_3_0/m2_12842_49632#  not in list above?
+	(but it is VSS, so it's correct)
+
+	(??) 
+	name1 = GF_NI_COR_BASE_0/power_via_cor_5_0/m1_14757_35210#
+	name2 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/a_13097_44708#
+	(both of these are VSS;  the bottom one is the "other" side of a split tile)
+
+	(??) not clear these are even in a ground domain?
+	name1 = GF_NI_COR_BASE_0/power_via_cor_5_0/m1_14757_49610#
+	name2 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/a_13097_44708#
+	(both of these are VSS;  the bottom one is the "other" side of a split tile)
+
+	That was it, though. . .
+
+I thought this would be hard, but it's still harder than I thought.
+
+Time for a brute-force approach.
+Good.  Listing all of the VSS entries above and checking against all of them
+produces only a handful of places where there were two entries and only one of
+them was in the list.
+
+1st: GF_NI_COR_BASE
+	name2 = comp018green_esd_clamp_v5p0_1_0/top_route_0/m1_6892_106#
+	Check, but looks okay.  (checked.)
+2nd: POWER_RAIL_COR_0
+	name2 = POWER_RAIL_COR_1_0/VSS, missing from list.
+3rd: POWER_RAIL_COR:
+	name2 = POWER_RAIL_COR_0_0/VSS, missing from list.
+4th: gf180mcu_ocd_io__cor:
+	name1 = GF_NI_COR_BASE_0/power_via_cor_3_0/m1_14757_35210#
+	name2 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/a_13097_44708#
+	(to be checked)
+5th: gf180mcu_ocd_io__cor:
+	name1 = GF_NI_COR_BASE_0/power_via_cor_3_0/m2_12842_49632#
+	name2 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/VSS
+	(to be checked, but looks okay)
+6th: gf180mcu_ocd_io__cor:
+	name1 = GF_NI_COR_BASE_0/power_via_cor_3_0/m2_8733_41714#
+	name2 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/VSS
+	(to be checked, but looks okay)
+7th: gf180mcu_ocd_io__cor:
+	name1 = GF_NI_COR_BASE_0/power_via_cor_3_0/m2_7640_52771#
+	name2 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/VSS
+	(to be checked, but looks okay)
+
+MORE brute force. . .
+Okay, found something:  This is in the 2nd location where the second name is
+not explicitly defined.
+
+1st: name "comp018green_esd_clamp_v5p0_1_0/top_route_0/m1_6892_106#", looks okay.
+     (also, not in the top level)
+2nd: name1 "GF_NI_COR_BASE_0/dw_13436_13361x#" vs.
+     name2 "POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/a_13097_44708#"
+     (check this)
+3rd: node1 length 41, node2 length 6.  node1 detected as dvss, node2 as vss.
+     node2 components:
+	POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/VSS
+	VSS
+	GF_NI_COR_BASE_0/power_via_cor_3_0/m2_12842_35238#
+	GF_NI_COR_BASE_0/power_via_cor_3_0/m2_8741_35238#
+	GF_NI_COR_BASE_0/comp018green_esd_clamp_v5p0_1_0/comp018green_esd_rc_v5p0_1_0/VMINUS
+	GF_NI_COR_BASE_0/power_via_cor_3_0/m2_6358_35238#
+    node1 components:
+	GF_NI_COR_BASE_0/moscap_corner_3/VMINUS
+	GF_NI_COR_BASE_0/power_via_cor_3_0/m1_14757_35210#
+
+node1 was already compromised.  power_via_cor_3 should not have ended up in the
+DVSS list.  Check specifically for this.
+
+Spot 2, iteration 622, node1 (length 1) =
+	GF_NI_COR_BASE_0/power_via_cor_3_0/m1_14757_35210#
+	node2 (length 40) = GF_NI_COR_BASE_0/moscap_corner_3/VMINUS
+
+Check other node2 names:
+	GF_NI_COR_BASE_0/moscap_routing_0/m1_n33412_n19921# 	(and similar)
+	GF_NI_COR_BASE_0/moscap_routing_0/a_n47022_n23957# 	(and similar)
+	POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/a_13097_44708#
+	GF_NI_COR_BASE_0/dw_13436_13361#
+	GF_NI_COR_BASE_0/dw_13436_13361x#	<-- smoking gun?  Cannot be BOTH sides.
+	"w_13448_13361#		<-- is not pointing to the opposite side. . .
+	
+After a diversion to correct the "goto" command for split tiles. . .
+	node1 (length 1) = w_13448_13361#
+	node2 (length 1) = GF_NI_COR_BASE_0/dw_13436_13361x#
+	There lies the smoking gun.
+	At line 690 (3rd spot)
+	node1 corresponds to cum = pwell on right side.  It should have an "x" in
+	the name.  Tile at 43803, 14403.
+	. . . which makes it no longer a smoking gun (maybe?), although now I need
+	to find out why the node name doesn't have an "x".
+
+How about
+	node1 = GF_NI_COR_BASE_0/dw_13436_13361# (VSS)
+	node2 = GF_NI_COR_BASE_0/moscap_corner_3_0/VMINUS (DVSS) ?
+	Except dw and dwx are now already both on the same node.
+	Still not getting it.
+	Again?
+
+	Okay, problem is that the incorrect merge wasn't checked for
+	specifically, but can do that now.  Looks like:
+
+	POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/a_13097_44708# (VSS)
+  and	GF_NI_COR_BASE_0/dw_13436_13361x# (DVSS)
+
+Now:
+	node1 = GF_NI_COR_BASE_0/dw_13436_13361x#	and
+		"w_13448_13361#
+	node2 = POWER_RAIL_COR_0/POWER_RAIL_COR_0_0/POWER_RAIL_COR_1_0/a_13097_44708#
+	cum = split tile, dir = 1, isosub on right side, position 43803, 14403
+		(43803, 14403) to (43898, 14498).
+		clearly correct for DVSS.
+	ha->hierOneTile = split tile, dir = 1, psd on left side, pos. 43718, 14336.
+		(43718, 14336) to (43880 14498).
+	These appear to be overlapping.  What's up?
+***	Okay, this is definitely the smoking gun.  The two triangular regions do
+	not overlap but the rectangles do.  
+
+	Who is looking at what side?
+	dinfo, associated with cum, has TT_SIDE set, so looking at isosub, therefore
+	DVSS.
+	ha->hierOneTile does *not* have TT_SIDE set, so looking at psd on left side.
+
+	Okay, the error is:  ExtHier.c checks if the tiles touch, but does not
+	check if two *split* tiles touch or not.
+
+	First try at the disjoint triangle routine failed.  Gotta do the math.
+	
+Ahhh. . .   Not 100% sure the code is right but I finally got a netlist that
+is correct.  And the corner cell now passes LVS.
+
+-------------------End of digression
+
+Back to sky130 gpiov2 I/O cell.
+
+Still have to deal with the fact that the top_gpiov2 cell no longer passes LVS
+when it used to pass LVS, and the device count mismatches by three with metal1
+resistors.
+
+At top_gpiov2 top level, check the VSSD net:
+In particular, most connections are the same except one nfet device, and
+(easier to find) sky130_fd_io__com_cclat/PU_DIS_H on the layout side at
+one 3.3V pFET drain/source on the layout side;  the latter seems suspicious
+because the schematic netlist does not show any pFETs tied to ground.
+
+The issue with the gpiov2 cell looks like it might actually be relevant to
+the issue just fixed (or just attempted), because the PU_DIS_H line is close
+to ground along a diagonal, with diagonal lines from different cells overlapping.
+The directions of overlap are different from the example just fixed, so
+algorithmic errors are possible. . .
+
+Cell sky130_fd_io__com_opath_datoev2.ext merges sky130_fd_io__com_cclat_0/PU_DIS_H
+with VGND.
+
+NOTE: Selecting VGND in top_gpiov2 and doing "getnode" resulted in an immediate
+crash.  Fix this first.
+
+Uh. . . Also:  Selecting the VGND corner there *also* selects the PU_DIS_H wire
+in the same box area, which is wrong and didn't happen before.  This with just
+a "select chunk".
+
+But the crash first. . .
+ExtBasic.c:960 ll is invalid.
+"node" is wrong.  lreg->next is CLIENTDEFAULT.
+Came from "SimGetNodeName" so SimExtract.c probably has code that needs updating.
+Okay, found one. . .  (fixed)
+
+Another NOTE:  Haven't been able to get "getnode" to work on a large layout and
+this needs significant work.  Maybe revisit whether code in sim/ is really
+necessary for that.  Getting a node name should be very fast.  Why isn't it?
+
+First, avoid unnecessary overhead by seeing if the same extract error happens
+from the .mag version.  Yes, it does.  And indeed, ExtHier.c:153 is reached
+on sky130_fd_io__com_opath_datoev2.
+
+cum = metal1 on right side of split tile at (6412, 1058) to (6461, 1107).
+ha->hierOneTile = metal1 on left side of split tile at (6392, 845) to (6633, 1086).
+
+Because I have clearly made bad assumptions in my routine to check if tiles
+overlap, I have turned to ChatGPT to tell me how to write a routine checking
+the overlap of two split tiles.
+
+Reworked a bunch of code around, this, and consolidated the non-Manhattan
+interaction test between the database code for DBSrPaintNMArea() and the
+extraction.
+
+Oh, dear, things seem to have been made worse.  PU_DIS_H in cclat is still
+being connected to VSSD, but now a number of other signals are also being
+connected to VSSD.
+
+Debugging:  extHierConnectFunc2():
+Break on dbEvalCorner().
+cum = metal1 on right side of split tile at (6412, 1058) to (6461, 1107).
+ha->hierOneTile = metal1 on left side of split tile at (6392, 845) to (6633, 1086).
+At least it has determined that these two tiles are facing opposite directions
+and need the corner evaluation.
+
+1st call: p = (6412, 1058)
+r1 = (6412, 1058) to (6461, 1107)
+di1 = split | direction | side.
+r2 = (6392, 845) to (6633, 1086)
+di2 = split | direction
+
+in DBTestNMInteract, r (the area of overlap) is (6412, 1058) to (6461, 1086) (okay)
+1st call: p = (6412, 1058) v = -473 (set vmin to this)
+2nd call: p = (6461, 1086) v = -15257 (set vmin to this)
+3rd call: p = (6412, 1086) v = -5849 (no action)
+4th call: p = (6461, 1058) v = -9881 (no action)
+
+Okay, fixed the problem with v needing to be initialized by the first corner. . .
+At least that's what ChatGPT says.  But it's still failing.
+
+1st call: p = (6412, 1058) v = -473 (set vmin and vmax to this)
+2nd call: p = (6461, 1086) v = -15257 (set vmin to this)
+3rd call: p = (6412, 1086) v = -5849 (no action)
+4th call: p = (6461, 1058) v = -9881 (no action)
+
+That worked, but. . . PU_DIS_H is still shorted to VGND in the .ext file. . .
+
+When does DBTestNMInteract() return TRUE for the hard case?
+Here we have area (7019, 1033) to (7044, 1058).  dir = 1, side = 1.
+Tile t2 is at (7019, 1040) and is type metal1 on the right side, dir = 1.
+This routine is doing a search for "dbcUnconnectFunc()" and so is searching
+for non-connecting types (including TT_SPACE) overlapping the area.
+Tile t2 is (7019, 1040) to (7037, 1058).
+
+Now I recognize a serious problem, which is that the extract routine is
+looking for "interacting" shapes whereas DBSrPaintNMArea should be looking
+for "overlapping" shapes, and these two cases must be clearly disambiguated.
+(fixed)
+
+But still fails.
+
+Gave up on what ChatGPT produced and did something similar but different.
+Cases are still failing and connectivity always goes into an infinite loop
+but at least I understand the algorithm and equations.
+
+Now: Again, rect1 is (6412, 1058) to (6461, 1107). tt1 has DIR and SIDE set.
+t2 is at (6392, 845), DIR only.
+Corner evaluation:
+lower left = -1
+upper left = -1
+lower right = -1
+Upper right corner is skipped.
+SIDE and DIR are set, so neg = 3 becomes pos = 3.
+Evaluates to "fully disjoint", which is correct.
+That was the only time this was called. . .
+
+Then maybe better to figure out the problem with net selection?
+Loaded sky130_fd_io__gpio_dat_ls_1v2 and selected VGND close to the bottom, m1.
+Got a break on dbEvalCorner.
+
+DBTestNMInteract() called with rect1 = (705, 1455) to (749, 1499), tt1 = DIR only.
+t2 at 705, 1455 is split m1 tile, m1 on left side, DIR=1.
+Got value -3, indicates fully enclosed.  Is it?
+Yes, but the sides are the same, so why is it in dbEvalCorner?
+tt2 *does* have SIDE set.  In which case they should be touching/nonoverlapping.
+Why is it even looking on that side?  Yes, this is dbcUnconnectFunc.
+So this case fails.  Easy to check.  Works in the python code.  What's different?
+Upper right check, . . . Oh.  "r" still used but never defined.
+
+Selection now works, but it is now showing PU_DIS_H shorted to VSSD (when PU_DIS_H
+is selected, but not when VSSD is selected).
+If PU_DIS_H is selected on the straight wire to the right of the angled area,
+DBTestNMInteract() is called with rect1 = (7019, 1033) to (7044, 1058).
+tt1 has SIDE=1, DIR=1.  t2 at (7019, 1040) has metal1 on right side, DIR=1, SIDE=0.
+1st call is -1, 2nd is 0, 3rd is 0.  SIDE=DIR in area, so result becomes pos=1,
+touch=2.  pos+touch=3 so returns FALSE (unenclosed but touching).  Is that right?
+Yes, the left side of the tile is space and the areas don't interact.
+
+Note there is also a weird case below the area where the selection. . . okay,
+that thing is actually real. 
+
+Try again selecting the shape to the left of the area of concern.
+rect1 = (6378, 1161) to (6424, 1207), tt1 = DIR=1, SIDE=1
+tp2 @ (6378, 1161), metal1 on left, DIR=1, SIDE=0.  That's not the problem
+area, either.
+
+Try again with the extraction.  Need to catch the nodes getting merged.
+That wasn't very productive.  Probably better to go back to selecting
+PU_DIS_H and cycle through until the jump to VSSD occurs.
+Note:  The node name of PU_DIS_H at the top level in the .mag file (because
+the label isn't properly connected) is "li_5797_1167#".  It did show up in
+the extraction, being connected to ?/OUT_H_N, which layer is connected
+to ?cclat_0/VGND.
+
+Back to selection.  When selecting the shape to the left of the area of
+concern, as mentioned above, here is the sequence of areas passed to
+DBTestNMInteract() when breaking at line 201 at the start of the "hard case":
+
+{p_x = 6378, p_y = 1161}, r_ur = {p_x = 6424, p_y = 1207}
+{p_x = 6377, p_y = 1160}, r_ur = {p_x = 6424, p_y = 1207}
+{p_x = 6378, p_y = 1161}, r_ur = {p_x = 6424, p_y = 1207}
+{p_x = 6358, p_y = 1107}, r_ur = {p_x = 6412, p_y = 1161} * not overlapping
+{p_x = 6412, p_y = 1058}, r_ur = {p_x = 6462, p_y = 1108} * overlapping
+{p_x = 6424, p_y = 1107}, r_ur = {p_x = 6478, p_y = 1161}
+{p_x = 6412, p_y = 1058}, r_ur = {p_x = 6461, p_y = 1107} * overlapping
+{p_x = 82, p_y = 1058}, r_ur = {p_x = 132, p_y = 1108} (?)
+...
+
+Take the starred entries in turn:
+Area 6358 1107 6412 1161  DIR=1 SIDE=1.  t2@(6358, 1107) DIR=1 SIDE=0 metal1 on right
+	check is on space side of tile, so result should be disjoint (false)
+	pos = 1, touch = 2, returns false (correct)
+Area 6412 1058 6462 1108  DIR=1 SIDE=1.  t2@(6424, 1107) DIR=1 SIDE=0 metal1 on left
+	check is on metal side of tile, tile is in the same net, should connect (true)
+	neg = 3, returns true (correct, I think)
+Area 6412 1058 6461 1107 DIR=1 SIDE=1.  t2@(6412, 1058) DIR=1 SIDE=0 metal1 on right
+	check is on space side of tile.
+	pos = 1, touch = 2 returns false.
+
+Seems like it is checking the wrong thing, like t2.
+Actually the next entry is the interesting one.  The position (82, 1058) is
+the location in subcell sky130_fd_io__com_cclat of the overlapping tile from
+the parent cell.  This is probably what needs inspecting.
+
+Area 82 1058 132 1108  DIR=1 SIDE=1.  t2@(62, 845) DIR=1 SIDE=0 metal1 on left side.
+This is clearly checking the wrong side;  maybe tt1 is not being adjusted for the
+child use transform?  Or is it suspicious that DIR and SIDE are always 1?
+Going up the call stack, the tile is indeed in sky130_fd_io__com_cclat.
+dinfo *has* been transformed to scx->trans.  dinfo = DIR=1, SIDE=1.
+new dinfo = DIR=1, SIDE=1.  Trans = [1 0 6330 0 1 0] which is just a translation
+(correct).
+
+Going up further in the stack:
+DBTreeCopyConnect() calls DBTreeSrNMTiles with
+scx->scx_area == (6412, 1058) to (6462, 1108), dinfo = DIR=1, SIDE=1 (confirmed)
+In the child cell, this search becomes area (82, 1058) to (132, 1108) (confirmed)
+with the same split information (DIR=1, SIDE=1).  "mask" contains only metal1.
+Calls DBTestNMInteract to check this area againsst the tila at (62, 845)
+which is a split tile with metal on the left side.  This check should go to the
+hard case (correct) but should return a result of "disjoint".
+rect2 = (62, 845) to (303, 1086).
+Should evaluate lower left, upper left, and lower right.
+lower left:  result -1
+upper right is skipped (correct)
+upper left:  result -1
+lower right: result -1
+returns FALSE (fully disjoint) (correct).
+
+Okay, so that wasn't a smoking gun.
+Keep looking.
+When does it jump to the VSSD region?
+
+(locations after area 82 1058 132 1108 above)
+6412 1058 6461 1107:  Overlap region again
+7019 1033 7044 1058:  Right side of PU_DIS_H (corner fillet)
+7019 1033 7044 1058:  again
+7019 1033 7044 1058:  and again
+6412 1058 6461 1107:  Back to the region of interest overlap
+6478 1086 6499 1107:  Position facing inward
+6391 844 6633 1086:   This is in VSSD.  What is it doing here?  
+
+Something happened in the previous three checks?  They didn't look
+interesting. . .  Check where the t2 tile is in each case.
+
+Uhh. . .
+Back to Area 82 1058 132 1108, tile is @(62, 845) confirmed above that result
+is disjoint.
+I'm thinking that something is logically incorrect before it gets to line 201?
+Start looking at *all* calls to DBTestNMInteract(), find a t2 that belongs
+to VSSD, and then find when DBTestNMInteract returns TRUE.
+
+Here's a new one:
+area 147 1085 169 1107
+checks against tile (62 845) in cclat
+returned true (but should not have).
+Oof---at line 190, returned "true"
+Tiles have the same TT_SIDE but not interact.
+In this case, no part of the *rectangle* of t2 is in the area of rect1.  So
+it should have returned FALSE from the code above, but didn't.
+No, that's not right.  Here, t2 is the larger rectangle, so t2 definitely
+overlaps rect1.
+Maybe it's sufficient to just remove that line?  Won't the rest of the code
+determine the interaction correctly, regardless of how TT_SIDE is set?
+Let's try it!
+Didn't work. . . maybe the pos/neg swap is wrong in this case?
+(Note:  Found this by breaking on DBTestNMInteract when
+t2->ti_ll.p_x == 62 && t2->ti_ll.p_y == 845
+2nd time was the one that failed.
+Keep forgetting that t2 is the larger rectangle.
+
+Implemented something but assumptions still seem to be wrong.
+Actually, just missing parentheses.
+Finally, it's working!!!
+
+Still errors on top_gpiov2 but VSSD now matches, so that part of the
+extraction was correct.
+
+Investigating the remaining top_gpiov2 errors:
+Mismatch of three rm1 resistors may be coming from sky130_fd_io__gpiov2_octl_dat.
+Can try a "noflatten" on that cell and see.
+My have another digression because netgen crashed.  (Fixed, needs attention later)
+
+Worse, the GDS-derived netlist and the .mag-derived netlist differ, with netgen
+reporting not only the three metal 1 resistors, but now also a metal 3 resistor.
+
+Check sky130_fd_io__sio_signal_5_sym_hv_local_5term?
+I think there may be a discrepency between the use of this in the ovtv2 pad
+and the gpiov2 pad.  The netlist "incorrectly" uses the ovtv2 version of
+buf_localesd in the gpiov2 pad.
+
+sky130_fd_io__gpiov2_octl_dat layout has a split DM_H[1] pin (confirm?).
+This prevents correct LVS, but if it is flattened, then additional rm1
+devices appear.
+
+Need unrelated work:  "ad" and "pd" values (usually) match relative to what
+magic used to produce, but "as" and "ps" are way off.  Something's up with that.
+
+Just noticed that res_generic_m1 devices are being removed, counting as
+"zero valued" resistors.  But they aren't zero-valued;  they're semiconductor
+resistors, and that should never happen and is netgen's fault.  And I need
+regression tests. . .
+According to netgen code, that should not have happened.  Indeed, error got
+introduced accidentally into netgen last month.  Fixed.
+
+That seems to have gotten the top_gpiov2 cell back into striking range of
+LVS clean.  The most obvious issue left is that ENABLE_H is connected to
+1 each 3.3V nFET and pFET devices in the layout but 3 each in the netlist.
+
+Layout shows definitely connected to 6 devices.  Extraction error?
+Layout also shows that sky130_fd_io__gpiov2_ctl has all of the transistors
+but they're broken into two unconnected groups.  The labeled group of four
+is getting disconnected, and this is almost certainly an introduced
+extraction error (dang.).
+Name of disconnected part of the net is a_11799_3638# in sky130_fd_io__gpiov2_ctl.
+This is correctly listed as a port of gpiov2_ctl after DM[1], the 19th port.
+However, that's the part that is found.  The part of the net labeled ENABLE_H 
+is the 6th port.
+
+In sky130_fd_io__top_gpiov2, the call to sky130_fd_io__gpiov2_ctl has
+as the 6th port "sky130_fd_io__gpiov2_ctl_0/ENABLE_H" and as 19th port
+ENABLE_H, so this is unfortunately a merge that failed to happen.
+Re-extract and inspect the .ext files.  (Although technically, need to follow
+the GDS import from the script to make a 1:1 comparison.) (Both files are the
+same, so it's okay to use the .mag for extraction testing.).
+ctl_0/ENABLE_H does not even appear in the .ext file.
+
+Will have to track down how the net connectivity of ENABLE_H is traced in
+the extraction.  How could it miss just one connection of one net?
+If I punt on this one by correcting it manually in the netlist, then there
+is still a failure in which "sky130_fd_io__top_gpiov2_0/\
+sky130_fd_io__gpio_opathv2_0/sky130_fd_io__gpio_odrvrv2_0/PU_H_N[0]" has
+also been disconnected.  But this follows a ridiculously long and winding
+path, and looks like it has a good chance of being produced by the same
+bug, and I'd rather debug from the ENABLE_H signal.  Also it's harder to
+figure out what to change in the netlist to correct it manually.
+
+Most likely involves a plane-to-plane connection through a via

@@ -817,7 +817,7 @@ CIFTechLine(
 	    else
 	    {
 		l = strlen(CIFCurStyle->cs_name) - strlen(tptr);
-		if (!strcmp(tptr, CIFCurStyle->cs_name + l))
+		if ((l > 0) && !strcmp(tptr, CIFCurStyle->cs_name + l))
 		{
 		    CIFCurStyle->cs_status = TECH_PENDING;
 		    return TRUE;

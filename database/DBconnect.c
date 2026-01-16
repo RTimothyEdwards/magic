@@ -128,87 +128,6 @@ DBInvTransformDiagonal(oldtype, trans)
     return dinfo;
 }
 
-
-/*
- * ----------------------------------------------------------------------------
- *
- * DBSrConnectOnePlane --
- *
- * 	Search from a starting tile to find all paint that is electrically
- *	connected to that tile in the same plane.
- *
- * Results:
- *	0 is returned if the search finished normally.  1 is returned
- *	if the search was aborted.
- *
- * Side effects:
- *	For every paint tile that is electrically connected to the initial
- *	tile, func is called.  Func should have the following form:
- *
- *	    int
- *	    func(tile, clientData)
- *		Tile *tile;
- *		TileType dinfo;
- *		ClientData clientData;
- *    	    {
- *	    }
- *
- *	The clientData passed to func is the same one that was passed
- *	to us.  Func returns 0 under normal conditions;  if it returns
- *	1 then the search is aborted.
- *
- *				*** WARNING ***
- *
- *	Func should not modify any paint during the search, since this
- *	will mess up pointers kept by these procedures and likely cause
- *	a core-dump.
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-DBSrConnectOnePlane(startTile, dinfo, connect, func, clientData)
-    Tile *startTile;		/* Starting tile for search */
-    TileType dinfo;		/* Split tile information */
-    TileTypeBitMask *connect;	/* Pointer to a table indicating what tile
-				 * types connect to what other tile types.
-				 * Each entry gives a mask of types that
-				 * connect to tiles of a given type.
-				 */
-    int (*func)();		/* Function to apply at each connected tile. */
-    ClientData clientData;	/* Client data for above function. */
-
-{
-    struct conSrArg csa;
-    int result;
-
-    result = 0;
-    csa.csa_def = (CellDef *)NULL;
-    csa.csa_bounds = TiPlaneRect;
-
-    /* Pass 1.  During this pass the client function gets called. */
-
-    csa.csa_clientFunc = func;
-    csa.csa_clientData = clientData;
-    csa.csa_clientDefault = startTile->ti_client;
-    csa.csa_clear = FALSE;
-    csa.csa_connect = connect;
-    csa.csa_pNum = -1;
-    if (dbSrConnectFunc(startTile, dinfo, PTR2CD(&csa)) != 0) result = 1;
-
-    /* Pass 2.  Don't call any client function, just clear the marks.
-     * Don't allow any interruptions.
-     */
-
-    SigDisableInterrupts();
-    csa.csa_clientFunc = NULL;
-    csa.csa_clear = TRUE;
-    (void) dbSrConnectFunc(startTile, dinfo, PTR2CD(&csa));
-    SigEnableInterrupts();
-
-    return result;
-}
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -290,6 +209,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
      */
 
     start_tad.tad_tile = NULL;
+    start_tad.tad_next = NULL;  /* unused */
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
     	csa.csa_pNum = startPlane;
@@ -383,6 +303,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
      */
 
     tad.tad_tile = NULL;
+    tad.tad_next = NULL;   /* unused */
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
     	csa.csa_pNum = startPlane;

@@ -588,6 +588,7 @@ SimSrConnect(
      */
 
     tad.tad_tile = NULL;
+    tad.tad_next = NULL;  /* unused */
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
 	if (DBSrPaintArea((Tile *) NULL,

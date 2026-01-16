@@ -1100,7 +1100,7 @@ extSubtreeTileToNode(tp, dinfo, pNum, et, ha, doHard)
 	    {
 		if (DBSrPaintNMArea((Tile *) NULL,
 			et->et_lookNames->cd_planes[pNum],
-			TiGetTypeExact(tp), &r, &DBAllButSpaceBits,
+			dinfo, &r, &DBAllButSpaceBits,
 			extConnFindFunc, (ClientData) &reg))
 		{
 		    if (SigInterruptPending)

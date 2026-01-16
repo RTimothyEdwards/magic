@@ -552,10 +552,13 @@ typedef struct diag_info
 } DiagInfo;
 
 /* Where search functions need to return a Tile pointer and tile split	*/
-/* information, use this structure.					*/
+/* information, use this structure.  Contains a pointer to its own	*/
+/* structure type so that it may also be used to create a linked list	*/
+/* of tiles including split side information.				*/
 
 typedef struct tile_and_dinfo
 {
+    struct tile_and_dinfo *tad_next;
     Tile     *tad_tile;
     TileType  tad_dinfo;
 } TileAndDinfo;
@@ -929,6 +932,7 @@ extern int DBArraySr();
 extern bool DBNearestLabel();
 extern int DBSrLabelLoc();
 extern TileType DBTransformDiagonal();
+extern bool DBTestNMInteract(Rect *rect1, TileType tt1, Tile *t2, TileType di2, bool overlap_only);
 extern int dbcUnconnectFunc(Tile *tile, TileType dinfo, ClientData clientData); /* (notused) */
 extern int dbSrConnectFunc(Tile *tile, TileType dinfo, ClientData clientData); /*  (struct conSrArg *csa) */
 extern int dbSrConnectStartFunc(Tile *tile, TileType dinfo, ClientData clientData); /* cb_database_srpaintarea_t (Tile **pTile) */
@@ -982,7 +986,6 @@ extern void DBResetTilePlaneSpecial();
 extern void DBNewYank();
 extern int  DBSrPaintClient();
 extern int  DBSrConnect();
-extern int  DBSrConnectOnePlane();
 extern char *dbFgets();
 extern void DBAdjustLabelsNew();
 extern bool DBScaleValue();

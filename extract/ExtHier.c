@@ -60,13 +60,68 @@ int extHierConnectFunc2();
 int extHierConnectFunc3();
 Node *extHierNewNode();
 
-/*----------------------------------------------------------------------*/
-/* extHierSubShieldFunc --						*/
-/*									*/
-/*	Simple callback function for extHierSubstrate() that halts the	*/
-/*	search if any substrate shield type is found in the search area	*/
-/*									*/
-/*----------------------------------------------------------------------*/
+/*
+ *----------------------------------------------------------------------
+ *
+ * extTestNMInteract --
+ *
+ *	Determine if two tiles overlap, including split tiles.  Since
+ *	this is a much more complicated check than the simple overlap
+ *	of two rectangular tiles, it is assumed that at least tile t1
+ *	is a split tile, and does not check for simple rectangular
+ *	overlap.  The insideness test is the same used by
+ *	DBSrPaintNMArea(), but in the context of extHierConnectFunc,
+ *	the two tiles are already known, so just run the equations.
+ *	Because this test is for electrical connectivity, touching
+ *	shapes are equivalent to overlapping shapes.
+ *
+ *	The information about which side of a triangular tile is to
+ *	be checked for overlap is in the "dinfo" argument corresponding
+ *	to the tile.  If the tile is not a split tile, then "dinfo" is
+ *	ignored.
+ *
+ *	Tile t1 is always a split tile.  Tile t2 may be a simple Manhattan
+ *	tile, in which case the possibility that t2 has "infinite" width
+ *	or height must be considered.
+ *
+ * Results:
+ *	TRUE if the tiles overlap or touch, FALSE if not.
+ *
+ * Side effects:
+ *	None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+bool extTestNMInteract(Tile *t1, TileType di1, Tile *t2, TileType di2)
+{
+    Rect rect1;
+    TileType tt1;
+
+    /* Turn the first tile into a Rect and a TileType containing
+     * the information about both diagonal and split side, and
+     * then call the function DBTestNMInteract() which is used by
+     * DBSrPaintNMArea() to determine interaction between non-
+     * Manhattan areas.  Note that DBTestNMInteract() is called
+     * with the overlap_only flag set to FALSE because this should
+     * test for shapes either overlapping *or* touching.
+     */
+
+    TiToRect(t1, &rect1);
+    tt1 = TiGetTypeExact(t1) | di1;
+
+    return DBTestNMInteract(&rect1, tt1, t2, di2, FALSE);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * extHierSubShieldFunc --						
+ *
+ *	Simple callback function for extHierSubstrate() that halts the
+ *	search if any substrate shield type is found in the search area
+ *
+ *----------------------------------------------------------------------
+ */
 
 int
 extHierSubShieldFunc(tile, dinfo, clientdata)
@@ -77,19 +132,21 @@ extHierSubShieldFunc(tile, dinfo, clientdata)
     return 1;
 }
 
-/*----------------------------------------------------------------------*/
-/* extHierSubstrate --							*/	
-/*									*/
-/* 	Find the substrate node of a child cell and make a connection	*/
-/*	between parent and child substrates.  If either of the		*/
-/*	substrate nodes is already in the hash table, then the table	*/
-/*	will be updated as necessary.					*/
-/*									*/
-/*	This function also determines if a child cell's substrate is	*/
-/*	isolated by a substrate shield type, in which case no merge is	*/
-/*	done.								*/
-/*									*/
-/*----------------------------------------------------------------------*/
+/*
+ *----------------------------------------------------------------------
+ * extHierSubstrate --
+ *
+ * 	Find the substrate node of a child cell and make a connection
+ *	between parent and child substrates.  If either of the
+ *	substrate nodes is already in the hash table, then the table
+ *	will be updated as necessary.
+ *
+ *	This function also determines if a child cell's substrate is
+ *	isolated by a substrate shield type, in which case no merge is
+ *	done.
+ *
+ *----------------------------------------------------------------------
+ */
 
 void
 extHierSubstrate(ha, use, x, y)
@@ -504,7 +561,22 @@ extHierConnectFunc2(cum, dinfo, ha)
     /* If the tiles don't even touch, they don't connect */
     if (r.r_xtop < r.r_xbot || r.r_ytop < r.r_ybot
 		|| (r.r_xtop == r.r_xbot && r.r_ytop == r.r_ybot))
-	return (0);
+	return 0;
+
+    /* If either tile is a split tile, then check if the areas of
+     * interest overlap.  The first argument to extTestNMInteract()
+     * must be a split tile.
+     */
+    if (IsSplit(cum))
+    {
+	if (!extTestNMInteract(cum, dinfo, ha->hierOneTile, ha->hierType))
+	    return 0;
+    }
+    else if (IsSplit(ha->hierOneTile))
+    {
+	if (!extTestNMInteract(ha->hierOneTile, ha->hierType, cum, dinfo))
+	    return 0;
+    }
 
     /*
      * Only make a connection if the types of 'ha->hierOneTile' and 'cum'
@@ -524,8 +596,8 @@ extHierConnectFunc2(cum, dinfo, ha)
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
-	name2 = (*ha->ha_nodename)(ha->hierOneTile, ha->hierType, ha->hierPNum, extHierOneFlat,
-		ha, TRUE);
+	name2 = (*ha->ha_nodename)(ha->hierOneTile, ha->hierType, ha->hierPNum,
+		extHierOneFlat, ha, TRUE);
 	he = HashFind(table, name2);
 	nn = (NodeName *) HashGetValue(he);
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
