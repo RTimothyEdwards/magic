@@ -1219,7 +1219,7 @@ CmdGetnode(
 	TxError("Put the cursor in a layout window\n");
 	return;
     }
-    if( is_fast == TRUE )
+    if (is_fast == TRUE)
     {
 	SimRecomputeSel = TRUE;
 	SimGetsnode();
@@ -1227,7 +1227,8 @@ CmdGetnode(
     else
 	SimGetnode();
 
-    if (SimGetnodeAlias) {			/* "erase" the hash table */
+    if (SimGetnodeAlias)		/* "erase" the hash table */
+    {
 	HashKill(&SimGNAliasTbl);
 	HashInit(&SimGNAliasTbl, 120, STRINGS);
     }
@@ -1704,7 +1705,7 @@ CmdFindNetProc(
 	     */
 	    hashpos = strrchr(s, '#');
 	    if (hashpos != NULL)
-		if (*(hashpos - 1) == 'x')
+		if (*(hashpos - 1) == 'r')
 		    dinfo = TT_DIAGONAL | TT_SIDE;
 	}
     }

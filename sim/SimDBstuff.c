@@ -601,6 +601,7 @@ SimSrConnect(
 
     csa.csa_clientFunc = func;
     csa.csa_clientData = clientData;
+    csa.csa_clientDefault = CLIENTDEFAULT;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
     csa.csa_pNum = startPlane;

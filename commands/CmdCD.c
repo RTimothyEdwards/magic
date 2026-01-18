@@ -2550,8 +2550,9 @@ cmdContactFunc(
 	    break;
 
     TTMaskSetOnlyType(&smask, stype);
-    DBSrPaintNMArea((Tile *)NULL, ccs->rootDef->cd_planes[DBPlane(stype)], dinfo,
-		&ccs->area, &smask, cmdContactFunc2, (ClientData)ccs);
+    DBSrPaintNMArea((Tile *)NULL, ccs->rootDef->cd_planes[DBPlane(stype)],
+		TiGetTypeExact(tile) | dinfo, &ccs->area, &smask,
+		cmdContactFunc2, (ClientData)ccs);
     return 0;
 }
 

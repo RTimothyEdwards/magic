@@ -334,7 +334,8 @@ donesides:
 		{
 		    pla.plane = pNum;
 		    (void) DBSrPaintNMArea((Tile *) NULL,
-			    arg->fra_def->cd_planes[pNum], dinfo, &biggerArea,
+			    arg->fra_def->cd_planes[pNum],
+			    TiGetTypeExact(tile) | dinfo, &biggerArea,
 			    mask, extNbrPushFunc, (ClientData) &pla);
 		}
 	}
@@ -562,7 +563,7 @@ termbottom:
 termright:
 	if (IsSplit(tp) && !(tpdi & TT_SIDE)) goto termtop;
 
-	for (t2 = TR(tp); BOTTOM(t2) > tileArea.r_ybot; t2 = LB(t2))
+	for (t2 = TR(tp); TOP(t2) > tileArea.r_ybot; t2 = LB(t2))
 	{
 	    if (IsSplit(t2))
 		checktype = SplitLeftType(t2);
@@ -589,7 +590,7 @@ termtop:
 	if (IsSplit(tp) && (((tpdi & TT_SIDE) ? 1 : 0) ^ SplitDirection(tp)))
 	    goto termdone;
 
-	for (t2 = RT(tp); LEFT(t2) > tileArea.r_xbot; t2 = BL(t2))
+	for (t2 = RT(tp); RIGHT(t2) > tileArea.r_xbot; t2 = BL(t2))
 	{
 	    if (IsSplit(t2))
 		checktype = SplitBottomType(t2);

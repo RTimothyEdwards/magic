@@ -378,7 +378,8 @@ areaNMCheck(tile, dinfo, arg)
 
 	TTMaskSetOnlyType(&mask, TiGetLeftType(tile));
 	TTMaskSetType(&mask, TiGetRightType(tile));
-	if (DBSrPaintNMArea((Tile *)tile, (Plane *)NULL, dinfo, arg->dCD_rlist,
+	if (DBSrPaintNMArea((Tile *)tile, (Plane *)NULL,
+		TiGetTypeExact(tile) | dinfo, arg->dCD_rlist,
 		&mask, areaNMReject, (ClientData)tile) == 0)
 	    return 0;
     }

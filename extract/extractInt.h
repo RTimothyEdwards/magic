@@ -225,18 +225,13 @@ typedef struct treg
 {
     struct treg	*treg_next;	/* Next region in list */
     int		 treg_pnum;	/* UNUSED */
-    int		 treg_type;	/* Type of treg_tile* */
+    int		 treg_type;	/* UNUSED */
     Point	 treg_ll;	/* UNUSED */
     LabelList	*treg_labels;	/* Attribute list */
     Tile	*treg_tile;	/* Some tile in the channel */
+    TileType	 treg_dinfo;	/* Diagonal information for treg_tile* */
     int		 treg_area;	/* Area of channel */
 } TransRegion;
-
-/* *NOTE: If treg_tile is a split tile, then treg_type consists of
- * the transistor type in the left-side position (lower bits).  This
- * assumes that only one side of a split tile can be a transistor
- * type.
- */
 
 typedef struct {	/* Maintain plane information when pushing	*/
     Rect area;		/* tiles on the node stack.  For use with	*/

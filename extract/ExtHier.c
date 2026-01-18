@@ -183,6 +183,7 @@ extHierSubstrate(ha, use, x, y)
     /* The parent def's substrate node is in glob_subsnode */
 
     name1 = extNodeName(glob_subsnode);
+    if (*name1 == '(' && !strcmp(name1, "(none)")) return;	/* Don't process "(none)" nodes! */
     he = HashFind(table, name1);
     nn = (NodeName *) HashGetValue(he);
     node1 = nn ? nn->nn_node : extHierNewNode(he);
@@ -478,6 +479,7 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 
 		name = (*ha->ha_nodename)(ha->hierOneTile, ha->hierType, ha->hierPNum,
 			extHierOneFlat, ha, TRUE);
+		if (*name == '(' && !strcmp(name, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 		he = HashFind(table, name);
 		nn = (NodeName *) HashGetValue(he);
 		node2 = nn ? nn->nn_node : extHierNewNode(he);
@@ -592,12 +594,14 @@ extHierConnectFunc2(cum, dinfo, ha)
     if (extConnectsTo(ha->hierType & TT_LEFTMASK, ttype, ExtCurStyle->exts_nodeConn))
     {
 	name1 = (*ha->ha_nodename)(cum, dinfo, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
+	if (*name1 == '(' && !strcmp(name1, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 	he = HashFind(table, name1);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
 	name2 = (*ha->ha_nodename)(ha->hierOneTile, ha->hierType, ha->hierPNum,
 		extHierOneFlat, ha, TRUE);
+	if (*name2 == '(' && !strcmp(name2, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 	he = HashFind(table, name2);
 	nn = (NodeName *) HashGetValue(he);
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
@@ -703,11 +707,13 @@ extHierConnectFunc3(cum, dinfo, ha)
     {
 	name1 = (*ha->ha_nodename)(cum, ha->hierType, ha->hierPNumBelow,
 			extHierCumFlat, ha, TRUE);
+	if (*name1 == '(' && !strcmp(name1, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 	he = HashFind(table, name1);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
 	name2 = lab->lab_text;
+	if (*name2 == '(' && !strcmp(name2, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 	he = HashFind(table, name2);
 	nn = (NodeName *) HashGetValue(he);
 	node2 = nn ? nn->nn_node : extHierNewNode(he);

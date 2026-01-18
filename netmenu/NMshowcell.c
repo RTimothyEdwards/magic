@@ -131,8 +131,10 @@ nmscRedrawFunc(tile, dinfo, window)
     extern int nmscAlways1();	/* Forward reference. */
 
     TiToRect(tile, &area);
-    if (!DBSrPaintNMArea((Tile *)NULL, nmscPlane, dinfo, &area,
-	    &DBAllButSpaceBits, nmscAlways1, (ClientData) NULL))
+    if (!DBSrPaintNMArea((Tile *)NULL, nmscPlane,
+		TiGetTypeExact(tile) | dinfo,
+		&area, &DBAllButSpaceBits, nmscAlways1,
+		(ClientData) NULL))
 	return 0;
     WindSurfaceToScreen(window, &area, &screenArea);
     GrFastBox(&screenArea);

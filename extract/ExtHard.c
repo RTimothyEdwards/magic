@@ -83,7 +83,11 @@ extLabFirst(tile, dinfo, arg)
     reg->treg_pnum = DBNumPlanes;
     reg->treg_area = DBNumPlanes;
     reg->treg_tile = tile;
-    reg->treg_type = dinfo;
+    reg->treg_dinfo = dinfo;
+
+    /* Setting treg_pnum to DBNumPlanes ensures that treg_ll and treg_type
+     * will be set for identifying the node when extSetNodeNum() is called.
+     */
 
     /* Prepend it to the region list */
     reg->treg_next = (TransRegion *) arg->fra_region;
@@ -498,7 +502,7 @@ extHardFreeAll(def, tReg)
 	if (reg->treg_tile)
 	{
 	    arg.fra_pNum = reg->treg_area;
-	    ExtFindNeighbors(reg->treg_tile, reg->treg_type, arg.fra_pNum, &arg);
+	    ExtFindNeighbors(reg->treg_tile, reg->treg_dinfo, arg.fra_pNum, &arg);
 	}
 
 	/* Free all LabelLists and then the region */

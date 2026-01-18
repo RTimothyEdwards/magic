@@ -626,7 +626,7 @@ donesides:
 		if (IsSplit(tile))
 		{
 		    if (DBSrPaintNMArea((Tile *) NULL, csa->csa_def->cd_planes[i],
-				TiGetTypeExact(tile), &newArea, connectMask,
+				TiGetTypeExact(tile) | dinfo, &newArea, connectMask,
 				dbcFindTileFunc, (ClientData)&tad) != 0)
 		    {
 			STACKPUSH(PTR2CD(tad.tad_tile), dbConnectStack);

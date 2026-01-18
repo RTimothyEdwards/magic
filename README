@@ -1454,4 +1454,443 @@ path, and looks like it has a good chance of being produced by the same
 bug, and I'd rather debug from the ENABLE_H signal.  Also it's harder to
 figure out what to change in the netlist to correct it manually.
 
-Most likely involves a plane-to-plane connection through a via
+Most likely involves a plane-to-plane connection through a via?
+Problem should be found around extHierConnections().  However, since
+the problem is a *failure* to merge two nodes, watching the node merge
+function isn't going to be much help.
+
+Will need to track specific locations.  Top cell will be
+sky130_fd_io__top_gpiov2.  ENABLE_H starts with the pin on metal2 at
+at (7092, 0) to (7144, 402).  Since the connection to the right is
+found, then any disconnect happens above.  There is an angled wire
+that starts at y=402.  The connection between the two nodes happens
+in the area of (7028, 672) to (7078, 782).  The connecting cell
+underneath is sky130_fd_io__gpiov2_ctl.  The same connecting area in
+the coordinates of the child cell are around (10536, 4166) to
+(10584, 4280).  The child and parent are in the same oriention,
+with X and Y offsets.  However, the connection passes only a brief
+distance before descending again to cell sky130_fd_io__com_ctl_hldv2,
+which is not rotated 180 degrees.
+
+It should be able to be determined from the .ext files if the lower
+connection was made.  The node name in sky130_fd_io__com_ctl_hldv2
+is a_2671_3554#.  The node name in the parent is ENABLE_H, but only
+through the child connection.  The connecting m1 piece should have
+a name m1_10103_4165#.  This might be the likely point of failure,
+because the metal line has a split tile at the lower left corner
+which has the unusal property of coming to a point at the lower
+left, because of the horrid layout job done on these cells.
+
+Conclusion:  The sky130_fd_io__gpiov2_ctl.ext file does connect
+ENABLE_H to both m1_10103_4165# and to
+sky130_fd_io__com_ctl_hldv2_0/a_2671_3554#.
+
+Clue!  sky130_fd_io__gpiov2_ctl DOES make the connection, but to
+"sky130_fd_io__gpiov2_ctl_0/m1_10103_4165x#".  Therefore, the error
+is that the "x" is not accounting for the subcell rotation (or
+something like that).
+No, I don't think it's rotation, and the code is very clear that "x"
+is added when the type is on the right side, and that is indicated
+by lreg->lreg_type.  There is no rotation going on here between
+sky130_fd_io__top_gpiov2 and sky130_fd_io__gpiov2_ctl.  That means
+that TT_SIDE got set for lreg_type incorrectly
+
+Should be easily checkable, as it indicates that extSetNodeNum()
+was called with tile->ti_ll = (10103, 4165) and dinfo & TT_SIDE != 0.
+(Should probably have started when running extraction on the top
+cell, because the conditional severely impacts extraction time.
+But did confirm that extSetNodeNum() is called properly within 
+sky130_fd_io__gpiov2_ctl with dinfo only set to zero.)
+
+Did not happen.
+
+There is a fundamental issue:  The LabRegion structure doesn't even
+have a tile type.  "lreg_type" is being used to track the dinfo for
+"treg_tile", which is probably stupid.  "lreg_type" upper bits should
+ether follow the type of the tile at "lreg_ll" or else flag when
+"lreg_ll" is the right side of the node (thus triggering the "x" in
+the name, or maybe change that to "r" for "right").  The treg_tile
+dinfo should be an extra field in the TransRegion type.
+
+Not entirely sure it's necessary to have an extra field.  If treg_type
+is just the type of treg_tile, then treg_type is not needed other than
+to store TT_SIDE.  May be okay just to always reassign TT_SIDE when
+reassigning lreg_ll and lreg_type to a new tile position.
+
+Okay, that's probably an incorrect assumption given that "(none)"
+nodes started appearing in the output.
+
+Went back and did the other idea, which is to add a record to TransRegion
+for "dinfo" and leave treg_type with TT_SIDE corresponding to the region
+lreg_ll position, not necessarily treg_tile.  Seemed to work.  Now there
+is one LVS error which is the netlist issue with gpiov2 vs. gpio_ovtv2
+for the connection to buf_localesd, a change which I reverted because I
+wasn't sure if it was needed or not.  Applying the change again. . . 
+And voila!  gpiov2 is LVS clean again!
+(Except for the ESD transistor width calculation, which now needs to
+be modified to properly handle non-Manhattan edges of the device.)
+
+Now to work on the newer I/O cells gpio_ovtv2, sio, etc.
+Quick pass at both gpio_ovtv2 and sio result in netlists that do not
+appear to be too far from clean;  as in just a few shorts/opens.
+Specifically:
+1. For gpio_ovtv2, it looks like two nets in the netlist are shorted to
+   the pad, and those are the only errors.  There is one component
+   mismatch, but that appears to be due to the shorted nets.
+
+   There was at one time a hack solution for gpio_ovtv2 to remove the
+   flanged gates from the layout;  this might still be being done in
+   the open_pdks install.  Need to check.  Should be resolved now.
+
+2. For sio (not macro), vssd and vssio are shorted in the layout.
+   There seem to be a few other shorts/opens elsewhere.
+
+3. The gpio_ovtv2 cell LVS from the existing PDK .mag view still
+   requires the flattening-in-place of the amux_i2c_fix cell, or else
+   the ground nets get shorted.
+
+4. run_top_pwrdetv2.sh is LVS clean.
+5. run_top_analog_pad.sh is LVS clean.
+6. run_top_refgen_new.sh has an LVS match but a property error (which
+   is not new and apparently has not been fixed)
+
+Digression (but important bug):  source and drain calculations are off.
+Test:  The default nMOS device from the device generator.  Source and
+drain are exactly symmetric.  .ext file output has correct length of
+the terminals (84, same as device gate width), but "2088,101" for
+drain area/perimeter and "2436,142" for source area/perimeter.
+Actual area and perimeter for both are:  A=4872, P=284.  "Source" has
+exactly half of these values---Suggests it was being "shared" with
+another non-existing device.  Where it got the drain values from is
+unclear.  Since the area/drain searching algorithm is the one that
+got rewritten, it is probably at fault.  Routine is now "extEnumTerminal()";
+break on that.
+1st call: Tile at -73, -42 (type ndiff)
+2nd call: Tile at 15, 30 (type ndiff).
+There is a contact on each side and the terminal region for each side should
+be 5 tiles total.
+
+Tile at -73, -42 is tile below the contact on the left side.
+Tile at 15, 30 is the tile above the contact on the right side.
+
+(1) tileArea = -73, -42 to -15, -30
+(2) eapd_area = 696  eapd_perim = 82 (added 6 lengths)
+(3) added shared device (self)
+(4) continue search, added tile above (-27, -30) to linked list.
+(5) continue search, added tile above (-61, -30) to linked list.
+(6) went to termdone. . . missed a tile.  Two sides are using the wrong
+    comparison.
+
+Drain and source match now.  But values are still cut in half.  The "addShared"
+subroutine only ever sees one gate node, so nothing is shared.  It is starting
+"shared" at one, but there is always one record, so minimum "shared" is coming
+out 2---Has it always been this way???  Anyway, it's correct now.
+
+---------------
+
+Back to study of gpio_ovtv2 and sio.
+gpio_ovtv2:  From magic, no flattening in place.  Results in ground short.
+gpio_ovtv2:  From magic, use flatten-in-place.  Issue is a short between
+PAD and two other nets which in the netlist are:
+1) sky130_fd_io__gpio_ovtv2_opath_i2c_fix_leak_fix:opath_q0/\
+	sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix:odrvr_q0/p2g
+2) sky130_fd_io__gpio_ovtv2_opath_i2c_fix_leak_fix:opath_q0/\
+	sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix:odrvr_q0/net74
+
+The schematic has the esd_nfets and esd_pfets divided into three nets.
+The division looks pretty clear from the layout;  one esd_nfet is offset
+from the others;  the three esd_pfets on the left and right sides are
+connected differently.  However, at issue is what happens to the esd_pfet
+gates.  The layout-extracted netlist has the esd_pfet gates shorted and
+tied to pad.  This does not match the connectivity selection view.
+
+This had been a problem before and I was hoping it would have been resolved
+by the new code.  At issue are numerous flanged gates on the ESD pFETs.
+The "fix_leak_fix" cell, which is where the errors are located, is "nearly"
+matching with the layout having an isolated and unmarked section of VDDIO.
+
+"p2g" net has two rm1 resistor ends, an ESD pfet gate (may be multiple
+devices in parallel), and one each 5V pFET and 5V nFET source/drain.
+This looks like it is the gates of the 5 pairs of ESD pfets on the top
+row except for the rightmost pair (which is "net74", see below).  If so,
+then the node is a_7678_12770#.
+
+"net74" has one rm1 resistor end, one rm2 resistor end, one ESD pfet gate,
+and one poly resistor end.  Any such net in the layout?  Looks like maybe
+the gates of the ESD pfet pair at top right.  If so, this would be
+node a_20646_12770# in sky130_fd_io__gpio_ovtv2_opath_i2c_fix_leak_fix.
+
+Therefore, find in the .ext files where a_7678_12770# is merged to PAD
+and where a_20646_12770# is merged to PAD, or where they are merged to
+each other.  Extraction doesn't match connectivity.  Connectivity selection
+is correct.
+
+If I recall correctly from before, there was an issue with the flanged
+gates shorting across gate to source, or rather the node region being
+confused between the two.  This should not happen any more, but obviously
+just did.
+
+The two nodes cited above do not appear in the top level .ext file.
+"getnode" is producing garbled crap for the prefixes in the net names
+(need to fix!) but at the top level, the suffixes on the nets are showing
+as:
+
+"net74":  a_21780_5642#
+"p2g":    m1_3189_4326#
+
+These two names are not found at the top level, either.
+The "merge" lines for PAD are found in sky130_fd_io__top_gpio_ovtv2.ext
+at lines 1468 to 1497.
+
+There is a clear issue although it doesn't appear to be exactly related
+to the problem at hand;  the PAD net is merging to nodes which are showing
+as being the gate side of a split tile while the PAD net is the source/drain
+side.
+
+A survey shows that "x#" shows up exactly nowhere in the .ext output.  So
+this might be relatively simple!  But it implies that lreg_type never has
+TT_SIDE set.  Why not?  Ech, changing something that was supposedly fixed
+already, so will have to re-check other layouts involving split regions.
+After fixing (again), nothing changed. . .
+
+Really need to fix "getnode", this is interfering with debugging.
+(Specifically, SimGetnode()).  This could be a malloc issue?
+SimSeletArea() returns TileListElt pointer. . . Where does this list
+get deallocated??  SimFreeNodeList();  bleah, it's a global variable and
+the linked list just hangs around until the routine is called again.
+Seems like this needs work and has not yet been addressed.
+See SimTreeCopyConnect(). . .
+At SimDBstuff.c:132, tpath->tp_last is the garbled part.  tp_first has the
+path that should be returned but somehow the garbled part is what's getting
+returned.  tp_last is a sentinel pointer at the end of the pathName string,
+and it should not be in the output as far as I can tell.
+SimGetNodeName() somewhere returned a bogus result.
+SimGetNodeName() was called from SimDBstuff.c:136 with bogus tpath->tp_first
+from cx->tc_filter->tf_tpath
+cx deifned at SimDBstuff.c:766 and tc_filter set to fp (= cdata).
+fp is itself a TreeFilter pointer.  and fp->tf_arg is, too?
+fp is cxp->tc_filter.
+cxp is a contact which took tf_arg from cdarg
+cdarg set at SimDBstuff.c:820 from "fp"
+fp from cdata passed to SimCellTileSrFunc
+So ultimately, tpath came from SimDBstuff.c:399.
+Maybe watch tpath.tp_first changes starting from SimDBstuff.c:366
+It changed to a bogus value in SimCellTileSrFunc() but that specific location
+appears to have been deallocated.
+Try valgrind again. . .
+Valgrind comes through. . .
+Looks like csa->csa_clientDefault needs to change to match other things I did
+with "clientDefault" in the DBconnect routines. . .  Fixed. . .
+But still no joy.
+Might be faster to parse DBconnect against SimDBstuff?  Did that, nothing obvious.
+Now valgrind shows no error but the tpath prefix is missing.  Produced garbage
+in prefix but not when running under valgrind.  Don't know why.
+
+Ugh.  Will need investigating.  Doesn't even address the current problem with
+extraction.
+
+"getnode" has issues, but maybe can debug the problem with "goto" only?
+The shorted nodes seem not to be in the merge list at all. . .
+Assuming that the .spice file is wrong, then there are two conflicting
+names in the .ext file somewhere such that nodes are effectively shorted
+without a "merge" statement.
+
+Could possibly happen between sky130_fd_io__gpio_ovtv2_opath_i2c_fix_leak_fix
+and sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix?  Actually, this is likely,
+given the issues with "getnode".
+
+Could be in sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix itself, but for
+example node a_19583_5855# has only 2 merge lines:
+
+sky130_fd_io__gpio_ovtv2_odrvr_sub_leak_fix_0/sky130_fd_io__gpio_ovtv2_pudrvr_sub_0/\
+	sky130_fd_io__gpio_ovtv2_pudrvr_strong_0/a_21780_5642#
+sky130_fd_io__gpio_ovtv2_odrvr_sub_leak_fix_0/m1_24520_7190#
+a_19583_5855#
+
+Oh, sky130_fd_io__gpio_ovtv2_opath_i2c_fix_leak_fix.ext is a mess. . .
+There is a "(none)" node in this set, among 39 "merge" entries.
+Also there are FETs drawn on top of FETs here.  Will at least produce device
+size errors.
+
+Yes, the node shorts are here.
+Debugging:  The "(none)" is returned for tp = tile at 4436, 12770, mvpmosesd
+on left side, mvpdiff on right side, dir=0.  dinfo indicates looking at the
+right side.
+
+Breaking on extSubtreeHardNode for this tile.
+lreg for this tile has ll=4436, 12488 and lreg_type has TT_SIDE.
+extSubtreeHardSearch() did nothing.  Now sets "autogen" and retries.
+
+ExtFindRegions() produced nothing.
+def is sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix
+scx_area is 3423, 6287 to 3443, 6307.
+scx_area is 3574 3773 to 3594 3793
+def is sky130_fd_io__gpio_ovtv2_pudrvr_sub
+scx_area is 579 2474 to 599 2494
+def is sky130_fd_io__gpio_ovtv2_hotswap_vpb_bias
+scx_area is 2722 9349 to 2742 9369
+...
+
+go back and check what's in the first search area.
+It's the flanged gate of the leftmost of the ESD pFETs.
+The area is an exact match to the split tile, so if it found nothing it would
+have to be because the wrong side of the tile was being searched, or the split
+was mishandled somehow.
+
+Do that again, break on ExtSubtree.c:1255 if tp->ti_ll.p_x == 4436 && tp->ti_ll.p_y == 12770.
+
+So dinfo has TT_SIDE set to 1, so it is ostensibly looking at the right side of
+the tile where the tile has pdiff (not transistor).
+
+extHierConnections() called extHierConnectFunc1() (ha_subArea = 4335 12350 5737 13752)
+From here, it is looking for connections to the right side of the tile, so that seems
+correct insofar as it goes.
+
+This is at one point hwere mvpmos is on top of mvpmosesd.  This could account for
+the (none) type since these types do not necessarily connect.  May be a red herring.
+Will instead need to do the same thing as done once previously, which is to watch
+the node merges.  Divide the (long) list of nodes into the three expected nets.
+
+The three nets are:  PAD (1), the ESD pFET gates on the right (2), and the ESD pFET gates
+on the left (3).
+
+sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix_0/a_19583_5855# (2)
+a_20646_12358# (2) (split tile, left side)
+a_20646_12770# (2)
+a_17404_12358# (2)
+
+The four nodes above are the easiest to check for because there are only
+four of them.  When they end up in the connection list with anything else,
+an error has occurred.
+
+a_20646_12488r# (1) (split tile, right side)
+a_17404_12488r# (1)
+a_14162_12488r# (1)
+a_7678_12488r# (1)
+a_4436_12488r# (1)
+a_10920_12488r# (1)
+sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix_0/a_3423_6005r# (1)
+
+sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix_0/a_1560_18645# (3)
+a_20646_12900r# (4) ???  This is net VPB_DRVR.  Now I'm very confused.
+a_17404_12770# (3)
+a_17404_12900r# (4)
+a_14162_12358# (3)
+a_14162_12770# (3)
+a_14162_12900r# (4)
+a_10920_12358# (3)
+a_10920_12770# (3)
+a_10920_12900r# (4)
+a_7678_12358# (3)
+a_7678_12770# (3)
+a_7678_12900r# (4)
+a_4436_12358# (3)
+sky130_fd_io__gpio_ovtv2_octl_dat_i2c_fix_leak_fix_0/w_2900_10961# (4)
+a_4436_12770# (3)
+a_4436_12900r# (4)
+a_20646_12146# (4)
+a_17404_12146# (4)
+a_14162_12146# (4)
+a_10920_12146# (4)
+a_7678_12146# (4)
+a_4436_12146# (4)
+sky130_fd_io__gpio_ovtv2_octl_dat_i2c_fix_leak_fix_0/w_2457_9746# (4)
+sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix_0/sky130_fd_io__gpio_ovtv2_odrvr_sub_leak_fix_0/VPB_DRVR (4)
+sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix_0/sky130_fd_io__gpio_ovtv2_odrvr_sub_leak_fix_0/sky130_fd_io__gpio_ovtv2_pudrvr_sub_0/sky130_fd_io__gpio_ovtv2_pudrvr_weak_1_0/VPB_DRVR (4)
+sky130_fd_io__gpio_ovtv2_odrvr_i2c_fix_leak_fix_0/VPB_DRVR (4)
+
+----------------
+Okay, caught it trying to merge net (2) with something:
+
+node1 length 1 "a_20646_12900r#"
+node2 length 35 (has already merged node (2) with something?  How can that be?)
+
+So run again while looking for any node from (2) appearing in either list.
+Inconclusive.  Do more string comparisons to catch another net?
+I'm so confused. . .
+
+Using net (1) looks better. . .
+node 1 length 1 "a_4436_12358#" (from net 3)
+node 2 length 3: ".../a_3423_6005r#" 	(net 1)
+		 "(none)"		(who knows?)
+		 "a_4436_12488r#"	(also net 1)
+
+Okay, then, caught magic trying to merge net 1 to net 3, ExtHier.c:693
+cum @ (4436, 12488) to (4456, 12508)
+	type mvpmos on left, type mvpdiff on right,
+	SIDE=1 so looking at mvpdiff
+ha->hierOneTile at (4436, 12508) to (5737, 12588)
+	type mvpdiff (not split)
+
+Now check these two tiles.  cum is on the leftmost flanged gate but the
+	right side points to the middle node which is (1).
+	hierOneTile is right above this so it is also (1).
+
+The mismatch is that "cum" is looking at the right side but picked up
+a node name for net3.  "cum" does not have a region associated with it,
+so it would have had to pick up this node from the hash table.
+
+Run again:
+Go up one:
+name1 = "a_4436_12358#".  How in heck did it get that name from that tile??
+extSubtreeTileToNode():  ttype = mvpdiff.  Looking in this triangle for
+a region in the original layout cell.  So for this area, extConnFindFunc()
+returned the wrong region.  Run again but be sure to break at extConnFindFunc().
+
+extConnFindFunc looks at a tile at (4436, 12488) but dinfo has SIDE 0.  Why?
+Okay, apparently DBTestNMInteract() failed.
+Make sure this is true:
+rect = (4436, 12488) to (4456 12508), ttype = TT_SIDE
+tp = (4436, 12488) to (4456, 12508),  tpdi = !TT_SIDE
+Pretty clear failure.
+Need to figure out why, but also worth considering a quick check in
+DBTestNMInteract() for the somewhat common case of the same area, same
+diagonal, which can be analyzed instantly.
+
+But for now, break on DBtiles.c:436 if tp is at 4436, 12488.
+Oh, one has the wrong direction. . .  The dinfo record is not guaranteed
+to have TT_DIRECTION.  Uh, but tt1 passed to DBTestNMInteract needs to
+have TT_DIRECTION, because there's no tile associated with it.  It
+should be, though, because DBSrPaintNMArea gets ttype.
+
+Need to check this throughout the code!  In most (many? some?) cases,
+routines are passed tile + dinfo, where dinfo is only guaranteed to
+contain TT_SIDE.  If the routine then calls DBNMPaintPlane, the
+TT_DIRECTION and TT_DIAGONAL must be set appropriately!  This may be
+wrong in more than one place! (Yes, it was.)
+
+Yet, I'm still seeing conflicting nodes.  Why?
+Looking at the .ext file, doesn't seem to have fixed a damn thing.
+Fixed an error in the diagnostic reporting, should help with the confusion.
+
+node1 length 1 "a_4436_12488r#" (1)
+node2 length 5 "...sub_leak_fix_0/PU_H_N[2]"
+		"(none)" (?!)
+		"...pudrvr_strong_0/PU_H_N[2]"
+		"...fix_leak_fix_0/PU_H_N[2]"
+		"m1_2996_14802#"
+Leading to this:
+cum : split tile at (4436, 12770) DIR=0, mvpmos on left, mvpdiff on right.
+dinfo: SIDE=1.
+ha->hierOneTile : split tile at (4436, 12770) DIR=0, hierType SIDE=1.
+But name2 = "(none)".  "(none)" is causing the crossover.  "(none)"
+is being caused by the improper type overlays but should not be used to
+find a net.
+
+That helped a lot, but I'm still getting one conflicting node message.
+
+node1 length 1 "a_17404_12358#" (2)
+node2 length 10 "...i2c_fix_leak_fix_0/a_1560_18645#" (3)
+		"a_17404_12770#" (3)
+Leading to this:
+cum : split tile at (17404, 12488) to (17424, 12508)
+DIR=1, mvpmos on left, mvpdiff on right.
+dinfo: SIDE=0 (looking at mvpmos)
+ha->hierOneTile : poly at (17262, 12484) to (17404, 12508)
+
+name1 seems not right for tile cum.  Take a look on the layout:
+"cum" is not even close to net (2).  That might be my own clerical error.
+
+Oh, my, I got an LVS match!!!
+
+
