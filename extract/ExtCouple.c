@@ -1082,6 +1082,18 @@ extAddCouple(bp, ecs)
     extSidewallStruct esws;
     int distFringe;
 
+    /* Non-Manhattan boundaries are not handled.  This is
+     * future work to be done.
+     */
+    switch (bp->b_direction)
+    {
+	case BD_NW:
+	case BD_NE:
+	case BD_SW:
+	case BD_SE:
+	    return 0;
+    }
+
     /* Get the types on the inside and outside of the boundary */
     extGetBoundaryTypes(bp, &tin, &tout);
 
@@ -1174,7 +1186,7 @@ extAddCouple(bp, ecs)
 			extSideBottom, bp, &esws);
 	    break;
     }
-    return (0);
+    return 0;
 }
 
 /*

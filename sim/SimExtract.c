@@ -135,10 +135,10 @@ SimAddDefList(
 	return;
     }
     else {
-	d = (DefListElt *) mallocMagic((unsigned) (sizeof(DefListElt)));
+	d = (DefListElt *)mallocMagic((unsigned) (sizeof(DefListElt)));
 	d->dl_next = DefList;
 	d->dl_def = newdef;
-	DefList= d;
+	DefList = d;
     }
 }
 
@@ -250,12 +250,15 @@ SimInitConnTables(void)
     TTMaskZero(&SimSDMask);
     for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
     {
-	devptr = ExtCurStyle->exts_device[t];
-	for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
-			TT_SPACE); i++)
+	for (devptr = ExtCurStyle->exts_device[t]; devptr;
+			devptr = devptr->exts_next)
 	{
-	     TTMaskSetMask(&SimSDMask, &devptr->exts_deviceSDTypes[i]);
-	     TTMaskZero(&SimFetMask[t]);
+	    for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
+			TT_SPACE); i++)
+	    {
+	        TTMaskSetMask(&SimSDMask, &devptr->exts_deviceSDTypes[i]);
+	        TTMaskZero(&SimFetMask[t]);
+	    }
 	}
     }
 
@@ -264,16 +267,19 @@ SimInitConnTables(void)
     {
 	if (TTMaskHasType(&SimTransMask, t))
 	{
-	    devptr = ExtCurStyle->exts_device[t];
-	    for (sd = TT_TECHDEPBASE; sd < DBNumTypes; sd++)
+	    for (devptr = ExtCurStyle->exts_device[t]; devptr;
+			devptr = devptr->exts_next)
 	    {
-		for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
-				TT_SPACE); i++)
+		for (sd = TT_TECHDEPBASE; sd < DBNumTypes; sd++)
 		{
-		    if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], sd))
+		    for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
+				TT_SPACE); i++)
 		    {
-			TTMaskSetType(&SimFetMask[sd], t);
-			SimFetPlanes |= PlaneNumToMaskBit(DBPlane(t));
+			if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], sd))
+			{
+			    TTMaskSetType(&SimFetMask[sd], t);
+			    SimFetPlanes |= PlaneNumToMaskBit(DBPlane(t));
+			}
 		    }
 		}
 	    }
@@ -354,7 +360,7 @@ SimTxtorLabel(
     r1.r_ll = trans->t_ll;
     r1.r_xtop = r1.r_xbot + 1;
     r1.r_ytop = r1.r_ybot + 1;
-    GeoTransRect( tm, &r1, &r2 );
+    GeoTransRect(tm, &r1, &r2);
     if (nterm > 1)
 	nterm = 1;
     sprintf(name, "@=%c%d,%d", "gsd"[nterm+1], r2.r_xbot, r2.r_ybot);
@@ -382,7 +388,7 @@ SimTransTerms(
     TransTerm	*term;
     Tile	*tile = bp->b_outside;
     TileType	type;
-    NodeRegion	*reg = (NodeRegion *) TiGetClientPTR(tile);
+    NodeRegion	*reg = (NodeRegion *)TiGetClientPTR(tile);
     int		pNum;
     int		i;
 
@@ -400,6 +406,10 @@ SimTransTerms(
 	    case BD_BOTTOM:
 		type = TiGetTopType(tile);
 		break;
+	    default:
+		/* Don't handle diagonal tiles */
+		/* (future work?) */
+		return 0;
 	}
     }
     else
@@ -407,33 +417,33 @@ SimTransTerms(
 
     pNum = DBPlane(type);
 
-    for( i = 0; i < trans->t_nterm; i++ )
+    for (i = 0; i < trans->t_nterm; i++)
     {
 	term = &trans->t_term[i];
-	if( term->region == reg )
+	if (term->region == reg)
 	{
-	    if( pNum < term->pnum )
+	    if (pNum < term->pnum)
 	    {
 		term->pnum = pNum;
 		term->pos = tile->ti_ll;
 	    }
-	    else if( pNum == term->pnum )
+	    else if (pNum == term->pnum)
 	    {
-		if( LEFT(tile) < term->pos.p_x )
+		if (LEFT(tile) < term->pos.p_x)
 		    term->pos = tile->ti_ll;
-		else if( LEFT(tile) == term->pos.p_x &&
-		  BOTTOM(tile) < term->pos.p_y )
+		else if (LEFT(tile) == term->pos.p_x &&
+			BOTTOM(tile) < term->pos.p_y)
 		    term->pos.p_y = BOTTOM(tile);
 	    }
-	    return( 0 );
+	    return 0;
 	}
     }
 
-    term = &trans->t_term[ trans->t_nterm++ ];
+    term = &trans->t_term[trans->t_nterm++];
     term->region = reg;
     term->pnum = pNum;
     term->pos = tile->ti_ll;
-    return( 0 );
+    return 0;
 }
 
 
@@ -448,18 +458,18 @@ SimTermNum(
     do
     {
 	changed = 0;
-	for( i = 0; i < trans->t_nterm-1; i++ )
+	for (i = 0; i < trans->t_nterm-1; i++)
 	{
 	    p1 = &(trans->t_term[i]);
 	    p2 = &(trans->t_term[i+1]);
-	    if( p2->pnum > p1->pnum )
+	    if (p2->pnum > p1->pnum)
 		continue;
-	    else if( p2->pnum == p1->pnum )
+	    else if (p2->pnum == p1->pnum)
 	    {
-		if( p2->pos.p_x > p1->pos.p_x )
+		if (p2->pos.p_x > p1->pos.p_x)
 		    continue;
-		else if( p2->pos.p_x == p1->pos.p_x &&
-		  p2->pos.p_y > p1->pos.p_y )
+		else if (p2->pos.p_x == p1->pos.p_x &&
+			p2->pos.p_y > p1->pos.p_y)
 		    continue;
 	    }
 	    changed = 1;
@@ -468,17 +478,15 @@ SimTermNum(
 	    *p2 = tmp;
 	}
      }
-     while( changed );
+     while (changed);
 
-    for( i = 0; i < trans->t_nterm; i++ )
+    for (i = 0; i < trans->t_nterm; i++)
     {
-	if( trans->t_term[i].region == reg )
-	    return( i );
+	if (trans->t_term[i].region == reg)
+	    return i;
     }
-	/* should never get here */
-    return( -1 );
+    return -1;	/* not reached */
 }
-
 
 int
 SimTransistorTile(
@@ -499,10 +507,9 @@ SimTransistorTile(
 	for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
 			TT_SPACE); i++)
 	    extEnumTilePerim(tile, dinfo, &devptr->exts_deviceSDTypes[i],
-			pNum, SimTransTerms, (ClientData) &transistor );
+			pNum, SimTransTerms, (ClientData)&transistor);
     }
-
-    return (0);
+    return 0;
 }
 
 
@@ -526,7 +533,7 @@ SimFindTxtor(
     {
 	gateTile = tile;	/* found a transistor gate, stop searching */
 	gateDinfo = dinfo;
-	return( 1 );
+	return 1;
     }
     else if (IsTransTerm(type) && (sdTile == (Tile *)NULL))
     {
@@ -630,7 +637,7 @@ SimFindOneNode(
 	arg.fra_each = (int (*)()) NULL;
 	(void) ExtFindNeighbors(tile, dinfo, arg.fra_pNum, &arg);
 
-	freeMagic( reg );
+	freeMagic(reg);
 
 	ret.nd_name = SimTxtorLabel(-1, &sx->scx_trans, &transistor);
 	ret.nd_what = ND_NAME;

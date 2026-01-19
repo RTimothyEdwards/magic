@@ -296,16 +296,27 @@ typedef struct
     int		 b_plane;	/* extract argument for extSideOverlap   */
 } Boundary;
 
+/* Define Manhattan boundary length */
+
 #define	BoundaryLength(bp) \
 	((bp)->b_segment.r_xtop - (bp)->b_segment.r_xbot \
     +    (bp)->b_segment.r_ytop - (bp)->b_segment.r_ybot)
 
 /* Directions in which we can be following the boundary of a perimeter	*/
 
-#define	BD_LEFT		1	/* Inside is to right */
-#define	BD_TOP		2	/* Inside is below */
-#define	BD_RIGHT	4	/* Inside is to left */
-#define	BD_BOTTOM	8	/* Inside is above */
+#define	BD_LEFT		0x01	/* Inside is to right */
+#define	BD_TOP		0x02	/* Inside is below */
+#define	BD_RIGHT	0x04	/* Inside is to left */
+#define	BD_BOTTOM	0x08	/* Inside is above */
+
+/* Non-manhattan boundary directions.  Inside is in the
+ * direction indicated (e.g., BD_NW, inside is top left)
+ */
+#define BD_NW		0x10	/* TT_SIDE = 0 TT_DIR = 0 */
+#define BD_SW		0x20	/* TT_SIDE = 0 TT_DIR = 1 */
+#define BD_SE		0x40	/* TT_SIDE = 1 TT_DIR = 0 */
+#define BD_NE		0x80	/* TT_SIDE = 1 TT_DIR = 1 */
+
 
 /* -------- Yank buffers for hierarchical and array extraction -------- */
 

@@ -3350,7 +3350,22 @@ ExtTechLine(sectionName, argc, argv)
 		}
 		else
 		{
-		    TxError("Resist argument must be integer or \"None\".\n");
+		    char *decimal;
+
+		    if ((decimal = strchr(argv[2], '.')) != NULL)
+		    {
+			*decimal = '\0';
+			if (StrIsInt(argv[2]))
+			{
+			    resVal = aToRes(argv[2]);
+			    if (strcmp(decimal + 1, "0"))
+				TxError("Resist argument truncated to integer value.\n");
+			}
+			else
+			    TxError("Unparseable resist argument \"%s\"\n", argv[2]);
+		    }
+		    else
+			TxError("Resist argument must be integer or \"None\".\n");
 		    break;
 		}
 	    }

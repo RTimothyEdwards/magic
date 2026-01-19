@@ -46,9 +46,9 @@
 #include "utils/styles.h"
 #include "graphics/graphics.h"
 
-
-static char 		bestName[256];
-
+/* NOTE:  This should not be a global variable. . . */
+#define MAXPATHNAME 1024
+static char bestName[MAXPATHNAME];
 
 /*
  * ----------------------------------------------------------------------------
@@ -310,8 +310,6 @@ SimConnectFunc(
  * ----------------------------------------------------------------------------
  */
 
-#define MAXPATHNAME 256
-
 void
 SimTreeCopyConnect(
     SearchContext *scx,			/* Describes starting area.  The
@@ -341,11 +339,7 @@ SimTreeCopyConnect(
 					 * anything connected to material of
 					 * type mask in area of rootUse.
 					 */
-    char *Node_Name)			/* Name of node returned.
-					 * NOTE:  Don't call this "NodeName",
-					 * because that conflicts with reserved
-					 * words in some compilers.
-					 */
+    char *Node_Name)			/* Name of node returned. */
 {
     TerminalPath tpath;
     char pathName[MAXPATHNAME];
@@ -775,8 +769,8 @@ SimCellTileSrFunc(
 	tp = fp->tf_tpath;
 	tnext = tp->tp_next;
 	tp->tp_next = DBPrintUseId(scx, tp->tp_next, tp->tp_last -
-		tp->tp_next, FALSE);
-	if (tp->tp_next < tp->tp_last)
+		tp->tp_next - 1, FALSE);
+	if (tp->tp_next < tp->tp_last - 1)
 	{
 	    *(tp->tp_next++) = '/';
 	    *(tp->tp_next) = '\0';

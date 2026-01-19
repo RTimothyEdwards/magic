@@ -1221,7 +1221,7 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
     int i, j, p, jmax;
     LinkedBoundary *lb, *lb2;
     int oppdir, length, loclength, testlen, width;
-    int locwidth, testwid, cornerw;
+    int locwidth, testwid, cornerw, nmlen;
     int segp, segn, segc, sege;
     bool isComplex = FALSE;
 
@@ -1268,8 +1268,7 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
 	    case BD_RIGHT:  oppdir = BD_LEFT;   break;
 	    case BD_TOP:    oppdir = BD_BOTTOM; break;
 	    case BD_BOTTOM: oppdir = BD_TOP;    break;
-	    default:        ASSERT(FALSE, "oppdir"); /* should never happen */
-	                    oppdir = 0;         break;
+	    default:	    continue;		break;
 	}
 
 	/* First pass: Find the distance of the closest segment within	*/
@@ -1470,6 +1469,32 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
 	}
 	width += locwidth;
     }
+
+    /* Add in the width of the sum of all non-Manhattan segments.	*/
+    /* This is an approximation that works for beveled corners on	*/
+    /* annular devices and may not work so well elsewhere.  May need	*/
+    /* revisiting.							*/
+
+    nmlen = 0;
+    for (i = 0; i < numregions; i++)
+    {
+	for (lb = extSpecialBounds[i]; lb != NULL; lb = lb->b_next)
+	{
+	    if (lb->dir & (BD_NW | BD_NE | BD_SW | BD_SE))
+	    {
+		double asq, bsq;
+
+		/* Do not process non-Manhattan segments other than to sum
+		 * their total length.
+		 */
+		asq = (double)(lb->r.r_xtop - lb->r.r_xbot);
+		bsq = (double)(lb->r.r_ytop - lb->r.r_ybot);
+		nmlen += (int)(0.5 + sqrt(asq * asq + bsq * bsq));
+	    }
+	}
+    }
+    width += nmlen;
+
     if ((length > 0) && (width > 0))
     {
 	*rlengthptr = length;
@@ -3627,9 +3652,12 @@ extTermAPFunc(tile, dinfo,  eapd)
     TileType type, tpdi;
     Tile *tp;
     Rect r;
+    int area, sides;
+    ExtRegion *nreg;
 
     TiToRect(tile, &r);
-    eapd->eapd_area += (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    sides = 0;
 
     /* Diagonal */
     if (IsSplit(tile))
@@ -3640,7 +3668,28 @@ extTermAPFunc(tile, dinfo,  eapd)
 	h = TOP(tile) - BOTTOM(tile);
 	l = w * w + h * h;
 	eapd->eapd_perim += (int)sqrt((double)l);
+	eapd->eapd_area += area / 2;
+
+	/* Mark which sides do not add to the perimeter */
+	if (dinfo & TT_SIDE)
+	{
+	    sides |= BD_LEFT;
+	    if (SplitDirection(tile))
+		sides |= BD_BOTTOM;
+	    else
+		sides |= BD_TOP;
+	}
+	else
+	{
+	    sides |= BD_RIGHT;
+	    if (SplitDirection(tile))
+		sides |= BD_TOP;
+	    else
+		sides |= BD_BOTTOM;
+	}
     }
+    else
+	eapd->eapd_area += area;
 
     /* Top */
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
@@ -3649,11 +3698,17 @@ extTermAPFunc(tile, dinfo,  eapd)
 	tpdi = SplitDirection(tp) ? (TileType)0 : (TileType)TT_SIDE;
 	if (TTMaskHasType(&eapd->eapd_mask, type))
 	{
-	    eapd->eapd_perim += MIN(RIGHT(tile), RIGHT(tp)) -
+	    if (!(sides & BD_TOP))
+		eapd->eapd_perim += MIN(RIGHT(tile), RIGHT(tp)) -
 			MAX(LEFT(tile), LEFT(tp));
 	    if (TTMaskHasType(eapd->eapd_gatemask, type))
-		if ((NodeRegion *)ExtGetRegion(tp, tpdi) != eapd->eapd_gatenode)
+	    {
+		nreg = ExtGetRegion(tp, tpdi);
+		if (((ClientData)nreg != CLIENTDEFAULT) &&
+			((ClientData)nreg != VISITPENDING) &&
+			((NodeRegion *)nreg != eapd->eapd_gatenode))
 		    extAddSharedDevice(eapd, (NodeRegion *)ExtGetRegion(tp,tpdi));
+	    }
 	}
     }
 
@@ -3664,11 +3719,17 @@ extTermAPFunc(tile, dinfo,  eapd)
 	tpdi = SplitDirection(tp) ? (TileType)TT_SIDE : (TileType)0;
 	if (TTMaskHasType(&eapd->eapd_mask, type))
 	{
-	    eapd->eapd_perim += MIN(RIGHT(tile), RIGHT(tp)) -
+	    if (!(sides & BD_BOTTOM))
+		eapd->eapd_perim += MIN(RIGHT(tile), RIGHT(tp)) -
 			MAX(LEFT(tile), LEFT(tp));
 	    if (TTMaskHasType(eapd->eapd_gatemask, type))
-		if ((NodeRegion *)ExtGetRegion(tp, tpdi) != eapd->eapd_gatenode)
+	    {
+		nreg = ExtGetRegion(tp, tpdi);
+		if (((ClientData)nreg != CLIENTDEFAULT) &&
+			((ClientData)nreg != VISITPENDING) &&
+			((NodeRegion *)nreg != eapd->eapd_gatenode))
 		    extAddSharedDevice(eapd, (NodeRegion *)ExtGetRegion(tp,tpdi));
+	    }
 	}
     }
 
@@ -3679,11 +3740,17 @@ extTermAPFunc(tile, dinfo,  eapd)
 	tpdi = (TileType)TT_SIDE;
 	if (TTMaskHasType(&eapd->eapd_mask, type))
 	{
-	    eapd->eapd_perim += MIN(TOP(tile), TOP(tp)) -
+	    if (!(sides & BD_LEFT))
+		eapd->eapd_perim += MIN(TOP(tile), TOP(tp)) -
 			MAX(BOTTOM(tile), BOTTOM(tp));
 	    if (TTMaskHasType(eapd->eapd_gatemask, type))
-		if ((NodeRegion *)ExtGetRegion(tp, tpdi) != eapd->eapd_gatenode)
+	    {
+		nreg = ExtGetRegion(tp, tpdi);
+		if (((ClientData)nreg != CLIENTDEFAULT) &&
+			((ClientData)nreg != VISITPENDING) &&
+			((NodeRegion *)nreg != eapd->eapd_gatenode))
 		    extAddSharedDevice(eapd, (NodeRegion *)ExtGetRegion(tp,tpdi));
+	    }
 	}
     }
 
@@ -3694,11 +3761,17 @@ extTermAPFunc(tile, dinfo,  eapd)
 	tpdi = (TileType)0;
 	if (TTMaskHasType(&eapd->eapd_mask, type)) 
 	{
-	    eapd->eapd_perim += MIN(TOP(tile), TOP(tp)) -
+	    if (!(sides & BD_RIGHT))
+		eapd->eapd_perim += MIN(TOP(tile), TOP(tp)) -
 			MAX(BOTTOM(tile), BOTTOM(tp));
 	    if (TTMaskHasType(eapd->eapd_gatemask, type))
-		if ((NodeRegion *)ExtGetRegion(tp, tpdi) != eapd->eapd_gatenode)
+	    {
+		nreg = ExtGetRegion(tp, tpdi);
+		if (((ClientData)nreg != CLIENTDEFAULT) &&
+			((ClientData)nreg != VISITPENDING) &&
+			((NodeRegion *)nreg != eapd->eapd_gatenode))
 		    extAddSharedDevice(eapd, (NodeRegion *)ExtGetRegion(tp,tpdi));
+	    }
 	}
     }
 }
@@ -3749,6 +3822,11 @@ extTransPerimFunc(bp)
 	    case BD_BOTTOM:
 		tinside = TiGetBottomType(tile);
 		break;
+	    default:
+		/* Non-Manhattan boundaries not handled.
+		 * Future work to be done.
+		 */
+		return 0;
 	}
     }
     else
@@ -4126,8 +4204,8 @@ extSpecialPerimFunc(bp, sense)
     Boundary *bp;
     bool sense;
 {
-    TileType tinside, toutside;
-    NodeRegion *termNode = (NodeRegion *) ExtGetRegion(bp->b_outside, (TileType)0);
+    TileType tinside, toutside, termdinfo;
+    NodeRegion *termNode;
     int thisterm, extended, i;
     LinkedBoundary *newBound, *lb, *lastlb;
     ExtDevice *devptr;
@@ -4139,15 +4217,20 @@ extSpecialPerimFunc(bp, sense)
     /* most cases this will be only a slight deviation from the true	*/
     /* result.								*/
 
+    termdinfo = TiGetTypeExact(bp->b_outside);
+
     switch (bp->b_direction)
     {
 	case BD_TOP:
 	    tinside = TiGetTopType(bp->b_inside);
 	    toutside = TiGetBottomType(bp->b_outside);
+	    if (IsSplit(bp->b_outside) && !SplitDirection(bp->b_outside))
+		termdinfo |= TT_SIDE;
 	    break;
 	case BD_BOTTOM:
 	    tinside = TiGetBottomType(bp->b_inside);
 	    toutside = TiGetTopType(bp->b_outside);
+	    if (SplitDirection(bp->b_outside)) termdinfo |= TT_SIDE;
 	    break;
 	case BD_RIGHT:
 	    tinside = TiGetRightType(bp->b_inside);
@@ -4156,8 +4239,28 @@ extSpecialPerimFunc(bp, sense)
 	case BD_LEFT:
 	    tinside = TiGetLeftType(bp->b_inside);
 	    toutside = TiGetRightType(bp->b_outside);
+	    termdinfo |= TT_SIDE;
+	    break;
+	case BD_NW:
+	    tinside = TiGetLeftType(bp->b_inside);
+	    toutside = TiGetRightType(bp->b_outside);
+	    termdinfo |= TT_SIDE;
+	    break;
+	case BD_SW:
+	    tinside = TiGetLeftType(bp->b_inside);
+	    toutside = TiGetRightType(bp->b_outside);
+	    termdinfo |= TT_SIDE;
+	    break;
+	case BD_NE:
+	    tinside = TiGetRightType(bp->b_inside);
+	    toutside = TiGetLeftType(bp->b_outside);
+	    break;
+	case BD_SE:
+	    tinside = TiGetRightType(bp->b_inside);
+	    toutside = TiGetLeftType(bp->b_outside);
 	    break;
     }
+    termNode = (NodeRegion *) ExtGetRegion(bp->b_outside, termdinfo);
 
     /* Required to use the same device record that was used to find */
     /* the terminals.						    */
@@ -4225,7 +4328,11 @@ extSpecialPerimFunc(bp, sense)
 
 	/*
 	 * Check the existing segment list to see if this segment
-	 * extends an existing segment.
+	 * extends an existing segment.  If so, then increase the
+	 * length of the existing segment to cover the new one.
+	 * Then check if the segment joins two other segments.
+	 * If so, then all three segments get merged into one.
+	 * Otherwise, add the new segment to the segment list.
 	 */
 
 	extended = 0;
@@ -4283,6 +4390,10 @@ extSpecialPerimFunc(bp, sense)
 			    }
 			}
 			break;
+
+		    /* To do:  Handle joining of non-Manhattan
+		     * segments in the same direction.
+		     */
 		}
 	    }
 	    if (extended == 2)

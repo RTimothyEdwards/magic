@@ -80,6 +80,7 @@ static SimDefListElt *SimCellLabList = (SimDefListElt *) NULL;
 typedef struct TLE {
     const char *tl_nodeName;
     Tile *tl_nodeTile;
+    TileType tl_dinfo;
     const char *tl_simLabel;
     struct TLE *tl_next;
 } TileListElt;
@@ -396,21 +397,23 @@ SimSelectFunc(
 	if (TTMaskHasType(&mask, type)) break;
     }
 
+    nameBuff[0] = '\0';
     nodeName = SimSelectNode(&scx, type, CU_DESCEND_ALL, nameBuff);
 
     /* add the node name to the list only if it has not been seen yet */
 
     coord = (nodeName[0] == '@' && nodeName[1] == '=') ? TRUE : FALSE;
 
-    if(coord || HashLookOnly(&SimNodeNameTbl, nodeName) == (HashEntry *) NULL)
+    if (coord || HashLookOnly(&SimNodeNameTbl, nodeName) == (HashEntry *) NULL)
     {
-	if( ! coord )
+	if (! coord)
 	    HashFind(&SimNodeNameTbl, nodeName);
 	newNodeTile = (TileListElt *) mallocMagic((unsigned) (sizeof (TileListElt)));
 	char *tmp = (char *) mallocMagic((unsigned) (strlen(nodeName) + 1));
 	strcpy(tmp, nodeName);
 	newNodeTile->tl_nodeName = tmp;  /* assign to const */
 	newNodeTile->tl_nodeTile = tile;
+	newNodeTile->tl_dinfo = dinfo;
 	newNodeTile->tl_next = *pHead;
 	*pHead = newNodeTile;
     }

@@ -97,15 +97,18 @@ extEnumTilePerim(
     b.b_plane = pNum;
     perimCorrect = 0;
 
-    /* Diagonal */
     if (IsSplit(tpIn))
     {
-	/* Determine which two sides need to be searched and set the corresponding
-	 * boundary direction bit in "sides".  "dinfo" determines which side of the
-	 * split tile is considered "inside" the boundary and which is "outside".
+	/* Handle a diagonal boundary across a split tile.
+	 * "dinfo" determines which side of the split tile is considered "inside" the
+	 * boundary and which is "outside".  Invoke the callback function for the
+	 * diagonal, then determine which two sides don't need to be searched and
+	 * set the corresponding boundary direction bit in "sides".
 	 */
+
 	TileType otype = (dinfo & TT_SIDE) ? SplitLeftType(tpIn): SplitRightType(tpIn);
 	TileType itype = (dinfo & TT_SIDE) ? SplitRightType(tpIn): SplitLeftType(tpIn);
+
 	if (TTMaskHasType(&mask, otype))
 	{
 	    int width = RIGHT(tpIn) - LEFT(tpIn);
@@ -113,6 +116,30 @@ extEnumTilePerim(
 	    perimCorrect = width * width + height * height;
 	    perimCorrect = (int)sqrt((double)perimCorrect);
 	}
+
+	/* Invoke the callback function on diagonal boundaries */
+
+	b.b_outside = tpIn;	/* Same tile on both sides of the boundary */
+	TiToRect(tpIn, &b.b_segment);
+	
+	if (SplitDirection(tpIn))
+	{
+	    if (dinfo & TT_SIDE)
+		b.b_direction = BD_NE;
+	    else
+		b.b_direction = BD_SW;
+	}
+	else
+	{
+	    if (dinfo & TT_SIDE)
+		b.b_direction = BD_SE;
+	    else
+		b.b_direction = BD_NW;
+	}
+	if (func) (*func)(&b, cdata);
+
+	/* Flag which two sides of the tile don't need searching */
+
 	sides = (dinfo & TT_SIDE) ? BD_LEFT : BD_RIGHT;
 	sides |= (((dinfo & TT_SIDE) ? 1 : 0) == SplitDirection(tpIn)) ?
 		BD_BOTTOM : BD_TOP;

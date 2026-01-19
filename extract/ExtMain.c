@@ -1008,6 +1008,8 @@ extExtractStack(stack, doExtract, rootDef)
 		    newsl->sl_next = sl;
 		    sl = newsl;
 		}
+		else
+		    def->cd_flags &= ~CDNOEXTRACT; 
 		
 		errorcnt += extNumErrors;
 		warnings += extNumWarnings;
@@ -1019,6 +1021,8 @@ extExtractStack(stack, doExtract, rootDef)
 		TxFlush();
 		first = FALSE;
 	    }
+	    else
+		def->cd_flags &= ~CDNOEXTRACT; 
 	}
     }
 
