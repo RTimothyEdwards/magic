@@ -1,0 +1,34 @@
+Second major code overhaul of 2026
+-----------------------------------------
+Implement the planned changes to "extresist":
+
+(1) Remove the .sim format as a requirement.
+    extresist will get its node list from doing
+    a standard extraction (extFindNodes() or
+    ExtFindRegions(), whichever is appropriate.
+    This should be able to be done as a relatively
+    simple change, allowing "extresist" to be used
+    without doing "ext2sim" as part of the process.
+
+(2) Move extresist into the "extract" code.
+    "extresist" will become a command "extract do
+    extresist" and "ext2spice extresist on|off"
+    will determine if split nodes and terminals
+    are kept apart in the final netlist or
+    aggregated---Exactly as capacitance is done
+    now.
+
+    Need to figure out how "tile junk" client data
+    and extract client data can exist simultaneously.
+
+    "extresist" will run within "extBasic", being
+    called on a node after the devices and nodes are
+    identified;  nodes created by ExtFindRegions()
+    will get sub-divided into more nodes.  The
+    difficult case will be where a single tile gets
+    multiple nodes (such as where other wires branch
+    off the tile in the up or down direction).  Maybe
+    this can be done like ClientData for split tiles,
+    with an indicator bit in ti_body?
+    
+-----------------------------------------------------
