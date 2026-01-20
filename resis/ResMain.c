@@ -41,7 +41,6 @@ int			ResTileCount = 0;	/* Number of tiles rn_status */
 extern ExtRegion 	*ResFirst();
 extern Tile		*FindStartTile();
 extern int		ResEachTile();
-extern int		ResLaplaceTile();
 extern ResSimNode	*ResInitializeNode();
 TileTypeBitMask		ResSDTypesBitMask;
 TileTypeBitMask		ResSubTypesBitMask;
@@ -361,6 +360,14 @@ ResAddBreakpointFunc(tile, dinfo, node)
     if (TiGetClient(tile) == CLIENTDEFAULT)
 	return 0;
 
+    /* To simplify processing, if a split tile does not have TT_SPACE
+     * on either side, then only the left side is processed.
+     */
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
     NEWPORT(node, tile);
 
     return 0;
@@ -421,7 +428,7 @@ ResFindNewContactTiles(contacts)
 #endif
 
 	    if ((IsSplit(tile) && TTMaskHasType(&mask, TiGetRightType(tile)))
-			|| TTMaskHasType(&mask, TiGetType(tile)))
+			|| TTMaskHasType(&mask, TiGetLeftType(tile)))
 	    {
 		tileJunk *j = (tileJunk *)TiGetClientPTR(tile);
 		cElement *ce;
@@ -497,18 +504,13 @@ ResProcessTiles(goodies, origin)
     resNode	*resptr;
     int		(*tilefunc)();
 
-#ifdef LAPLACE
-    tilefunc = (ResOptionsFlags & ResOpt_DoLaplace) ? ResLaplaceTile : ResEachTile;
-#else
-    tilefunc = ResEachTile;
-#endif
-
     if (ResOptionsFlags & ResOpt_Signal)
     {
         startTile = FindStartTile(goodies, origin);
-        if (startTile == NULL) return(1);
+        if (startTile == NULL)
+	    return 1;
 	resCurrentNode = NULL;
-	(void) (*tilefunc)(startTile, origin);
+	(void) ResEachTile(startTile, origin);
     }
 #ifdef ARIEL
     else if (ResOptionsFlags & ResOpt_Power)
@@ -550,7 +552,7 @@ ResProcessTiles(goodies, origin)
 			RES_TILE_DONE) == 0)
 	    {
 	        resCurrentNode = fix->fp_node;
-	      	(void) (*tilefunc)(tile, (Point *)NULL);
+		(void) ResEachTile(startile, (Point *)NULL);
 	    }
 	}
     }
@@ -590,7 +592,7 @@ ResProcessTiles(goodies, origin)
 		    if ((j->tj_status & RES_TILE_DONE) == 0)
 		    {
 			resCurrentNode = resptr2;
-			merged |= (*tilefunc)(tile, (Point *)NULL);
+			merged |= ResEachTile(tile, (Point *)NULL);
 		    }
 		    if (merged & ORIGIN) break;
 		}
@@ -619,7 +621,7 @@ ResProcessTiles(goodies, origin)
 			if (cp->cp_cnode[tilenum] == resptr2)
 			{
 			    resCurrentNode = resptr2;
-			    merged |= (*tilefunc)(tile,(Point *)NULL);
+			    merged |= ResEachTile(tile, (Point *)NULL);
 			}
 			else
 			{
@@ -699,28 +701,28 @@ ResCalcPerimOverlap(tile, dev)
     /* left */
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
     {
-	if TTMaskHasType(omask, TiGetType(tp))
+	if TTMaskHasType(omask, TiGetRightType(tp))
 	    overlap += MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
     }
 
     /* right */
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
     {
-	if TTMaskHasType(omask, TiGetType(tp))
+	if TTMaskHasType(omask, TiGetLeftType(tp))
 	    overlap += MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
     }
 
     /* top */
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
     {
-	if TTMaskHasType(omask, TiGetType(tp))
+	if TTMaskHasType(omask, TiGetBottomType(tp))
 	    overlap += MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
     }
 
     /* bottom */
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
     {
-	if TTMaskHasType(omask, TiGetType(tp))
+	if TTMaskHasType(omask, TiGetTopType(tp))
 	      overlap += MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
     }
     dev->overlap += overlap;
@@ -750,6 +752,14 @@ resMakeDevFunc(tile, dinfo, cx)
     ResDevTile	*thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
     Rect	devArea;
     TileType	ttype;
+ 
+    /* To simplify processing, if a split tile does not have TT_SPACE
+     * on either side, then only the left side is processed.
+     */
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
 
     TiToRect(tile, &devArea);
     GeoTransRect(&cx->tc_scx->scx_trans, &devArea, &thisDev->area);
@@ -796,6 +806,11 @@ resMakeDevFunc(tile, dinfo, cx)
 
 #define DEV_PROCESSED 1
 
+#define IGNORE_LEFT	1
+#define IGNORE_RIGHT	2
+#define IGNORE_TOP	4
+#define IGNORE_BOTTOM	8
+
 int
 resExpandDevFunc(tile, dinfo, cx)
     Tile	*tile;
@@ -811,6 +826,14 @@ resExpandDevFunc(tile, dinfo, cx)
     int pNum;
     Rect area;
 
+    /* To simplify processing, if a split tile does not have TT_SPACE
+     * on either side, then only the left side is processed.
+     */
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
     pNum = DBPlane(thisDev->type);
     if (devExtentsStack == NULL)
 	devExtentsStack = StackNew(8);
@@ -822,12 +845,37 @@ resExpandDevFunc(tile, dinfo, cx)
 
     while (!StackEmpty(devExtentsStack))
     {
+	int sides = 0;
+	TileType dinfo = (TileType)0;
+
 	tp = (Tile *) STACKPOP(devExtentsStack);
 	STACKPUSH((ClientData)tp, devResetStack);
 	TiToRect(tp, &area);
 
+	if (IsSplit(tp))
+	{
+	    dinfo = TiGetTypeExact(tp);
+	    if (TiGetLeftType(tp) == TT_SPACE)
+	    {
+		dinfo |= TT_SIDE;	/* Look at tile right side */
+		sides |= IGNORE_LEFT;
+		if (SplitDirection(tp))
+		    sides |= IGNORE_BOTTOM;
+		else
+		    sides |= IGNORE_TOP;
+	    }
+	    else	/* Look at tile left side */
+	    {
+		sides |= IGNORE_RIGHT;
+		if (SplitDirection(tp))
+		    sides |= IGNORE_TOP;
+		else
+		    sides |= IGNORE_BOTTOM;
+	    }
+	}
+
 	/* Paint type thisDev->type into ResUse over area of tile "tp" */
-	DBNMPaintPlane(ResUse->cu_def->cd_planes[pNum], TiGetTypeExact(tp),
+	DBNMPaintPlane(ResUse->cu_def->cd_planes[pNum], dinfo,
 		&area, DBStdPaintTbl(thisDev->type, pNum), (PaintUndoInfo *)NULL);
 
 	/* Add source/drain perimeter overlap to the device for this tile */
@@ -838,56 +886,60 @@ resExpandDevFunc(tile, dinfo, cx)
 	/* device type.							*/
 
 	/* top */
-	for (tp2 = RT(tp); RIGHT(tp2) > LEFT(tp); tp2 = BL(tp2))
-	{
-	    if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
-	    ttype = TiGetBottomType(tp2);
-	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
-		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+	if (!(sides & IGNORE_TOP))
+	    for (tp2 = RT(tp); RIGHT(tp2) > LEFT(tp); tp2 = BL(tp2))
 	    {
-		TiSetClientINT(tp2, DEV_PROCESSED);
-		STACKPUSH((ClientData)tp2, devExtentsStack);
+		if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
+		ttype = TiGetBottomType(tp2);
+		if ((ttype == thisDev->type) || (DBIsContact(ttype)
+			&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+		{
+		    TiSetClientINT(tp2, DEV_PROCESSED);
+		    STACKPUSH((ClientData)tp2, devExtentsStack);
+		}
 	    }
-	}
 
 	/* bottom */
-	for (tp2 = LB(tp); LEFT(tp2) < RIGHT(tp); tp2 = TR(tp2))
-	{
-	    if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
-	    ttype = TiGetTopType(tp2);
-	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
-		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+	if (!(sides & IGNORE_BOTTOM))
+	    for (tp2 = LB(tp); LEFT(tp2) < RIGHT(tp); tp2 = TR(tp2))
 	    {
-		TiSetClientINT(tp2, DEV_PROCESSED);
-		STACKPUSH((ClientData)tp2, devExtentsStack);
+		if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
+		ttype = TiGetTopType(tp2);
+		if ((ttype == thisDev->type) || (DBIsContact(ttype)
+			&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+		{
+		    TiSetClientINT(tp2, DEV_PROCESSED);
+		    STACKPUSH((ClientData)tp2, devExtentsStack);
+		}
 	    }
-	}
 
 	/* right */
-	for (tp2 = TR(tp); TOP(tp2) > BOTTOM(tp); tp2 = LB(tp2))
-	{
-	    if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
-	    ttype = TiGetLeftType(tp2);
-	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
-		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+	if (!(sides & IGNORE_RIGHT))
+	    for (tp2 = TR(tp); TOP(tp2) > BOTTOM(tp); tp2 = LB(tp2))
 	    {
-		TiSetClientINT(tp2, DEV_PROCESSED);
-		STACKPUSH((ClientData)tp2, devExtentsStack);
+		if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
+		ttype = TiGetLeftType(tp2);
+		if ((ttype == thisDev->type) || (DBIsContact(ttype)
+			&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+		{
+		    TiSetClientINT(tp2, DEV_PROCESSED);
+		    STACKPUSH((ClientData)tp2, devExtentsStack);
+		}
 	    }
-	}
 
 	/* left */
-	for (tp2 = BL(tp); BOTTOM(tp2) < TOP(tp); tp2 = RT(tp2))
-	{
-	    if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
-	    ttype = TiGetRightType(tp2);
-	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
-		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+	if (!(sides & IGNORE_LEFT))
+	    for (tp2 = BL(tp); BOTTOM(tp2) < TOP(tp); tp2 = RT(tp2))
 	    {
-		TiSetClientINT(tp2, DEV_PROCESSED);
-		STACKPUSH((ClientData)tp2, devExtentsStack);
+		if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
+		ttype = TiGetRightType(tp2);
+		if ((ttype == thisDev->type) || (DBIsContact(ttype)
+			&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+		{
+		    TiSetClientINT(tp2, DEV_PROCESSED);
+		    STACKPUSH((ClientData)tp2, devExtentsStack);
+		}
 	    }
-	}
     }
 
     /* Reset the device tile client records */
@@ -933,10 +985,19 @@ ResShaveContacts(tile, dinfo, def)
     int pNum;
     int pMask;
 
-    /* To do:  Handle split tiles, although this is unlikely for
-     * contact types.
+    /* To simplify processing, if a split tile does not have TT_SPACE
+     * on either side, then only the left side is processed.
      */
-    ttype = TiGetType(tile);
+    if (IsSplit(tile))
+    {
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
+	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+    }
+    else
+	ttype = TiGetTypeExact(tile);
 
     if (DBIsContact(ttype))
     {
@@ -1295,7 +1356,22 @@ ResGetTileFunc(tile, dinfo, tpptr)
     TileType dinfo;		/* (unused) */
     Tile **tpptr;
 {
-    if (TiGetType(tile) != TT_SPACE)
+    /* To simplify processing, if a split tile does not have TT_SPACE
+     * on either side, then only the left side is processed.
+     */
+    TileType ttype;
+    if (IsSplit(tile))
+    {
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
+	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+    }
+    else
+	ttype = TiGetTypeExact(tile);
+
+    if (ttype != TT_SPACE)
     {
 	*tpptr = tile;
 	return 1;
@@ -1314,7 +1390,8 @@ ResGetTileFunc(tile, dinfo, tpptr)
  * Results: returns source diffusion tile, if it exists. Otherwise, return
  *	NULL.
  *
- * Side Effects: none
+ * Side Effects:
+ *	None.
  *
  *-------------------------------------------------------------------------
  */
@@ -1401,15 +1478,9 @@ FindStartTile(goodies, SourcePoint)
     if (IsSplit(tile))
     {
         if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile)) != 0)
-	{
 	    t1 = TiGetLeftType(tile);
-	    TiSetBody(tile, t1 & ~TT_SIDE);
-	}
         else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetRightType(tile)) != 0)
-	{
 	    t1 = TiGetRightType(tile);
-	    TiSetBody(tile, t1 & TT_SIDE);
-	}
 	else
 	{
 	    TxError("Couldn't find device at %d %d\n",

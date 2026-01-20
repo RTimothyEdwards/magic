@@ -135,6 +135,14 @@ ResMultiPlaneFunc(tile, dinfo, tpptr)
     Tile *tp = *tpptr;
     int	 xj, yj;
 
+    /* Simplified split tile handling---Ignore the right side of
+     * tiles that have non-space types on both sides.
+     */
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
     xj = (LEFT(tile) + RIGHT(tile)) / 2;
     yj = (TOP(tile) + BOTTOM(tile)) / 2;
     ResNewSDDevice(tp, tile, xj, yj, OTHERPLANE, &ResNodeQueue);
@@ -168,6 +176,14 @@ ResSubstrateFunc(tile, dinfo, tpptr)
     Tile *tp = *tpptr;
     int	 xj, yj;
 
+    /* Simplified split tile handling---Ignore the right side of
+     * tiles that have non-space types on both sides.
+     */
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
     xj = (LEFT(tile) + RIGHT(tile)) / 2;
     yj = (TOP(tile) + BOTTOM(tile)) / 2;
     ResNewSubDevice(tp, tile, xj, yj, OTHERPLANE, &ResNodeQueue);
@@ -191,10 +207,14 @@ ResSubstrateFunc(tile, dinfo, tpptr)
  *--------------------------------------------------------------------------
  */
 
+#define IGNORE_LEFT	1
+#define IGNORE_RIGHT	2
+#define IGNORE_TOP	4
+#define IGNORE_BOTTOM	8
+
 bool
-ResEachTile(tile, dinfo, startpoint)
+ResEachTile(tile, startpoint)
     Tile 	*tile;
-    TileType	dinfo;
     Point 	*startpoint;
 
 {
@@ -207,17 +227,35 @@ ResEachTile(tile, dinfo, startpoint)
     tElement	*tcell;
     tileJunk	*tstructs= (tileJunk *)TiGetClientPTR(tile);
     ExtDevice   *devptr;
+    int		sides;
 
     ResTileCount++;
 
     /* Process startpoint, if any. */
 
+    /* Simplification:  Split tiles handle either the non-space side,
+     * or if neither side is space, then handle the left side.
+     */
     if (IsSplit(tile))
     {
-	t1 = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
+	if (TiGetLeftType(tile) == TT_SPACE)
+	{
+	    t1 = SplitRightType(tile);
+	    sides = IGNORE_LEFT;
+	    sides |= (SplitDirection(tile)) ? IGNORE_BOTTOM : IGNORE_TOP;
+	}
+	else
+	{
+	    t1 = SplitLeftType(tile);
+	    sides = IGNORE_RIGHT;
+	    sides |= (SplitDirection(tile)) ? IGNORE_TOP : IGNORE_BOTTOM;
+	}
     }
     else
+    {
+	sides = 0;
 	t1 = TiGetTypeExact(tile);
+    }
 
     if (startpoint != (Point *) NULL)
     {
@@ -229,7 +267,7 @@ ResEachTile(tile, dinfo, startpoint)
 	resptr->rn_noderes = 0;
 	ResAddToQueue(resptr, &ResNodeQueue);
 	NEWBREAK(resptr, tile, x, y, NULL);
-	resCurrentNode = resptr;
+	if (resCurrentNode == NULL) resCurrentNode = resptr;
 	resNodeIsPort(resptr, x, y, tile);
     }
 
@@ -286,6 +324,7 @@ ResEachTile(tile, dinfo, startpoint)
      */
 
     /* left */
+    if (!(sides & IGNORE_LEFT))
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
     {
 	t2 = TiGetRightType(tp);
@@ -318,6 +357,7 @@ ResEachTile(tile, dinfo, startpoint)
     }
 
     /* right */
+    if (!(sides & IGNORE_RIGHT))
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
     {
 	t2 = TiGetLeftType(tp);
@@ -350,6 +390,7 @@ ResEachTile(tile, dinfo, startpoint)
     }
 
     /* top */
+    if (!(sides & IGNORE_TOP))
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
     {
 	t2 = TiGetBottomType(tp);
@@ -382,6 +423,7 @@ ResEachTile(tile, dinfo, startpoint)
     }
 
     /* bottom */
+    if (!(sides & IGNORE_BOTTOM))
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
     {
 	t2 = TiGetTopType(tp);
@@ -478,7 +520,7 @@ ResEachTile(tile, dinfo, startpoint)
 
     resAllPortNodes(tile, &ResNodeQueue);
 
-    merged = ResCalcTileResistance(tile, dinfo, tstructs, &ResNodeQueue,
+    merged = ResCalcTileResistance(tile, tstructs, &ResNodeQueue,
 			&ResNodeList);
 
     return(merged);

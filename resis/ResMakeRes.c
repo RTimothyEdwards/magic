@@ -52,9 +52,8 @@ bool ResCalcEastWest();
  */
 
 bool
-ResCalcTileResistance(tile, dinfo, junk, pendingList, doneList)
+ResCalcTileResistance(tile, junk, pendingList, doneList)
     Tile 	*tile;
-    TileType	dinfo;
     tileJunk 	*junk;
     resNode	**pendingList, **doneList;
 
@@ -88,15 +87,15 @@ ResCalcTileResistance(tile, dinfo, junk, pendingList, doneList)
 
     if (device)
     {
-	merged |= ResCalcNearDevice(tile, dinfo, pendingList, doneList, &ResResList);
+	merged |= ResCalcNearDevice(tile, pendingList, doneList, &ResResList);
     }
     else if (MaxY-MinY > MaxX-MinX)
     {
-	merged |= ResCalcNorthSouth(tile, dinfo, pendingList, doneList, &ResResList);
+	merged |= ResCalcNorthSouth(tile, pendingList, doneList, &ResResList);
     }
     else
     {
-	merged |= ResCalcEastWest(tile, dinfo, pendingList, doneList, &ResResList);
+	merged |= ResCalcEastWest(tile, pendingList, doneList, &ResResList);
     }
 
     /*
@@ -121,14 +120,14 @@ ResCalcTileResistance(tile, dinfo, junk, pendingList, doneList)
  */
 
 bool
-ResCalcEastWest(tile, dinfo, pendingList, doneList, resList)
+ResCalcEastWest(tile, pendingList, doneList, resList)
     Tile	*tile;
-    TileType	dinfo;
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 {
     int 	height;
     bool	merged;
+    TileType	ttype;
     Breakpoint	*p1, *p2, *p3;
     resResistor	*resistor;
     resElement	*element;
@@ -152,6 +151,16 @@ ResCalcEastWest(tile, dinfo, pendingList, doneList, resList)
 	junk->breakList = NULL;
 	return(merged);
     }
+
+    /* Simplified split tile handling */
+    if (IsSplit(tile))
+    {
+	ttype = TiGetLeftType(tile);
+	if (TiGetLeftType(tile) == TT_SPACE)
+	    ttype = TiGetRightType(tile);
+    }
+    else
+	ttype = TiGetTypeExact(tile);
 
     /* Re-sort nodes left to right. */
 
@@ -242,19 +251,17 @@ ResCalcEastWest(tile, dinfo, pendingList, doneList, resList)
             p2->br_this->rn_re = element;
 	    resistor->rr_cl = (TOP(tile) + BOTTOM(tile)) >> 1;
 	    resistor->rr_width = height;
+	    resistor->rr_tt = ttype;
 
 	    if (IsSplit(tile))
 	    {
-		resistor->rr_tt = (dinfo & TT_SIDE) ? SplitRightType(tile)
-			: SplitLeftType(tile);
 		resistor->rr_status = RES_DIAGONAL;
 		resistor->rr_status |= (SplitDirection(tile)) ? RES_NS
 			: RES_EW;
 	    }
 	    else
 	    {
-		resistor->rr_status = RES_EW;
-		resistor->rr_tt = TiGetTypeExact(tile);
+		resistor->rr_tt = ttype;
 	    }
 #ifdef ARIEL
 	    resistor->rr_csArea = height *
@@ -293,14 +300,14 @@ ResCalcEastWest(tile, dinfo, pendingList, doneList, resList)
  */
 
 bool
-ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList)
+ResCalcNorthSouth(tile, pendingList, doneList, resList)
     Tile	*tile;
-    TileType	dinfo;
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 {
     int 	width;
     bool	merged;
+    TileType	ttype;
     Breakpoint	*p1, *p2, *p3;
     resResistor	*resistor;
     resElement	*element;
@@ -327,6 +334,16 @@ ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList)
 
     /* Re-sort nodes south to north. */
     ResSortBreaks(&junk->breakList, FALSE);
+
+    /* Simplified split tile handling */
+    if (IsSplit(tile))
+    {
+	ttype = TiGetLeftType(tile);
+	if (TiGetLeftType(tile) == TT_SPACE)
+	    ttype = TiGetRightType(tile);
+    }
+    else
+	ttype = TiGetTypeExact(tile);
 
     /*
      * Eliminate breakpoints with the same Y coordinate and merge
@@ -412,10 +429,9 @@ ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList)
 	    p2->br_this->rn_re = element;
 	    resistor->rr_cl = (LEFT(tile) + RIGHT(tile)) >> 1;
 	    resistor->rr_width = width;
+	    resistor->rr_tt = ttype;
 	    if (IsSplit(tile))
 	    {
-		resistor->rr_tt = (dinfo & TT_SIDE) ? SplitRightType(tile)
-			: SplitLeftType(tile);
 		resistor->rr_status = RES_DIAGONAL;
 		resistor->rr_status |= (SplitDirection(tile)) ? RES_NS
 			: RES_EW;
@@ -423,7 +439,6 @@ ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList)
 	    else
 	    {
 		resistor->rr_status = RES_NS;
-		resistor->rr_tt = TiGetTypeExact(tile);
 	    }
 #ifdef ARIEL
 	    resistor->rr_csArea = width
@@ -466,9 +481,8 @@ ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList)
  */
 
 bool
-ResCalcNearDevice(tile, dinfo, pendingList, doneList, resList)
+ResCalcNearDevice(tile, pendingList, doneList, resList)
     Tile	*tile;
-    TileType	dinfo;
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 
@@ -646,11 +660,11 @@ ResCalcNearDevice(tile, dinfo, pendingList, doneList, resList)
 	}
 	if (deltay > deltax)
 	{
-	    return ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList);
+	    return ResCalcNorthSouth(tile, pendingList, doneList, resList);
 	}
 	else
 	{
-	    return ResCalcEastWest(tile, dinfo, pendingList, doneList, resList);
+	    return ResCalcEastWest(tile, pendingList, doneList, resList);
 	}
     }
 
@@ -716,7 +730,7 @@ ResCalcNearDevice(tile, dinfo, pendingList, doneList, resList)
 		    }
 		}
 	    }
-	    return ResCalcNorthSouth(tile, dinfo, pendingList, doneList, resList);
+	    return ResCalcNorthSouth(tile, pendingList, doneList, resList);
 	}
 	else
 	{
@@ -756,7 +770,7 @@ ResCalcNearDevice(tile, dinfo, pendingList, doneList, resList)
 		    }
 		}
 	    }
-	    return ResCalcEastWest(tile, dinfo, pendingList, doneList, resList);
+	    return ResCalcEastWest(tile, pendingList, doneList, resList);
 	}
     }
 }
