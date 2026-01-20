@@ -287,11 +287,16 @@ rtrSideProcess(use, side, area, trans)
 int
 rtrSideInitClient(tile, dinfo, client)
     Tile *tile;
-    TileType dinfo;		/* (unused) */
+    TileType dinfo;
     ClientData client;
 {
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo == TT_SIDE)
+		return 0;
+
     TiSetClient(tile, client);
-    return (0);
+    return 0;
 }
 
 /*
@@ -318,19 +323,24 @@ rtrSideInitClient(tile, dinfo, client)
 int
 rtrEnumSidesFunc(tile, dinfo, clientdata)
     Tile *tile;
-    TileType dinfo;		/* (unused) */
+    TileType dinfo;
     ClientData clientdata;	/* (unused) */
 {
     int ybot, ytop, yprev, sep, x, origin;
     Tile *tp, *tpB;
     Side side;
 
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo == TT_SIDE)
+		return 0;
+
     /* Skip if already processed, out of the area, or not a cell tile */
     yprev = (int) TiGetClientINT(tile);
     ybot = MAX(BOTTOM(tile), rtrSideArea.r_ybot);
     if (yprev <= ybot || tile->ti_body == (ClientData) NULL
 	    || RIGHT(tile) >= rtrSideArea.r_xtop)
-	return (0);
+	return 0;
 
     switch (rtrSideSide)
     {

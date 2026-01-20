@@ -144,7 +144,7 @@ rtrSrTraverse(def, startArea, mask, connect, bounds, func, clientData)
     struct conSrArg csa;
     struct rtrTileStack ts;
     int startPlane, result;
-    Tile *startTile;			/* Starting tile for search. */
+    TileAndDinfo tad;			/* ClientData for tile search */
     extern int rtrSrTraverseFunc();	/* Forward declaration. */
     extern int rtrSrTraverseStartFunc();
 
@@ -157,14 +157,16 @@ rtrSrTraverse(def, startArea, mask, connect, bounds, func, clientData)
      * the tile address and returns.
      */
 
-    startTile = NULL;
+    tad.tad_tile = NULL;
+    tad.tad_dinfo = (TileType)0;
+
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
-	    rtrSrTraverseStartFunc, (ClientData) &startTile) != 0) break;
+	    rtrSrTraverseStartFunc, (ClientData)&tad) != 0) break;
     }
-    if (startTile == NULL)
+    if (tad.tad_tile == NULL)
 	return 0;
 
     /* Pass 1.  During this pass the client function gets called. */
@@ -179,7 +181,7 @@ rtrSrTraverse(def, startArea, mask, connect, bounds, func, clientData)
     ts.ts_link = (struct rtrTileStack *) NULL;
     ts.ts_csa  = &csa;
 
-    if (rtrSrTraverseFunc(startTile, &ts) != 0)
+    if (rtrSrTraverseFunc(tad.tad_tile, tad.tad_dinfo, &ts) != 0)
 	result = 1;
 
     /* Pass 2.  Don't call any client function, just clear the marks.
@@ -190,19 +192,30 @@ rtrSrTraverse(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientFunc = NULL;
     csa.csa_clear = TRUE;
     csa.csa_pNum = startPlane;
-    (void) rtrSrTraverseFunc(startTile, &ts);
+    (void) rtrSrTraverseFunc(tad.tad_tile, tad.tad_dinfo, &ts);
     SigEnableInterrupts();
 
     return result;
 }
 
 int
-rtrSrTraverseStartFunc(tile, dinfo, pTile)
+rtrSrTraverseStartFunc(tile, dinfo, tad)
     Tile *tile;			/* This will be the starting tile. */
     TileType dinfo;		/* Split tile information (unused) */
-    Tile **pTile;		/* We store tile's address here. */
+    TileAndDinfo *tad;		/* We store tile's address here. */
 {
-    *pTile = tile;
+
+    /* Simplified approach to split tiles:  Use split tiles with one
+     * side being space, or else process only the left side of the
+     * tile.
+     */
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
+    tad->tad_tile = tile;
+    tad->tad_dinfo = dinfo;
     return 1;
 }
 
@@ -238,6 +251,11 @@ rtrSrTraverseStartFunc(tile, dinfo, pTile)
  * ----------------------------------------------------------------------------
  */
 
+#define IGNORE_LEFT 	1
+#define IGNORE_RIGHT	2
+#define IGNORE_TOP	4
+#define IGNORE_BOTTOM	8
+
 int
 rtrSrTraverseFunc(tile, dinfo, ts)
     Tile *tile;			/* Tile that is connected. */
@@ -246,7 +264,7 @@ rtrSrTraverseFunc(tile, dinfo, ts)
 {
     Tile *t2;
     Rect tileArea;
-    int i;
+    int i, sides;
     const TileTypeBitMask *connectMask;
     TileType ttype;
     unsigned int planes;
@@ -258,7 +276,33 @@ rtrSrTraverseFunc(tile, dinfo, ts)
     nts.ts_link = ts;
 
     TiToRect(tile, &tileArea);
-    ttype = TiGetType(tile);
+
+    if (IsSplit(tile))
+    {
+	/* Will only process one side of split tiles, either the non-space
+	 * side, or the left side if neither side is space.
+	 */
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
+	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+	if (dinfo & TT_SIDE)
+	{
+	    sides = IGNORE_LEFT;
+	    sides |= (SplitDirection(tile)) ? IGNORE_BOTTOM : IGNORE_TOP;
+	}
+	else
+	{
+	    sides = IGNORE_RIGHT;
+	    sides |= (SplitDirection(tile)) ? IGNORE_TOP : IGNORE_BOTTOM;
+	}
+    }
+    else
+    {
+	ttype = TiGetTypeExact(tile);
+	sides = 0;
+    }
 
     /* Make sure this tile overlaps the area we're interested in. */
 
@@ -296,65 +340,69 @@ rtrSrTraverseFunc(tile, dinfo, ts)
 
     /* Left side: */
 
-    for (t2 = BL(tile); BOTTOM(t2) < tileArea.r_ytop; t2 = RT(t2))
-    {
-	if (TTMaskHasType(connectMask, TiGetType(t2)))
+    if (!(sides & IGNORE_LEFT))
+	for (t2 = BL(tile); BOTTOM(t2) < tileArea.r_ytop; t2 = RT(t2))
 	{
-	    if (csa->csa_clear)
+	    if (TTMaskHasType(connectMask, TiGetType(t2)))
 	    {
-		if (TiGetClient(t2) == CLIENTDEFAULT) continue;
+		if (csa->csa_clear)
+		{
+		    if (TiGetClient(t2) == CLIENTDEFAULT) continue;
+		}
+		else if (TiGetClient(t2) != CLIENTDEFAULT) continue;
+		if (rtrSrTraverseFunc(t2, dinfo, &nts) != 0) return 1;
 	    }
-	    else if (TiGetClient(t2) != CLIENTDEFAULT) continue;
-	    if (rtrSrTraverseFunc(t2, &nts) != 0) return 1;
 	}
-    }
 
     /* Bottom side: */
 
-    for (t2 = LB(tile); LEFT(t2) < tileArea.r_xtop; t2 = TR(t2))
-    {
-	if (TTMaskHasType(connectMask, TiGetType(t2)))
+    if (!(sides & IGNORE_BOTTOM))
+	for (t2 = LB(tile); LEFT(t2) < tileArea.r_xtop; t2 = TR(t2))
 	{
-	    if (csa->csa_clear)
+	    if (TTMaskHasType(connectMask, TiGetType(t2)))
 	    {
-		if (TiGetClient(t2) == CLIENTDEFAULT) continue;
+		if (csa->csa_clear)
+		{
+		    if (TiGetClient(t2) == CLIENTDEFAULT) continue;
+		}
+		else if (TiGetClient(t2) != CLIENTDEFAULT) continue;
+		if (rtrSrTraverseFunc(t2, dinfo, &nts) != 0) return 1;
 	    }
-	    else if (TiGetClient(t2) != CLIENTDEFAULT) continue;
-	    if (rtrSrTraverseFunc(t2, &nts) != 0) return 1;
 	}
-    }
 
     /* Right side: */
 
-    for (t2 = TR(tile); ; t2 = LB(t2))
-    {
-	if (TTMaskHasType(connectMask, TiGetType(t2)))
+    if (!(sides & IGNORE_RIGHT))
+	for (t2 = TR(tile); ; t2 = LB(t2))
 	{
-	    if (csa->csa_clear)
+	    if (TTMaskHasType(connectMask, TiGetType(t2)))
 	    {
-		if (TiGetClient(t2) == CLIENTDEFAULT) goto nextRight;
+		if (csa->csa_clear)
+		{
+		    if (TiGetClient(t2) == CLIENTDEFAULT) goto nextRight;
+		}
+		else if (TiGetClient(t2) != CLIENTDEFAULT) goto nextRight;
+		if (rtrSrTraverseFunc(t2, dinfo, &nts) != 0) return 1;
 	    }
-	    else if (TiGetClient(t2) != CLIENTDEFAULT) goto nextRight;
-	    if (rtrSrTraverseFunc(t2, &nts) != 0) return 1;
+	    nextRight: if (BOTTOM(t2) <= tileArea.r_ybot) break;
 	}
-	nextRight: if (BOTTOM(t2) <= tileArea.r_ybot) break;
-    }
 
     /* Top side: */
 
-    for (t2 = RT(tile); ; t2 = BL(t2))
-    {
-	if (TTMaskHasType(connectMask, TiGetType(t2)))
+    if (!(sides & IGNORE_TOP))
+	for (t2 = RT(tile); ; t2 = BL(t2))
 	{
-	    if (csa->csa_clear)
+	    if (TTMaskHasType(connectMask, TiGetType(t2)))
 	    {
-		if (TiGetClient(t2) == CLIENTDEFAULT) goto nextTop;
+		if (csa->csa_clear)
+		{
+		    if (TiGetClient(t2) == CLIENTDEFAULT) goto nextTop;
+		}
+		else if (TiGetClient(t2) != CLIENTDEFAULT) goto nextTop;
+		if (rtrSrTraverseFunc(t2, dinfo, &nts) != 0) return 1;
 	    }
-	    else if (TiGetClient(t2) != CLIENTDEFAULT) goto nextTop;
-	    if (rtrSrTraverseFunc(t2, &nts) != 0) return 1;
+	    nextTop: if (LEFT(t2) <= tileArea.r_xbot) break;
 	}
-	nextTop: if (LEFT(t2) <= tileArea.r_xbot) break;
-    }
 
     /* Lastly, check to see if this tile connects to anything on
      * other planes.  If so, search those planes.
@@ -405,15 +453,21 @@ rtrSrTraverseFunc(tile, dinfo, ts)
 int
 rtrExamineTile(tile, dinfo, cdata)
     Tile *tile;
-    TileType dinfo;	/* (unused) */
+    TileType dinfo;
     ClientData cdata;
 {
-    if ( TiGetType(tile) == rtrTarget )
+    TileType ttype;
+
+    if (IsSplit(tile))
+	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+    else
+	ttype = TiGetTypeExact(tile);
+
+    if (ttype == rtrTarget)
 	return 1;
 
-    if ( (tile != (Tile *) cdata) &&
-	 (TiGetType(tile) == rtrReplace) )
-	    return 1;
+    if ((tile != (Tile *) cdata) && (ttype == rtrReplace))
+	return 1;
 
     return 0;
 }
@@ -457,21 +511,50 @@ rtrExamineStack(tile, dinfo, ts)
      */
 
     i = 0;
-    while ( i < 3 && ts && ts->ts_tile )
+    while (i < 3 && ts && ts->ts_tile)
     {
 	tp[i++] = ts->ts_tile;
 	ts = ts->ts_link;
     }
 
-    if ( i == 3 )
+    if (i == 3)
     {
 	/*
 	 * Identify pattern  --  *via*   *replacement_material*   *via*
 	 */
+	TileType tt0, tt1, tt2;
 
-	if ( DBIsContact(TiGetType(tp[0])) &&
-	     (TiGetType(tp[1]) == rtrReplace) &&
-	     DBIsContact(TiGetType(tp[2])))
+	if (IsSplit(tp[0]))
+	{
+	    if (TiGetLeftType(tp[0]) == TT_SPACE)
+		tt0 = TiGetRightType(tp[0]);
+	    else
+		tt0 = TiGetLeftType(tp[0]);
+	}
+	else
+	    tt0 = TiGetTypeExact(tp[0]);
+
+	if (IsSplit(tp[1]))
+	{
+	    if (TiGetLeftType(tp[1]) == TT_SPACE)
+		tt1 = TiGetRightType(tp[1]);
+	    else
+		tt1 = TiGetLeftType(tp[1]);
+	}
+	else
+	    tt1 = TiGetTypeExact(tp[1]);
+
+	if (IsSplit(tp[2]))
+	{
+	    if (TiGetLeftType(tp[2]) == TT_SPACE)
+		tt1 = TiGetRightType(tp[2]);
+	    else
+		tt1 = TiGetLeftType(tp[2]);
+	}
+	else
+	    tt2 = TiGetTypeExact(tp[2]);
+
+	if (DBIsContact(tt0) && (tt1 == rtrReplace) && DBIsContact(tt2))
 	{
 	    int plane;
 	    Rect area;
@@ -489,22 +572,22 @@ rtrExamineStack(tile, dinfo, ts)
 	    TITORECT(tp[1], &area);
 	    area.r_xbot--;
 	    area.r_xtop++;
-	    for ( plane = PL_PAINTBASE; plane < DBNumPlanes; plane++ )
-		if ( DBPaintOnPlane(RtrPolyType, plane) ||
-		     DBPaintOnPlane(RtrMetalType, plane) )
-		    if ( DBSrPaintArea((Tile *)NULL, def->cd_planes[plane],
-			    &area, &mask, rtrExamineTile, (ClientData) tp[1]) )
+	    for (plane = PL_PAINTBASE; plane < DBNumPlanes; plane++)
+		if (DBPaintOnPlane(RtrPolyType, plane) ||
+		     DBPaintOnPlane(RtrMetalType, plane))
+		    if (DBSrPaintArea((Tile *)NULL, def->cd_planes[plane],
+			    &area, &mask, rtrExamineTile, (ClientData) tp[1]))
 				return 0;
 
 	    /*
 	     * Mark areas for later processing.
 	     */
 
-	    if ( rtrDelta < 0 )
+	    if (rtrDelta < 0)
 	    {
-		if ( (TOP(tp[1]) == BOTTOM(tp[0])) || (TOP(tp[1]) == BOTTOM(tp[2])))
+		if ((TOP(tp[1]) == BOTTOM(tp[0])) || (TOP(tp[1]) == BOTTOM(tp[2])))
 		    deltay = 0;
-		if ( (RIGHT(tp[1]) == LEFT(tp[0])) || (RIGHT(tp[1]) == LEFT(tp[2])))
+		if ((RIGHT(tp[1]) == LEFT(tp[0])) || (RIGHT(tp[1]) == LEFT(tp[2])))
 		    deltax = 0;
 	    }
 

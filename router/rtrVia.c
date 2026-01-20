@@ -184,18 +184,22 @@ rtrFollowName(name, firstInNet, area)
 int
 rtrCheckTypes(tile, dinfo, cdata)
     Tile *tile;
-    TileType dinfo;		/* (unused) */
+    TileType dinfo;
     ClientData cdata;
 {
     int type;
-    int lastType = * (int *) cdata;
+    int lastType = *(int *)cdata;
 
-    type = TiGetType(tile);
-    if ( (type == RtrMetalType) || (type == RtrPolyType) )
+    if (IsSplit(tile))
+	type = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+    else
+	type = TiGetType(tile);
+
+    if ((type == RtrMetalType) || (type == RtrPolyType))
     {
-	if ( lastType )
+	if (lastType)
 	{
-	    if ( lastType != type )
+	    if (lastType != type)
 		return 1;
 	}
 	else
@@ -268,7 +272,7 @@ rtrStubGen(tile, dinfo, si)
     Rect area;
     struct paintlist *pl;
 
-    if ( tile != si->si_tile )
+    if (tile != si->si_tile)
     {
 	pl = (struct paintlist *) mallocMagic((unsigned) (sizeof(*pl)));
 	pl->pl_next = rtrPaintList;
