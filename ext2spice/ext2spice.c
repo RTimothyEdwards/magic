@@ -3314,12 +3314,15 @@ spcdevSubstrate(
     	/* Canonical name */
     	nn = (EFNodeName *) HashGetValue(he);
 	if (outf)
-	   fprintf(outf, "%s", nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier,
-		    NULL));
+	{
+	    const char *spicename;
+	    spicename = nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier, NULL);
+	    fprintf(outf, "%s", spicename);
+	}
 
 	/* Create node client if it doesn't exist */
 	if ((nodeClient *)nn->efnn_node->efnode_client == (nodeClient *)NULL)
-	    initNodeClientHier(nn->efnn_node);
+	    initNodeClient(nn->efnn_node);
 
 	/* Mark node as visited (set bit one higher than number of resist classes) */
 	if (esDistrJunct)

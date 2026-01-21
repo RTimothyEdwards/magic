@@ -261,7 +261,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    }
 	    else
 	    {
-		resistor->rr_tt = ttype;
+		resistor->rr_status = RES_EW;
 	    }
 #ifdef ARIEL
 	    resistor->rr_csArea = height *
