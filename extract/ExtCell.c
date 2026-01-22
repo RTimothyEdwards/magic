@@ -486,6 +486,12 @@ extCellFile(def, f, doLength)
 
     UndoDisable();
 
+    /* If "extract do unique" was specified, then make labels in the
+     * cell unique.
+     */
+    if (ExtOptions & EXT_DOUNIQUE)
+	extUniqueCell(def, EXT_UNIQ_TEMP);
+
     /* Prep any isolated substrate areas */
     saveSub = extPrepSubstrate(def);
 

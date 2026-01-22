@@ -1126,6 +1126,7 @@ extern int  extMakeUnique();
 extern void extEnumTerminal();
 extern void extEnumTerminal(Tile *tile, TileType dinfo,
         TileTypeBitMask *connect, void (*func)(), ClientData clientData);
+extern void ExtRevertUniqueCell(CellDef *def);
 
 
 /* ------------------ Connectivity table management ------------------- */

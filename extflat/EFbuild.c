@@ -907,6 +907,9 @@ efBuildDevice(
 	case DEV_FET:
 	case DEV_MOSFET:
 	case DEV_ASYMMETRIC:
+	    /* Terminals start after L and W values, substrate, and parameters */
+	    termstart = 3;
+	    break;
 	case DEV_BJT:
 	    /* Terminals start after L and W values, plus parameters */
 	    termstart = 2;

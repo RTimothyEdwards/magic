@@ -930,6 +930,7 @@ cmdExpandFunc(
 #define	DORESISTANCE	6
 #define	DOLABELCHECK	7
 #define	DOALIASES	8
+#define	DOUNIQUE	9
 
 #define	LENCLEAR	0
 #define	LENDRIVER	1
@@ -977,6 +978,7 @@ CmdExtract(
 	"resistance		estimate resistance",
 	"labelcheck		check for connections through sticky labels",
 	"aliases		output all net name aliases",
+	"unique			ensure unique node names during extraction",
 	NULL
     };
     static const char * const cmdExtLength[] =
@@ -1280,6 +1282,7 @@ CmdExtract(
 		TxPrintf("%s resistance\n", OPTSET(EXT_DORESISTANCE));
 		TxPrintf("%s label check\n", OPTSET(EXT_DOLABELCHECK));
 		TxPrintf("%s aliases\n", OPTSET(EXT_DOALIASES));
+		TxPrintf("%s unique\n", OPTSET(EXT_DOUNIQUE));
 		return;
 #undef	OPTSET
 	    }
@@ -1309,6 +1312,7 @@ CmdExtract(
 		case DORESISTANCE:	option = EXT_DORESISTANCE; break;
 		case DOLABELCHECK:	option = EXT_DOLABELCHECK; break;
 		case DOALIASES:		option = EXT_DOALIASES; break;
+		case DOUNIQUE:		option = EXT_DOUNIQUE; break;
 		case DOLOCAL:
 		    /* "extract do local" and "extract no local" are kept for
 		     * backwards compatibility, but now effectively implement

@@ -61,6 +61,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *	    names that don't end in '!'.
  *	If option is EXT_UNIQ_NOPORTS, then generate unique names as for
  *	    option 0 only if the label is not a port.
+ *	If option is EXT_UNIQ_TEMP, then generate unique names as for
+ *	    EXT_UNIQ_ALL, but also set the LABEL_UNIQUE flag for the
+ *	    label.  This way, the unique label form can be used by the
+ *	    extraction code but labels (and port indexes) can be reverted
+ *	    afterward, and no permanent change is made to the circuit.
  *
  * Results:
  *	Returns the number of warnings generated.
@@ -219,7 +224,7 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
      * changes a label to make it unique.
      */
     text = ll->ll_label->lab_text;
-    if (option == EXT_UNIQ_ALL)
+    if (option == EXT_UNIQ_ALL || option == EXT_UNIQ_TEMP)
 	goto makeUnique;
     else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS)
 		&& !(ll->ll_label->lab_flags & PORT_DIR_MASK))
@@ -320,8 +325,11 @@ makeUnique:
 	    lab = ll2->ll_label;
 	    saveLab = *lab;
 
+	    /* Flag this label as having been modified */
+	    if (option == EXT_UNIQ_TEMP) flags |= LABEL_UNIQUE;
+
 	    DBRemoveLabel(def, lab);
-	    (void) DBPutFontLabel(def, &saveLab.lab_rect,
+	    DBPutFontLabel(def, &saveLab.lab_rect,
 		 	saveLab.lab_font, saveLab.lab_size, saveLab.lab_rotate,
 			&saveLab.lab_offset, saveLab.lab_just, name2,
 			saveLab.lab_type, flags, (unsigned int)portno);
@@ -334,3 +342,64 @@ makeUnique:
 
     return 0;
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extRevertUniqueCell --
+ *
+ * For the cell 'def', look for labels marked with LABEL_UNIQUE and
+ * remove the unique suffix.  If the label is a port, then revert
+ * the port index back to the original port number.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Changes the label records in the cell def.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+ExtRevertUniqueCell(CellDef *def)
+{
+    Label *lab, *tlab;
+    char *uptr;
+
+    for (lab = def->cd_labels; lab; lab = lab->lab_next)
+    {
+	if (lab->lab_flags & LABEL_UNIQUE)
+	{
+	    /* There is no need to regenerate the label.  We are
+	     * only reducing the string length, so just drop a null
+	     * at the last underscore and leave it at that.
+	     */
+	
+	    lab->lab_flags &= ~LABEL_UNIQUE;	/* Clear the flag */
+
+	    /* Place a null at the last underscore */
+	    uptr = strrchr(lab->lab_text, '_');
+	    if (uptr != NULL)		/* should always be true */
+		*uptr = '\0';
+
+	    /* If the label is a port, then find the first unmodified
+	     * version of the label and change the port back to its
+	     * port number
+	     */
+	    if (lab->lab_flags & PORT_DIR_MASK)
+	    {
+		for (tlab = def->cd_labels; tlab; tlab = tlab->lab_next)
+		{
+		    if (tlab == lab) continue;
+		    else if (!strcmp(tlab->lab_text, lab->lab_text))
+		    {
+			lab->lab_port = tlab->lab_port;
+			break;
+		    }
+		}
+	    }
+	}
+    }
+}
+

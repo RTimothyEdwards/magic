@@ -806,12 +806,13 @@ ExtractOneCell(def, outName, doLength)
 
     savePlane = ExtCell(def, outName, doLength);
 
-    /* Restore all modified substrate planes */
+    /* Restore all modified substrate planes and modified labels */
 
     if (savePlane != NULL) ExtRevertSubstrate(def, savePlane);
     free_magic1_t mm1 = freeMagic1_init();
     for (; sl; sl = sl->sl_next)
     {
+	if (EXT_DOUNIQUE) ExtRevertUniqueCell(sl->sl_def);
         ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
         freeMagic1(&mm1, sl);
     }
@@ -1026,10 +1027,12 @@ extExtractStack(stack, doExtract, rootDef)
 	}
     }
 
-    /* Replace any modified substrate planes */
+    /* Replace any modified substrate planes and modified labels */
     free_magic1_t mm1 = freeMagic1_init();
     for (; sl; sl = sl->sl_next)
     {
+	if (EXT_DOUNIQUE) ExtRevertUniqueCell(sl->sl_def);
+
 	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
 	sl->sl_def->cd_flags &= ~CDNOEXTRACT; 
 	freeMagic1(&mm1, sl);

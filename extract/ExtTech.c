@@ -2747,24 +2747,34 @@ ExtTechLine(sectionName, argc, argv)
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]); /* bottom */
 		    TTMaskSetMask(allExtractTypes, &termtypes[0]);
 		    termtypes[1] = DBZeroTypeBits;
-
-		    if (argc > 5)
-			gccap = aToCap(argv[argc - 1]);		/* area cap */
-		    if ((argc > 6) && StrIsNumeric(argv[argc - 2]))
-		    {
-			gscap = aToCap(argv[argc - 2]);		/* perimeter cap */
-			argc--;
-		    }
 		    nterm = 1;
 
-		    if ((argc > 6) && strcmp(argv[5], "None"))
+		    /* If argv[argc - 1] is a numerical value, then it is
+		     * an area cap value and may be followed by another
+		     * numerical value, the perimeter cap.
+		     */
+
+		    if ((argc > 5) && StrIsNumeric(argv[argc - 1]))
 		    {
-			DBTechNoisyNameMask(argv[5], &subsTypes);   /* substrate */
+			gccap = aToCap(argv[argc - 1]);		/* area cap */
+			argc--;
+
+			if ((argc > 5) && StrIsNumeric(argv[argc - 1]))
+			{
+			    gscap = aToCap(argv[argc - 1]);	/* perimeter cap */
+			    argc--;
+			}
+		    }
+
+		    if ((argc > 5) && strcmp(argv[5], "None"))
+		    {
+			/* substrate */
+			DBTechNoisyNameMask(argv[5], &subsTypes);
 			TTMaskSetMask(allExtractTypes, &subsTypes);
 		    }
 		    else
 			subsTypes = DBZeroTypeBits;
-		    if (argc > 7) subsName = argv[6];
+		    if (argc > 6) subsName = argv[6];
 		    break;
 
 		case DEV_SUBCKT:
