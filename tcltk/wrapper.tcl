@@ -1425,6 +1425,7 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
       grid ${layoutframe}.toolbar -row 1 -column 2 -rowspan 2 -sticky new
    }
 
+   # If the command entry window is enabled, create it now
    if { $Winopts(${framename},cmdentry) == 1} {
       addcommandentry $framename
    }
