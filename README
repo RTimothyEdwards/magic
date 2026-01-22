@@ -124,4 +124,11 @@ Due to the maximum horizontal stripes consideration, does
 ResCalcNorthSouth() *ever* get called??
 Okay, a long vertical contact with metal branches on either side
 would invalidate my assumption, and yes, ResCalcNorthSouth() would
-be called.
+be called.  Okay, so never mind that one.
+
+Quandary:  ResProcessNode() is pretty self-contained and cleans
+up after itself.  But extBasic() finds all nodes and keeps them
+around for the duration of the extraction, and needs to have the
+extresist splits on hand for coupling capacitance calculations
+and all output.  Maybe copy in a simplified form to yet another
+ClientData field on a nodeRegion.
