@@ -302,6 +302,28 @@ extBasic(def, outFile)
 	extFindDuplicateLabels(def, nodeList);
 
     /*
+     * If full R-C extraction is requested, then run it now.  This
+     * code was previously run as the "extresist" command, but it
+     * makes more sense to be integral to the extraction process.
+     * It must be run prior to extFindCoupling() so that coupling
+     * capacitances are correctly assigned to subnets.
+     */
+    if (!SigInterruptPending && (ExtOptions & EXT_DOEXTRESIST))
+    {
+	ResSimNode *rsimnode;
+	ResisData   resisdata;
+	int n_ext = 0, n_out = 0;
+
+	for (reg = nodeList; reg && !SigInterruptPending; reg = reg->nreg_next)
+	{
+	    rsimnode = ResCreateNode();
+	    ResProcessNode(rsimnode, def, &resisdata, &n_ext, &n_out);
+
+	    /* To be completed */
+	}
+    }
+
+    /*
      * Build up table of coupling capacitances (overlap, sidewall).
      * This comes before extOutputNodes because we may have to adjust
      * node capacitances in this step.

@@ -931,6 +931,7 @@ cmdExpandFunc(
 #define	DOLABELCHECK	7
 #define	DOALIASES	8
 #define	DOUNIQUE	9
+#define	DOEXTRESIST    10
 
 #define	LENCLEAR	0
 #define	LENDRIVER	1
@@ -975,10 +976,11 @@ CmdExtract(
 	"coupling		extract coupling capacitance",
 	"length			compute driver-receiver pathlengths",
 	"local			put all generated files in the current directory",
-	"resistance		estimate resistance",
+	"lumped			estimate lumped resistance",
 	"labelcheck		check for connections through sticky labels",
 	"aliases		output all net name aliases",
 	"unique			ensure unique node names during extraction",
+	"resistance		extract resistance",
 	NULL
     };
     static const char * const cmdExtLength[] =
@@ -1280,10 +1282,11 @@ CmdExtract(
 		TxPrintf("%s capacitance\n", OPTSET(EXT_DOCAPACITANCE));
 		TxPrintf("%s coupling\n", OPTSET(EXT_DOCOUPLING));
 		TxPrintf("%s length\n", OPTSET(EXT_DOLENGTH));
-		TxPrintf("%s resistance\n", OPTSET(EXT_DORESISTANCE));
+		TxPrintf("%s lumped R\n", OPTSET(EXT_DORESISTANCE));
 		TxPrintf("%s label check\n", OPTSET(EXT_DOLABELCHECK));
 		TxPrintf("%s aliases\n", OPTSET(EXT_DOALIASES));
 		TxPrintf("%s unique\n", OPTSET(EXT_DOUNIQUE));
+		TxPrintf("%s resistance\n", OPTSET(EXT_DOEXTRESIST));
 		return;
 #undef	OPTSET
 	    }
@@ -1314,6 +1317,7 @@ CmdExtract(
 		case DOLABELCHECK:	option = EXT_DOLABELCHECK; break;
 		case DOALIASES:		option = EXT_DOALIASES; break;
 		case DOUNIQUE:		option = EXT_DOUNIQUE; break;
+		case DOEXTRESIST:	option = EXT_DOEXTRESIST; break;
 		case DOLOCAL:
 		    /* "extract do local" and "extract no local" are kept for
 		     * backwards compatibility, but now effectively implement

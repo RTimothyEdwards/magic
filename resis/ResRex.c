@@ -969,6 +969,223 @@ ResCheckPorts(cellDef)
 /*
  *-------------------------------------------------------------------------
  *
+ * ResCreateNode ---
+ *
+ *	Create a node structure for extresist for the method where
+ *	ResProcessNode() is called from extBasic() as part of the
+ *	"extract" command.
+ *
+ * Results:
+ *	Returns the node structure to be passed to ResProcessNode().
+ *
+ * Side effects:
+ *	Memory is allocated for the node structure.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+ResSimNode *ResCreateNode()
+{
+    ResSimNode *node;
+
+    /* To be completed */
+
+    return node;
+}
+
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResProcessNode ---
+ *
+ *	Do resistance extraction for a single network.
+ *
+ * Results:
+ *	1 if node was processed, 0 otherwise.
+ *
+ * Side effects:
+ *	Many.  Update the totals for number of nets extracted and
+ *	number of nets output in the pointers in the argument list.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResProcessNode(
+    ResSimNode	*node,		/* Node record for network */
+    CellDef	*celldef,	/* Cell def being processed */	
+    ResisData	*resisdata,	/* Extraction parameters kept here */
+    char	*outfile,	/* Name of output file */
+    int		*num_extracted,	/* Number of nets extracted so far */
+    int		*num_output)	/* Number of nets output so far */
+{
+    HashEntry	*he;
+    devPtr	*ptr;
+    float	ftolerance, minRes, cumRes;
+    float	rctol = resisdata->tdiTolerance;
+    float	rthresh = resisdata->rthresh;
+    int		nidx = 1, eidx = 1;	/* node & segment counters for geom. */
+
+    /* Ignore or include specified nodes */
+
+    if (ResIncludeTable.ht_nEntries > 0)
+    {
+	he = HashLookOnly(&ResIncludeTable, node->name);
+	if (he == NULL) return 0;
+    }
+    else
+    {
+	he = HashLookOnly(&ResIgnoreTable, node->name);
+	if (he != NULL) return 0;
+    }
+
+    /* Has this node been merged away or is it marked as skipped? */
+    /* If so, skip it */
+
+    if ((node->status & (FORWARD | REDUNDANT)) ||
+		((node->status & SKIP) &&
+	  	(ResOptionsFlags & ResOpt_ExtractAll) == 0))
+	return 0;
+
+    ResCurrentNode = node->name;
+    ResSortByGate(&node->firstDev);
+
+    /* Find largest SD device connected to node. */
+
+    minRes = FLT_MAX;
+    gparams.rg_devloc = (Point *) NULL;
+    gparams.rg_status = FALSE;
+    gparams.rg_nodecap = node->capacitance;
+
+    /* The following is only used if there is a drivepoint	*/
+    /* to identify which tile the drivepoint is on.		*/
+
+    gparams.rg_ttype = node->rs_ttype;
+
+    for (ptr = node->firstDev; ptr != NULL; ptr = ptr->nextDev)
+    {
+	RDev	*t1;
+	RDev	*t2;
+
+	if (ptr->terminal == GATE)
+	{
+	    break;
+	}
+	else
+	{
+	    /* Get cumulative resistance of all devices */
+	    /* with same connections.		    	*/
+
+	    cumRes = ptr->thisDev->resistance;
+	    t1 = ptr->thisDev;
+	    for (; ptr->nextDev != NULL; ptr = ptr->nextDev)
+	    {
+		t1 = ptr->thisDev;
+		t2 = ptr->nextDev->thisDev;
+		if (t1->gate != t2->gate) break;
+		if ((t1->source != t2->source || t1->drain  != t2->drain) &&
+			(t1->source != t2->drain || t1->drain  != t2->source))
+		    break;
+
+		/* Do parallel combination  */
+		if ((cumRes != 0.0) && (t2->resistance != 0.0))
+		    cumRes = (cumRes * t2->resistance) / (cumRes + t2->resistance);
+		else
+		    cumRes = 0;
+	    }
+	    if (minRes > cumRes)
+	    {
+		minRes = cumRes;
+		gparams.rg_devloc = &t1->location;
+		gparams.rg_ttype = t1->rs_ttype;
+	    }
+	}
+    }
+
+    /* special handling for FORCE and DRIVELOC labels:		*/
+    /* set minRes = node->minsizeres if it exists, 0 otherwise	*/
+
+    if (node->status & (FORCE|DRIVELOC))
+    {
+	if (node->status & MINSIZE)
+	{
+	    minRes = node->minsizeres;
+	}
+	else
+	{
+	    minRes = 0;
+	}
+	if (node->status  & DRIVELOC)
+	{
+	    gparams.rg_devloc = &node->drivepoint;
+	    gparams.rg_status |= DRIVEONLY;
+	}
+	if (node->status & PORTNODE)
+	{
+	    /* The node is a port, not a device, so make	*/
+	    /* sure rg_ttype is set accordingly.		*/
+	    gparams.rg_ttype = node->rs_ttype;
+	}
+    }
+    if ((gparams.rg_devloc == NULL) && (node->status & FORCE))
+    {
+    	TxError("Node %s has force label but no drive point or "
+			"driving device\n", node->name);
+    }
+    if ((minRes == FLT_MAX) || (gparams.rg_devloc == NULL))
+	return 1;
+
+    gparams.rg_bigdevres = (int)minRes * OHMSTOMILLIOHMS;
+    if (minRes > resisdata->rthresh)
+	ftolerance =  minRes;
+    else
+	ftolerance = resisdata->rthresh; 
+
+    /*
+     *   Is the device resistance greater than the lumped node
+     *   resistance? If so, extract net.
+     */
+
+    if ((node->resistance > ftolerance) || (node->status & FORCE) ||
+		(ResOpt_ExtractAll & ResOptionsFlags))
+    {
+	ResFixPoint fp;
+
+	(*num_extracted)++;
+	if (ResExtractNet(node, &gparams, outfile) != 0)
+	{
+	    /* On error, don't output this net, but keep going */
+	    if (node->type == TT_SPACE)
+		TxPrintf("Note:  Substrate node %s not extracted as network.\n",
+				node->name);
+	    else
+		TxError("Error in extracting node %s\n", node->name);
+	}
+	else
+	{
+	    ResDoSimplify(ftolerance, rctol, &gparams);
+	    if (ResOptionsFlags & ResOpt_DoLumpFile)
+		ResWriteLumpFile(node);
+
+	    if (gparams.rg_maxres >= ftolerance  ||
+			(ResOptionsFlags & ResOpt_ExtractAll))
+	    {
+		resNodeNum = 0;
+		(*num_output) += ResWriteExtFile(celldef, node, rctol, &nidx, &eidx);
+	    }
+	}
+#ifdef PARANOID
+	ResSanityChecks(node->name, ResResList, ResNodeList, ResDevList);
+#endif
+	ResCleanUpEverything();
+    }
+    return 1;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResCheckSimNodes-- check to see if lumped resistance is greater than the
  *		      device resistance; if it is, Extract the net
  *		      resistance. If the maximum point to point resistance
@@ -988,15 +1205,10 @@ ResCheckSimNodes(celldef, resisdata)
     ResisData	*resisdata;
 {
     ResSimNode	*node;
-    devPtr	*ptr;
-    float	ftolerance, minRes, cumRes;
-    int		failed1=0;
-    int 	failed3=0;
-    int		total =0;
+    int		numext = 0;	/* Number of nets extracted */
+    int 	numout = 0;	/* Number of nets output */
+    int		total = 0;	/* Total number of nets processed */
     char	*outfile = celldef->cd_name;
-    float	rctol = resisdata->tdiTolerance;
-    float	rthresh = resisdata->rthresh;
-    int		nidx = 1, eidx = 1;	/* node & segment counters for geom. */
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
     {
@@ -1005,8 +1217,8 @@ ResCheckSimNodes(celldef, resisdata)
 	    if (strcmp(ExtLocalPath, "."))
 	    {
 		char *namebuf;
-		namebuf = alloc = mallocMagic(strlen(ExtLocalPath) + strlen(celldef->cd_name)
-				+ 2);
+		namebuf = alloc = mallocMagic(strlen(ExtLocalPath) +
+				strlen(celldef->cd_name) + 2);
 		sprintf(namebuf, "%s/%s", ExtLocalPath, celldef->cd_name);
 		outfile = namebuf;
 	    }
@@ -1015,17 +1227,13 @@ ResCheckSimNodes(celldef, resisdata)
 	outfile = celldef->cd_name;
     }
     else
-    {
 	ResExtFile = NULL;
-    }
+
     if (ResOptionsFlags & ResOpt_DoLumpFile)
-    {
         ResLumpFile = PaOpen(outfile, "w", ".res.lump", ".", (char *)NULL, (char **)NULL);
-    }
     else
-    {
      	ResLumpFile = NULL;
-    }
+
     if (ResOptionsFlags & ResOpt_FastHenry)
     {
 	char *geofilename;
@@ -1034,9 +1242,7 @@ ResCheckSimNodes(celldef, resisdata)
 	ResPortIndex = 0;
     }
     else
-    {
      	ResFHFile = NULL;
-    }
 
     if ((ResExtFile == NULL && (ResOptionsFlags & ResOpt_DoExtFile))
          || ((ResOptionsFlags & ResOpt_DoLumpFile) && ResLumpFile == NULL)
@@ -1052,191 +1258,23 @@ ResCheckSimNodes(celldef, resisdata)
      */
 
     if (ResExtFile != NULL)
-    {
 	fprintf(ResExtFile, "scale %d %d %g\n",
                 ExtCurStyle->exts_resistScale,
                 ExtCurStyle->exts_capScale,
                 ExtCurStyle->exts_unitsPerLambda);
-    }
 
      /*
       *	Write reference plane (substrate) definition and end statement
       * to the FastHenry geometry file.
       */
     if (ResOptionsFlags & ResOpt_FastHenry)
-    {
 	ResPrintReference(ResFHFile, ResRDevList, celldef);
-    }
 
     for (node = ResOriginalNodes; node != NULL; node=node->nextnode)
     {
-	HashEntry *he;
-
 	if (SigInterruptPending) break;
-
-	/* Ignore or include specified nodes */
-
-	if (ResIncludeTable.ht_nEntries > 0)
-	{
-	    he = HashLookOnly(&ResIncludeTable, node->name);
-	    if (he == NULL) continue;
-	}
-	else
-	{
-	    he = HashLookOnly(&ResIgnoreTable, node->name);
-	    if (he != NULL) continue;
-	}
-
-	/* Has this node been merged away or is it marked as skipped? */
-	/* If so, skip it */
-	if ((node->status & (FORWARD | REDUNDANT)) ||
-		((node->status & SKIP) &&
-	  	(ResOptionsFlags & ResOpt_ExtractAll) == 0))
-	    continue;
-
-	ResCurrentNode = node->name;
-	total++;
-
-     	ResSortByGate(&node->firstDev);
-
-	/* Find largest SD device connected to node. */
-
-	minRes = FLT_MAX;
-	gparams.rg_devloc = (Point *) NULL;
-	gparams.rg_status = FALSE;
-	gparams.rg_nodecap = node->capacitance;
-
-	/* The following is only used if there is a drivepoint */
-	/* to identify which tile the drivepoint is on.	       */
-
-	gparams.rg_ttype = node->rs_ttype;
-
-	for (ptr = node->firstDev; ptr != NULL; ptr = ptr->nextDev)
-	{
-	    RDev	*t1;
-	    RDev	*t2;
-
-	    if (ptr->terminal == GATE)
-	    {
-	       	break;
-	    }
-	    else
-	    {
-	       	/* Get cumulative resistance of all devices */
-		/* with same connections.		    */
-
-		cumRes = ptr->thisDev->resistance;
-	        t1 = ptr->thisDev;
-		for (; ptr->nextDev != NULL; ptr = ptr->nextDev)
-		{
-	            t1 = ptr->thisDev;
-		    t2 = ptr->nextDev->thisDev;
-		    if (t1->gate != t2->gate) break;
-		    if ((t1->source != t2->source ||
-			     t1->drain  != t2->drain) &&
-			    (t1->source != t2->drain ||
-			     t1->drain  != t2->source)) break;
-
-		    /* Do parallel combination  */
-		    if ((cumRes != 0.0) && (t2->resistance != 0.0))
-		    {
-			cumRes = (cumRes * t2->resistance) /
-			      	       (cumRes + t2->resistance);
-		    }
-		    else
-		    {
-			cumRes = 0;
-		    }
-		}
-		if (minRes > cumRes)
-		{
-		    minRes = cumRes;
-		    gparams.rg_devloc = &t1->location;
-		    gparams.rg_ttype = t1->rs_ttype;
-		}
-	    }
-	}
-
-	/* special handling for FORCE and DRIVELOC labels:  */
-	/* set minRes = node->minsizeres if it exists, 0 otherwise */
-
-	if (node->status & (FORCE|DRIVELOC))
-	{
-	    if (node->status & MINSIZE)
-	    {
-		minRes = node->minsizeres;
-	    }
-	    else
-	    {
-	      	minRes = 0;
-	    }
-	    if (node->status  & DRIVELOC)
-	    {
-	       	gparams.rg_devloc = &node->drivepoint;
-		gparams.rg_status |= DRIVEONLY;
-	    }
-	    if (node->status & PORTNODE)
-	    {
-		/* The node is a port, not a device, so make    */
-		/* sure rg_ttype is set accordingly.		*/
-		gparams.rg_ttype = node->rs_ttype;
-	    }
-	}
-	if ((gparams.rg_devloc == NULL) && (node->status & FORCE))
-	{
-    	    TxError("Node %s has force label but no drive point or "
-			"driving device\n", node->name);
-	}
-	if ((minRes == FLT_MAX) || (gparams.rg_devloc == NULL))
-	{
-	    continue;
-	}
-	gparams.rg_bigdevres = (int)minRes * OHMSTOMILLIOHMS;
-	if (minRes > resisdata->rthresh)
-	    ftolerance =  minRes;
-	else
-	    ftolerance = resisdata->rthresh; 
-
-	/*
-	 *   Is the device resistance greater than the lumped node
-	 *   resistance? If so, extract net.
-	 */
-
-	if ((node->resistance > ftolerance) || (node->status & FORCE) ||
-		(ResOpt_ExtractAll & ResOptionsFlags))
-	{
-	    ResFixPoint	fp;
-
-	    failed1++;
-	    if (ResExtractNet(node, &gparams, outfile) != 0)
-	    {
-		/* On error, don't output this net, but keep going */
-		if (node->type == TT_SPACE)
-		    TxPrintf("Note:  Substrate node %s not extracted as network.\n",
-				node->name);
-		else
-		    TxError("Error in extracting node %s\n", node->name);
-	    }
-	    else
-	    {
-		ResDoSimplify(ftolerance, rctol, &gparams);
-		if (ResOptionsFlags & ResOpt_DoLumpFile)
-		{
-		    ResWriteLumpFile(node);
-		}
-		if (gparams.rg_maxres >= ftolerance  ||
-			(ResOptionsFlags & ResOpt_ExtractAll))
-		{
-		    resNodeNum = 0;
-		    failed3 += ResWriteExtFile(celldef, node, rctol,
-				&nidx, &eidx);
-		}
-	    }
-#ifdef PARANOID
-	    ResSanityChecks(node->name, ResResList, ResNodeList, ResDevList);
-#endif
-	    ResCleanUpEverything();
-	}
+	total += ResProcessNode(node, celldef, resisdata, outfile,
+			&numext, &numout);
     }
 
     /*
@@ -1245,9 +1283,7 @@ ResCheckSimNodes(celldef, resisdata)
      */
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
-    {
 	ResPrintExtDev(ResExtFile, ResRDevList);
-    }
 
     /*
      *	Write end statement to the FastHenry geometry file.
@@ -1280,29 +1316,19 @@ ResCheckSimNodes(celldef, resisdata)
     /* Output statistics about extraction */
 
     if (total)
-    {
         TxPrintf("Total Nets: %d\nNets extracted: "
-		"%d (%f)\nNets output: %d (%f)\n", total, failed1,
-		(float)failed1 / (float)total, failed3,
-		(float)failed3 / (float)total);
-    }
+		"%d (%f)\nNets output: %d (%f)\n", total, numext,
+		(float)numext / (float)total, numout,
+		(float)numout / (float)total);
     else
-    {
         TxPrintf("Total Nodes: %d\n",total);
-    }
 
     /* close output files */
 
-    if (ResExtFile != NULL)
-     	(void) fclose(ResExtFile);
-
-    if (ResLumpFile != NULL)
-     	(void) fclose(ResLumpFile);
-
-    if (ResFHFile != NULL)
-	(void) fclose(ResFHFile);
+    if (ResExtFile != NULL) (void) fclose(ResExtFile);
+    if (ResLumpFile != NULL) (void) fclose(ResLumpFile);
+    if (ResFHFile != NULL) (void) fclose(ResFHFile);
 }
-
 
 /*
  *-------------------------------------------------------------------------
