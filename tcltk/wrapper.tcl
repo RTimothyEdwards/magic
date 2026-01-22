@@ -576,6 +576,7 @@ set Opts(toolbar) 0
 set Opts(toolscale) 1.0
 set Opts(drc) 1
 set Opts(autobuttontext) 1
+set Opts(cmdentry) 0
 
 # Update cell and tech managers in response to a cif or gds read command
 
@@ -1187,8 +1188,12 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    bind ${winname} <Motion> "*bypass setpoint %x %y ${winname}; \
 	magic::cursorview ${winname}"
 
-   set Winopts(${framename},toolbar) 1
-   set Winopts(${framename},cmdentry) 0
+   if {[catch {set Winopts(${framename},toolbar)}]} {
+      set Winopts(${framename},toolbar) 1
+   }
+   if {[catch {set Winopts(${framename},cmdentry)}]} {
+      set Winopts(${framename},cmdentry) $Opts(cmdentry)
+   }
 
 # #################################
 # File
