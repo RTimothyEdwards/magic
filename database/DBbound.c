@@ -53,10 +53,7 @@ typedef struct dbcellboundstruct
  */
 
 int
-DBBoundCellPlane(def, extended, rect)
-    CellDef *def;
-    Rect *extended;
-    Rect *rect;
+DBBoundCellPlane(CellDef *def, Rect *extended, Rect *rect)
 {
     TreeFilter filter;
     DBCellBoundStruct cbs;
@@ -79,9 +76,7 @@ DBBoundCellPlane(def, extended, rect)
 }
 
 int
-dbCellBoundFunc(use, fp)
-    CellUse *use;
-    TreeFilter *fp;
+dbCellBoundFunc(CellUse *use, TreeFilter *fp)
 {
     DBCellBoundStruct *cbs;
 
@@ -124,9 +119,7 @@ dbCellBoundFunc(use, fp)
  */
 
 bool
-DBBoundPlane(plane, rect)
-    Plane *plane;
-    Rect *rect;
+DBBoundPlane(Plane *plane, Rect *rect)
 {
     Tile *left, *right, *top, *bottom, *tp;
 
@@ -205,9 +198,7 @@ DBBoundPlane(plane, rect)
  */
 
 bool
-DBBoundPlaneVert(plane, rect)
-    Plane *plane;
-    Rect *rect;
+DBBoundPlaneVert(Plane *plane, Rect *rect)
 {
     Tile *left, *right, *top, *bottom, *tp;
 
