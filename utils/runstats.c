@@ -176,7 +176,7 @@ RunStatsRealTime(void)
     static int havetime = 0;
     long totm, tots, tott, incm, incs, inct;
     struct timezone dummyz;
-    static char buf[50];
+    static char buf[128];
 
     gettimeofday(&curtime, &dummyz);
     if (!havetime)
