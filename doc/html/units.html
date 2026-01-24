@@ -1,0 +1,102 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-8.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_3.png ALT="Magic VLSI Layout Tool Version 8.3">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>units</H2>
+<HR>
+Cause distance measurements to be interpreted by default (with no
+suffix provied) as measurments of the selected units, and also cause
+distance measurements to be printed in the selected units.
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>units</B> [<B>internal</B>|<B>lambda</B>|<B>user</B>|<B>grid</B>|<B>microns</B>|<B>default</B>] [<B>print</B>|</B>noprint</B>] <BR>
+	or <BR>
+      <B>units</B> [<B>list</B>] <BR><BR>
+     
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>units</B> command causes printed measurements to be
+      given in the selected units.  The possible unit types are
+      <B>internal</B>, the size of the internal database units,
+      <B>lambda</B>, the lambda grid based on the technology minimum
+      feature size, <B>user</B> (or <B>grid</B>), based on the
+      value given by the user to the <B>grid</B> command, or
+      <B>microns</B>, which are physical units dependent on the
+      CIF or GDS output scaling as defined in the technology file. <P>
+
+      The <B>units</B> command also changes the way
+      that <A HREF=distance.html>distance measurements</A> are
+      interpreted in commands that take distance arguments, such
+      as <B>move</B>, <B>copy</B>, and <B>stretch</B>.  An integer
+      number with no other identifying units is interpreted as a
+      measurement in the current units type.  All other measurements
+      must have an identifying unit: <B>i</B> for internal units,
+      <B>l</B> for lambda units, and <B>g</B> for user grid units,
+      as well as the usual metric units such as <B>um</B> for
+      microns, <B>nm</B> for nanometers, and so forth.  See the
+      reference page on <A HREF=distance.html>distance measures</A>
+      for a complete description of distance values. <P>
+
+      For printed units, the additional argument <B>print</B>
+      causes the units to be printed along with the value;  e.g.,
+      "<B>1.0um</B>."  This is the usual setting for interactive
+      use.  The argument <B>noprint</B> suppresses the unit name,
+      which is appropriate for scripted use, when the value may
+      be passed to arithmetic expressions to be evaluated by the
+      interpreter. <P>
+
+      <B>units</B> with no arguments returns the current units type.
+      <B>units list</B> returns the current units type as a Tcl list
+      of two items;  the first item is the units type, and the second
+      item is <B>print</B> or <B>noprint</B>, indicating whether units
+      suffixes are printed with the values. <P>
+
+      Historically, values parsed from the command line were interpreted
+      according to the <B>snap</B> setting.  On startup, this behavior
+      remains in effect for backwards compatibility until overridden
+      with a <B>units</B> command.  The command <B>units default</B>
+      reverts back to the original behavior.  Once the <B>units</B>
+      default type is overridden, the <B>snap</B> behavior is controlled
+      independently of <B>units</B>. <P>
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>units</B> is implemented as a built-in command in <B>magic</B>.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=grid.html><B>grid</B></A> <BR>
+      <A HREF=snap.html><B>snap</B></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
+</BODY>
+</HTML>
