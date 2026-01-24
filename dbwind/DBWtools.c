@@ -65,11 +65,21 @@ typedef struct _crosshairRec {
 static CrosshairRec curCrosshair;		/* Crosshair position */
 
 /*
- * If the following is DBW_SNAP_USER, the box gets snapped to the user's
+ * If the following is DBW_UNITS_USER, the box gets snapped to the user's
  * grid always, instead of snapping to the usual 1x1 grid.  If the value
- * is DBW_SNAP_INTERNAL, the box gets snapped to the internal grid.
+ * is DBW_UNITS_INTERNAL, the box gets snapped to the internal grid.
  */
-int DBWSnapToGrid = DBW_SNAP_LAMBDA;
+int DBWSnapToGrid = DBW_UNITS_LAMBDA;
+
+/*
+ * The original behavior with respect to units was that un-suffixed
+ * values follow whatever the snap setting is (DBWSnapToGrid, above).
+ * Current behavior is that the original behavior is followed while
+ * DBWUnits is set to DBW_UNITS_DEFAULT.  However, if the "units"
+ * command is given, then displayed and entered units follow that
+ * value independently of the snap setting.
+ */
+int DBWUnits = DBW_UNITS_DEFAULT;
 
 /* Forward reference: */
 
@@ -82,8 +92,8 @@ extern int DBWToolDraw();
  *	toolFindPoint --
  *
  * 	Returns the point in root coordinates.
- *	If DBWSnapToGrid is DBW_SNAP_USER, pick the nearest point that is
- *	aligned with the window's grid.  If DBWSnapToGrid is DBW_SNAP_LAMBDA,
+ *	If DBWSnapToGrid is DBW_UNITS_USER, pick the nearest point that is
+ *	aligned with the window's grid.  If DBWSnapToGrid is DBW_UNITS_LAMBDA,
  *	pick the nearest point that is an integer lambda value.
  *
  * Results:
@@ -120,7 +130,7 @@ toolFindPoint(p, rootPoint, rootArea)
     if (!GEO_ENCLOSE(p, &WindCurrentWindow->w_screenArea)) return NULL;
 
     WindPointToSurface(WindCurrentWindow, p, rootPoint, rootArea);
-    if (DBWSnapToGrid != DBW_SNAP_INTERNAL)
+    if (DBWSnapToGrid != DBW_UNITS_INTERNAL)
 	ToolSnapToGrid(WindCurrentWindow, rootPoint, rootArea);
     return WindCurrentWindow;
 
@@ -844,8 +854,8 @@ DBWResetBox(CellDef *def)
  * 	Repositions the box by one of its corners.
  *	If the point given to reposition the box is in screen coordinates,
  *	the box corner is snapped to the user's grid (set with the :grid
- *	command) if DBWSnapToGrid is DBW_SNAP_USER.  If DBWSnapToGrid is
- *	DBW_SNAP_LAMBDA, the box corner is snapped to the nearest integer
+ *	command) if DBWSnapToGrid is DBW_UNITS_USER.  If DBWSnapToGrid is
+ *	DBW_UNITS_LAMBDA, the box corner is snapped to the nearest integer
  *	lambda value.
  *
  * Results:
@@ -948,8 +958,8 @@ ToolMoveBox(corner, point, screenCoords, rootDef)
  *
  *	If the point given to reposition the box is in screen coordinates,
  *	the box corner is snapped to the user's grid (set with the :grid
- *	command) if DBWSnapToGrid is DBW_SNAP_USER.  If DBWSnapToGrid is
- *	DBW_SNAP_LAMBDA, the box corner is snapped to the nearest integer
+ *	command) if DBWSnapToGrid is DBW_UNITS_USER.  If DBWSnapToGrid is
+ *	DBW_UNITS_LAMBDA, the box corner is snapped to the nearest integer
  *	lambda value.
  *
  * Results:
@@ -1092,7 +1102,7 @@ ToolSnapToGrid(w, p, rEnclose)
     if (crec == NULL || p == NULL)
 	return;
 
-    if (DBWSnapToGrid == DBW_SNAP_LAMBDA)
+    if (DBWSnapToGrid == DBW_UNITS_LAMBDA)
     {
 	lr.r_xbot = lr.r_ybot = 0;
 	lr.r_xtop = DBLambda[1] / DBLambda[0];

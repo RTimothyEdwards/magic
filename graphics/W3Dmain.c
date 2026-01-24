@@ -694,15 +694,22 @@ w3dCutBox(w, cmd)
 	{
 	    if (crec->clipped)
 	    {
+		char *cllx, *clly, *curx, *cury;
+
+		cllx = DBWPrintValue(crec->cutbox.r_xbot, w, TRUE);
+		clly = DBWPrintValue(crec->cutbox.r_ybot, w, TRUE);
+		curx = DBWPrintValue(crec->cutbox.r_xtop, w, TRUE);
+		cury = DBWPrintValue(crec->cutbox.r_ytop, w, TRUE);
+
 		Tcl_Obj *rlist = Tcl_NewListObj(0, NULL);
 		Tcl_ListObjAppendElement(magicinterp, rlist,
-			Tcl_NewIntObj((int)(crec->cutbox.r_xbot)));
+			Tcl_NewStringObj(cllx, -1));
 		Tcl_ListObjAppendElement(magicinterp, rlist,
-			Tcl_NewIntObj((int)(crec->cutbox.r_ybot)));
+			Tcl_NewStringObj(clly, -1));
 		Tcl_ListObjAppendElement(magicinterp, rlist,
-			Tcl_NewIntObj((int)(crec->cutbox.r_xtop)));
+			Tcl_NewStringObj(curx, -1));
 		Tcl_ListObjAppendElement(magicinterp, rlist,
-			Tcl_NewIntObj((int)(crec->cutbox.r_ytop)));
+			Tcl_NewStringObj(cury, -1));
 
 		Tcl_SetObjResult(magicinterp, rlist);
 	    }

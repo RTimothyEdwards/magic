@@ -1122,12 +1122,13 @@ CmdExtract(
 	    }
 	    else if (argc == 2)
 	    {
+		char *halodisp;
+		halodisp = DBWPrintValue(ExtCurStyle->exts_sideCoupleHalo,
+			w, TRUE);
 #ifdef MAGIC_WRAPPER
-		Tcl_Obj *tobj;
-		tobj = Tcl_NewIntObj(ExtCurStyle->exts_sideCoupleHalo);
-		Tcl_SetObjResult(magicinterp, tobj);
+		Tcl_SetObjResult(magicinterp, Tcl_NewStringObj(halodisp, -1));
 #else
-		TxPrintf("Side overlap halo is %d\n", ExtCurStyle->exts_sideCoupleHalo);
+		TxPrintf("Side overlap halo is %s\n", halodisp);
 #endif
 		return;
 	    }
@@ -1152,12 +1153,12 @@ CmdExtract(
 	    }
 	    else if (argc == 2)
 	    {
+		char *stepdisp;
+		stepdisp = DBWPrintValue(ExtCurStyle->exts_stepSize, w, TRUE);
 #ifdef MAGIC_WRAPPER
-		Tcl_Obj *tobj;
-		tobj = Tcl_NewIntObj(ExtCurStyle->exts_stepSize);
-		Tcl_SetObjResult(magicinterp, tobj);
+		Tcl_SetObjResult(magicinterp, Tcl_NewStringObj(stepdisp, -1));
 #else
-		TxPrintf("Extraction step size is %d\n", ExtCurStyle->exts_stepSize);
+		TxPrintf("Extraction step size is %s\n", stepdisp);
 #endif
 		return;
 	    }

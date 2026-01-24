@@ -109,7 +109,7 @@ cmdScaleCoord(
 {
     char *endptr;
     double dval = 0;
-    int mscale = 1;
+    int mscale = 1, curunits;
     DBWclientRec *crec;
 
     if (*arg == '{') arg++;
@@ -125,8 +125,18 @@ cmdScaleCoord(
 	return 0;
     }
 
-    else if ((*endptr == 'l')
-		|| ((*endptr == '\0') && (DBWSnapToGrid == DBW_SNAP_LAMBDA)))
+    /* Original behavior was to accept un-suffixed values according to the
+     * "snap" setting.  This behavior remains in effect until the "units"
+     * command is used, in which case units follow the selected units
+     * value indepedendently of the snap setting.
+     */
+    if (DBWUnits == DBW_UNITS_DEFAULT)
+	curunits = DBWSnapToGrid;
+    else
+	curunits = DBWUnits & DBW_UNITS_TYPE_MASK;
+
+    if ((*endptr == 'l')
+		|| ((*endptr == '\0') && (curunits == DBW_UNITS_LAMBDA)))
     {
 	/* lambda or default units */
 	dval *= (double)DBLambda[1];
@@ -134,13 +144,13 @@ cmdScaleCoord(
 	return round(dval);
     }
     else if ((*endptr == 'i')
-		|| ((*endptr == '\0') && (DBWSnapToGrid == DBW_SNAP_INTERNAL)))
+		|| ((*endptr == '\0') && (curunits == DBW_UNITS_INTERNAL)))
     {
 	/* internal units */
 	return round(dval);
     }
     else if ((*endptr == 'g')
-		|| ((*endptr == '\0') && (DBWSnapToGrid == DBW_SNAP_USER)))
+		|| ((*endptr == '\0') && (curunits == DBW_UNITS_USER)))
     {
 	/* grid units */
 	if (w == (MagWindow *)NULL)
@@ -165,6 +175,10 @@ cmdScaleCoord(
 		dval += (double)crec->dbw_gridRect.r_ybot;
 	}
 	return round(dval);
+    }
+    else if (*endptr == '\0' && (curunits == DBW_UNITS_MICRONS))
+    {
+	mscale = 1000;
     }
     else
     {

@@ -210,7 +210,7 @@ RunStatsRealTime(void)
     while (inct >= 10) { inct -= 10; incs++; }
     while (incs >= 60) { incs -= 60;  incm++; }
 
-    sprintf(buf, "%ld:%02ld.%ld %ld:%02ld.%ld",
+    snprintf(buf, (size_t)50, "%ld:%02ld.%ld %ld:%02ld.%ld",
 	totm, tots, tott, incm, incs, inct);
 
     lasttime = curtime;

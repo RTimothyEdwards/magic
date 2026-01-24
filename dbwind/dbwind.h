@@ -113,6 +113,7 @@ typedef struct DBW1 {
 
 extern WindClient DBWclientID;
 extern int DBWSnapToGrid;
+extern int DBWUnits;
 
 extern int DBWMaxTechStyles;
 extern int DBWMaxTileStyles;
@@ -121,13 +122,17 @@ extern int DBWNumStyles;
 extern int RtrPolyWidth, RtrMetalWidth, RtrContactWidth;
 
 /*
- * Exported procedure headers for redisplay
+ * Exported procedure headers for redisplay and output
  */
 
 extern int DBWWatchTiles();
 extern void DBWAreaChanged();
 extern void DBWLabelChanged();
 extern void DBWDrawLabel();
+extern char *DBWPrintValue(int value, MagWindow *w, bool is_x);
+extern char *DBWPrintSqValue(int value, MagWindow *w);
+extern char *DBWPrintCIFValue(int value, MagWindow *w, bool is_x);
+extern char *DBWPrintCIFSqValue(int value, MagWindow *w);
 
 /*
  * Exported procedures and variables related to the technology file
@@ -169,14 +174,36 @@ extern void DBWBoxHandler();
 #define TOOL_ILG -1
 
 /* The following defines are used to indicate which coordinate system
- * the cursor box snaps to when moved with mouse clicks (values for
- * DBWSnapToGrid).
+ * is used when displaying or returning values.  By default this is
+ * set to DBW_UNITS_INTERNAL.  From magic version 8.3.595, this is
+ * independently set from "snap".  For backwards compatibility,
+ * the value starts as DBW_UNITS_DEFAULT which implements the original
+ * behavior in which the "snap" setting dictates the dispaly units.
+ * Only if set to a non-negative value do the display units operate
+ * independently of the snap setting.
+ *
+ * NOTES:
+ *	Lambda units are fixed by the tech file.
+ *	Internal units are scalable.
+ *	User units are scalable;  this can be used, for example, to
+ *		set a box position according to multiples of a track
+ *		pitch, but is most often used manually with the "g"
+ *		(for "grid") suffix; e.g., "move box e 1g"
+ *	Micron units are dependent on the specified cifoutput style
+ *		and how the tech file defines the scalefactor for it.
  */
 
-#define DBW_SNAP_INTERNAL	0	/* internal units (fine grid)	*/
-#define DBW_SNAP_LAMBDA		1	/* lambda units (coarse grid)	*/
-#define DBW_SNAP_USER		2	/* user grid units (user grid)	*/
-#define DBW_SNAP_MICRONS	3	/* micron units			*/
+#define DBW_UNITS_DEFAULT      -1	/* backwards-compatible behavior */
+#define DBW_UNITS_INTERNAL	0	/* internal units */
+#define DBW_UNITS_LAMBDA	1	/* lambda units */
+#define DBW_UNITS_USER		2	/* user grid units */
+#define DBW_UNITS_MICRONS	3	/* micron units */
+#define DBW_UNITS_TYPE_MASK	3	/* everything but the flag field(s) */
+#define DBW_UNITS_PRINT_FLAG	4	/* flag used to indicate that
+					 * the units should be printed
+					 * with the value;  e.g.,
+					 * "10um" instead of "10".
+					 */
 
 /* The following window mask can be used to select all database windows
  * for things like the mask parameter to DBWAreaChanged.

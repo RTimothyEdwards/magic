@@ -54,7 +54,7 @@ extern void CmdRandom(), CmdSave(), CmdScaleGrid(), CmdSee();
 extern void CmdSelect(), CmdSetLabel(), CmdSideways();
 extern void CmdShell(), CmdSnap();
 extern void CmdStretch(), CmdStraighten();
-extern void CmdTech(), CmdTool(), CmdUnexpand();
+extern void CmdTech(), CmdTool(), CmdUnexpand(), CmdUnits();
 extern void CmdUpsidedown(), CmdWhat(), CmdWire(), CmdWriteall();
 extern void CmdGoto(), CmdFlatten(), CmdXload(), CmdXor();
 
@@ -474,6 +474,9 @@ DBWInitCommands()
     WindAddCommand(DBWclientID,
 	"unexpand		unexpand subcells under box",
 	CmdUnexpand, FALSE);
+    WindAddCommand(DBWclientID,
+	"units [type]		set type of units parsed and displayed",
+	CmdUnits, FALSE);
     WindAddCommand(DBWclientID,
 	"upsidedown		flip selection and box upside down",
 	CmdUpsidedown, FALSE);

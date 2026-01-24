@@ -25,6 +25,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <string.h>
 #include <sys/stat.h>
 
+#include "tcltk/tclmagic.h"
 #include "utils/main.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -33,6 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/hash.h"
 #include "database/database.h"
 #include "utils/main.h"
+#include "cif/cif.h"
 #include "commands/commands.h"
 #include "dbwind/dbwind.h"
 #include "graphics/graphics.h"
@@ -651,6 +653,311 @@ bool
 DBWexit()
 {
     return (CmdWarnWrite() == 1);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbwValueFormat ---
+ *
+ *	Remove unnecessary trailing zeros and decimal from a floating-point
+ *	value formatted with "%.Nf" where N is the expected maximum number
+ *	of places after the decimal, matching the argument "places".
+ *	This makes the "%f" formatting work like "%g" formatting, but
+ *	works around the limitation of "%.Ng" that it operates on the number
+ *	of significant digits, not the number of decimal places.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	The string "buf" may be altered with a new terminating null character.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+dbwValueFormat(char *buf,
+    int places)
+{
+    char *p = buf + strlen(buf) - 1;
+    while (p > buf && *p == '0') *p-- = '\0';
+    if (p > buf && *p == '.') *p = '\0';
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbwPrintValue0 --
+ *
+ *	Convert a value in internal database units to a string based on
+ *	the chosen display units as defined by DBWUnits (which is set
+ *	with the "units" command).  If DBWUnits has not been changed
+ *	since startup, then the behavior is to print the internal units
+ *	in string form.  If DBWUnits has been set, then the units type
+ *	determines how the output is displayed.
+ *
+ *	If "is_square" is TRUE, then the value is in units squared, and
+ *	scaling is done accordingly.  In the case of DBW_UNITS_USER,
+ *	where values are in grid multiples, the units for X and Y may
+ *	differ, and "is_x" = TRUE indicates a measurement in the X direction,
+ *	while false indicase a measurements in the Y direction.  Naturally,
+ *	if "is_square" is TRUE then "is_x" is ignored.  "is_x" is also ignored
+ *	for any output units other than user/grid units.
+ *
+ *	If "is_cif" is true, then "value" is in CIF database units
+ *	(centimicrons, nanometers, or angstroms, according to the
+ *	scalefactor line in the tech file), rather than internal units.
+ *
+ *	This routine is generally meant to be called as one of the three
+ *	variants defined below it:  DBWPrintValue(), DBWPrintSqValue(),
+ *	or DBWPrintCIFValue().
+ *
+ * Results:
+ *	A pointer to a string.  To facilitate printing up to four values
+ *	(e.g., rectangle coordinates, such as from "box values"), a static
+ *	string partitioned into four parts is created in this subroutine,
+ *	and the result points to one position in the string, which is cycled
+ *	through every four calls to the subroutine.  The caller does not
+ *	free the returned string.
+ *
+ * Side effects:
+ *	None.
+ *
+ * NOTE:  Prior to the introduction of the "units" command, magic had the
+ *	inconsistent behavior that parsed input values on the command line
+ *	would be interpreted per the "snap" setting, but output values were
+ *	(almost) always given in internal units.  This routine keeps the
+ *	original behavior backwards-compatible, as inconsistent as it is.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+dbwPrintValue0(int value,	/* value to print, in internal units */
+    MagWindow *w,		/* current window, for use with grid */
+    bool is_x,			/* TRUE if value is an X dimension */
+    bool is_square,		/* TRUE if value is a dimension squared */
+    bool is_cif)		/* TRUE if value is in centimicrons */
+{
+    char *result;
+    float oscale, dscale, fvalue;
+    DBWclientRec *crec;
+    int locunits;
+
+    /* This routine is called often, so avoid constant use of malloc and
+     * free by keeping up to four printed results in static memory.
+     */
+    static char resultstr[128];
+    static unsigned char resultpos = 0;
+
+    result = &resultstr[resultpos];
+    resultpos += 32;
+    resultpos &= 127;	/* At 128, cycle back to zero */
+
+    /* CIF database units are centimicrons/nanometers/angstroms as
+     * set by the "scalefactor" line in the tech file.  When "is_cif"
+     * is TRUE, then "value" is in these units.  Find the conversion
+     * factor to convert "value" to internal units, and then it can
+     * be subsequently converted to lambda, microns, etc.
+     */
+    if (is_cif == TRUE)
+	dscale = CIFGetScale(100) / CIFGetOutputScale(1000);
+    else
+	dscale = 1.0;
+
+    /* When printing user/grid units, check for a valid window */
+
+    locunits = DBWUnits;
+    if (locunits != DBW_UNITS_DEFAULT) locunits &= DBW_UNITS_TYPE_MASK;
+
+    /* The MagWindow argument is only needed for user units, since the
+     * user grid values are found there.  Setting MagWindow to NULL
+     * effectively disables printing values in user grid units, which
+     * then default to internal units.
+     */
+    if (locunits == DBW_UNITS_USER)
+    {
+	if (w == (MagWindow *)NULL)
+	{
+	    windCheckOnlyWindow(&w, DBWclientID);
+	    if (w == (MagWindow *)NULL)
+		locunits = DBW_UNITS_DEFAULT;
+	}
+    }
+
+    switch (locunits)
+    {
+	case DBW_UNITS_DEFAULT:
+	    snprintf(result, 32, "%d", value);
+	    break;
+
+	case DBW_UNITS_INTERNAL:
+	    if (is_cif)
+	    {
+		if (is_square)
+		{
+		    snprintf(result, 32, "%.6f", value * dscale * dscale);
+		    dbwValueFormat(result, 6);
+		}
+		else
+		{
+		    snprintf(result, 32, "%.3f", value * dscale);
+		    dbwValueFormat(result, 3);
+		}
+	    }
+	    else
+		snprintf(result, 32, "%d", value);
+	    if (is_square)
+	    {
+		if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 29))
+		    strcat(result, "i^2");
+	    }
+	    else
+	    {
+		if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 31))
+		    strcat(result, "i");
+	    }
+	    break;
+
+	case DBW_UNITS_LAMBDA:
+	
+	    oscale = (float)DBLambda[0];
+	    oscale /= (float)DBLambda[1];
+	    if (is_square)
+	    {
+		fvalue = (float)value * oscale * oscale * dscale * dscale;
+		snprintf(result, 32, "%0.6f", (double)fvalue);
+		dbwValueFormat(result, 6);
+		if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 29))
+		    strcat(result, "l^2");
+	    }
+	    else
+	    {
+		fvalue = (float)value * oscale * dscale;
+		snprintf(result, 32, "%0.3f", (double)fvalue);
+		dbwValueFormat(result, 3);
+		if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 31))
+		    strcat(result, "l");
+	    }
+	    break;
+
+	case DBW_UNITS_MICRONS:
+	    oscale = CIFGetOutputScale(1000);
+	    if (is_square)
+	    {
+		fvalue = (float)value * oscale * oscale * dscale * dscale;
+		snprintf(result, 32, "%0.6f", (double)fvalue);
+		dbwValueFormat(result, 6);
+		if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 28))
+		    strcat(result, "um^2");
+	    }
+	    else
+	    {
+		fvalue = (float)value * oscale * dscale;
+		snprintf(result, 32, "%0.3f", (double)fvalue);
+		dbwValueFormat(result, 3);
+		if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 30))
+		    strcat(result, "um");
+	    }
+	    break;
+
+	case DBW_UNITS_USER:
+	    if (is_square)
+	    {
+		oscale = (float)((crec->dbw_gridRect.r_xtop -
+			 crec->dbw_gridRect.r_xbot) *
+			(crec->dbw_gridRect.r_ytop -
+			crec->dbw_gridRect.r_ybot));
+	    }
+	    else if (is_x)
+	    {
+		oscale = (float)(crec->dbw_gridRect.r_xtop -
+			 crec->dbw_gridRect.r_xbot);
+	    }
+	    else
+	    {
+		oscale = (float)(crec->dbw_gridRect.r_ytop -
+			 crec->dbw_gridRect.r_ybot);
+	    }
+	    fvalue = (float)value * oscale * dscale;
+	    if (is_square)
+	    {
+		fvalue *= dscale;
+		snprintf(result, 32, "%0.6f", (double)fvalue);
+		dbwValueFormat(result, 6);
+		if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 27))
+		    strcat(result, "gx*gy");
+	    }
+	    else
+	    {
+		snprintf(result, 32, "%0.3f", (double)fvalue);
+		dbwValueFormat(result, 3);
+		if (is_x)
+		{
+		    if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 30))
+		        strcat(result, "gx");
+		}
+		else
+		{
+		    if ((DBWUnits & DBW_UNITS_PRINT_FLAG) && (strlen(result) < 30))
+		        strcat(result, "gy");
+		}
+	    }
+	    break;
+    }
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBWPrintValue --
+ * DBWPrintSqValue --
+ * DBWPrintCIFValue --
+ * DBWPrintCIFSqValue --
+ *
+ *	Convenience functions which call dbwPrintValue0() with specific
+ *	fixed arguments, so that the calls are not full of boolean values.
+ *	The "is_x" boolean is retained because it is used often.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+DBWPrintValue(int value,	/* value to print, in internal units */
+    MagWindow *w,		/* current window, for use with grid */
+    bool is_x)			/* TRUE if value is an X dimension */
+{
+    /* Call dbwPrintValue0() with is_square = FALSE and is_cif = FALSE */
+    return dbwPrintValue0(value, w, is_x, FALSE, FALSE);
+}
+
+char *
+DBWPrintSqValue(int value,	/* value to print, in internal units */
+    MagWindow *w)		/* current window, for use with grid */
+{
+    /* Call dbwPrintValue0() with is_square = TRUE and is_cif = FALSE */
+    /* is_x is set to TRUE although it is unused. */
+    return dbwPrintValue0(value, w, TRUE, TRUE, FALSE);
+}
+
+char *
+DBWPrintCIFValue(int value,	/* value to print, in internal units */
+    MagWindow *w,		/* current window, for use with grid */
+    bool is_x)			/* TRUE if value is an X dimension */
+{
+    /* Call dbwPrintValue0() with is_square = FALSE and is_cif = TRUE */
+    return dbwPrintValue0(value, w, is_x, FALSE, TRUE);
+}
+
+char *
+DBWPrintCIFSqValue(int value,	/* value to print, in internal units */
+    MagWindow *w)		/* current window, for use with grid */
+{
+    /* Call dbwPrintValue0() with is_square = TRUE and is_cif = TRUE */
+    /* is_x is set to TRUE although it is unused. */
+    return dbwPrintValue0(value, w, TRUE, TRUE, TRUE);
 }
 
 /*

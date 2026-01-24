@@ -820,6 +820,9 @@ windViewCmd(w, cmd)
 
 	if (!strncmp(cmd->tx_argv[1], "get", 3))
 	{
+	    /* NOTE:  The surface area is in screen (pixel) coordinates
+	     * and so does not follow the "units" display type.
+	     */
 #ifndef MAGIC_WRAPPER
 	    TxPrintf("(%d, %d) to (%d, %d)\n",
 			w->w_surfaceArea.r_xbot, w->w_surfaceArea.r_ybot,
@@ -838,19 +841,24 @@ windViewCmd(w, cmd)
 	}
 	else if (!strncmp(cmd->tx_argv[1], "bbox", 4))
 	{
+	    char *vllx, *vlly, *vurx, *vury;
+
+	    vllx = DBWPrintValue(w->w_bbox->r_xbot, w, TRUE);
+	    vlly = DBWPrintValue(w->w_bbox->r_ybot, w, FALSE);
+	    vurx = DBWPrintValue(w->w_bbox->r_xtop, w, TRUE);
+	    vury = DBWPrintValue(w->w_bbox->r_ytop, w, FALSE);
+
 #ifndef MAGIC_WRAPPER
-	    TxPrintf("(%d, %d) to (%d, %d)\n",
-			w->w_bbox->r_xbot, w->w_bbox->r_ybot,
-			w->w_bbox->r_xtop, w->w_bbox->r_ytop);
+	    TxPrintf("(%s, %s) to (%s, %s)\n", vllx, vlly, vurx, vury);
 #else
 	    Tcl_ListObjAppendElement(magicinterp, listxy,
-			Tcl_NewIntObj((int)w->w_bbox->r_xbot));
+			Tcl_NewStringObj(vllx, -1));
 	    Tcl_ListObjAppendElement(magicinterp, listxy,
-			Tcl_NewIntObj((int)w->w_bbox->r_ybot));
+			Tcl_NewStringObj(vlly, -1));
 	    Tcl_ListObjAppendElement(magicinterp, listxy,
-			Tcl_NewIntObj((int)w->w_bbox->r_xtop));
+			Tcl_NewStringObj(vurx, -1));
 	    Tcl_ListObjAppendElement(magicinterp, listxy,
-			Tcl_NewIntObj((int)w->w_bbox->r_ytop));
+			Tcl_NewStringObj(vury, -1));
 	    Tcl_SetObjResult(magicinterp, listxy);
 #endif
 	}

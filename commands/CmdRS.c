@@ -1084,25 +1084,33 @@ CmdSelect(
 	 */
 
 	case SEL_BBOX:
+	{
+	    char *selllx, *sellly, *selurx, *selury;
+
 	    GeoTransRect(&SelectUse->cu_transform, &SelectDef->cd_bbox, &selarea);
+
+	    selllx = DBWPrintValue(selarea.r_xbot, w, TRUE);
+	    sellly = DBWPrintValue(selarea.r_ybot, w, FALSE);
+	    selurx = DBWPrintValue(selarea.r_xtop, w, TRUE);
+	    selury = DBWPrintValue(selarea.r_ytop, w, FALSE);
 
 #ifdef MAGIC_WRAPPER
 	    lobj = Tcl_NewListObj(0, NULL);
 	    Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewIntObj(selarea.r_xbot));
+			Tcl_NewStringObj(selllx, -1));
 	    Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewIntObj(selarea.r_ybot));
+			Tcl_NewStringObj(sellly, -1));
 	    Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewIntObj(selarea.r_xtop));
+			Tcl_NewStringObj(selurx, -1));
 	    Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewIntObj(selarea.r_ytop));
+			Tcl_NewStringObj(selury, -1));
 	    Tcl_SetObjResult(magicinterp, lobj);
 #else
-	    TxPrintf("Select bounding box: %d %d %d %d\n",
-		    selarea.r_xbot, selarea.r_ybot,
-		    selarea.r_xtop, selarea.r_ytop);
+	    TxPrintf("Select bounding box: %s %s %s %s\n",
+		    selllx, sellly, selurx, selury);
 #endif
 	    return;
+	}
 
 	/*--------------------------------------------------------------------
 	 * Make a copy of the selection at its present loction but do not
@@ -1985,23 +1993,25 @@ cmdLabelRectFunc(
 
     if (rect == NULL)
     {
+	char *labllx, *lablly, *laburx, *labury;
+
+	/* Note:  Ideally, the MagWindow pointer should be passed to this function */
+	labllx = DBWPrintValue(label->lab_rect.r_xbot, (MagWindow *)NULL, TRUE);
+	lablly = DBWPrintValue(label->lab_rect.r_ybot, (MagWindow *)NULL, FALSE);
+	laburx = DBWPrintValue(label->lab_rect.r_xtop, (MagWindow *)NULL, TRUE);
+	labury = DBWPrintValue(label->lab_rect.r_ytop, (MagWindow *)NULL, FALSE);
+
 #ifdef MAGIC_WRAPPER
 	lobj = Tcl_GetObjResult(magicinterp);
 	pobj = Tcl_NewListObj(0, NULL);
 	Tcl_ListObjAppendElement(magicinterp, lobj, pobj);
-	Tcl_ListObjAppendElement(magicinterp, pobj,
-			Tcl_NewIntObj((double)label->lab_rect.r_xbot));
-	Tcl_ListObjAppendElement(magicinterp, pobj,
-			Tcl_NewIntObj((double)label->lab_rect.r_ybot));
-	Tcl_ListObjAppendElement(magicinterp, pobj,
-			Tcl_NewIntObj((double)label->lab_rect.r_xtop));
-	Tcl_ListObjAppendElement(magicinterp, pobj,
-			Tcl_NewIntObj((double)label->lab_rect.r_ytop));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(labllx, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(lablly, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(laburx, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(labury, -1));
 	Tcl_SetObjResult(magicinterp, lobj);
 #else
-	TxPrintf("%d %d %d %d\n",
-			label->lab_rect.r_xbot, label->lab_rect.r_ybot,
-			label->lab_rect.r_xtop, label->lab_rect.r_ytop);
+	TxPrintf("%s %s %s %s\n", labllx, lablly, laburx,labury);
 #endif
     }
     else if (!GEO_SAMERECT(label->lab_rect, *rect))
@@ -2317,11 +2327,13 @@ CmdSetLabel(
 	    {
 		if (locargc == 2)
 		{
+		    char *labsize;
+
+		    labsize = DBWPrintValue(DefaultLabel->lab_size, w, FALSE);
 #ifdef MAGIC_WRAPPER
-		    Tcl_SetObjResult(magicinterp,
-				Tcl_NewIntObj(DefaultLabel->lab_size));
+		    Tcl_SetObjResult(magicinterp, Tcl_NewStringObj(labsize, -1));
 #else
-		    TxPrintf("%d\n", DefaultLabel->lab_size);
+		    TxPrintf("%s\n", labsize);
 #endif
 		}
 		else
@@ -2360,16 +2372,20 @@ CmdSetLabel(
 	    {
 		if (locargc == 2)
 		{
+		    char *laboffx, *laboffy;
+		    laboffx = DBWPrintValue(DefaultLabel->lab_offset.p_x, w,
+					TRUE);
+		    laboffy = DBWPrintValue(DefaultLabel->lab_offset.p_y, w,
+					FALSE);
 #ifdef MAGIC_WRAPPER
 		    lobj = Tcl_NewListObj(0, NULL);
 	    	    Tcl_ListObjAppendElement(magicinterp, lobj,
-				Tcl_NewIntObj(DefaultLabel->lab_offset.p_x));
+				Tcl_NewStringObj(laboffx, -1));
 	    	    Tcl_ListObjAppendElement(magicinterp, lobj,
-				Tcl_NewIntObj(DefaultLabel->lab_offset.p_y));
+				Tcl_NewStringObj(laboffy, -1));
 		    Tcl_SetObjResult(magicinterp, lobj);
 #else
-		    TxPrintf("%d %d\n", DefaultLabel->lab_offset.p_x,
-				DefaultLabel->lab_offset.p_y);
+		    TxPrintf("%s %s\n", laboffx, laboffy);
 #endif
 		}
 		else
@@ -2887,13 +2903,13 @@ CmdSnap(
     switch (n)
     {
 	case SNAP_OFF: case SNAP_INTERNAL:
-	    DBWSnapToGrid = DBW_SNAP_INTERNAL;
+	    DBWSnapToGrid = DBW_UNITS_INTERNAL;
 	    return;
 	case SNAP_LAMBDA:
-	    DBWSnapToGrid = DBW_SNAP_LAMBDA;
+	    DBWSnapToGrid = DBW_UNITS_LAMBDA;
 	    return;
 	case SNAP_GRID: case SNAP_USER: case SNAP_ON:
-	    DBWSnapToGrid = DBW_SNAP_USER;
+	    DBWSnapToGrid = DBW_UNITS_USER;
 	    return;
     }
 
@@ -2901,20 +2917,18 @@ printit:
     if (n == SNAP_LIST)  /* list */
 #ifdef MAGIC_WRAPPER
 	Tcl_SetResult(magicinterp,
-		(DBWSnapToGrid == DBW_SNAP_INTERNAL) ? "internal" :
-		((DBWSnapToGrid == DBW_SNAP_LAMBDA) ? "lambda" : "user"),
+		(DBWSnapToGrid == DBW_UNITS_INTERNAL) ? "internal" :
+		((DBWSnapToGrid == DBW_UNITS_LAMBDA) ? "lambda" : "user"),
 		TCL_VOLATILE);
 #else
-	TxPrintf("%s\n", (DBWSnapToGrid == DBW_SNAP_INTERNAL) ? "internal" :
-		((DBWSnapToGrid == DBW_SNAP_LAMBDA) ? "lambda" : "user"));
+	TxPrintf("%s\n", (DBWSnapToGrid == DBW_UNITS_INTERNAL) ? "internal" :
+		((DBWSnapToGrid == DBW_UNITS_LAMBDA) ? "lambda" : "user"));
 #endif
     else
 	TxPrintf("Box is aligned to %s grid\n",
-		(DBWSnapToGrid == DBW_SNAP_INTERNAL) ? "internal" :
-		((DBWSnapToGrid == DBW_SNAP_LAMBDA) ? "lambda" : "user"));
+		(DBWSnapToGrid == DBW_UNITS_INTERNAL) ? "internal" :
+		((DBWSnapToGrid == DBW_UNITS_LAMBDA) ? "lambda" : "user"));
 }
-
-
 
 /*
  * ----------------------------------------------------------------------------

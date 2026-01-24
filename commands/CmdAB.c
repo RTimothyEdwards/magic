@@ -338,14 +338,17 @@ CmdArray(
 	case ARRAY_WIDTH:
 	    if (locargc == 2)
 	    {
+		char *xsepvalue;
 		for (la = lahead; la != NULL; la = la->ar_next)
 		{
+		    xsepvalue = DBWPrintValue(la->arrayInfo.ar_xsep,
+				w, TRUE);
 #ifdef MAGIC_WRAPPER
 		    if (doList)
 		    {
 			tobj = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(magicinterp, tobj,
-				Tcl_NewIntObj(la->arrayInfo.ar_xsep));
+				Tcl_NewStringObj(xsepvalue, -1));
 			Tcl_SetObjResult(magicinterp, tobj);
 		    }
 		    else
@@ -355,7 +358,7 @@ CmdArray(
 			    TxPrintf("Cell use \"%s\":", la->cellUse->cu_id);
 			else
 			    TxPrintf("Cell \"%s\":", la->cellUse->cu_def->cd_name);
-			TxPrintf("x separation %d\n", la->arrayInfo.ar_xsep);
+			TxPrintf("x separation %s\n", xsepvalue);
 #ifdef MAGIC_WRAPPER
 		    }
 #endif
@@ -374,14 +377,17 @@ CmdArray(
 	case ARRAY_HEIGHT:
 	    if (locargc == 2)
 	    {
+		char *ysepvalue;
 		for (la = lahead; la != NULL; la = la->ar_next)
 		{
+		    ysepvalue = DBWPrintValue(la->arrayInfo.ar_ysep,
+				w, FALSE);
 #ifdef MAGIC_WRAPPER
 		    if (doList)
 		    {
 			tobj = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(magicinterp, tobj,
-				Tcl_NewIntObj(la->arrayInfo.ar_ysep));
+				Tcl_NewStringObj(ysepvalue, -1));
 			Tcl_SetObjResult(magicinterp, tobj);
 		    }
 		    else
@@ -391,7 +397,7 @@ CmdArray(
 			    TxPrintf("Cell use \"%s\":", la->cellUse->cu_id);
 			else
 			    TxPrintf("Cell \"%s\":", la->cellUse->cu_def->cd_name);
-			TxPrintf("y separation %d\n", la->arrayInfo.ar_ysep);
+			TxPrintf("y separation %s\n", ysepvalue);
 #ifdef MAGIC_WRAPPER
 		    }
 #endif
@@ -410,16 +416,21 @@ CmdArray(
 	case ARRAY_PITCH:
 	    if (locargc == 2)
 	    {
+		char *xpitch, *ypitch;
 		for (la = lahead; la != NULL; la = la->ar_next)
 		{
+		    xpitch = DBWPrintValue(la->arrayInfo.ar_xsep,
+				w, TRUE);
+		    ypitch = DBWPrintValue(la->arrayInfo.ar_ysep,
+				w, FALSE);
 #ifdef MAGIC_WRAPPER
 		    if (doList)
 		    {
 			tobj = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(magicinterp, tobj,
-				Tcl_NewIntObj(la->arrayInfo.ar_xsep));
+				Tcl_NewStringObj(xpitch, -1));
 			Tcl_ListObjAppendElement(magicinterp, tobj,
-				Tcl_NewIntObj(la->arrayInfo.ar_ysep));
+				Tcl_NewStringObj(ypitch, -1));
 			Tcl_SetObjResult(magicinterp, tobj);
 		    }
 		    else
@@ -429,8 +440,8 @@ CmdArray(
 			    TxPrintf("Cell use \"%s\":", la->cellUse->cu_id);
 			else
 			    TxPrintf("Cell \"%s\":", la->cellUse->cu_def->cd_name);
-			TxPrintf("x separation %d ", la->arrayInfo.ar_xsep);
-			TxPrintf("y separation %d\n", la->arrayInfo.ar_ysep);
+			TxPrintf("x separation %s ", xpitch);
+			TxPrintf("y separation %s\n", ypitch);
 #ifdef MAGIC_WRAPPER
 		    }
 #endif
@@ -450,16 +461,21 @@ CmdArray(
 	case ARRAY_POSITION:
 	    if (locargc == 2)
 	    {
+		char *xpos, *ypos;
 		for (la = lahead; la != NULL; la = la->ar_next)
 		{
+		    xpos = DBWPrintValue(la->cellUse->cu_bbox.r_xbot,
+				w, TRUE);
+		    ypos = DBWPrintValue(la->cellUse->cu_bbox.r_ybot,
+				w, FALSE);
 #ifdef MAGIC_WRAPPER
 		    if (doList)
 		    {
 			tobj = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(magicinterp, tobj,
-				Tcl_NewIntObj(la->cellUse->cu_bbox.r_xbot));
+				Tcl_NewStringObj(xpos, -1));
 			Tcl_ListObjAppendElement(magicinterp, tobj,
-				Tcl_NewIntObj(la->cellUse->cu_bbox.r_ybot));
+				Tcl_NewStringObj(ypos, -1));
 			Tcl_SetObjResult(magicinterp, tobj);
 		    }
 		    else
@@ -469,8 +485,8 @@ CmdArray(
 			    TxPrintf("Cell use \"%s\":", la->cellUse->cu_id);
 			else
 			    TxPrintf("Cell \"%s\":", la->cellUse->cu_def->cd_name);
-			TxPrintf("x=%d ", la->cellUse->cu_bbox.r_xbot);
-			TxPrintf("y=%d\n", la->cellUse->cu_bbox.r_ybot);
+			TxPrintf("x=%s ", xpos);
+			TxPrintf("y=%s\n", ypos);
 #ifdef MAGIC_WRAPPER
 		    }
 #endif
@@ -874,13 +890,16 @@ CmdBox(
 		TxRebuildCommand(cmd);
 		return;
 	    }
-	    else if (DBWSnapToGrid != DBW_SNAP_USER)
+	    else if (DBWUnits != DBW_UNITS_USER)
 	    {
 		distancex = cmdParseCoord(w, cmd->tx_argv[3], TRUE, FALSE);
 		distancey = distancex;
 	    }
 	    else
 	    {
+		/* For user units, the distance may be different in the X and Y
+		 * directions for a given value.
+		 */
 		switch (direction)
 		{
 		    case GEO_EAST: case GEO_WEST:
@@ -908,15 +927,14 @@ CmdBox(
 	case BOX_WIDTH:
 	    if (argc == 2)
 	    {
+		char *boxvalues;
+		boxvalues = DBWPrintValue(boxptr->r_xtop - boxptr->r_xbot,
+			w, TRUE);
 #ifdef MAGIC_WRAPPER
-		char *boxvalues = (char *)Tcl_Alloc(50);
-		sprintf(boxvalues, "%d",
-			boxptr->r_xtop - boxptr->r_xbot);
-		Tcl_SetResult(magicinterp, boxvalues, TCL_DYNAMIC);
+		Tcl_SetObjResult(magicinterp, Tcl_NewStringObj(boxvalues, -1));
 #else
-		TxPrintf("%s box width is %d\n",
-			(refEdit) ? "Edit" : "Root",
-			boxptr->r_xtop - boxptr->r_xbot);
+		TxPrintf("%s box width is %s\n", (refEdit) ? "Edit" : "Root",
+			boxvalues);
 #endif
 		return;
 	    }
@@ -928,15 +946,14 @@ CmdBox(
 	case BOX_HEIGHT:
 	    if (argc == 2)
 	    {
+		char *boxvalues;
+		boxvalues = DBWPrintValue(boxptr->r_ytop - boxptr->r_ybot,
+			w, FALSE);
 #ifdef MAGIC_WRAPPER
-		char *boxvalues = (char *)Tcl_Alloc(50);
-		sprintf(boxvalues, "%d",
-			boxptr->r_ytop - boxptr->r_ybot);
-		Tcl_SetResult(magicinterp, boxvalues, TCL_DYNAMIC);
+		Tcl_SetObjResult(magicinterp, Tcl_NewStringObj(boxvalues, -1));
 #else
-		TxPrintf("%s box height is %d\n",
-			(refEdit) ? "Edit" : "Root",
-			boxptr->r_ytop - boxptr->r_ybot);
+		TxPrintf("%s box height is %s\n", (refEdit) ? "Edit" : "Root",
+			boxvalues);
 #endif
 		return;
 	    }
@@ -949,16 +966,24 @@ CmdBox(
 	    if (argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		char *boxvalues = (char *)Tcl_Alloc(50);
-		sprintf(boxvalues, "%d %d",
-			boxptr->r_xtop - boxptr->r_xbot,
-			boxptr->r_ytop - boxptr->r_ybot);
-		Tcl_SetResult(magicinterp, boxvalues, TCL_DYNAMIC);
+		Tcl_Obj *tobj;
+#endif
+		char *boxvaluex, *boxvaluey;
+		boxvaluex = DBWPrintValue(boxptr->r_xtop - boxptr->r_xbot,
+			w, TRUE);
+		boxvaluey = DBWPrintValue(boxptr->r_ytop - boxptr->r_ybot,
+			w, FALSE);
+#ifdef MAGIC_WRAPPER
+		tobj = Tcl_NewListObj(0, NULL);
+		Tcl_ListObjAppendElement(magicinterp, tobj,
+			Tcl_NewStringObj(boxvaluex, -1));
+		Tcl_ListObjAppendElement(magicinterp, tobj,
+			Tcl_NewStringObj(boxvaluey, -1));
+		Tcl_SetObjResult(magicinterp, tobj);
 #else
-		TxPrintf("%s box size is %d x %d\n",
+		TxPrintf("%s box size is %s x %s\n",
 			(refEdit) ? "Edit" : "Root",
-			boxptr->r_xtop - boxptr->r_xbot,
-			boxptr->r_ytop - boxptr->r_ybot);
+			boxvaluex, boxvaluey);
 #endif
 		return;
 	    }
@@ -973,14 +998,22 @@ CmdBox(
 	    if (argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		char *boxvalues = (char *)Tcl_Alloc(50);
-		sprintf(boxvalues, "%d %d",
-			boxptr->r_xbot, boxptr->r_ybot);
-		Tcl_SetResult(magicinterp, boxvalues, TCL_DYNAMIC);
+		Tcl_Obj *tobj;
+#endif
+		char *boxvaluex, *boxvaluey;
+		boxvaluex = DBWPrintValue(boxptr->r_xbot, w, TRUE);
+		boxvaluey = DBWPrintValue(boxptr->r_ybot, w, FALSE);
+#ifdef MAGIC_WRAPPER
+		tobj = Tcl_NewListObj(0, NULL);
+		Tcl_ListObjAppendElement(magicinterp, tobj,
+				Tcl_NewStringObj(boxvaluex, -1));
+		Tcl_ListObjAppendElement(magicinterp, tobj,
+				Tcl_NewStringObj(boxvaluey, -1));
+		Tcl_SetObjResult(magicinterp, tobj);
 #else
-		TxPrintf("%s box lower-left corner at (%d, %d)\n",
+		TxPrintf("%s box lower-left corner at (%s, %s)\n",
 			(refEdit) ? "Edit" : "Root",
-			boxptr->r_xbot, boxptr->r_ybot);
+			boxvaluex, boxvaluey);
 #endif
 		return;
 	    }
@@ -1012,16 +1045,31 @@ CmdBox(
 	    if (argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		char *boxvalues = (char *)Tcl_Alloc(50);
-		sprintf(boxvalues, "%d %d %d %d",
-			boxptr->r_xbot, boxptr->r_ybot,
-			boxptr->r_xtop, boxptr->r_ytop);
-		Tcl_SetResult(magicinterp, boxvalues, TCL_DYNAMIC);
+		Tcl_Obj *tobj;
+#endif
+		char *boxvaluellx, *boxvaluelly;
+		char *boxvalueurx, *boxvalueury;
+
+		boxvaluellx = DBWPrintValue(boxptr->r_xbot, w, TRUE);
+		boxvaluelly = DBWPrintValue(boxptr->r_ybot, w, FALSE);
+		boxvalueurx = DBWPrintValue(boxptr->r_xtop, w, TRUE);
+		boxvalueury = DBWPrintValue(boxptr->r_ytop, w, FALSE);
+#ifdef MAGIC_WRAPPER
+
+		tobj = Tcl_NewListObj(0, NULL);
+		Tcl_ListObjAppendElement(magicinterp, tobj,
+			Tcl_NewStringObj(boxvaluellx, -1));
+		Tcl_ListObjAppendElement(magicinterp, tobj,
+			Tcl_NewStringObj(boxvaluelly, -1));
+		Tcl_ListObjAppendElement(magicinterp, tobj,
+			Tcl_NewStringObj(boxvalueurx, -1));
+		Tcl_ListObjAppendElement(magicinterp, tobj,
+			Tcl_NewStringObj(boxvalueury, -1));
+		Tcl_SetObjResult(magicinterp, tobj);
 #else
-		TxPrintf("%s box coordinates (%d, %d) to (%d, %d)\n",
+		TxPrintf("%s box coordinates (%s, %s) to (%s, %s)\n",
 			(refEdit) ? "Edit" : "Root",
-			boxptr->r_xbot, boxptr->r_ybot,
-			boxptr->r_xtop, boxptr->r_ytop);
+			boxvaluellx, boxvaluelly, boxvalueurx, boxvalueury);
 #endif
 		return;
 	    }

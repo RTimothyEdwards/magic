@@ -650,18 +650,20 @@ proc magic::boxview {win {cmdstr ""}} {
 
       set framename [winfo parent $win]
       if {$framename == "."} {return}
-      if {[catch {set cr [cif scale out]}]} {return}
+      set curunits [units list]
+      units microns noprint
       set bval [${win} box values]
-      set bllx [expr {[lindex $bval 0] * $cr }]
-      set blly [expr {[lindex $bval 1] * $cr }]
-      set burx [expr {[lindex $bval 2] * $cr }]
-      set bury [expr {[lindex $bval 3] * $cr }]
+      set bllx [lindex $bval 0]
+      set blly [lindex $bval 1]
+      set burx [lindex $bval 2]
+      set bury [lindex $bval 3]
       if {[expr {$bllx == int($bllx)}]} {set bllx [expr {int($bllx)}]}
       if {[expr {$blly == int($blly)}]} {set blly [expr {int($blly)}]}
       if {[expr {$burx == int($burx)}]} {set burx [expr {int($burx)}]}
       if {[expr {$bury == int($bury)}]} {set bury [expr {int($bury)}]}
       set titletext [format "box (%+g %+g) to (%+g %+g) microns" \
 			$bllx $blly $burx $bury]
+      units {*}$curunits
       ${framename}.titlebar.pos configure -text $titletext
    }
 }
@@ -673,37 +675,27 @@ proc magic::cursorview {win} {
    }
    *bypass logcommands suspend
    set framename [winfo parent $win]
-   if {[catch {set cr [*bypass cif scale out]}]} {
-      *bypass logcommands resume
-      return
-   }
-   if {$cr == 0} {return}
-   set olst [${win} cursor internal]
+   set olst [${win} cursor microns]
 
    set olstx [lindex $olst 0]
    set olsty [lindex $olst 1]
 
    if {$Opts(crosshair)} {
-      *bypass crosshair ${olstx}i ${olsty}i
-   }
-
-   # Use catch, because occasionally this fails on startup
-   if {[catch {
-      set olstx [expr {$olstx * $cr}]
-      set olsty [expr {$olsty * $cr}]
-   }]} {
-      *bypass logcommands resume
-      return
+      *bypass crosshair ${olstx}um ${olsty}um
    }
 
    if {[${win} box exists]} {
+      set curunits [${win} units list]
+      ${win} units microns noprint
       set dlst [${win} box position]
-      set dx [expr {$olstx - ([lindex $dlst 0]) * $cr }]
-      set dy [expr {$olsty - ([lindex $dlst 1]) * $cr }]
+
+      set dx [expr {$olstx - [lindex $dlst 0]}]
+      set dy [expr {$olsty - [lindex $dlst 1]}]
       if {[expr {$dx == int($dx)}]} {set dx [expr {int($dx)}]}
       if {[expr {$dy == int($dy)}]} {set dy [expr {int($dy)}]}
       set titletext [format "(%+g %+g) %+g %+g microns" $olstx $olsty $dx $dy]
       ${framename}.titlebar.pos configure -text $titletext
+      ${win} units {*}$curunits
    } else {
       set titletext [format "(%+g %+g) microns" $olstx $olsty]
       ${framename}.titlebar.pos configure -text $titletext
@@ -834,7 +826,10 @@ proc magic::setscrollvalues {win} {
 
    *bypass logcommands suspend
    set svalues [${win} view get]
+   set curunits [units list]
+   units internal noprint
    set bvalues [${win} view bbox]
+   units {*}$curunits
 
    set framename [winfo parent ${win}]
    if {$framename == "."} {
@@ -911,8 +906,11 @@ proc magic::scrollview { w win orient } {
    set v2 $scale($orient,update)
    set delta [expr {$v2 - $v1}]
 
+   set curunits [units list]
+   units internal noprint
    set bvalues [${win} view bbox]
    set wvalues [${win} windowpositions]
+   units {*}$curunits
 
    # Note that adding 0.000 in expression forces floating-point
 
@@ -1299,7 +1297,17 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    $m add command -label "Grid off" -command {magic::grid off}
    $m add command -label "Snap-to-grid on" -command {magic::snap on}
    $m add command -label "Snap-to-grid off" -command {magic::snap off}
-   $m add command -label "Measure box" -command {magic::box }
+   $m add command -label "Measure box" -command {magic::box}
+   $m add separator
+   $m add command -label "Report internal units" -command {magic::units internal}
+   $m add command -label "Report lambda units" -command {magic::units lambda}
+   $m add command -label "Report micron units" -command {magic::units microns}
+   $m add command -label "Report grid units" -command {magic::units grid}
+   $m add check -label "Display units" -variable Opts(printunits) \
+		-command [subst {if { \$Opts(printunits) } { \
+		magic::units print } else { magic::units noprint } }]
+
+
    $m add separator
    $m add command -label "Set grid 0.05um" -command {magic::grid 0.05um}
    $m add command -label "Set grid 0.10um" -command {magic::grid 0.10um}

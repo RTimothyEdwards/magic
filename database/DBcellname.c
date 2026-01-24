@@ -1621,6 +1621,7 @@ dbAbutmentUseFunc(selUse, use, transform, data)
     Rect bbox, refbox;
     Transform *trans;
     char *propvalue;
+    char *refllx, *reflly, *refurx, *refury;
     bool found;
     bool *dolist = (bool *)data;
 
@@ -1653,21 +1654,25 @@ dbAbutmentUseFunc(selUse, use, transform, data)
     }
     GeoTransRect(trans, &bbox, &refbox);
 
+    /* NOTE:  Ideally, the MagWindow pointer should get passed to this routine */
+    refllx = DBWPrintValue(refbox.r_xbot, (MagWindow *)NULL, TRUE);
+    reflly = DBWPrintValue(refbox.r_ybot, (MagWindow *)NULL, FALSE);
+    refurx = DBWPrintValue(refbox.r_xtop, (MagWindow *)NULL, TRUE);
+    refury = DBWPrintValue(refbox.r_ytop, (MagWindow *)NULL, FALSE);
+
 #ifdef MAGIC_WRAPPER
     if (*dolist)
     {
 	pobj = Tcl_NewListObj(0, NULL);
-	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(refbox.r_xbot));
-	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(refbox.r_ybot));
-	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(refbox.r_xtop));
-	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(refbox.r_ytop));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(refllx, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(reflly, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(refurx, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(refury, -1));
 	Tcl_SetObjResult(magicinterp, pobj);
     }
     else
 #endif
-    TxPrintf("Abutment box:  %d %d %d %d\n", refbox.r_xbot, refbox.r_ybot,
-	    refbox.r_xtop, refbox.r_ytop);
-	
+    TxPrintf("Abutment box:  %s %s %s %s\n", refllx, reflly, refurx, refury);
     return 0;
 }
 

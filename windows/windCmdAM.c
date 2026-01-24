@@ -449,13 +449,25 @@ windCursorCmd(w, cmd)
     TxCommand *cmd;
 {
     Point p_in, p_out;
-    int  resulttype = DBW_SNAP_INTERNAL;
+    int  resulttype, saveunits;
     double cursx, cursy, oscale;
+    char *dispx, *dispy;
     DBWclientRec *crec;
 
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *listxy;
 #endif
+
+    /* The original behavior was to use internal
+     * units by default.  This remains the case
+     * unless units are set with the "units"
+     * command, in which case units follow the
+     * specified units.
+     */
+    if (DBWUnits == DBW_UNITS_DEFAULT)
+	resulttype = DBW_UNITS_INTERNAL;
+    else
+	resulttype = DBWUnits;
 
     if (cmd->tx_argc == 2)
     {
@@ -465,17 +477,21 @@ windCursorCmd(w, cmd)
 		(*GrSetCursorPtr)(atoi(cmd->tx_argv[1]));
 	    return;
 	}
+	else if (*cmd->tx_argv[1] == 'i')
+	{
+	    resulttype = DBW_UNITS_INTERNAL;
+	}
 	else if (*cmd->tx_argv[1] ==  'l')
 	{
-	    resulttype = DBW_SNAP_LAMBDA;
+	    resulttype = DBW_UNITS_LAMBDA;
 	}
 	else if (*cmd->tx_argv[1] ==  'u')
 	{
-	    resulttype = DBW_SNAP_USER;
+	    resulttype = DBW_UNITS_USER;
 	}
 	else if (*cmd->tx_argv[1] ==  'm')
 	{
-	    resulttype = DBW_SNAP_MICRONS;
+	    resulttype = DBW_UNITS_MICRONS;
 	}
 	else if (*cmd->tx_argv[1] == 'w')
 	{
@@ -485,7 +501,7 @@ windCursorCmd(w, cmd)
 	{
 	    resulttype = -2;	// Use this value for "screen"
 	}
-	else if (*cmd->tx_argv[1] != 'i')
+	else
 	{
 	    TxError("Usage: cursor glyphnum\n");
 	    TxError(" (or): cursor [internal | lambda | microns | user | window]\n");
@@ -506,54 +522,37 @@ windCursorCmd(w, cmd)
 	WindPointToSurface(w, &p_in, &p_out, (Rect *)NULL);
 
 	/* Snap the cursor position if snap is in effect */
-	if (DBWSnapToGrid != DBW_SNAP_INTERNAL)
+	if (DBWSnapToGrid != DBW_UNITS_INTERNAL)
 	    ToolSnapToGrid(w, &p_out, (Rect *)NULL);
     }
 
     /* Transform the result to declared units with option "lambda" or "grid" */
-    switch (resulttype) {
-	case -2:
-	case -1:
-	    cursx = (double)p_in.p_x;
-	    cursy = (double)p_in.p_y;
-	    break;
-	case DBW_SNAP_INTERNAL:
-	    cursx = (double)p_out.p_x;
-	    cursy = (double)p_out.p_y;
-	    break;
-	case DBW_SNAP_LAMBDA:
-	    cursx = (double)(p_out.p_x * DBLambda[0]) / (double)DBLambda[1];
-	    cursy = (double)(p_out.p_y * DBLambda[0]) / (double)DBLambda[1];
-	    break;
-	case DBW_SNAP_MICRONS:
-	    oscale = (double)CIFGetOutputScale(1000);
-	    cursx = (double)(p_out.p_x * oscale);
-	    cursy = (double)(p_out.p_y * oscale);
-	    break;
-	case DBW_SNAP_USER:
-	    crec = (DBWclientRec *)w->w_clientData;
-	    cursx = (double)((p_out.p_x - crec->dbw_gridRect.r_xbot)
-			/ (crec->dbw_gridRect.r_xtop - crec->dbw_gridRect.r_xbot));
-	    cursy = (double)((p_out.p_y - crec->dbw_gridRect.r_ybot)
-			/ (crec->dbw_gridRect.r_ytop - crec->dbw_gridRect.r_ybot));
-	    break;
-    }
-
-#ifdef MAGIC_WRAPPER
-    listxy = Tcl_NewListObj(0, NULL);
-    if ((cursx == round(cursx)) && (cursy == round(cursy)))
+    saveunits = DBWUnits;
+    if (resulttype < 0)
     {
-	Tcl_ListObjAppendElement(magicinterp, listxy, Tcl_NewIntObj((int)cursx));
-	Tcl_ListObjAppendElement(magicinterp, listxy, Tcl_NewIntObj((int)cursy));
+	/* Not really internal units, but that prints integer units verbatim */
+	DBWUnits = DBW_UNITS_INTERNAL;
+	cursx = (double)p_in.p_x;
+	cursy = (double)p_in.p_y;
     }
     else
     {
-	Tcl_ListObjAppendElement(magicinterp, listxy, Tcl_NewDoubleObj(cursx));
-	Tcl_ListObjAppendElement(magicinterp, listxy, Tcl_NewDoubleObj(cursy));
+	DBWUnits = resulttype;
+	cursx = (double)p_out.p_x;
+	cursy = (double)p_out.p_y;
     }
+
+    dispx = DBWPrintValue(cursx, w, TRUE);
+    dispy = DBWPrintValue(cursy, w, FALSE);
+    DBWUnits = saveunits;
+
+#ifdef MAGIC_WRAPPER
+    listxy = Tcl_NewListObj(0, NULL);
+    Tcl_ListObjAppendElement(magicinterp, listxy, Tcl_NewStringObj(dispx, -1));
+    Tcl_ListObjAppendElement(magicinterp, listxy, Tcl_NewStringObj(dispy, -1));
     Tcl_SetObjResult(magicinterp, listxy);
 #else
-    TxPrintf("%g %g\n", cursx, cursy);
+    TxPrintf("%s %s\n", dispx, dispy);
 #endif
 }
 

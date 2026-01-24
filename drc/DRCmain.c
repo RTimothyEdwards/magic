@@ -184,9 +184,9 @@ drcSubstitute (cptr)
     DRCCookie * cptr;  		/* Design rule violated */
 {
     static char *why_out = NULL;
-    char *whyptr, *sptr, *wptr;
-    int subscnt = 0, whylen;
-    float oscale, value;
+    char *whyptr, *sptr, *wptr, *vptr;
+    int subscnt = 0, whylen, saveunits;
+    float value;
     extern float CIFGetOutputScale();
 
     whyptr = DRCCurStyle->DRCWhyList[cptr->drcc_tag];
@@ -203,10 +203,14 @@ drcSubstitute (cptr)
     why_out = (char *)mallocMagic(whylen * sizeof(char));
     strcpy(why_out, whyptr);
 
-    if (cptr->drcc_flags & DRC_CIFRULE)
-	oscale = CIFGetScale(100);	/* 100 = microns to centimicrons */
-    else
-	oscale = CIFGetOutputScale(1000);   /* 1000 for conversion to um */
+    /* For backwards compatibility:  If the units are set to "default",
+     * then print the DRC value in microns, with units, which is how
+     * the output was previously presented.
+     */
+    saveunits = DBWUnits;
+    if (saveunits == DBW_UNITS_DEFAULT)
+	DBWUnits = DBW_UNITS_MICRONS | DBW_UNITS_PRINT_FLAG;
+
     wptr = why_out;
 
     while ((sptr = strchr(whyptr, '%')) != NULL)
@@ -218,21 +222,29 @@ drcSubstitute (cptr)
 	switch (*(sptr + 1))
 	{
 	    case 'd':
-		/* Replace with "dist" value in microns */
-		value = (float)cptr->drcc_dist * oscale;
-		snprintf(wptr, 20, "%01.3gum", value);
+		if (cptr->drcc_flags & DRC_CIFRULE)
+		    vptr = DBWPrintCIFValue(cptr->drcc_dist, (MagWindow *)NULL, TRUE);
+		else
+		    vptr = DBWPrintValue(cptr->drcc_dist, (MagWindow *)NULL, TRUE);
+		snprintf(wptr, 20, "%s", vptr);
 		wptr += strlen(wptr);
 		break;
 	    case 'c':
 		/* Replace with "cdist" value in microns */
-		value = (float)cptr->drcc_cdist * oscale;
-		snprintf(wptr, 20, "%01.3gum", value);
+		if (cptr->drcc_flags & DRC_CIFRULE)
+		    vptr = DBWPrintCIFValue(cptr->drcc_cdist, (MagWindow *)NULL, TRUE);
+		else
+		    vptr = DBWPrintValue(cptr->drcc_cdist, (MagWindow *)NULL, TRUE);
+		snprintf(wptr, 20, "%s", vptr);
 		wptr += strlen(wptr);
 		break;
 	    case 'a':
 		/* Replace with "cdist" value in microns squared */
-		value = (float)cptr->drcc_cdist * oscale * oscale;
-		snprintf(wptr, 20, "%01.4gum^2", value);
+		if (cptr->drcc_flags & DRC_CIFRULE)
+		    vptr = DBWPrintCIFSqValue(cptr->drcc_cdist, (MagWindow *)NULL);
+		else
+		    vptr = DBWPrintSqValue(cptr->drcc_cdist, (MagWindow *)NULL);
+		snprintf(wptr, 20, "%s", vptr);
 		wptr += strlen(wptr);
 		break;
 	    default:
@@ -245,6 +257,7 @@ drcSubstitute (cptr)
     /* copy remainder of string (including trailing null) */
     strncpy(wptr, whyptr, strlen(whyptr) + 1);
 
+    DBWUnits = saveunits;
     return why_out;
 }
 
@@ -425,6 +438,8 @@ drcListallError (celldef, rect, cptr, scx)
     }
     if (drcsave == DRCErrorCount)
     {
+	char *rllx, *rlly, *rurx, *rury;
+
 	DRCErrorCount += 1;
 	h = HashFind(&DRCErrorTable, drcSubstitute(cptr));
 	lobj = (Tcl_Obj *) HashGetValue(h);
@@ -433,10 +448,15 @@ drcListallError (celldef, rect, cptr, scx)
 
 	pobj = Tcl_NewListObj(0, NULL);
 
-	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_xbot));
-	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_ybot));
-	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_xtop));
-	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_ytop));
+	rllx = DBWPrintValue(r.r_xbot, (MagWindow *)NULL, TRUE);
+	rlly = DBWPrintValue(r.r_ybot, (MagWindow *)NULL, FALSE);
+	rurx = DBWPrintValue(r.r_xtop, (MagWindow *)NULL, TRUE);
+	rury = DBWPrintValue(r.r_ytop, (MagWindow *)NULL, FALSE);
+
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(rllx, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(rlly, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(rurx, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(rury, -1));
 	Tcl_ListObjAppendElement(magicinterp, lobj, pobj);
 
 	HashSetValue(h, lobj);
