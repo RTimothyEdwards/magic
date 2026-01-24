@@ -39,21 +39,15 @@ in the selected grid.
       feature size, and <B>user</B>, based on the value given by the
       user to the <B>grid</B> command. <P>
 
-      In addition to changing the behavior of the box to mouse
-      button events, the <B>snap</B> command also changes the way
-      that <A HREF=distance.html>distance measurements</A> are
-      interpreted in commands that take distance arguments, such
-      as <B>move</B>, <B>copy</B>, and <B>stretch</B>.  An integer
-      number with no other identifying units is interpreted as a
-      measurement in the current snap grid.  All other measurements
-      must have an identifying unit: <B>i</B> for internal units,
-      <B>l</B> for lambda units, and <B>g</B> for user grid units
-      (as well as the usual metric units).  Even when <B>snap</B>
-      is set to the larger lambda or user grids, it is possible to
-      move the cursor box to finer grid positions from the command
-      line.  See the reference page on
-      <A HREF=distance.html>distance measures</A> for a complete
-      description of distance values. <P>
+      Historically, in addition to changing the behavior of the box
+      to mouse button events, the <B>snap</B> command also changed
+      the way that <A HREF=distance.html>distance measurements</A>
+      are interpreted in commands that take distance arguments.
+      This behavior remains the default for backwards compatibility.
+      The <B>units</B> command overrides this behavior and allows
+      <B>snap</B> to control only the box positioning behavior,
+      independently of how unsuffixed values are parsed by the
+      interpreter. <P>
 
       <B>snap</B> with no arguments returns the current snap grid
       type. <P>
@@ -80,6 +74,7 @@ in the selected grid.
 
 <H3>See Also:</H3>
    <BLOCKQUOTE>
+      <A HREF=units.html><B>units</B></A> <BR>
       <A HREF=grid.html><B>grid</B></A> <BR>
    </BLOCKQUOTE>
 
