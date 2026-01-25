@@ -73,9 +73,22 @@ TileTypeBitMask CmdYMAllButSpace;
  * lambda, a suffix of "g" indicates the user grid, and a suffix in metric
  * notation ("nm", "um", "mm", "cm") indicates natural units.  Other valid
  * units are "cu" or "centimicrons" for centimicrons, or "microns" for um.
- *    Units without any suffix are assumed to be in lambda if "snap"
- * (DBWSnapToGrid) is set to lambda, grid units if "snap" is set to the
- * user grid, and internal units otherwise.
+ *    Traditional (backwards-compatible) behavior:  Units without any suffix
+ * are assumed to be in lambda if "snap" (DBWSnapToGrid) is set to lambda,
+ * grid units if "snap" is set to the user grid, and internal units otherwise.
+ *    Current behavior:  Use of the "units" command to set the units to
+ * any value other than "default" causes cmdScaleCoord() to parse any
+ * units provided without an identifying suffix as the units indicted by
+ * the "units" command.  Once the "units" command has been issued, the
+ * values are dependent on DBWUnits and not on DBWSnapToGrid.
+ *
+ *    Additional behavior from magic version 8.3.596:  A single command
+ * option can use simple expressions using '+', '-', '*', and '/'.  These
+ * can be passed as a single token, without spaces, or within a string
+ * token deliniated by quotes or braces, per usual Tcl syntax.  Unlike
+ * the Tcl "expr" command, this can solve arithmetic expressions of
+ * suffixed values, evaluated independently such that different suffixes
+ * may be used (e.g., "1g + 3um" meaning 1 grid pitch plus 3 microns).
  *
  *    MagWindow argument w is used only with grid-based snapping, to find
  * the value of the grid for the given window.  In this case, because the
@@ -99,6 +112,13 @@ TileTypeBitMask CmdYMAllButSpace;
  * ----------------------------------------------------------------------------
  */
 
+#define PARSEOP_NONE	0
+#define PARSEOP_ADD	1
+#define PARSEOP_SUB	2
+#define PARSEOP_MUL	3
+#define PARSEOP_DIV	4
+#define PARSEOP_END	5
+
 int
 cmdScaleCoord(
     MagWindow *w,
@@ -110,120 +130,183 @@ cmdScaleCoord(
     char *endptr;
     double dval = 0;
     int mscale = 1, curunits;
+    int retval, curval, parseop;
     DBWclientRec *crec;
 
-    if (*arg == '{') arg++;
-    while (isspace(*arg)) arg++;
+    if (*arg == '{' || *arg == '"') arg++;
+    while (isspace(*arg) && (*arg != '\0')) arg++;
 
-    dval = strtod(arg, &endptr);
-    dval *= (double)scale;
+    parseop = PARSEOP_NONE;
+    retval = 0;
+    while (*arg != '\0')
+    {
+	dval = strtod(arg, &endptr);
+	dval *= (double)scale;
+	mscale = -1;
 
-    if (endptr == arg)
-    {
-        /* strtod() error condition */
-	TxError("Coordinate value cannot be parsed:  assuming 0\n");
-	return 0;
-    }
-
-    /* Original behavior was to accept un-suffixed values according to the
-     * "snap" setting.  This behavior remains in effect until the "units"
-     * command is used, in which case units follow the selected units
-     * value indepedendently of the snap setting.
-     */
-    if (DBWUnits == DBW_UNITS_DEFAULT)
-	curunits = DBWSnapToGrid;
-    else
-	curunits = DBWUnits & DBW_UNITS_TYPE_MASK;
-
-    if ((*endptr == 'l')
-		|| ((*endptr == '\0') && (curunits == DBW_UNITS_LAMBDA)))
-    {
-	/* lambda or default units */
-	dval *= (double)DBLambda[1];
-	dval /= (double)DBLambda[0];
-	return round(dval);
-    }
-    else if ((*endptr == 'i')
-		|| ((*endptr == '\0') && (curunits == DBW_UNITS_INTERNAL)))
-    {
-	/* internal units */
-	return round(dval);
-    }
-    else if ((*endptr == 'g')
-		|| ((*endptr == '\0') && (curunits == DBW_UNITS_USER)))
-    {
-	/* grid units */
-	if (w == (MagWindow *)NULL)
+	if (endptr == arg)
 	{
-	    windCheckOnlyWindow(&w, DBWclientID);
-	    if (w == (MagWindow *)NULL)
-		return round(dval);		/* Default, if window is unknown */
+	    /* strtod() error condition */
+ 	    TxError("Coordinate value cannot be parsed:  assuming 0\n");
+	    curval = 0;
+	    break;
 	}
-	crec = (DBWclientRec *) w->w_clientData;
-	if (is_x)
+
+	/* Original behavior was to accept un-suffixed values according to the
+	 * "snap" setting.  This behavior remains in effect until the "units"
+	 * command is used, in which case units follow the selected units
+	 * value indepedendently of the snap setting.
+	 */
+	if (DBWUnits == DBW_UNITS_DEFAULT)
+	    curunits = DBWSnapToGrid;
+	else
+	    curunits = DBWUnits & DBW_UNITS_TYPE_MASK;
+
+	if ((*endptr == 'l')
+		|| ((*endptr == '\0') && (curunits == DBW_UNITS_LAMBDA)))
 	{
-	    dval *= (double)(crec->dbw_gridRect.r_xtop
+	    /* lambda or default units */
+	    dval *= (double)DBLambda[1];
+	    dval /= (double)DBLambda[0];
+	}
+	else if ((*endptr == 'i')
+		|| ((*endptr == '\0') && (curunits == DBW_UNITS_INTERNAL)))
+	{
+	    /* internal units */
+	}
+	else if ((*endptr == 'g')
+		|| ((*endptr == '\0') && (curunits == DBW_UNITS_USER)))
+	{
+	    /* grid units */
+	    if (w == (MagWindow *)NULL)
+	    {
+		windCheckOnlyWindow(&w, DBWclientID);
+		if (w == (MagWindow *)NULL)
+		{
+		    curval = round(dval);	/* Default, if window is unknown */
+		    break;
+		}
+	    }
+	    crec = (DBWclientRec *) w->w_clientData;
+	    if (is_x)
+	    {
+		dval *= (double)(crec->dbw_gridRect.r_xtop
 			- crec->dbw_gridRect.r_xbot);
-	    if (!is_relative)
-		dval += (double)crec->dbw_gridRect.r_xbot;
+		if (!is_relative)
+		    dval += (double)crec->dbw_gridRect.r_xbot;
+	    }
+	    else
+	    {
+		dval *= (double)(crec->dbw_gridRect.r_ytop
+			- crec->dbw_gridRect.r_ybot);
+		if (!is_relative)
+		    dval += (double)crec->dbw_gridRect.r_ybot;
+	    }
+	}
+	else if (*endptr == '\0' && (curunits == DBW_UNITS_MICRONS))
+	{
+	    mscale = 1000;
 	}
 	else
 	{
-	    dval *= (double)(crec->dbw_gridRect.r_ytop
-			- crec->dbw_gridRect.r_ybot);
-	    if (!is_relative)
-		dval += (double)crec->dbw_gridRect.r_ybot;
+	    /* natural units referred to the current cifoutput style */
+	    if (*(endptr + 1) == 'm')
+	    {
+		switch (*endptr)
+		{
+		    case 'n':
+			mscale = 1;
+			break;
+		    case 'u':
+			mscale = 1000;
+			break;
+		    case 'm':
+			mscale = 1000000;
+			break;
+		    case 'c':
+			mscale = 10000000;
+			break;
+		    default:
+			TxError("Unknown metric prefix \"%cm\"; assuming "
+				"internal units\n", *endptr);
+			mscale = -1;
+		}
+	    }
+	    else if ((*endptr == 'u') && !isalnum(*(endptr + 1)))
+		/* Maybe "u" is too ambiguous but it is very commonly used as
+		 * an abbreviation for "micron".
+		 */
+		mscale = 1000;
+	    else if (!strncmp(endptr, "micron", 6))
+		mscale = 1000;
+	    else if (!strncmp(endptr, "centimicron", 11) || !strcmp(endptr, "cu"))
+		mscale = 10;
+	    else if (!isspace(*endptr) && (*endptr != '+') && (*endptr != '-') &&
+			(*endptr != '*') && (*endptr != '/'))
+	    {
+		TxError("Unknown coordinate type at \"%s\"; assuming internal units\n",
+			endptr);
+		mscale = -1;
+	    }
 	}
-	return round(dval);
-    }
-    else if (*endptr == '\0' && (curunits == DBW_UNITS_MICRONS))
-    {
-	mscale = 1000;
-    }
-    else
-    {
-        /* natural units referred to the current cifoutput style */
-	if (*(endptr + 1) == 'm')
+	if ((mscale != -1) && !isspace(*endptr))
+	    dval /= CIFGetOutputScale(mscale);
+	curval = round(dval);
+
+	switch (parseop)
+	{
+	    case PARSEOP_NONE:
+		retval = curval;
+		break;
+	    case PARSEOP_ADD:
+		retval += curval;
+		break;
+	    case PARSEOP_SUB:
+		retval -= curval;
+		break;
+	    case PARSEOP_MUL:
+		retval *= curval;
+		break;
+	    case PARSEOP_DIV:
+		retval /= curval;
+		break;
+	}
+
+	parseop = PARSEOP_NONE;
+	while (*endptr != '\0')
 	{
 	    switch (*endptr)
 	    {
-		case 'n':
-		    mscale = 1;
+		case '}':
+		case '"':
+		    parseop = PARSEOP_END;
 		    break;
-		case 'u':
-		    mscale = 1000;
+		case '+':
+		    parseop = PARSEOP_ADD;
+		    endptr++;
 		    break;
-		case 'm':
-		    mscale = 1000000;
+		case '-':
+		    parseop = PARSEOP_SUB;
+		    endptr++;
 		    break;
-		case 'c':
-		    mscale = 10000000;
+		case '*':
+		    parseop = PARSEOP_MUL;
+		    endptr++;
+		    break;
+		case '/':
+		    parseop = PARSEOP_DIV;
+		    endptr++;
 		    break;
 		default:
-		    TxError("Unknown metric prefix \"%cm\"; assuming internal units\n",
-				*endptr);
-		    return round(dval);
+		    endptr++;
+		    break;
 	    }
+	    if (parseop != PARSEOP_NONE) break;
 	}
-	else if (!strcmp(endptr, "u"))
-	    /* Maybe "u" is too ambiguous but it is very commonly used as
-	     * an abbreviation for "micron".
-	     */
-	    mscale = 1000;
-	else if (!strncmp(endptr, "micron", 6))
-	    mscale = 1000;
-	else if (!strncmp(endptr, "centimicron", 11) || !strcmp(endptr, "cu"))
-	    mscale = 10;
-	else if (!isspace(*endptr))
-	{
-	    TxError("Unknown coordinate type \"%s\"; assuming internal units\n",
-			endptr);
-	    return round(dval);
-	}
+	arg = endptr;
+	while (isspace(*arg) && (*arg != '\0')) arg++;
     }
-    if (!isspace(*endptr))
-        dval /= CIFGetOutputScale(mscale);
-    return round(dval);
+    return retval;
 }
 
 /*
