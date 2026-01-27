@@ -1888,9 +1888,9 @@ CmdWire(
 #ifdef MAGIC_WRAPPER
 		lobj = Tcl_NewListObj(0, NULL);
 		Tcl_ListObjAppendElement(magicinterp, lobj,
-				Tcl_NewStringObj(wdisp, -1));
-		Tcl_ListObjAppendElement(magicinterp, lobj,
 				Tcl_NewStringObj(DBTypeLongNameTbl[type], -1));
+		Tcl_ListObjAppendElement(magicinterp, lobj,
+				Tcl_NewStringObj(wdisp, -1));
 		Tcl_SetObjResult(magicinterp, lobj);
 #else
 		TxPrintf("Wire layer %s, width %s\n",

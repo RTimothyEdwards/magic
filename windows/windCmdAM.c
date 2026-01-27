@@ -440,8 +440,21 @@ windCrashCmd(w, cmd)
  * Side effects:
  *	Prints coordinates (non-Tcl version)
  *	Return value set to the cursor position as a list (Tcl version)
+ *
+ * NOTE: "box position {*}[cursor]" will produce the wrong result if
+ * "units" have been left as default, because "cursor" will generate
+ * internal values and "box position" will expect lambda values.  Use
+ * "box move bl cursor" instead.
  * ----------------------------------------------------------------------------
  */
+
+#define CURSOR_INTERNAL	0
+#define CURSOR_LAMBDA	1
+#define CURSOR_USER	2
+#define CURSOR_GRID	3
+#define CURSOR_MICRONS	4
+#define CURSOR_WINDOW	5
+#define CURSOR_SCREEN	6
 
 void
 windCursorCmd(w, cmd)
@@ -449,7 +462,7 @@ windCursorCmd(w, cmd)
     TxCommand *cmd;
 {
     Point p_in, p_out;
-    int  resulttype, saveunits;
+    int  resulttype, saveunits, idx;
     double cursx, cursy, oscale;
     char *dispx, *dispy;
     DBWclientRec *crec;
@@ -457,6 +470,10 @@ windCursorCmd(w, cmd)
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *listxy;
 #endif
+
+    static const char * const cmdCursorOption[] =
+	{ "internal", "lambda", "user", "grid", "microns", "window", "screen",
+	  "units", 0 };
 
     /* The original behavior was to use internal
      * units by default.  This remains the case
@@ -477,35 +494,35 @@ windCursorCmd(w, cmd)
 		(*GrSetCursorPtr)(atoi(cmd->tx_argv[1]));
 	    return;
 	}
-	else if (*cmd->tx_argv[1] == 'i')
-	{
-	    resulttype = DBW_UNITS_INTERNAL;
-	}
-	else if (*cmd->tx_argv[1] ==  'l')
-	{
-	    resulttype = DBW_UNITS_LAMBDA;
-	}
-	else if (*cmd->tx_argv[1] ==  'u')
-	{
-	    resulttype = DBW_UNITS_USER;
-	}
-	else if (*cmd->tx_argv[1] ==  'm')
-	{
-	    resulttype = DBW_UNITS_MICRONS;
-	}
-	else if (*cmd->tx_argv[1] == 'w')
-	{
-	    resulttype = -1;	// Use this value for "window"
-	}
-	else if (*cmd->tx_argv[1] == 's')
-	{
-	    resulttype = -2;	// Use this value for "screen"
-	}
-	else
-	{
-	    TxError("Usage: cursor glyphnum\n");
-	    TxError(" (or): cursor [internal | lambda | microns | user | window]\n");
-	    return;
+	else {
+	    idx = Lookup(cmd->tx_argv[1], cmdCursorOption);
+	    switch (idx)
+	    {
+		case CURSOR_INTERNAL:
+		    resulttype = DBW_UNITS_INTERNAL;
+		    break;
+		case CURSOR_LAMBDA:
+		    resulttype = DBW_UNITS_LAMBDA;
+		    break;
+		case CURSOR_USER:
+		case CURSOR_GRID:
+		    resulttype = DBW_UNITS_USER;
+		    break;
+		case CURSOR_MICRONS:
+		    resulttype = DBW_UNITS_MICRONS;
+		    break;
+		case CURSOR_WINDOW:
+		    resulttype = -1;	// Use this value for "window"
+		    break;
+		case CURSOR_SCREEN:
+		    resulttype = -2;	// Use this value for "screen"
+		    break;
+		default:
+		    TxError("Usage: cursor glyphnum\n");
+		    TxError(" (or): cursor [internal | lambda | microns | user"
+				" | window | units]\n");
+		    return;
+	    }
 	}
     }
 

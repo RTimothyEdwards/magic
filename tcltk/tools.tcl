@@ -534,6 +534,7 @@ proc magic::enable_tools {} {
    magic::macro copy pick
 
    magic::tool wiring
+   macro  Control_Button1  "magic::trackwire %W current"
    macro  Button1          "magic::trackwire %W pick"
    macro  Button2          "magic::trackwire %W done"
    macro  Button3          "magic::trackwire %W cancel"
@@ -583,6 +584,19 @@ proc magic::trackwire {window {option {}}} {
       } elseif {$option == "pick"} {
 	 puts stdout $window
 	 wire type
+	 set Opts(motion) [bind ${window} <Motion>]
+	 bind ${window} <Motion> [subst {$Opts(motion); *bypass wire show}]
+	 if {$Opts(motion) == {}} {set Opts(motion) "null"}
+	 cursor 21
+      } elseif {$option == "current"} {
+	 puts stdout $window
+	 set curunits [units]
+	 units internal
+	 wire type {*}[wire values]
+	 set wiresize [lindex [wire values] 1]
+	 box size $wiresize $wiresize
+	 box move bl cursor
+	 units {*}$curunits
 	 set Opts(motion) [bind ${window} <Motion>]
 	 bind ${window} <Motion> [subst {$Opts(motion); *bypass wire show}]
 	 if {$Opts(motion) == {}} {set Opts(motion) "null"}
