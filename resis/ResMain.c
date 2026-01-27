@@ -41,7 +41,7 @@ int			ResTileCount = 0;	/* Number of tiles rn_status */
 extern ExtRegion 	*ResFirst();
 extern Tile		*FindStartTile();
 extern int		ResEachTile();
-extern ResSimNode	*ResInitializeNode();
+extern ResExtNode	*ResInitializeNode();
 TileTypeBitMask		ResSDTypesBitMask;
 TileTypeBitMask		ResSubTypesBitMask;
 
@@ -201,13 +201,13 @@ ResMakePortBreakpoints(def)
     TileTypeBitMask mask;
     HashSearch  hs;
     HashEntry   *entry;
-    ResSimNode  *node;
+    ResExtNode  *node;
     int ResAddBreakpointFunc();	/* Forward Declaration */
 
     HashStartSearch(&hs);
     while((entry = HashNext(&ResNodeTable,&hs)) != NULL)
     {
-	node = (ResSimNode *)HashGetValue(entry);
+	node = (ResExtNode *)HashGetValue(entry);
 	if (node->status & PORTNODE)
 	{
 	    if (node->rs_ttype <= 0)
@@ -281,7 +281,7 @@ ResMakeLabelBreakpoints(def, goodies)
     Rect	*rect;
     TileTypeBitMask mask;
     HashEntry   *entry;
-    ResSimNode  *node;
+    ResExtNode  *node;
     Label	*slab;
     int ResAddBreakpointFunc();	/* Forward Declaration */
 
@@ -353,7 +353,7 @@ int
 ResAddBreakpointFunc(tile, dinfo, node)
    Tile *tile;
    TileType dinfo;		/* (unused) */
-   ResSimNode *node;
+   ResExtNode *node;
 {
     tileJunk *junk;
 
@@ -512,51 +512,6 @@ ResProcessTiles(goodies, origin)
 	resCurrentNode = NULL;
 	(void) ResEachTile(startTile, origin);
     }
-#ifdef ARIEL
-    else if (ResOptionsFlags & ResOpt_Power)
-    {
-    	for (fix = ResFixList; fix != NULL; fix = fix->fp_next)
-	{
-      	    Tile *tile = fix->fp_tile;
-	    if (tile == NULL)
-	    {
-		tile = PlaneGetHint(ResDef->cd_planes[DBPlane(fix->fp_ttype)]);
-		GOTOPOINT(tile, &(fix->fp_loc));
-		if (TiGetTypeExact(tile) != TT_SPACE)
-		{
-		    fix->fp_tile = tile;
-		}
-		else
-		{
-		    tile = NULL;
-		}
-	    }
-	    if (tile != NULL)
-	    {
-	        int x = fix->fp_loc.p_x;
-	        int y = fix->fp_loc.p_y;
-		resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-		InitializeNode(resptr, x, y, RES_NODE_ORIGIN);
-	        resptr->rn_status = TRUE;
-	        resptr->rn_noderes = 0;
-	        ResAddToQueue(resptr, &ResNodeQueue);
-		fix->fp_node = resptr;
-		NEWBREAK(resptr, tile, x, y, NULL);
-	    }
-	}
-    	for (fix = ResFixList; fix != NULL; fix = fix->fp_next)
-	{
-      	    Tile    *tile = fix->fp_tile;
-
-	    if (tile != NULL && (((tileJunk *)TiGetClientPTR(tile)->tj_status &
-			RES_TILE_DONE) == 0)
-	    {
-	        resCurrentNode = fix->fp_node;
-		(void) ResEachTile(startile, (Point *)NULL);
-	    }
-	}
-    }
-#endif
 #ifdef PARANOID
     else
     {
@@ -1036,7 +991,7 @@ ResShaveContacts(tile, dinfo, def)
 
 bool
 ResExtractNet(node, goodies, cellname)
-    ResSimNode		*node;
+    ResExtNode		*node;
     ResGlobalParams	*goodies;
     char		*cellname;
 {
@@ -1102,11 +1057,6 @@ ResExtractNet(node, goodies, cellname)
     }
 
     DBCellClearDef(ResUse->cu_def);
-
-#ifdef ARIEL
-    if ((ResOptionsFlags & ResOpt_Power) &&
-	 		strcmp(node->name, goodies->rg_name) != 0) continue;
-#endif
 
     /* Copy Paint */
 
@@ -1238,30 +1188,6 @@ ResExtractNet(node, goodies, cellname)
     ResMakeLabelBreakpoints(ResUse->cu_def, goodies);
     ResFindNewContactTiles(ResContactList);
     ResPreProcessDevices(DevTiles, ResDevList, ResUse->cu_def);
-
-#ifdef LAPLACE
-    if (ResOptionsFlags & ResOpt_DoLaplace)
-    {
-        for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-        {
-    	    Plane   *plane = ResUse->cu_def->cd_planes[pNum];
-	    Rect    *rect  = &ResUse->cu_def->cd_bbox;
-	    Res1d(plane, rect);
-        }
-    }
-#endif
-
-#ifdef ARIEL
-    if (ResOptionsFlags & ResOpt_Power)
-    {
-    	for (fix = startlist; fix != NULL; fix = fix->fp_next)
-	{
-	    fix->fp_tile = PlaneGetHint(ResUse->cu_def->cd_planes[DBPlane(fix->fp_ttype)]);
-	    GOTOPOINT(fix->fp_tile, &fix->fp_loc);
-	    if (TiGetTypeExact(fix->fp_tile) == TT_SPACE) fix->fp_tile = NULL;
-	}
-    }
-#endif
 
     /* do extraction */
     if (ResProcessTiles(goodies, &startpoint) != 0) return TRUE;

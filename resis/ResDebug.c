@@ -120,7 +120,6 @@ ResPrintDeviceList(fp, list)
     int i;
     for (; list != NULL; list = list->rd_nextDev)
     {
-     	if (list->rd_status & RES_DEV_PLUG) continue;
 	if (fp == stdout)
 	    TxPrintf("t w %d l %d ", list->rd_width, list->rd_length);
 	else

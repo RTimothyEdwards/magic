@@ -37,6 +37,7 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 #include "utils/malloc.h"
 #include "textio/textio.h"
 #include "debug/debug.h"
+#include "extflat/extparse.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
 #include "utils/signals.h"
@@ -45,20 +46,7 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 #include "utils/styles.h"
 #include "utils/stack.h"
 #include "utils/utils.h"
-
-/* These must be in the order of "known devices" in extract.h.		*/
-
-/* Note: "fet" refers to the original fet type; "mosfet" refers to the	*/
-/* new type.  The main difference is that "fet" records area/perimeter	*/
-/* while "mosfet" records length/width.					*/
-/* Also: Note that this table is repeated in extflat/EFread.c when	*/
-/* ext2spice/ext2sim are compiled as separate programs (i.e., non-Tcl)	*/
-
-#ifdef MAGIC_WRAPPER
-const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
-	"devcap", "devcaprev", "vsource", "diode", "pdiode", "ndiode",
-	"subckt", "rsubckt", "msubckt", "csubckt", "dsubckt", "veriloga", NULL};
-#endif
+#include "resis/resis.h"
 
 /* --------------------- Data local to this file ---------------------- */
 
@@ -300,28 +288,6 @@ extBasic(def, outFile)
      */
     if (!SigInterruptPending && (ExtDoWarn & EXTWARN_DUP) && !isabstract)
 	extFindDuplicateLabels(def, nodeList);
-
-    /*
-     * If full R-C extraction is requested, then run it now.  This
-     * code was previously run as the "extresist" command, but it
-     * makes more sense to be integral to the extraction process.
-     * It must be run prior to extFindCoupling() so that coupling
-     * capacitances are correctly assigned to subnets.
-     */
-    if (!SigInterruptPending && (ExtOptions & EXT_DOEXTRESIST))
-    {
-	ResSimNode *rsimnode;
-	ResisData   resisdata;
-	int n_ext = 0, n_out = 0;
-
-	for (reg = nodeList; reg && !SigInterruptPending; reg = reg->nreg_next)
-	{
-	    rsimnode = ResCreateNode();
-	    ResProcessNode(rsimnode, def, &resisdata, &n_ext, &n_out);
-
-	    /* To be completed */
-	}
-    }
 
     /*
      * Build up table of coupling capacitances (overlap, sidewall).
@@ -578,6 +544,24 @@ extBasic(def, outFile)
 
 	if (!propfound)
 	    extOutputDevices(def, transList, outFile);
+    }
+
+    /* Integrated extresist ---  Run "extresist" on the cell def just
+     * extracted and produce an annotation file "<file>.res.ext".
+     */
+
+    if (ExtOptions & EXT_DOEXTRESIST)
+    {
+	ResisData resisdata;
+
+	/* These need to be passed to extresist somehow.  Most are unused. */
+	resisdata.rthresh = 0;
+	resisdata.tdiTolerance = 1;
+	resisdata.frequency = 10e6;
+	resisdata.mainDef = def;
+	resisdata.savePlanes = (struct saveList *)NULL;		/* unused */
+
+	ExtResisForDef(def, &resisdata);
     }
 
     /* Clean up */

@@ -1,12 +1,13 @@
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/resis/ResReadSim.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
+static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/resis/ResReadExt.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
 #endif  /* not lint */
 
 /*
  *-------------------------------------------------------------------------
  *
- * ResReadSim.c -- Routines to parse .sim files
+ * ResReadExt.c -- Routines to parse .ext files for information needed
+ *	by extresist.
  *
  *-------------------------------------------------------------------------
  */
@@ -35,8 +36,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "resis/resis.h"
 
+/* constants defining where various fields can be found in .ext files. */
+/* (FIXME---Needs to be changed to positions in .ext files) */
 
-/* constants defining where various fields can be found in .sim files. */
 #define		RDEV_LENGTH		4
 #define		RDEV_WIDTH		5
 #define		RDEV_DEVX		6
@@ -70,163 +72,99 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define		RES_EXT_ATTR_TILE	6
 #define		RES_EXT_ATTR_TEXT	7
 
-
 #define MAXTOKEN 		1024
 #define MAXLINE 		40
 #define MAXDIGIT		20
 
+ResExtNode	*ResInitializeNode();
 
-ResSimNode *ResInitializeNode();
-
-ResSimNode	*ResOriginalNodes;	/*Linked List of Nodes 	*/
-static float	resscale=1.0;       	/* Scale factor		*/
-char	RDEV_NOATTR[1]={'0'};
-ResFixPoint		*ResFixList;
-
-#define nodeinit(n)\
-{\
-     (n)->rn_more = ResNodeList;\
-     (n)->rn_less = NULL;\
-     if (ResNodeList)\
-     ResNodeList->rn_less = n;\
-     ResNodeList = n;\
-     (n)->rn_te = NULL;\
-     (n)->rn_re = NULL;\
-     (n)->rn_je = NULL;\
-     (n)->rn_ce = NULL;\
-     (n)->rn_noderes = RES_INFINITY;\
-     (n)->location.p_x = MINFINITY;\
-     (n)->location.p_y = MINFINITY;\
-     (n)->rn_why = 0;\
-     (n)->rn_status = TRUE;\
-}
-
-/* Forward declarations */
-
-extern void ResSimProcessDrivePoints();
+ResExtNode	*ResOriginalNodes;	/*Linked List of Nodes 	*/
+static float	resscale = 1.0;       	/* Scale factor		*/
+char		RDEV_NOATTR[1] = {'0'};
+ResFixPoint	*ResFixList;
 
 /*
  *-------------------------------------------------------------------------
  *
- * ResReadSim--
+ * ResReadExt--
  *
- * Results: returns 0 if sim file is correct, 1 if not.
+ * Results: returns 0 if ext file is correct, 1 if not.
  *
- * Side Effects:Reads in SimTable and makes a hash table of nodes.
+ * Side Effects:Reads in ExtTable and makes a hash table of nodes.
  *
  *-------------------------------------------------------------------------
  */
 
 int
-ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
-    char *simfile;
-    int	 (*fetproc)(), (*capproc)(), (*resproc)();
-    int	 (*attrproc)(), (*mergeproc)(), (*subproc)();
-
+ResReadExt(char *extfile);
 {
-    char line[MAXLINE][MAXTOKEN];
-    int	result, fettype, extfile;
-    FILE *fp, *fopen();
+    char *line = NULL, *argv[128];
+    int	result, fettype, readdrivepoints;
+    int size = 0;
+    FILE *fp;
 
-    fp = PaOpen(simfile, "r", ".sim", ".", (char *)NULL, (char **)NULL);
+    fp = PaOpen(extfile, "r", ".ext", EFSearchPath, EFLibPath, (char **)NULL);
     if (fp == NULL)
     {
-    	TxError("Cannot open file %s%s\n", simfile, ".sim");
+    	TxError("Cannot open file %s%s\n", extfile, ".ext");
 	return 1;
     }
-    extfile = 0;
+    readdrivepoints = FALSE;
 
-    /* Read in file */
-    while (gettokens(line, fp) != 0)
+    /* Read in the file.  Makes use of various functions
+     * from extflat, mostly in EFread.c.
+     */
+
+    EFSaveLocs = False;
+    efReadLineNum = 0;
+
+    while ((argc = efReadLine(&line, &size, fp, argv)) >= 0)
     {
-	fettype = MINFINITY;
-	switch(line[0][0])
+	n = LookupStruct(argv[0], (const LookupTable *)keyTable, sizeof keyTable[0]);
+	if (n < 0)
 	{
-	    case '|':
-		if (strcmp(line[NODEUNITS],"units:") == 0)
-		{
-		    resscale = (float)atof(line[NODELAMBDA]);
-		    if (resscale == 0.0) resscale = 1.0;
-		}
-		result=0;
+	    efReadError("Unrecognized token \"%s\" (ignored)\n", argv[0]);
+	    continue;
+	}
+	if (argc < keyTable[n].k_mintokens)
+	{
+	    efReadError("Not enough tokens for %s line\n", argv[0]);
+	    continue;
+	}
+
+	/* We don't care about most tokens, only DEVICE, NODE, PORT,
+	 * and SUBSTRATE; and MERGE is used to locate drive points.
+	 */
+	switch (keyTable[n].k_key)
+	{
+	    case SCALE:
+		resscale = (float)atof(argv[1]);
+		if (resscale == 0.0) resscale = 1.0;
 		break;
-	    case 'e':
-		fettype = DBTechNameType("efet");
-	   	break;
-	    case 'd':
-		fettype = DBTechNameType("dfet");
+	    case DEVICE:
+		ResReadSubckt(argc, argv);
 		break;
-	    case 'n':
-		fettype = DBTechNameType("nfet");
+	    case FET:
+		ResReadDevice(argc, argv);
 		break;
-	    case 'p':
-		fettype = DBTechNameType("pfet");
+	    case MERGE:
+		ResReadDrivePoint(argc, argv);
 		break;
-	    case 'b':
-		fettype = DBTechNameType("bnpn");
+	    case NODE:
+	    case SUBSTRATE:
+		ResReadNode(argc, argv);
 		break;
-	    case 'C':
-		if (capproc) result = (*capproc)(line);
+	    case PORT:
+		ResReadPort(argc, argv);
 		break;
-	    case 'R':
-		if (resproc) result = (*resproc)(line);
-		break;
-	    case '=':
-		/* Do not merge nodes, as this interferes with	*/
-		/* extresist's primary function.		*/
-		/* if (mergeproc) result = (*mergeproc)(line);	*/
-		break;
-	    case 'A':
-		if (attrproc)
-		{
-		    result = (*attrproc)(line[ATTRIBUTENODENAME],
-			    line[ATTRIBUTEVALUE], simfile, &extfile);
-		}
-		break;
-	    case 'x':
-		fettype = DBNumTypes;
-		break;
-	    case 'D':
-	    case 'c':
-	    case 'r':
+	    case ATTR:
+		result = ResExtAttribute(curnodename,
+			argv[1], &readdrivepoints);
 		break;
 	    default:
-		/* we expect fclose(fp) and early return to occur below,
-		 * but code path might still modify result (maybe to zero)
-		 * allowing us to loop again, which will then access 'fp'
-		 */
-		result = 1;
 		break;
-	}
-        if ((fettype != MINFINITY) && (fettype < 0))
-        {
-	    TxError("Error in Reading device line of sim file: ");
-	    TxError("Ambiguous or unknown device.\n");
-	    result = 1;
-	}
-	else if (fettype == DBNumTypes)
-	{
-	    result = (*subproc)(line);
-	}
-	else if (fettype != MINFINITY)
-	{
-	    float sheetr;
-	    ExtDevice *devptr;
-	    HashEntry *he;
 
-	    devptr = ExtCurStyle->exts_device[fettype];
-	    he = HashLookOnly(&devptr->exts_deviceResist, "linear");
-	    if (he != NULL)
-		sheetr = (ResValue)(spointertype)HashGetValue(he);
-	    else
-		sheetr = (ResValue)0.0;
-	    result = (*fetproc)(line, sheetr, devptr);
-	}
-	if (result != 0)
-	{
-	    TxError("Error in sim file %s\n", line[0]);
-	    fclose(fp);
-	    return 1;
+	    /* to do:  Handle CAP, RESISTOR, maybe others? */
 	}
     }
     fclose(fp);
@@ -240,112 +178,45 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
  * ResReadNode-- Reads in a node file, puts location of nodes into node
  *	structures.
  *
- * Results: returns 0 if nodes file is correct, 1 if not.
+ * Results: 0 if the node was read correctly, 1 otherwise.
  *
- * Side Effects:see above
+ * Side Effects: see above
  *
  *-------------------------------------------------------------------------
  */
 
 int
-ResReadNode(nodefile)
-    char	*nodefile;
+ResReadNode(int argc, char *argv[])
 {
-    char line[MAXLINE][MAXTOKEN];
-    FILE *fp, *fopen();
     HashEntry	*entry;
-    ResSimNode	*node;
+    ResExtNode	*node;
     char *cp;
     float lambda;
 
-    fp = PaOpen(nodefile, "r", ".nodes", ".", (char *)NULL, (char **)NULL);
-    if (fp == NULL)
+    entry = HashFind(&ResNodeTable, line[NODES_NODENAME]);
+    node = ResInitializeNode(entry);
+
+    node->location.p_x = atoi(line[NODES_NODEX]);
+    node->location.p_y = atoi(line[NODES_NODEY]);
+    if ((cp = strchr(line[NODES_NODETYPE], ';'))) *cp = '\0';
+    node->type = DBTechNameType(line[NODES_NODETYPE]);
+
+    if (node->type == -1)
     {
-    	TxError("Cannot open file %s%s\n", nodefile, ".nodes");
+	TxError("Bad tile type name in .ext file for node %s\n",
+			node->name);
 	return 1;
     }
-    while (gettokens(line,fp) != 0)
-    {
-	entry = HashFind(&ResNodeTable, line[NODES_NODENAME]);
-	node = ResInitializeNode(entry);
-
-	node->location.p_x = atoi(line[NODES_NODEX]);
-	node->location.p_y = atoi(line[NODES_NODEY]);
-#ifdef ARIEL
-	node->rs_bbox.r_xbot = atoi(line[NODE_BBOX_LL_X]);
-	node->rs_bbox.r_ybot = atoi(line[NODE_BBOX_LL_Y]);
-	node->rs_bbox.r_xtop = atoi(line[NODE_BBOX_UR_X]);
-	node->rs_bbox.r_ytop = atoi(line[NODE_BBOX_UR_Y]);
-#endif
-	if ((cp = strchr(line[NODES_NODETYPE], ';'))) *cp = '\0';
-	node->type = DBTechNameType(line[NODES_NODETYPE]);
-
-	if (node->type == -1)
-	{
-	    TxError("Bad tile type name in %s.nodes file for node %s\n",
-			nodefile, node->name);
-	    TxError("Did you use the newest version of ext2sim?\n");
-	    fclose(fp);
-	    return 1;
-	}
-    }
-    fclose(fp);
     return 0;
 }
 
 /*
  *-------------------------------------------------------------------------
  *
- * getline-- Gets a  line from the current input file and breaks it into
- *	tokens.
- *
- * Results:returns the number of tokens in the current line
- *
- * Side Effects: loads up its input line with the tokens.
- *
- *-------------------------------------------------------------------------
- */
-
-int
-gettokens(line, fp)
-    char line[][MAXTOKEN];
-    FILE *fp;
-{
-    int i = 0, j = 0;
-    int c;
-
-    while ((c = getc(fp)) != EOF && c != '\n')
-    {
-     	switch(c)
-	{
-	    case '	':
-	    case ' ' :
-		line[i++][j] = '\0';
-		j = 0;
-	       	break;
-	    default:
-		line[i][j++] = c;
-		break;
-	}
-    }
-    if (c == '\n')
-    {
-     	line[i++][j] = '\0';
-	j = 0;
-    }
-    for (j = i; j < MAXLINE; j++)
-     	line[j][0] = '\0';
-
-    return i;
-}
-
-/*
- *-------------------------------------------------------------------------
- *
- *  ResSimSubckt-- Processes a subcircuit line from a sim file.
+ *  ResReadSubckt-- Processes a subcircuit line from a ext file.
  *	    This uses the "user subcircuit" extension defined in
  *	    IRSIM, although it is mostly intended as a way to work
- *	    around the device type limitations of the .sim format
+ *	    around the device type limitations of the .ext format
  *	    when using extresist.
  *
  * Results: returns 0 if line was added correctly.
@@ -356,7 +227,7 @@ gettokens(line, fp)
  */
 
 int
-ResSimSubckt(line)
+ResReadSubckt(line)
     char line[][MAXTOKEN];
 {
     RDev	*device;
@@ -473,7 +344,7 @@ ResSimSubckt(line)
 	    TxError("Device %s has more than 4 ports (not handled).\n", line[i]);
 	    break;	    /* No method to handle more ports than this */
 	}
-	rvalue += ResSimNewNode(line[k], k, device);
+	rvalue += ResExtNewNode(line[k], k, device);
     }
 
     return rvalue;
@@ -482,7 +353,7 @@ ResSimSubckt(line)
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSimDevice-- Processes a device line from a sim file.
+ *  ResReadDevice-- Processes a device line from a ext file.
  *
  * Results: returns 0 if line was added correctly.
  *
@@ -492,7 +363,7 @@ ResSimSubckt(line)
  */
 
 int
-ResSimDevice(line, rpersquare, devptr)
+ResReadDevice(line, rpersquare, devptr)
     char	line[][MAXTOKEN];
     float	rpersquare;
     ExtDevice	*devptr;
@@ -554,7 +425,7 @@ ResSimDevice(line, rpersquare, devptr)
 
     device->rs_ttype = extGetDevType(devptr->exts_deviceName);
 
-    /* sim attributes look like g=a1,a2   	*/
+    /* ext attributes look like g=a1,a2   	*/
     /* ext attributes are "a1","a2"	   	*/
     /* Do conversion from one to the other here	*/
     /* NOTE:  As of version 8.3.366, .ext attributes will end in two	*/
@@ -615,9 +486,9 @@ ResSimDevice(line, rpersquare, devptr)
     }
     ResRDevList = device;
     device->layout = NULL;
-    rvalue = ResSimNewNode(line[GATE], GATE, device) +
-     	     ResSimNewNode(line[SOURCE], SOURCE, device) +
-     	     ResSimNewNode(line[DRAIN], DRAIN, device);
+    rvalue = ResExtNewNode(line[GATE], GATE, device) +
+     	     ResExtNewNode(line[SOURCE], SOURCE, device) +
+     	     ResExtNewNode(line[DRAIN], DRAIN, device);
 
     return rvalue;
 }
@@ -625,24 +496,24 @@ ResSimDevice(line, rpersquare, devptr)
 /*
  *-------------------------------------------------------------------------
  *
- * ResSimNewNode-- Adds a new node to the Node Hash Table.
+ * ResExtNewNode-- Adds a new node to the Node Hash Table.
  *
  * Results: returns zero if node is added correctly, one otherwise.
  *
- * Side Effects: Allocates a new ResSimNode
+ * Side Effects: Allocates a new ResExtNode
  *
  *-------------------------------------------------------------------------
  */
 
 int
-ResSimNewNode(line, type, device)
+ResExtNewNode(line, type, device)
     char 	line[];
     int		type;
     RDev	*device;
 
 {
     HashEntry		*entry;
-    ResSimNode		*node;
+    ResExtNode		*node;
     devPtr		*tptr;
 
     if (line[0] == '\0')
@@ -681,25 +552,25 @@ ResSimNewNode(line, type, device)
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSimCapacitor-- Adds the capacitance  from a C line to the appropriate
+ *  ResReadCapacitor-- Adds the capacitance  from a C line to the appropriate
  *	node. Coupling capacitors are added twice, moving the capacitance
  *	to the substrate.
  *
  *  Results:
  *	Always return 0
  *
- *  Side Effects: modifies capacitance field  of ResSimNode.
+ *  Side Effects: modifies capacitance field  of ResExtNode.
  *
  *-------------------------------------------------------------------------
  */
 
 int
-ResSimCapacitor(line)
+ResReadCapacitor(line)
     char line[][MAXTOKEN];
 
 {
     HashEntry	*entry1, *entry2;
-    ResSimNode	*node1, *node2;
+    ResExtNode	*node1, *node2;
 
     if (line[COUPLETERMINAL1][0] == 0 || line[COUPLETERMINAL2][0] == 0)
     {
@@ -752,23 +623,23 @@ ResSimCapacitor(line)
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSimResistor-- Adds the capacitance  from a R line to the appropriate
+ *  ResReadResistor-- Adds the capacitance  from a R line to the appropriate
  *	node.
  *
  *  Results
  *	Return 0 to keep search going, 1 to abort
  *
- *  Side Effects: modifies resistance field of ResSimNode
+ *  Side Effects: modifies resistance field of ResExtNode
  *
  *-------------------------------------------------------------------------
  */
 
 int
-ResSimResistor(line)
+ResReadResistor(line)
     char line[][MAXTOKEN];
 {
     HashEntry	*entry;
-    ResSimNode	*node;
+    ResExtNode	*node;
 
     if (line[RESNODENAME][0] == 0)
     {
@@ -789,29 +660,30 @@ ResSimResistor(line)
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSimAttribute--checks to see if a node attribute is a resistance
+ *  ResExtAttribute--checks to see if a node attribute is a resistance
  *	attribute. If it is, add it to the correct node's status flag.
  *	Only works with 5.0 1/line attributes
  *
  *  Results:
  *	Return 0 to keep search going, 1 to abort
  *
- *  Side Effects: modifies resistance field of ResSimNode
+ *  Side Effects: modifies resistance field of ResExtNode
  *
  *-------------------------------------------------------------------------
  */
 
 int
-ResSimAttribute(aname, avalue, rootname, readextfile)
-    char *aname, *avalue, *rootname;
-    int	 *readextfile;
+ResReadAttribute(aname, avalue, readdrivepoints)
+    char *aname;
+    char *avalue;
+    bool *readdrivepoints;
 
 {
     HashEntry	*entry;
-    ResSimNode	*node;
+    ResExtNode	*node;
     char	digit[MAXDIGIT];
     int		i;
-    static int	notwarned=TRUE;
+    static int	notwarned = TRUE;
 
     if (aname[0] == 0)
     {
@@ -834,18 +706,14 @@ ResSimAttribute(aname, avalue, rootname, readextfile)
     else if (strncmp(avalue, "res:force", 9) == 0)
     {
      	if (node->status & SKIP)
-	{
 	    TxError("Warning: Node %s is both skipped and forced \n", aname);
-	}
 	else
-	{
 	    node->status |= FORCE;
-	}
     }
     else if (strncmp(avalue, "res:min=", 8) == 0)
     {
 	node->status |= MINSIZE;
-	for (i = 0, avalue += 8; *avalue != '\0' && *avalue != ','; avalue++)
+	for (i = 0, avalue += 8; *avalue != '\0'; avalue++)
 	{
 	    digit[i++] = *avalue;
 	}
@@ -855,16 +723,14 @@ ResSimAttribute(aname, avalue, rootname, readextfile)
     else if (strncmp(avalue, "res:drive", 9) == 0 &&
      	      (ResOptionsFlags & ResOpt_Signal))
     {
-	if (*readextfile == 0)
+	if (*readdrivepoints == FALSE)
 	{
-	    ResSimProcessDrivePoints(rootname);
-	    *readextfile = 1;
+	    ResExtProcessDrivePoints(rootname);
+	    *readddrivepoints = TRUE;
 	}
 	/* is the attribute in root.ext? */
 	if (node->drivepoint.p_x != INFINITY)
-	{
 	    node->status |= DRIVELOC;
-	}
 	else
 	{
 	    if (notwarned)
@@ -873,33 +739,21 @@ ResSimAttribute(aname, avalue, rootname, readextfile)
 	    notwarned = FALSE;
 	}
     }
-#ifdef ARIEL
-    else if (strncmp(avalue, "res:fix", 7) == 0 &&
-     	      (ResOptionsFlags & ResOpt_Power))
-    {
-	if (*readextfile == 0)
-	{
-	    ResSimProcessFixPoints(rootname);
-	    *readextfile = 1;
-	}
-    }
-#endif
-    if ((avalue = strchr(avalue, ',')))
-    {
-        ResSimAttribute(aname, avalue + 1, rootname, readextfile);
-    }
     return 0;
 }
 
 /*
  *-------------------------------------------------------------------------
  *
- * ResSimProcessDrivePoints -- if the sim file contains a res:drive attribute,
+ * ResExtProcessDrivePoints -- if the ext file contains a res:drive attribute,
  *	and we are doing a signal extraction,
  *	we need to search through the .ext file looking for attr labels that
  *	contain this text. For efficiency, the .ext file is only parsed when
  *	the first res:drive is encountered.  res:drive labels only work if
  *	they are in the root cell.
+ *
+ *	FIXME---The .ext file is being read and this routine should only
+ *	read in additional lines as necessary.
  *
  * Results:
  *	None.
@@ -910,23 +764,14 @@ ResSimAttribute(aname, avalue, rootname, readextfile)
  */
 
 void
-ResSimProcessDrivePoints(filename)
-    char    *filename;
-
+ResExtProcessDrivePoints(FILE *fp)
 {
     char	line[MAXLINE][MAXTOKEN];
     FILE	*fp;
     HashEntry	*entry;
-    ResSimNode	*node;
+    ResExtNode	*node;
 
-    fp = PaOpen(filename, "r", ".ext", (ExtLocalPath == NULL) ? "." : ExtLocalPath,
-			(char *)NULL, (char **)NULL);
-    if (fp == NULL)
-    {
-     	TxError("Cannot open file %s%s\n", filename, ".ext");
-	return;
-    }
-    while (gettokens(line,fp) != 0)
+    while (gettokens(line, fp) != 0)
     {
      	if (strncmp(line[RES_EXT_ATTR], "attr", 4) != 0 ||
 		strncmp(line[RES_EXT_ATTR_TEXT], "\"res:drive\"", 11) != 0)
@@ -944,11 +789,13 @@ ResSimProcessDrivePoints(filename)
 /*
  *-------------------------------------------------------------------------
  *
- * ResSimProcessFixPoints -- if the sim file contains a "res:fix:name" label
+ * ResExtProcessFixPoints -- if the ext file contains a "res:fix:name" label
  *	and we are checking for power supply noise, then we have to
  *	parse the .ext file looking for the fix label locations.  This
  *	is only done after the first res:fix label is encountered.
  *
+ *	(FIXME---This is now all in the .ext file so the information does
+ *	 not need to be read twice.)
  *
  * Results:
  *	None.
@@ -960,7 +807,7 @@ ResSimProcessDrivePoints(filename)
  */
 
 void
-ResSimProcessFixPoints(filename)
+ResExtProcessFixPoints(filename)
     char	*filename;
 {
     char	line[MAXLINE][MAXTOKEN], *label, *c;
@@ -1006,72 +853,31 @@ ResSimProcessFixPoints(filename)
 /*
  *-------------------------------------------------------------------------
  *
- * ResSimMerge-- Processes = line in sim file
+ * ResInitializeNode --
+ *	Gets the node corresponding to a given hash table entry.  If no
+ *	such node exists, one is created.
  *
- * Results: Success/Failure
+ * Results: Returns ResExtNode corresponding to entry.
  *
- * Side Effects: The forward field of one node is set to point to the
- *	other node. All of the junkt from the first node is moved to
- *	the second node.
- *
- *-------------------------------------------------------------------------
- */
-
-int
-ResSimMerge(line)
-    char line[][MAXTOKEN];
-
-{
-    ResSimNode	*node;
-    devPtr	*ptr;
-
-    if ((line[ALIASNAME][0] == '\0') || (line[REALNAME][0] == '\0'))
-    {
-     	TxError("Bad node alias line\n");
-	return(1);
-    }
-    node = ResInitializeNode(HashFind(&ResNodeTable, line[ALIASNAME]));
-    node->status |= FORWARD;
-    node->forward = ResInitializeNode(HashFind(&ResNodeTable, line[REALNAME]));
-    node->forward->resistance += node->resistance;
-    node->forward->capacitance += node->capacitance;
-    while (node->firstDev != NULL)
-    {
-     	ptr = node->firstDev;
-	node->firstDev = node->firstDev->nextDev;
-	ptr->nextDev = node->forward->firstDev;
-	node->forward->firstDev = ptr;
-    }
-    return 0;
-}
-
-/*
- *-------------------------------------------------------------------------
- *
- * ResInitializeNode-- Gets the node corresponding to a given hash table
- *	entry.  If no such node exists, one is created.
- *
- * Results:Returns ResSimNode corresponding to entry.
- *
- * Side Effects: May allocate a new ResSimNode.
+ * Side Effects: May allocate a new ResExtNode.
  *
  *-------------------------------------------------------------------------
  */
 
-ResSimNode *
+ResExtNode *
 ResInitializeNode(entry)
     HashEntry	*entry;
 {
-    ResSimNode	*node;
+    ResExtNode	*node;
 
-    if ((node = (ResSimNode *) HashGetValue(entry)) == NULL)
+    if ((node = (ResExtNode *) HashGetValue(entry)) == NULL)
     {
-	node = (ResSimNode *)mallocMagic((unsigned)(sizeof(ResSimNode)));
+	node = (ResExtNode *)mallocMagic((unsigned)(sizeof(ResExtNode)));
 	HashSetValue(entry, (char *) node);
 	node->nextnode = ResOriginalNodes;
 	ResOriginalNodes = node;
 	node->status = FALSE;
-	node->forward = (ResSimNode *) NULL;
+	node->forward = (ResExtNode *) NULL;
 	node->capacitance = 0;
 	node->cap_vdd = 0;
 	node->cap_couple = 0;

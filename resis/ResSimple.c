@@ -383,27 +383,17 @@ ResMoveDevices(node1, node2)
 	device = devptr->te_thist;
 	oldptr = devptr;
 	devptr = devptr->te_nextt;
-	if (device->rd_status & RES_DEV_PLUG)
-	{
-	    if (((ResPlug *)(device))->rpl_node == node1)
-	      	((ResPlug *)(device))->rpl_node = node2;
-	    else
-	       	TxError("Bad node connection in plug\n");
-	}
+	if (device->rd_fet_gate == node1)
+   	    device->rd_fet_gate = node2;
+	else if (device->rd_fet_subs == node1)
+   	    device->rd_fet_subs = node2;
+	else if (device->rd_fet_source == node1)
+	    device->rd_fet_source = node2;
+	else if (device->rd_fet_drain == node1)
+  	    device->rd_fet_drain = node2;
 	else
-	{
-	    if (device->rd_fet_gate == node1)
-   	        device->rd_fet_gate = node2;
-	    else if (device->rd_fet_subs == node1)
-   	        device->rd_fet_subs = node2;
-	    else if (device->rd_fet_source == node1)
-	        device->rd_fet_source = node2;
-	    else if (device->rd_fet_drain == node1)
-  	        device->rd_fet_drain = node2;
-	    else
-	        TxError("Missing Device connection in squish routines"
+	    TxError("Missing Device connection in squish routines"
 			" at %d, %d\n", node1->rn_loc.p_x, node1->rn_loc.p_y);
-	}
 	oldptr->te_nextt = node2->rn_te;
 	node2->rn_te = oldptr;
     }

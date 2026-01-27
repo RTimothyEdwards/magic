@@ -150,14 +150,6 @@ ResFixRes(resptr, resptr2, resptr3, elimResis, newResis)
     ASSERT(newResis->rr_value > 0, "series");
     newResis->rr_float.rr_area += elimResis->rr_float.rr_area;
 
-#ifdef ARIEL
-    if (elimResis->rr_csArea && elimResis->rr_csArea < newResis->rr_csArea
-		|| newResis->rr_csArea == 0)
-    {
-     	newResis->rr_csArea = elimResis->rr_csArea;
-	newResis->rr_tt = elimResis->rr_tt;
-    }
-#endif
     for (thisREl = resptr3->rn_re; (thisREl != NULL); thisREl = thisREl->re_nextEl)
     {
      	if (thisREl->re_thisEl == elimResis)
@@ -206,9 +198,6 @@ ResFixParallel(elimResis, newResis)
      	newResis->rr_value = 0;
     }
     newResis->rr_float.rr_area += elimResis->rr_float.rr_area;
-#ifdef ARIEL
-    newResis->rr_csArea += elimResis->rr_csArea;
-#endif
     ResDeleteResPointer(elimResis->rr_connection1, elimResis);
     ResDeleteResPointer(elimResis->rr_connection2, elimResis);
     ResEliminateResistor(elimResis, &ResResList);
@@ -671,31 +660,16 @@ ResMergeNodes(node1, node2, pendingList, doneList)
     workingDev = node2->rn_te;
     while (workingDev != NULL)
     {
-      	if (workingDev->te_thist->rd_status & RES_DEV_PLUG)
-	{
-	    ResPlug *plug = (ResPlug *) workingDev->te_thist;
-	    if (plug->rpl_node == node2)
-	       	plug->rpl_node = node1;
-	    else
-	    {
-	       	TxError("Bad plug node: is (%d %d), should be (%d %d)\n",
-			    plug->rpl_node->rn_loc.p_x, plug->rpl_node->rn_loc.p_y,
-			    node2->rn_loc.p_x, node2->rn_loc.p_y);
-	       	plug->rpl_node = NULL;
-	    }
-	}
-	else
-	{
-	    int j;
+	int j;
 
-	    for (j = 0; j != workingDev->te_thist->rd_nterms; j++)
-		if (workingDev->te_thist->rd_terminals[j] == node2)
-	   	    workingDev->te_thist->rd_terminals[j] = node1;
-	 }
-	 tDev = workingDev;
-	 workingDev = workingDev->te_nextt;
-	 tDev->te_nextt = node1->rn_te;
-	 node1->rn_te = tDev;
+	for (j = 0; j != workingDev->te_thist->rd_nterms; j++)
+	    if (workingDev->te_thist->rd_terminals[j] == node2)
+	   	workingDev->te_thist->rd_terminals[j] = node1;
+
+	tDev = workingDev;
+	workingDev = workingDev->te_nextt;
+	tDev->te_nextt = node1->rn_te;
+	node1->rn_te = tDev;
     }
 
     /* append junction lists */
@@ -749,11 +723,11 @@ ResMergeNodes(node1, node2, pendingList, doneList)
     else if ((node2->rn_name != NULL) && (node2->rn_name != node1->rn_name))
     {
 	HashEntry *entry;
-	ResSimNode *node;
+	ResExtNode *node;
 
 	/* Check if node2 is a port */
 	entry = HashFind(&ResNodeTable, node2->rn_name);
-	node = (ResSimNode *)HashGetValue(entry);
+	node = (ResExtNode *)HashGetValue(entry);
 	if (node && (node->status & PORTNODE))
 	    node1->rn_name = node2->rn_name;
     }

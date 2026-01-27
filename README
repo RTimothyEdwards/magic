@@ -132,3 +132,71 @@ around for the duration of the extraction, and needs to have the
 extresist splits on hand for coupling capacitance calculations
 and all output.  Maybe copy in a simplified form to yet another
 ClientData field on a nodeRegion.
+
+So there's another way to go about it:
+(1) When running extract, create the device record for extresist
+    after running transList = ExtFindRegions().  This list does
+    not change between being created and the transistors being
+    output.
+(2) Create the node record for extresist after running extFindNodes().
+(3) With this information, it's possible to run extresist on the
+    node.  Because nodes have all been marked with regions, use
+    a ClientData record in NodeRegion to store the extresist working
+    data.  Clean up afterward;  the NodeRegion records still remain
+    in place on the tiles.
+
+The simplest approach is just to write the .res.ext annotation file
+as before, although with the extresist code being run before the
+.ext file is written, it is possible to combine the two.  But the
+use of .res.ext is a quicker intermediate step that allows the
+extresist code to be checked for hierarchical operation, which it
+will now be able to do relatively smoothly, as it is not necessary
+to create multiple .sim and .node files for each subcircuit.
+
+Trickier:  Replace NodeRegions with the subnet regions.  One
+difficulty here is dealing with multiple subnets in a single tile.
+
+Simplifying the extresist code by removing references to ARIEL
+and LAPLACE (which are missing code and so cannot be reinstated
+without a lot of guesswork), and removing some apparently nonfunctional
+code having to do with events.
+
+To do after finding transistors:  What's done in ResReadSim():
+	Specifically, ResSimDevice() and ResSimSubckt().
+
+ResReadNode() is the only thing needed to be done for nodes.
+It calls ResInitializeNode() and sets location and (tile) type.
+Everything else in the structure is TBD.
+
+Another issue:  The device type is determined by "extract" only
+during extOutputDevices.  The device type in "devrec" is not
+computed until just before the device is output.  But. . . is
+this really needed by extresist?  It was being used by extresist
+because the device name is what's in the .sim file.
+
+You know what probably works best?
+(1) When nodes are written to the .ext file, save the information
+    for extresist.
+(2) When devices are written to the .ext file, save the information
+    for extresist.
+(3) Run extresist at the end of the cell def's extraction, and write
+    the .res.ext file as usual.  (Later, maybe, get rid of the
+    .res.ext file and just re-write the annotated .ext file.)
+(4) Create a new method for annotated coupling capacitances.
+    Recompute the coupling and output adjustments (positive for
+    the new node/terminal nodes, negative for the original node).
+    Coupling will be recomputed only for nets processed by
+    extresist.  Node substrate capacitance changes will be
+    recorded in .res.ext (but---I think substrate capacitance is
+    now unused in the node record, because there is a substrate
+    node and substrate capacitance is now treated like coupling
+    to that node;  isn't that right?) (and there will be multiple
+    substrate nodes, as well.)
+
+This can also be done in two steps:
+(1) Replace ResReadSim() with ResReadExt() and read back the .ext
+    file immediately after writing it.
+(2) Remove the read-back and just generate the information on the
+    fly.
+ 
+This also has the advantage that it can be tested in parts.

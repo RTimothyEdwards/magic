@@ -57,10 +57,6 @@ typedef struct resistor
      int		rr_cl;	  	  /* resistor centerline for geometry */
      int		rr_width;	  /* resistor width for geometry  */
      TileType		rr_tt;		  /* type that composes this 	  */
-     					  /* resistor.			  */
-#ifdef ARIEL
-     int		rr_csArea; 	  /* crosssectional area in lamba**2*/
-#endif
 } resResistor;
 
 #define  rr_connection1 	rr_node[0]
@@ -92,10 +88,6 @@ typedef struct device
      int		rd_devtype;	/* tiletype of device.		*/
      Rect		rd_inside;	/* 1x1 rectangle inside device  */
      Tile	       *rd_tile;	/* pointer to a tile in device	*/
-#ifdef ARIEL
-     float		rd_i;		/* Current injected from this device */
-     					/* in milliamps			     */
-#endif
 } resDevice;
 
 /*
@@ -254,7 +246,7 @@ typedef struct resdevtile
 
 /*
     Goodies contains random stuff passed between the node extractor
-    and ResCheckSimNodes. The location of a start tile and the resistive
+    and ResCheckExtNodes. The location of a start tile and the resistive
     tolerance are passed down, while the derived network is passed back.
 */
 
@@ -271,7 +263,28 @@ typedef struct goodstuff
      char	*rg_name;
 } ResGlobalParams;
 
-/* Used in RC delay calculations for Tdi filter */
+/* Linked list structure to use to store the substrate plane from each  */
+/* extracted CellDef so that they can be returned to the original after */
+/* extraction.                                                          */
+
+struct saveList {
+    Plane	    *sl_plane;
+    CellDef	    *sl_def;
+    struct saveList *sl_next;
+};
+
+/* Structure stores information required to be sent to ExtResisForDef() */
+
+typedef struct
+{
+    float	    tdiTolerance;
+    float	    frequency;
+    float	    rthresh;
+    struct saveList *savePlanes;
+    CellDef	    *mainDef;
+} ResisData;
+
+/* Structure used in RC delay calculations for Tdi filter. */
 /* Attaches to rn_client field of  resNode	*/
 
 typedef struct rcdelaystuff
@@ -281,7 +294,7 @@ typedef struct rcdelaystuff
 } RCDelayStuff;
 
 
-/* ResSim.c type declarations */
+/* Type declarations */
 
 typedef struct rdev
 {
@@ -291,10 +304,10 @@ typedef struct rdev
      resDevice		*layout;	/* pointer to resDevice that	  */
      					/* corresponds to RDev		  */
      int		status;
-     struct ressimnode	*gate;		/* Terminals of transistor.	  */
-     struct ressimnode	*source;
-     struct ressimnode	*drain;
-     struct ressimnode	*subs;		/* Used with subcircuit type only  */
+     struct resextnode	*gate;		/* Terminals of transistor.	  */
+     struct resextnode	*source;
+     struct resextnode	*drain;
+     struct resextnode	*subs;		/* Used with subcircuit type only  */
      Point		location;	/* Location of lower left point of */
      					/* device.			   */
      float		resistance;     /* "Resistance" of device.	   */
@@ -305,12 +318,12 @@ typedef struct rdev
      char               *rs_dattr;
 } RDev;
 
-typedef struct ressimnode
+typedef struct resextnode
 {
-     struct ressimnode	*nextnode;	/* next node in OriginalNodes 	  */
+     struct resextnode	*nextnode;	/* next node in OriginalNodes 	  */
      					/* linked list.			  */
      int		status;
-     struct ressimnode	*forward;     	/* If node has been merged, this  */
+     struct resextnode	*forward;     	/* If node has been merged, this  */
      					/* points to the merged node.     */
      float		capacitance;	/* capacitance between node and   */
      					/* GND for power connections      */
@@ -340,7 +353,7 @@ typedef struct ressimnode
      tElement		*rs_sublist[2]; /* pointers to Gnd and Vdd sub	  */
      					/* strate connections,
 							if they exist  	  */
-} ResSimNode;
+} ResExtNode;
 
 #define	RES_SUB_GND	0
 #define RES_SUB_VDD	1
@@ -355,40 +368,6 @@ typedef struct devptr
 					/* is connected to node.       */
 } devPtr;
 
-/* ResTime.c type declarations	*/
-
-typedef struct resevent		/* Raw event list read in from rsim/tv */
-{
-     int	rv_node;	/* node number	*/
-     int	rv_final;	/* final value; (0,1, or X)		*/
-     int	rv_tmin;   	/* minimum event time in units of 100ps */
-     int	rv_tmax;   	/* maximum event time in units of 100ps */
-     float	rv_i;		/* event current in milliamps		*/
-     resDevice *rv_dev;		/* device where charge drains */
-} ResEvent;
-
-typedef struct reseventcell
-{
-     ResEvent			*rl_this;
-     struct reseventcell	*rl_next;
-} REcell;
-
-typedef struct rescurrentevent /* processed event used to feed relaxer */
-{
-     struct rescurrentevent 	*ri_next;
-     float			 ri_i;
-     resDevice			*ri_dev;
-} ResCurrentEvent;
-
-typedef struct restimebin     /* Holds one timestep's worth of Events */
-{
-     struct restimebin *rb_next;
-     struct restimebin *rb_last;
-     int	       rb_start;
-     int	       rb_end;
-     ResCurrentEvent   *rb_first;
-} ResTimeBin;
-
 typedef struct resfixpoint    /* Keeps track of where voltage sources are */
 {
      struct resfixpoint		*fp_next;
@@ -399,30 +378,6 @@ typedef struct resfixpoint    /* Keeps track of where voltage sources are */
      resNode			*fp_node;
      char			fp_name[1];
 } ResFixPoint;
-
-typedef struct	clump
-{
-     unsigned rp_status;
-     rElement  *rp_grouplist;
-     nElement  *rp_nodelist;
-     rElement  *rp_downlist;
-     rElement  *rp_singlelist;
-} ResClump;
-
-/* the first two fields of this plug must be the the same as for
-	resDevice
-*/
-typedef struct plug
-{
-     float		rpl_i;		/* current injected through
-     					   this plug
-					*/
-     int		rpl_status;	/* status bits for this plug */
-     struct plug 	*rpl_next;	/* next plug in this bin */
-     Point 		rpl_loc;	/*location of plug */
-     int		rpl_type;	/*type of plug */
-     resNode		*rpl_node;	/* this point's node */
-} ResPlug;
 
 typedef struct capval
 {
@@ -458,7 +413,6 @@ typedef struct capval
 
 /* device flags  */
 #define		RES_DEV_SAVE		0x00000001
-#define		RES_DEV_PLUG		0x00000002
 
 /* flags for tiles 				  	*/
 /* A tile which is part of a substrate region.		*/
@@ -473,11 +427,6 @@ typedef struct capval
 #define RES_TILE_MARK	0x10
 /*another temporary marking flag			*/
 #define RES_TILE_PUSHED	0x20
-/* indicates that tile has unidirectional current flow */
-#ifdef LAPLACE
-#define RES_TILE_1D	0x40
-#define RES_TILE_GDONE	0x80
-#endif
 /* tree walking flags */
 #define	RES_LOOP_OK	1
 #define	RES_NO_LOOP	1
@@ -486,7 +435,7 @@ typedef struct capval
 #define RES_NO_FLAGS	0
 
 
-/* ResSim Constants  */
+/* Constants  */
 #define		FORWARD			0x0000010
 #define		SKIP			0x0000020
 #define		FORCE			0x0000040
@@ -561,16 +510,9 @@ typedef struct capval
 #define		ResOpt_Blackbox		0x00010000
 #define		ResOpt_Dump		0x00020000
 #define 	ResOpt_DoSubstrate	0x00040000
-#define		ResOpt_GndPlugs		0x00200000
-#define		ResOpt_VddPlugs		0x00400000
 #define 	ResOpt_CMOS		0x00800000
 #define 	ResOpt_Bipolar		0x01000000
 #define		ResOpt_Box		0x02000000
-#ifdef LAPLACE
-#define		ResOpt_DoLaplace	0x04000000
-#define		ResOpt_CacheLaplace	0x08000000
-#define		ResOpt_Checkpoint	0x80000000
-#endif
 
 #define		ResOpt_VDisplay		0x10000000
 #define		ResOpt_IDisplay		0x20000000
@@ -579,18 +521,9 @@ typedef struct capval
 /* Assorted Variables */
 
 extern RDev			*ResRDevList;
-extern REcell			*ResBigEventList;
 extern int 			ResOptionsFlags;
 extern char			*ResCurrentNode;
-extern ResSimNode		*ResOriginalNodes;
-#ifdef ARIEL
-extern int 			ResMinEventTime;
-extern int 			ResMaxEventTime;
-typedef 	float		ResCapElement[2];
-extern	ResCapElement		*ResCapTableMax;
-extern  ResCapElement		*ResCapTableMin;
-extern HashTable 		ResPlugTable;
-#endif
+extern ResExtNode		*ResOriginalNodes;
 
 extern CellUse 			*ResUse;
 extern CellDef 			*ResDef;
@@ -604,10 +537,10 @@ extern resNode			*ResNodeQueue;
 extern resNode			*ResOriginNode;
 extern resNode			*resCurrentNode;
 extern HashTable 		ResNodeTable;
-extern HashTable 		ResSimDevTable;
+extern HashTable 		ResExtDevTable;
 extern ResFixPoint		*ResFixList;
 extern int			ResTileCount;
-extern ResSimNode		**ResNodeArray;
+extern ResExtNode		**ResNodeArray;
 extern CellDef			*mainDef;
 extern TileTypeBitMask		ResSDTypesBitMask;
 extern TileTypeBitMask		ResSubTypesBitMask;
@@ -616,24 +549,26 @@ extern TileTypeBitMask		ResNoMergeMask[NT];
 extern	ResGlobalParams		gparams;
 extern int			ResPortIndex;
 
-extern int	      		ResSimDevice();
-extern int	      		ResSimCombineParallel();
-extern int	      		ResSimCapacitor();
-extern int	      		ResSimResistor();
-extern int	      		ResSimAttribute();
-extern int			ResSimMerge();
-extern int			ResSimSubckt();
+/* Routines used by ResReadExt() */
+extern int	      		ResReadDevice();
+extern int	      		ResReadCapacitor();
+extern int	      		ResReadResistor();
+extern int	      		ResReadAttribute();
+extern int			ResReadMerge();
+extern int			ResReadSubckt();
+
+extern int			ResProcessNode();
+extern int	      		ResExtCombineParallel();
 extern int 			dbSrConnectStartFunc();
 extern int			ResEach(),ResAddPlumbing(),ResRemovePlumbing();
 extern float			ResCalculateChildCapacitance();
 extern ResDevTile		*DBTreeCopyConnectDCS();
 extern Tile			*ResFindTile();
-extern resDevice		*ResImageAddPlug();
 extern resDevice		*ResGetDevice();
 extern tileJunk 		*resAddField();
 extern int			ResCheckPorts();
 extern int			ResCheckBlackbox();
-extern void			ResCheckSimNodes();
+extern void			ResCheckExtNodes();
 extern void			ResSortByGate();
 extern void			ResFixDevName();
 extern void			ResWriteLumpFile();
@@ -663,9 +598,10 @@ extern void ResPrintResistorList();
 extern void ResPrintStats();
 extern void ResProcessJunction();
 extern int  ResReadNode();
-extern int  ResReadSim();
+extern int  ResReadExt();
 extern void ResRemoveFromQueue();
-extern int  ResSimNewNode();
+extern int  ResExtNewNode();
+extern void ResExtProcessDrivePoints();
 extern int  ResWriteExtFile();
 extern void ResPrintExtNode();
 extern void ResPrintExtRes();

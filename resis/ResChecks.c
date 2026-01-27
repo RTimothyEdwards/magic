@@ -112,7 +112,6 @@ ResSanityChecks(nodename, resistorList, nodeList, devlist)
      {
      	int i;
 
-	if (dev->rd_status & RES_DEV_PLUG) continue;
 	reached = FALSE;
 	for (i = 0; i != dev->rd_nterms; i++)
 	{

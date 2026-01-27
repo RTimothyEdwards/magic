@@ -263,10 +263,6 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    {
 		resistor->rr_status = RES_EW;
 	    }
-#ifdef ARIEL
-	    resistor->rr_csArea = height *
-				ExtCurStyle->exts_thick[resistor->rr_tt];
-#endif
 	    resistor->rr_value =
 			(float)ExtCurStyle->exts_sheetResist[resistor->rr_tt]
 			* (float)(p2->br_loc.p_x - p1->br_loc.p_x)
@@ -440,10 +436,6 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    {
 		resistor->rr_status = RES_NS;
 	    }
-#ifdef ARIEL
-	    resistor->rr_csArea = width
-			* ExtCurStyle->exts_thick[resistor->rr_tt];
-#endif
 	    resistor->rr_value =
 			(float)ExtCurStyle->exts_sheetResist[resistor->rr_tt]
 			* (float)(p2->br_loc.p_y - p1->br_loc.p_y)
@@ -916,11 +908,6 @@ ResDoContacts(contact, nodes, resList)
 		resistor->rr_value =
 		    	(float)ExtCurStyle->exts_viaResist[contact->cp_type] /
 			(float)(squaresx * squaresy);
-#ifdef ARIEL
-		resistor->rr_csArea =
-		    	(float)ExtCurStyle->exts_thick[contact->cp_type] /
-			(float)(squaresx * squaresy);
-#endif
 		resistor->rr_tt = contact->cp_type;
 		resistor->rr_float.rr_area = 0;
 		resistor->rr_status = 0;

@@ -31,9 +31,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/tech.h"
 #include "textio/txcommands.h"
 #include	"resis/resis.h"
-#ifdef LAPLACE
-#include	"laplace.h"
-#endif
 
 #define INITFLATSIZE		1024
 #define MAXNAME			1000
@@ -56,22 +53,17 @@ HashTable 	ResIncludeTable;    /* Hash table of nodes to include  */
 
 HashTable	ResProcessedTable;
 
-/* ResSimNode is a node read in from a sim file */
+/* ResExtNode is a node read in from a .ext file */
 
-HashTable 	ResNodeTable;   /* Hash table of sim file nodes   */
-RDev		*ResRDevList;	/* Linked list of Sim devices	  */
+HashTable 	ResNodeTable;   /* Hash table of ext file nodes   */
+RDev		*ResRDevList;	/* Linked list of Ext devices	  */
 ResGlobalParams	gparams;	/* Junk passed between 		  */
-				/* ResCheckSimNodes and 	  */
+				/* ResCheckExtNodes and 	  */
 				/* ResExtractNet.		  */
-extern ResSimNode	*ResOriginalNodes;	/*Linked List of Nodes		  */
+extern ResExtNode	*ResOriginalNodes;	/*Linked List of Nodes		  */
 int		resNodeNum;
 
-#ifdef LAPLACE
-int	ResOptionsFlags = ResOpt_Simplify | ResOpt_Tdi | ResOpt_DoExtFile
-		| ResOpt_CacheLaplace;
-#else
 int	ResOptionsFlags = ResOpt_Simplify | ResOpt_Tdi | ResOpt_DoExtFile;
-#endif
 char	*ResCurrentNode;
 
 FILE	*ResExtFile;
@@ -81,28 +73,8 @@ FILE	*ResFHFile;
 int	ResPortIndex;	/* Port ordering to backannotate into magic */
 
 /* external declarations */
-extern ResSimNode *ResInitializeNode();
+extern ResExtNode *ResInitializeNode();
 extern CellUse	  *CmdGetSelectedCell();
-
-/* Linked list structure to use to store the substrate plane from each  */
-/* extracted CellDef so that they can be returned to the original after */
-/* extraction.								*/
-
-struct saveList {
-    Plane *sl_plane;
-    CellDef *sl_def;
-    struct saveList *sl_next;
-};
-
-/* Structure stores information required to be sent to ExtResisForDef() */
-typedef struct
-{
-    float	    tdiTolerance;
-    float	    frequency;
-    float	    rthresh;
-    struct saveList *savePlanes;
-    CellDef	    *mainDef;
-} ResisData;
 
 /*
  *-------------------------------------------------------------------------
@@ -123,7 +95,7 @@ ExtResisForDef(celldef, resisdata)
     HashSearch hs;
     HashEntry  *entry;
     devPtr     *tptr, *oldtptr;
-    ResSimNode  *node;
+    ResExtNode  *node;
     int                result, idx;
     char       *devname;
     Plane      *savePlane;
@@ -160,10 +132,8 @@ ExtResisForDef(celldef, resisdata)
     }
 
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
-    /* read in .sim file */
-    result = (ResReadSim(celldef->cd_name,
-		ResSimDevice, ResSimCapacitor, ResSimResistor,
-		ResSimAttribute, ResSimMerge, ResSimSubckt) == 0);
+    /* Read in the .ext file */
+    result = (ResReadExt(celldef->cd_name) == 0);
 
     /* Clean up the EFDevTypes table */
     for (idx = 0; idx < EFDevNumTypes; idx++) freeMagic(EFDevTypes[idx]);
@@ -184,7 +154,7 @@ ExtResisForDef(celldef, resisdata)
 	/* Extract networks for nets that require it. */
 	if (!(ResOptionsFlags & ResOpt_FastHenry) ||
 			DBIsSubcircuit(celldef))
-	    ResCheckSimNodes(celldef, resisdata);
+	    ResCheckExtNodes(celldef, resisdata);
 
 	if (ResOptionsFlags & ResOpt_Stat)
 	    ResPrintStats((ResGlobalParams *)NULL, "");
@@ -195,7 +165,7 @@ ExtResisForDef(celldef, resisdata)
     HashStartSearch(&hs);
     while((entry = HashNext(&ResNodeTable, &hs)) != NULL)
     {
-	node=(ResSimNode *) HashGetValue(entry);
+	node=(ResExtNode *) HashGetValue(entry);
 	tptr = node->firstDev;
 	if (node == NULL)
 	{
@@ -227,14 +197,13 @@ ExtResisForDef(celldef, resisdata)
 /*
  *-------------------------------------------------------------------------
  *
- * CmdExtResis--  reads in sim file and layout, and produces patches to the
- *	.ext files and .sim files that include resistors.
+ * CmdExtResis--  reads in ext file and layout, and produces patches to the
+ *	.ext files that include resistors.
  *
  * Results:
  *	None.
  *
- * Side Effects: Produces .res.sim file and .res.ext file for all nets that
- *	require resistors.
+ * Side Effects: Produces .res.ext file for all nets that require resistors.
  *
  *-------------------------------------------------------------------------
  */
@@ -281,9 +250,6 @@ CmdExtResis(win, cmd)
 	"fasthenry [freq]      extract subcircuit network geometry into .fh file",
 	"geometry	      extract network centerline geometry (experimental)",
 	"help                 print this message",
-#ifdef LAPLACE
-	"laplace  [on/off]    solve Laplace's equation using FEM",
-#endif
 	NULL
     };
 
@@ -293,9 +259,6 @@ typedef enum {
 	RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT,
 	RES_SKIP, RES_IGNORE, RES_INCLUDE, RES_BOX, RES_CELL,
 	RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY, RES_HELP,
-#ifdef LAPLACE
-	RES_LAPLACE,
-#endif
 	RES_RUN
 } ResOptions;
 
@@ -582,7 +545,7 @@ typedef enum {
 		CellDef		*def;
 		Rect		rect;
 		int		oldoptions;
-		ResSimNode	lnode;
+		ResExtNode	lnode;
 
 		if (ToolGetBoxWindow((Rect *) NULL, (int *) NULL) == NULL)
 		{
@@ -598,25 +561,11 @@ typedef enum {
 		gparams.rg_status = DRIVEONLY;
 		oldoptions = ResOptionsFlags;
 		ResOptionsFlags = ResOpt_DoSubstrate | ResOpt_Signal | ResOpt_Box;
-#ifdef LAPLACE
-		ResOptionsFlags |= (oldoptions &
-			    (ResOpt_CacheLaplace | ResOpt_DoLaplace));
-		LaplaceMatchCount = 0;
-		LaplaceMissCount = 0;
-#endif
 		lnode.location = rect.r_ll;
 		lnode.type = tt;
 		if (ResExtractNet(&lnode, &gparams, NULL) != 0) return;
 		ResPrintResistorList(stdout, ResResList);
 		ResPrintDeviceList(stdout, ResRDevList);
-#ifdef LAPLACE
-		if (ResOptionsFlags & ResOpt_DoLaplace)
-		{
-		    TxPrintf("Laplace   solved: %d matched %d\n",
-				LaplaceMissCount, LaplaceMatchCount);
-		}
-#endif
-
 		ResOptionsFlags = oldoptions;
 		return;
 	    }
@@ -634,11 +583,6 @@ typedef enum {
 	case RES_RUN:
 	    ResOptionsFlags &= ~ResOpt_ExtractAll;
 	    break;
-#ifdef LAPLACE
-	case RES_LAPLACE:
-	    LaplaceParseString(cmd);
-	    return;
-#endif
 	case RES_AMBIG:
   	    TxPrintf("Ambiguous option: %s\n", cmd->tx_argv[1]);
 	    TxFlushOut();
@@ -651,10 +595,6 @@ typedef enum {
 	    return;
     }
 
-#ifdef LAPLACE
-    LaplaceMatchCount = 0;
-    LaplaceMissCount = 0;
-#endif
     /* turn off undo stuff */
     UndoDisable();
 
@@ -666,9 +606,6 @@ typedef enum {
 	return;
     }
     ResOptionsFlags |= ResOpt_Signal;
-#ifdef ARIEL
-    ResOptionsFlags &= ~ResOpt_Power;
-#endif
 
     resisdata.rthresh = rthresh;
     resisdata.tdiTolerance = tdiTolerance;
@@ -695,13 +632,6 @@ typedef enum {
 
     /* turn back on undo stuff */
     UndoEnable();
-#ifdef LAPLACE
-    if (ResOptionsFlags & ResOpt_DoLaplace)
-    {
-	TxPrintf("Laplace solved: %d matched %d\n",
-				LaplaceMissCount, LaplaceMatchCount);
-    }
-#endif
 
     /* Revert to the original flags in the case of FastHenry or	*/
     /* geometry centerline extraction.				*/
@@ -765,7 +695,7 @@ resPortFunc(scx, lab, tpath, result)
     int pclass, puse;
     Point portloc;
     HashEntry *entry;
-    ResSimNode *node;
+    ResExtNode *node;
 
     // Ignore the top level cell
     if (scx->scx_use->cu_id == NULL) return 0;
@@ -904,7 +834,7 @@ ResCheckPorts(cellDef)
     Point portloc;
     Label *lab;
     HashEntry *entry;
-    ResSimNode *node;
+    ResExtNode *node;
     int result = 1;
 
     for (lab = cellDef->cd_labels; lab; lab = lab->lab_next)
@@ -930,7 +860,7 @@ ResCheckPorts(cellDef)
 
 	    entry = HashFind(&ResNodeTable, lab->lab_text);
 	    result = 0;
-	    if ((node = (ResSimNode *) HashGetValue(entry)) != NULL)
+	    if ((node = (ResExtNode *) HashGetValue(entry)) != NULL)
 	    {
 		TxPrintf("Port: name = %s exists, forcing drivepoint\n",
 			lab->lab_text);
@@ -969,34 +899,6 @@ ResCheckPorts(cellDef)
 /*
  *-------------------------------------------------------------------------
  *
- * ResCreateNode ---
- *
- *	Create a node structure for extresist for the method where
- *	ResProcessNode() is called from extBasic() as part of the
- *	"extract" command.
- *
- * Results:
- *	Returns the node structure to be passed to ResProcessNode().
- *
- * Side effects:
- *	Memory is allocated for the node structure.
- *
- *-------------------------------------------------------------------------
- */
-
-ResSimNode *ResCreateNode()
-{
-    ResSimNode *node;
-
-    /* To be completed */
-
-    return node;
-}
-
-
-/*
- *-------------------------------------------------------------------------
- *
  * ResProcessNode ---
  *
  *	Do resistance extraction for a single network.
@@ -1013,7 +915,7 @@ ResSimNode *ResCreateNode()
 
 int
 ResProcessNode(
-    ResSimNode	*node,		/* Node record for network */
+    ResExtNode	*node,		/* Node record for network */
     CellDef	*celldef,	/* Cell def being processed */	
     ResisData	*resisdata,	/* Extraction parameters kept here */
     char	*outfile,	/* Name of output file */
@@ -1186,7 +1088,7 @@ ResProcessNode(
 /*
  *-------------------------------------------------------------------------
  *
- * ResCheckSimNodes-- check to see if lumped resistance is greater than the
+ * ResCheckExtNodes-- check to see if lumped resistance is greater than the
  *		      device resistance; if it is, Extract the net
  *		      resistance. If the maximum point to point resistance
  *		      in the extracted net is still creater than the
@@ -1194,17 +1096,17 @@ ResProcessNode(
  *
  * Results: none
  *
- * Side Effects: Writes networks to .res.ext and .res.sim files.
+ * Side Effects: Writes networks to .res.ext files.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResCheckSimNodes(celldef, resisdata)
+ResCheckExtNodes(celldef, resisdata)
     CellDef	*celldef;
     ResisData	*resisdata;
 {
-    ResSimNode	*node;
+    ResExtNode	*node;
     int		numext = 0;	/* Number of nets extracted */
     int 	numout = 0;	/* Number of nets output */
     int		total = 0;	/* Total number of nets processed */
@@ -1339,8 +1241,8 @@ ResCheckSimNodes(celldef, resisdata)
  *
  * Results:none
  *
- * Side Effects: Allocates new ResSimNodes. Modifies the terminal connections
- *	of sim Devices.
+ * Side Effects: Allocates new ResExtNodes. Modifies the terminal connections
+ *	of ext Devices.
  *
  *-------------------------------------------------------------------------
  */
@@ -1349,7 +1251,7 @@ void
 ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     RDev		*simDev;
     resDevice		*layoutDev;
-    ResSimNode		*simNode;
+    ResExtNode		*simNode;
     char		*nodename;
 
 {
@@ -1601,7 +1503,7 @@ ResFixDevName(line, type, device, layoutnode)
 
 {
     HashEntry		*entry;
-    ResSimNode		*node;
+    ResExtNode		*node;
     devPtr		*tptr;
 
     if (layoutnode->rn_name != NULL)
@@ -1757,7 +1659,7 @@ ResSortByGate(DevpointerList)
 
 void
 ResWriteLumpFile(node)
-    ResSimNode	*node;
+    ResExtNode	*node;
 {
     int	lumpedres;
 
@@ -1852,7 +1754,7 @@ ResAlignNodes(nodelist, reslist)
 int
 ResWriteExtFile(celldef, node, rctol, nidx, eidx)
     CellDef	*celldef;
-    ResSimNode	*node;
+    ResExtNode	*node;
     float	rctol;
     int		*nidx, *eidx;
 {

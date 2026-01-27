@@ -37,6 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "commands/commands.h"
 #include "database/database.h"
 #include "extflat/extflat.h"
+#include "extflat/extparse.h"
 #include "extflat/EFint.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
@@ -44,61 +45,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* C99 compat */
 #include "textio/textio.h"
-
-#ifndef MAGIC_WRAPPER
-/* This must match the definition for extDevTable in extract/ExtBasic.c */
-const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
-		"devcap", "devcaprev", "vsource", "diode", "pdiode",
-		"ndiode", "subckt", "rsubckt", "msubckt", "csubckt",
-		"dsubckt", "veriloga", NULL};
-#endif
-
-/*
- * The following table describes the kinds of lines
- * that may be read in a .ext file.
- */
-typedef enum
-{
-    ABSTRACT, ADJUST, ATTR, CAP, DEVICE, DIST, EQUIV, FET, KILLNODE, MERGE,
-    NODE, PARAMETERS, PORT, PRIMITIVE, RESISTOR, RESISTCLASS, RNODE, SCALE,
-    SUBCAP, SUBSTRATE, TECH, TIMESTAMP, USE, VERSION, EXT_STYLE
-} Key;
-
-static const struct
-{
-    const char	*k_name;	/* Name of first token on line */
-    Key 	 k_key;		/* Internal name for token of this type */
-    int		 k_mintokens;	/* Min total # of tokens on line of this type */
-}
-keyTable[] =
-{
-    {"abstract",	ABSTRACT,	0},	/* defines a LEF-like view */
-    {"adjust",		ADJUST,		4},
-    {"attr",		ATTR,		8},
-    {"cap",		CAP,		4},
-    {"device",		DEVICE,		11},	/* effectively replaces "fet" */
-    {"distance",	DIST,		4},
-    {"equiv",		EQUIV,		3},
-    {"fet",		FET,		12},	/* for backwards compatibility */
-    {"killnode",	KILLNODE,	2},
-    {"merge",		MERGE,		3},
-    {"node",		NODE,		7},
-    {"parameters",	PARAMETERS,	3},
-    {"port",		PORT,		8},
-    {"primitive",	PRIMITIVE,	0},	/* defines a primitive device */
-    {"resist",		RESISTOR,	4},
-    {"resistclasses",	RESISTCLASS,	1},
-    {"rnode",		RNODE,		5},
-    {"scale",		SCALE,		4},
-    {"subcap",		SUBCAP,		3},
-    {"substrate",	SUBSTRATE,	3},
-    {"tech",		TECH,		2},
-    {"timestamp",	TIMESTAMP,	2},
-    {"use",		USE,		9},
-    {"version",		VERSION,	2},
-    {"style",		EXT_STYLE,	2},
-    {0}
-};
 
 /* Data shared with EFerror.c */
 char *efReadFileName;	/* Name of file currently being read */
@@ -108,10 +54,6 @@ bool EFSaveLocs;	/* If TRUE, save location of merged top-level nodes */
 
 /* Data local to this file */
 static bool efReadDef(Def *def, bool dosubckt, bool resist, bool noscale, bool toplevel, bool isspice);
-
-/* atoCap - convert a string to a EFCapValue */
-#define	atoCap(s)	((EFCapValue)atof(s))
-
 
 /*
  * ----------------------------------------------------------------------------
