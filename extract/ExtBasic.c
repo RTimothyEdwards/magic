@@ -46,7 +46,20 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 #include "utils/styles.h"
 #include "utils/stack.h"
 #include "utils/utils.h"
-#include "resis/resis.h"
+
+/* These must be in the order of "known devices" in extract.h.		*/
+
+/* Note: "fet" refers to the original fet type; "mosfet" refers to the	*/
+/* new type.  The main difference is that "fet" records area/perimeter	*/
+/* while "mosfet" records length/width.					*/
+/* Also: Note that this table is repeated in extflat/EFread.c when	*/
+/* ext2spice/ext2sim are compiled as separate programs (i.e., non-Tcl)	*/
+
+#ifdef MAGIC_WRAPPER
+const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
+	"devcap", "devcaprev", "vsource", "diode", "pdiode", "ndiode",
+	"subckt", "rsubckt", "msubckt", "csubckt", "dsubckt", "veriloga", NULL};
+#endif
 
 /* --------------------- Data local to this file ---------------------- */
 
@@ -544,24 +557,6 @@ extBasic(def, outFile)
 
 	if (!propfound)
 	    extOutputDevices(def, transList, outFile);
-    }
-
-    /* Integrated extresist ---  Run "extresist" on the cell def just
-     * extracted and produce an annotation file "<file>.res.ext".
-     */
-
-    if (ExtOptions & EXT_DOEXTRESIST)
-    {
-	ResisData resisdata;
-
-	/* These need to be passed to extresist somehow.  Most are unused. */
-	resisdata.rthresh = 0;
-	resisdata.tdiTolerance = 1;
-	resisdata.frequency = 10e6;
-	resisdata.mainDef = def;
-	resisdata.savePlanes = (struct saveList *)NULL;		/* unused */
-
-	ExtResisForDef(def, &resisdata);
     }
 
     /* Clean up */
@@ -5000,9 +4995,12 @@ extFindNodes(def, clipArea, subonly)
 	/* If the default substrate type is set, it is used *only* for	*/
 	/* isolated substrate regions and does not mark the default	*/
 	/* substrate, so remove it from the list of substrate types.	*/
+	/* Note that this is not the case when doing full R-C		*/
+	/* extraction.							*/
 
-	if (ExtCurStyle->exts_globSubstrateDefaultType != -1)
-	    TTMaskClearType(&subsTypesNonSpace,
+	if (!(ExtOptions & EXT_DOEXTRESIST))
+	    if (ExtCurStyle->exts_globSubstrateDefaultType != -1)
+		TTMaskClearType(&subsTypesNonSpace,
 			ExtCurStyle->exts_globSubstrateDefaultType);
 
 	pNum = ExtCurStyle->exts_globSubstratePlane;

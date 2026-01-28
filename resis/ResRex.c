@@ -57,11 +57,9 @@ HashTable	ResProcessedTable;
 
 HashTable 	ResNodeTable;   /* Hash table of ext file nodes   */
 RDev		*ResRDevList;	/* Linked list of Ext devices	  */
-ResGlobalParams	gparams;	/* Junk passed between 		  */
-				/* ResCheckExtNodes and 	  */
-				/* ResExtractNet.		  */
-extern ResExtNode	*ResOriginalNodes;	/*Linked List of Nodes		  */
 int		resNodeNum;
+
+extern ResExtNode *ResOriginalNodes;	/*Linked List of Nodes */
 
 int	ResOptionsFlags = ResOpt_Simplify | ResOpt_Tdi | ResOpt_DoExtFile;
 char	*ResCurrentNode;
@@ -98,26 +96,9 @@ ExtResisForDef(celldef, resisdata)
     ResExtNode  *node;
     int                result, idx;
     char       *devname;
-    Plane      *savePlane;
 
     ResRDevList = NULL;
     ResOriginalNodes = NULL;
-
-    /* Check if this cell has been processed */
-    if (HashLookOnly(&ResProcessedTable, celldef->cd_name)) return;
-    HashFind(&ResProcessedTable, celldef->cd_name);
-
-    /* Prepare the substrate for resistance extraction */
-    savePlane = extResPrepSubstrate(celldef);
-    if (savePlane != NULL)
-    {
-	struct saveList *newsl;
-	newsl = (struct saveList *)mallocMagic(sizeof(struct saveList));
-	newsl->sl_plane = savePlane;
-	newsl->sl_def = celldef;
-	newsl->sl_next = resisdata->savePlanes;
-	resisdata->savePlanes = newsl;
-    }
 
     /* Get device information from the current extraction style */
     idx = 0;
@@ -140,16 +121,10 @@ ExtResisForDef(celldef, resisdata)
     EFDevNumTypes = 0;
 
     if (result)
-	/* read in .nodes file   */
-	result = (ResReadNode(celldef->cd_name) == 0);
-
-    if (result)
     {
 	/* Check for subcircuit ports */
 	if (ResOptionsFlags & ResOpt_Blackbox)
 	    ResCheckBlackbox(celldef);
-	else
-	    ResCheckPorts(celldef);
 
 	/* Extract networks for nets that require it. */
 	if (!(ResOptionsFlags & ResOpt_FastHenry) ||
@@ -157,7 +132,7 @@ ExtResisForDef(celldef, resisdata)
 	    ResCheckExtNodes(celldef, resisdata);
 
 	if (ResOptionsFlags & ResOpt_Stat)
-	    ResPrintStats((ResGlobalParams *)NULL, "");
+	    ResPrintStats((ResisData *)NULL, "");
     }
 
     /* Clean up */
@@ -197,13 +172,74 @@ ExtResisForDef(celldef, resisdata)
 /*
  *-------------------------------------------------------------------------
  *
- * CmdExtResis--  reads in ext file and layout, and produces patches to the
- *	.ext files that include resistors.
+ *  ResInit --
+ *
+ *	Initialize data and hash tables for running "extresist".
+ *
+ * Results:
+ *	Returns a pointer to an allocated ResisData structure.  This
+ *	structure is static and may be modified by repeated execution
+ *	of "extresist" commands.
+ *
+ * Side effects:
+ *	Allocates memory for the ResisData structure.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+ResisData *
+ResInit()
+{
+    static ResisData	*resisdata;
+    static int init = 1;	/* Ensure initialization is done only once */
+    int i;
+
+    if (init)
+    {
+	resisdata = (ResisData *)mallocMagic(sizeof(ResisData));
+
+	for (i = 0; i < NT; i++)
+	{
+            TTMaskZero(&(ResCopyMask[i]));
+	    TTMaskSetMask(&ResCopyMask[i], &DBConnectTbl[i]);
+     	}
+	resisdata->rthresh = 0;
+	resisdata->tdiTolerance = 1;
+	resisdata->frequency = 10e6;	/* 10 MHz default */
+
+	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
+	HashInit(&ResIncludeTable, INITFLATSIZE, HT_STRINGKEYS);
+	init = 0;
+    }
+
+    /* Reset global parameters */
+    resisdata->rg_ttype = TT_SPACE;
+    resisdata->rg_Tdi = 0.0;
+    resisdata->rg_nodecap = 0.0;
+    resisdata->rg_maxres = 0.0;
+    resisdata->rg_bigdevres = 0;
+    resisdata->rg_tilecount = 0;
+    resisdata->rg_status = 0;
+    resisdata->rg_devloc = NULL;
+    resisdata->rg_name = NULL;
+
+    return resisdata;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * CmdExtResis--
+ *
+ *	Reads in a .ext file and layout, and produces patches to the
+ *	.ext files that include resistors and subnets.
  *
  * Results:
  *	None.
  *
- * Side Effects: Produces .res.ext file for all nets that require resistors.
+ * Side Effects:
+ *	Produces a .res.ext file with all nets that require subdivision
+ *	into resistive segments.
  *
  *-------------------------------------------------------------------------
  */
@@ -214,12 +250,11 @@ CmdExtResis(win, cmd)
     TxCommand *cmd;
 {
     int i, j, k, option, value, saveFlags;
-    static int init = 1;
-    static float rthresh, tdiTolerance, fhFrequency;
 
     CellDef	*mainDef;
     CellUse	*selectedUse;
-    ResisData	resisdata;
+    ResisData	*resisdata;
+    Plane	*savePlane;
     char	*endptr;	/* for use with strtod() */
     struct saveList *sl;
 
@@ -262,31 +297,7 @@ typedef enum {
 	RES_RUN
 } ResOptions;
 
-    if (init)
-    {
-	for (i = 0; i < NT; i++)
-	{
-            TTMaskZero(&(ResCopyMask[i]));
-	    TTMaskSetMask(&ResCopyMask[i], &DBConnectTbl[i]);
-     	}
-	rthresh = 0;
-	tdiTolerance = 1;
-	fhFrequency = 10e6;	/* 10 MHz default */
-	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
-	HashInit(&ResIncludeTable, INITFLATSIZE, HT_STRINGKEYS);
-	init = 0;
-    }
-
-    /* Initialize ResGlobalParams */
-    gparams.rg_ttype = TT_SPACE;
-    gparams.rg_Tdi = 0.0;
-    gparams.rg_nodecap = 0.0;
-    gparams.rg_maxres = 0.0;
-    gparams.rg_bigdevres = 0;
-    gparams.rg_tilecount = 0;
-    gparams.rg_status = 0;
-    gparams.rg_devloc = NULL;
-    gparams.rg_name = NULL;
+    resisdata = ResInit();
 
     option = (cmd->tx_argc > 1) ? Lookup(cmd->tx_argv[1], cmdExtresisCmd)
 		: RES_RUN;
@@ -316,8 +327,8 @@ typedef enum {
 	    ResOptionsFlags |=  ResOpt_ExplicitRtol;
 	    if (cmd->tx_argc > 2)
 	    {
-		tdiTolerance = MagAtof(cmd->tx_argv[2]);
-		if (tdiTolerance <= 0)
+		resisdata->tdiTolerance = MagAtof(cmd->tx_argv[2]);
+		if (resisdata->tdiTolerance <= 0)
 		{
 		    TxError("Usage:  %s tolerance [value]\n", cmd->tx_argv[0]);
 			return;
@@ -326,9 +337,10 @@ typedef enum {
 	    else
 	    {
 #ifdef MAGIC_WRAPPER
-		Tcl_SetObjResult(magicinterp, Tcl_NewDoubleObj((double)tdiTolerance));
+		Tcl_SetObjResult(magicinterp,
+			Tcl_NewDoubleObj((double)resisdata->tdiTolerance));
 #else
-		TxPrintf("Tolerance ratio is %g.\n", tdiTolerance);
+		TxPrintf("Tolerance ratio is %g.\n", resisdata->tdiTolerance);
 #endif
 	    }
 	    return;
@@ -336,8 +348,8 @@ typedef enum {
 	 case RES_THRESH:
 	    if (cmd->tx_argc > 2)
 	    {
-		rthresh = MagAtof(cmd->tx_argv[2]);
-		if (rthresh < 0)
+		resisdata->rthresh = MagAtof(cmd->tx_argv[2]);
+		if (resisdata->rthresh < 0)
 		{
 		    TxError("Usage:  %s threshold [value]\n", cmd->tx_argv[0]);
 			return;
@@ -346,9 +358,10 @@ typedef enum {
 	    else
 	    {
 #ifdef MAGIC_WRAPPER
-		Tcl_SetObjResult(magicinterp, Tcl_NewDoubleObj((double)rthresh));
+		Tcl_SetObjResult(magicinterp,
+			Tcl_NewDoubleObj((double)resisdata->rthresh));
 #else
-		TxPrintf("Resistance threshold is %g.\n", rthresh);
+		TxPrintf("Resistance threshold is %g.\n", resisdata->rthresh);
 #endif
 	    }
 	    return;
@@ -371,10 +384,10 @@ typedef enum {
 		  if (endptr == cmd->tx_argv[2])
 		  {
 		      TxError("Cannot parse frequency value.  Assuming default\n");
-		      TxError("Frequency = %2.1f Hz\n", fhFrequency);
+		      TxError("Frequency = %2.1f Hz\n", resisdata->frequency);
 		  }
 		  else
-		      fhFrequency = (float)tmpf;
+		      resisdata->frequency = (float)tmpf;
 	    }
 	    saveFlags = ResOptionsFlags;
 	    ResOptionsFlags |= ResOpt_FastHenry | ResOpt_ExtractAll;
@@ -556,14 +569,14 @@ typedef enum {
 	     	if (cmd->tx_argc != 3) return;
 		tt = DBTechNoisyNameType(cmd->tx_argv[2]);
 		if (tt <= 0 || ToolGetBox(&def, &rect)== FALSE) return;
-		gparams.rg_devloc = &rect.r_ll;
-		gparams.rg_ttype = tt;
-		gparams.rg_status = DRIVEONLY;
+		resisdata->rg_devloc = &rect.r_ll;
+		resisdata->rg_ttype = tt;
+		resisdata->rg_status = DRIVEONLY;
 		oldoptions = ResOptionsFlags;
 		ResOptionsFlags = ResOpt_DoSubstrate | ResOpt_Signal | ResOpt_Box;
 		lnode.location = rect.r_ll;
 		lnode.type = tt;
-		if (ResExtractNet(&lnode, &gparams, NULL) != 0) return;
+		if (ResExtractNet(&lnode, resisdata, NULL) != 0) return;
 		ResPrintResistorList(stdout, ResResList);
 		ResPrintDeviceList(stdout, ResRDevList);
 		ResOptionsFlags = oldoptions;
@@ -607,23 +620,33 @@ typedef enum {
     }
     ResOptionsFlags |= ResOpt_Signal;
 
-    resisdata.rthresh = rthresh;
-    resisdata.tdiTolerance = tdiTolerance;
-    resisdata.frequency = fhFrequency;
-    resisdata.mainDef = mainDef;
-    resisdata.savePlanes = (struct saveList *)NULL;
+    resisdata->mainDef = mainDef;
+    resisdata->savePlanes = (struct saveList *)NULL;
 
     /* Do subcircuits (if any) first */
     HashInit(&ResProcessedTable, INITFLATSIZE, HT_STRINGKEYS);
     if (!(ResOptionsFlags & ResOpt_Blackbox))
-	DBCellEnum(mainDef, resSubcircuitFunc, (ClientData) &resisdata);
+	DBCellEnum(mainDef, resSubcircuitFunc, (ClientData)resisdata);
 
-    ExtResisForDef(mainDef, &resisdata);
+    HashFind(&ResProcessedTable, mainDef->cd_name);
+
+    /* Prepare the substrate for resistance extraction */
+    savePlane = extResPrepSubstrate(mainDef);
+    if (savePlane != NULL)
+    {
+	struct saveList *newsl;
+	newsl = (struct saveList *)mallocMagic(sizeof(struct saveList));
+	newsl->sl_plane = savePlane;
+	newsl->sl_def = mainDef;
+	newsl->sl_next = resisdata->savePlanes;
+	resisdata->savePlanes = newsl;
+    }
+    ExtResisForDef(mainDef, resisdata);
     HashKill(&ResProcessedTable);
 
     /* Revert substrate planes */
     free_magic1_t mm1 = freeMagic1_init();
-    for (sl = resisdata.savePlanes; sl; sl = sl->sl_next)
+    for (sl = resisdata->savePlanes; sl; sl = sl->sl_next)
     {
 	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
 	freeMagic1(&mm1, sl);
@@ -664,10 +687,26 @@ resSubcircuitFunc(cellUse, rdata)
     CellUse *cellUse;
     ResisData *rdata;
 {
-    CellDef *cellDef = cellUse->cu_def;
+    CellDef	*cellDef = cellUse->cu_def;
+    Plane	*savePlane;
 
     if (DBIsSubcircuit(cellDef))
     {
+	/* Check if this cell has been processed */
+	if (HashLookOnly(&ResProcessedTable, cellDef->cd_name)) return 0;
+	HashFind(&ResProcessedTable, cellDef->cd_name);
+
+	/* Prepare the substrate for resistance extraction */
+	savePlane = extResPrepSubstrate(cellDef);
+	if (savePlane != NULL)
+	{
+	    struct saveList *newsl;
+	    newsl = (struct saveList *)mallocMagic(sizeof(struct saveList));
+	    newsl->sl_plane = savePlane;
+	    newsl->sl_def = cellDef;
+	    newsl->sl_next = rdata->savePlanes;
+	    rdata->savePlanes = newsl;
+	}
 	ExtResisForDef(cellDef, rdata);
 	DBCellEnum(cellDef, resSubcircuitFunc, (ClientData)rdata);
     }
@@ -925,7 +964,6 @@ ResProcessNode(
     HashEntry	*he;
     devPtr	*ptr;
     float	ftolerance, minRes, cumRes;
-    float	rctol = resisdata->tdiTolerance;
     float	rthresh = resisdata->rthresh;
     int		nidx = 1, eidx = 1;	/* node & segment counters for geom. */
 
@@ -956,14 +994,14 @@ ResProcessNode(
     /* Find largest SD device connected to node. */
 
     minRes = FLT_MAX;
-    gparams.rg_devloc = (Point *) NULL;
-    gparams.rg_status = FALSE;
-    gparams.rg_nodecap = node->capacitance;
+    resisdata->rg_devloc = (Point *) NULL;
+    resisdata->rg_status = FALSE;
+    resisdata->rg_nodecap = node->capacitance;
 
     /* The following is only used if there is a drivepoint	*/
     /* to identify which tile the drivepoint is on.		*/
 
-    gparams.rg_ttype = node->rs_ttype;
+    resisdata->rg_ttype = node->rs_ttype;
 
     for (ptr = node->firstDev; ptr != NULL; ptr = ptr->nextDev)
     {
@@ -999,8 +1037,8 @@ ResProcessNode(
 	    if (minRes > cumRes)
 	    {
 		minRes = cumRes;
-		gparams.rg_devloc = &t1->location;
-		gparams.rg_ttype = t1->rs_ttype;
+		resisdata->rg_devloc = &t1->location;
+		resisdata->rg_ttype = t1->rs_ttype;
 	    }
 	}
     }
@@ -1020,25 +1058,25 @@ ResProcessNode(
 	}
 	if (node->status  & DRIVELOC)
 	{
-	    gparams.rg_devloc = &node->drivepoint;
-	    gparams.rg_status |= DRIVEONLY;
+	    resisdata->rg_devloc = &node->drivepoint;
+	    resisdata->rg_status |= DRIVEONLY;
 	}
 	if (node->status & PORTNODE)
 	{
 	    /* The node is a port, not a device, so make	*/
 	    /* sure rg_ttype is set accordingly.		*/
-	    gparams.rg_ttype = node->rs_ttype;
+	    resisdata->rg_ttype = node->rs_ttype;
 	}
     }
-    if ((gparams.rg_devloc == NULL) && (node->status & FORCE))
+    if ((resisdata->rg_devloc == NULL) && (node->status & FORCE))
     {
     	TxError("Node %s has force label but no drive point or "
 			"driving device\n", node->name);
     }
-    if ((minRes == FLT_MAX) || (gparams.rg_devloc == NULL))
+    if ((minRes == FLT_MAX) || (resisdata->rg_devloc == NULL))
 	return 1;
 
-    gparams.rg_bigdevres = (int)minRes * OHMSTOMILLIOHMS;
+    resisdata->rg_bigdevres = (int)minRes * OHMSTOMILLIOHMS;
     if (minRes > resisdata->rthresh)
 	ftolerance =  minRes;
     else
@@ -1055,7 +1093,7 @@ ResProcessNode(
 	ResFixPoint fp;
 
 	(*num_extracted)++;
-	if (ResExtractNet(node, &gparams, outfile) != 0)
+	if (ResExtractNet(node, resisdata, outfile) != 0)
 	{
 	    /* On error, don't output this net, but keep going */
 	    if (node->type == TT_SPACE)
@@ -1066,15 +1104,16 @@ ResProcessNode(
 	}
 	else
 	{
-	    ResDoSimplify(ftolerance, rctol, &gparams);
+	    ResDoSimplify(ftolerance, resisdata);
 	    if (ResOptionsFlags & ResOpt_DoLumpFile)
-		ResWriteLumpFile(node);
+		ResWriteLumpFile(node, resisdata);
 
-	    if (gparams.rg_maxres >= ftolerance  ||
+	    if (resisdata->rg_maxres >= ftolerance  ||
 			(ResOptionsFlags & ResOpt_ExtractAll))
 	    {
 		resNodeNum = 0;
-		(*num_output) += ResWriteExtFile(celldef, node, rctol, &nidx, &eidx);
+		(*num_output) += ResWriteExtFile(celldef, node, resisdata,
+				&nidx, &eidx);
 	    }
 	}
 #ifdef PARANOID
@@ -1658,24 +1697,25 @@ ResSortByGate(DevpointerList)
  */
 
 void
-ResWriteLumpFile(node)
+ResWriteLumpFile(node, resisdata)
     ResExtNode	*node;
+    ResisData	*resisdata;
 {
     int	lumpedres;
 
     if (ResOptionsFlags & ResOpt_Tdi)
     {
-	if (gparams.rg_nodecap != 0)
+	if (resisdata->rg_nodecap != 0)
 	{
-	    lumpedres = (int)((gparams.rg_Tdi / gparams.rg_nodecap
-			- (float)(gparams.rg_bigdevres)) / OHMSTOMILLIOHMS);
+	    lumpedres = (int)((resisdata->rg_Tdi / resisdata->rg_nodecap
+			- (float)(resisdata->rg_bigdevres)) / OHMSTOMILLIOHMS);
 	}
 	else
 	    lumpedres = 0;
     }
     else
     {
-	lumpedres = gparams.rg_maxres;
+	lumpedres = resisdata->rg_maxres;
     }
     fprintf(ResLumpFile, "R %s %d\n", node->name, lumpedres);
 }
@@ -1752,35 +1792,37 @@ ResAlignNodes(nodelist, reslist)
  */
 
 int
-ResWriteExtFile(celldef, node, rctol, nidx, eidx)
+ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
     CellDef	*celldef;
     ResExtNode	*node;
-    float	rctol;
+    ResisData	*resisdata;
     int		*nidx, *eidx;
 {
     float	RCdev;
     char	*cp, newname[MAXNAME];
     devPtr	*ptr;
     resDevice	*layoutDev, *ResGetDevice();
+    float	rctol;
 
-    RCdev = gparams.rg_bigdevres * gparams.rg_nodecap;
+    rctol = resisdata->tdiTolerance;
+    RCdev = resisdata->rg_bigdevres * resisdata->rg_nodecap;
 
     if ((node->status & FORCE) ||
 		(ResOptionsFlags & ResOpt_ExtractAll) ||
 		(ResOptionsFlags & ResOpt_Simplify) == 0 ||
-		(rctol + 1) * RCdev < rctol * gparams.rg_Tdi)
+		(rctol + 1) * RCdev < rctol * resisdata->rg_Tdi)
     {
-	ASSERT(gparams.rg_Tdi != -1, "ResWriteExtFile");
+	ASSERT(resisdata->rg_Tdi != -1, "ResWriteExtFile");
 	(void)sprintf(newname,"%s", node->name);
         cp = newname + strlen(newname)-1;
         if (*cp == '!' || *cp == '#') *cp = '\0';
-	if ((rctol + 1) * RCdev < rctol * gparams.rg_Tdi ||
+	if ((rctol + 1) * RCdev < rctol * resisdata->rg_Tdi ||
 	  			(ResOptionsFlags & ResOpt_Tdi) == 0)
 	{
 	    if ((ResOptionsFlags & (ResOpt_RunSilent | ResOpt_Tdi)) == ResOpt_Tdi)
 	    {
 		TxPrintf("Adding  %s; Tnew = %.2fns, Told = %.2fns\n",
-		     	    node->name, gparams.rg_Tdi / Z_TO_P, RCdev / Z_TO_P);
+		     	    node->name, resisdata->rg_Tdi / Z_TO_P, RCdev / Z_TO_P);
 	    }
         }
         for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)

@@ -46,6 +46,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* C99 compat */
 #include "textio/textio.h"
 
+#ifndef MAGIC_WRAPPER
+/* This must match the definition for extDevTable in extract/ExtBasic.c */
+const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
+                "devcap", "devcaprev", "vsource", "diode", "pdiode",
+                "ndiode", "subckt", "rsubckt", "msubckt", "csubckt",
+                "dsubckt", "veriloga", NULL};
+#endif
+
 /* Data shared with EFerror.c */
 char *efReadFileName;	/* Name of file currently being read */
 int efReadLineNum;	/* Current line number in above file */

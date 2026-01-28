@@ -41,13 +41,10 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "commands/commands.h"  /* for module auto-load */
 #include "textio/txcommands.h"
 #include "extflat/extflat.h"
-#include "extflat/EFint.h"
 #include "extract/extract.h"	/* for extDevTable */
+#include "extflat/EFint.h"
 #include "utils/runstats.h"
 #include "ext2spice/ext2spice.h"
-
-/* C99 compat */
-#include "extflat/extflat.h"
 
 /* These global values are defined in ext2spice.c */
 extern HashTable subcktNameTable;

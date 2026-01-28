@@ -17,6 +17,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "utils/malloc.h"
 #include "textio/textio.h"
+#include "extflat/extparse.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
 #include "windows/windows.h"
@@ -175,13 +176,13 @@ ResPrintExtDev(outextfile, devices)
 		    fprintf(outextfile, " \"%s\" %d %s",
 			    devices->gate->name,
 			    devices->layout->rd_length * 2,
-			    devices->rs_gattr);
+			    (*devices->rs_gattr == '\0') ? "0" : devices->rs_gattr);
 
 		if (devices->source != NULL)
 		    fprintf(outextfile, " \"%s\" %d %s",
 			    devices->source->name,
 			    devices->layout->rd_width,
-			    devices->rs_sattr);
+			    (*devices->rs_sattr == '\0') ? "0" : devices->rs_sattr);
 
 		/* Don't write drain values for 2-terminal devices */
 		if (devptr->exts_deviceSDCount > 1)
@@ -189,7 +190,7 @@ ResPrintExtDev(outextfile, devices)
 		    	fprintf(outextfile, " \"%s\" %d %s",
 				devices->drain->name,
 				devices->layout->rd_width,
-				devices->rs_dattr);
+				(*devices->rs_dattr == '\0') ? "0" : devices->rs_dattr);
 
 		fprintf(outextfile, "\n");
 	    }
@@ -290,6 +291,13 @@ ResPrintExtNode(outextfile, nodelist, node)
 
     if (NeedFix)
     {
+	if (nodelist == NULL)
+	{
+	    TxError("Error:  Orphaned node \"%s\" not output.\n",
+			node->name);
+	    return;
+	}
+
 	/* Patch up the output netlist for an orphaned node by
 	 * creating a zero-valued resistance between it and the
 	 * first subnode (arbitrary connection).  Flag a warning.
@@ -316,16 +324,16 @@ ResPrintExtNode(outextfile, nodelist, node)
  */
 
 void
-ResPrintStats(goodies, name)
-    ResGlobalParams	*goodies;
-    char		*name;
+ResPrintStats(resisdata, name)
+    ResisData	*resisdata;
+    char	*name;
 {
     static int	totalnets = 0, totalnodes = 0, totalresistors = 0;
     int nodes, resistors;
     resNode	*node;
     resResistor *res;
 
-    if (goodies == NULL)
+    if (resisdata == NULL)
     {
      	  TxError("nets:%d nodes:%d resistors:%d\n",
 	  	  totalnets, totalnodes, totalresistors);

@@ -244,25 +244,6 @@ typedef struct resdevtile
      int		overlap;
 } ResDevTile;
 
-/*
-    Goodies contains random stuff passed between the node extractor
-    and ResCheckExtNodes. The location of a start tile and the resistive
-    tolerance are passed down, while the derived network is passed back.
-*/
-
-typedef struct goodstuff
-{
-     TileType	rg_ttype;
-     float	rg_maxres;
-     float	rg_nodecap;
-     float	rg_Tdi;
-     int	rg_bigdevres;
-     int	rg_tilecount;
-     int	rg_status;
-     Point	*rg_devloc;
-     char	*rg_name;
-} ResGlobalParams;
-
 /* Linked list structure to use to store the substrate plane from each  */
 /* extracted CellDef so that they can be returned to the original after */
 /* extraction.                                                          */
@@ -275,13 +256,31 @@ struct saveList {
 
 /* Structure stores information required to be sent to ExtResisForDef() */
 
-typedef struct
+typedef struct resoptions
 {
+    /* Global options for extresist */
+
     float	    tdiTolerance;
     float	    frequency;
     float	    rthresh;
     struct saveList *savePlanes;
     CellDef	    *mainDef;
+
+    /*
+     * Various information passed between the node extractor and
+     * ResCheckExtNodes. The location of a start tile and the resistive
+     * tolerance are passed down, while the derived network is passed back.
+     */
+
+    TileType	rg_ttype;
+    float	rg_maxres;
+    float	rg_nodecap;
+    float	rg_Tdi;
+    int		rg_bigdevres;
+    int		rg_tilecount;
+    int		rg_status;
+    Point	*rg_devloc;
+    char	*rg_name;
 } ResisData;
 
 /* Structure used in RC delay calculations for Tdi filter. */
@@ -546,10 +545,10 @@ extern TileTypeBitMask		ResSDTypesBitMask;
 extern TileTypeBitMask		ResSubTypesBitMask;
 extern	HashTable		ResDevTable;
 extern TileTypeBitMask		ResNoMergeMask[NT];
-extern	ResGlobalParams		gparams;
 extern int			ResPortIndex;
 
 /* Routines used by ResReadExt() */
+extern ResisData		*ResInit();
 extern int	      		ResReadDevice();
 extern int	      		ResReadCapacitor();
 extern int	      		ResReadResistor();
@@ -576,6 +575,12 @@ extern void			ResSortBreaks();
 extern Plane			*extResPrepSubstrate();
 
 /* C99 compat */
+extern void ExtResisForDef(CellDef *celldef, ResisData *resisdata);
+extern char *ResExtGetAttribute(char *sptr);
+extern int ResReadFET(int argc, char *argv[]);
+extern int ResReadPort(int argc, char *argv[]);
+extern char *ResExtGetAttribute(char *sptr);
+
 extern void ResAddToQueue();
 extern bool ResCalcTileResistance();
 extern void ResCleanNode();
@@ -597,7 +602,7 @@ extern void ResPrintReference();
 extern void ResPrintResistorList();
 extern void ResPrintStats();
 extern void ResProcessJunction();
-extern int  ResReadNode();
+extern ResExtNode *ResReadNode(int argc, char *argv[]);
 extern int  ResReadExt();
 extern void ResRemoveFromQueue();
 extern int  ResExtNewNode();

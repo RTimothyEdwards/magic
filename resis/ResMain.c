@@ -273,9 +273,9 @@ ResMakePortBreakpoints(def)
  *----------------------------------------------------------------------------
  */
 void
-ResMakeLabelBreakpoints(def, goodies)
-    CellDef *def;
-    ResGlobalParams     *goodies;
+ResMakeLabelBreakpoints(def, resisdata)
+    CellDef 	*def;
+    ResisData   *resisdata;
 {
     Plane	*plane;
     Rect	*rect;
@@ -294,12 +294,12 @@ ResMakeLabelBreakpoints(def, goodies)
 	entry = HashFind(&ResNodeTable, slab->lab_text);
 	node = ResInitializeNode(entry);
 
-	/* If the drivepoint position changes and the drivepoint is */
-	/* in the "goodies" record, then make sure the tile type in */
-	/* "goodies" gets changed to match.			    */
+	/* If the drivepoint position changes and the drivepoint is	*/
+	/* in the "resisdata" record, then make sure the tile type	*/
+	/* in "resisdata" gets changed to match.			*/
 
-	if (goodies->rg_devloc == &node->drivepoint)
-	    goodies->rg_ttype = slab->lab_type;
+	if (resisdata->rg_devloc == &node->drivepoint)
+	    resisdata->rg_ttype = slab->lab_type;
 
         node->drivepoint = slab->lab_rect.r_ll;
         node->rs_bbox = slab->lab_rect;
@@ -490,9 +490,9 @@ ResFindNewContactTiles(contacts)
  */
 
 int
-ResProcessTiles(goodies, origin)
-    Point		*origin;
-    ResGlobalParams	*goodies;
+ResProcessTiles(resisdata, origin)
+    Point	*origin;
+    ResisData	*resisdata;
 
 {
     Tile 	*startTile;
@@ -506,7 +506,7 @@ ResProcessTiles(goodies, origin)
 
     if (ResOptionsFlags & ResOpt_Signal)
     {
-        startTile = FindStartTile(goodies, origin);
+        startTile = FindStartTile(resisdata, origin);
         if (startTile == NULL)
 	    return 1;
 	resCurrentNode = NULL;
@@ -990,9 +990,9 @@ ResShaveContacts(tile, dinfo, def)
  */
 
 bool
-ResExtractNet(node, goodies, cellname)
+ResExtractNet(node, resisdata, cellname)
     ResExtNode		*node;
-    ResGlobalParams	*goodies;
+    ResisData		*resisdata;
     char		*cellname;
 {
     SearchContext 	scx;
@@ -1018,8 +1018,8 @@ ResExtractNet(node, goodies, cellname)
 
     /* Pass back network pointers */
 
-    goodies->rg_maxres = 0;
-    goodies->rg_tilecount = 0;
+    resisdata->rg_maxres = 0;
+    resisdata->rg_tilecount = 0;
 
     /* Set up internal stuff if this is the first time through */
 
@@ -1102,10 +1102,10 @@ ResExtractNet(node, goodies, cellname)
 		    resMakeDevFunc, (ClientData)thisDev);
 	if (result == 0)
 	{
-	    TxError("No device of type %s found at location %d,%d\n",
+	    TxError("No device of type %s found at location %s, %s\n",
 		    DBTypeLongNameTbl[thisDev->type],
-		    tptr->thisDev->location.p_x,
-		    tptr->thisDev->location.p_y);
+		    DBWPrintValue(tptr->thisDev->location.p_x, (MagWindow*)NULL, TRUE),
+		    DBWPrintValue(tptr->thisDev->location.p_y, (MagWindow*)NULL, FALSE));
 	    freeMagic(thisDev);
 	    continue;
 	}
@@ -1185,12 +1185,12 @@ ResExtractNet(node, goodies, cellname)
     /* Finish preprocessing. */
 
     ResMakePortBreakpoints(ResUse->cu_def);
-    ResMakeLabelBreakpoints(ResUse->cu_def, goodies);
+    ResMakeLabelBreakpoints(ResUse->cu_def, resisdata);
     ResFindNewContactTiles(ResContactList);
     ResPreProcessDevices(DevTiles, ResDevList, ResUse->cu_def);
 
     /* do extraction */
-    if (ResProcessTiles(goodies, &startpoint) != 0) return TRUE;
+    if (ResProcessTiles(resisdata, &startpoint) != 0) return TRUE;
     return FALSE;
 }
 
@@ -1323,10 +1323,9 @@ ResGetTileFunc(tile, dinfo, tpptr)
  */
 
 Tile *
-FindStartTile(goodies, SourcePoint)
+FindStartTile(resisdata, SourcePoint)
+    ResisData		*resisdata;
     Point		*SourcePoint;
-    ResGlobalParams	*goodies;
-
 {
     Point	workingPoint;
     Tile	*tile, *tp;
@@ -1339,39 +1338,39 @@ FindStartTile(goodies, SourcePoint)
     /* If the drive point is on a contact, check for the contact residues   */
     /* first, then the contact type itself.				    */
 
-    if (DBIsContact(goodies->rg_ttype))
+    if (DBIsContact(resisdata->rg_ttype))
     {
-	TileTypeBitMask *rmask = DBResidueMask(goodies->rg_ttype);
-	TileType savtype = goodies->rg_ttype;
+	TileTypeBitMask *rmask = DBResidueMask(resisdata->rg_ttype);
+	TileType savtype = resisdata->rg_ttype;
 	TileType rtype;
 
 	for (rtype = TT_TECHDEPBASE; rtype < DBNumUserLayers; rtype++)
 	    if (TTMaskHasType(rmask, rtype))
 	    {
-		goodies->rg_ttype = rtype;
-		if ((tile = FindStartTile(goodies, SourcePoint)) != NULL)
+		resisdata->rg_ttype = rtype;
+		if ((tile = FindStartTile(resisdata, SourcePoint)) != NULL)
 		{
-		    goodies->rg_ttype = savtype;
+		    resisdata->rg_ttype = savtype;
 		    return tile;
 		}
 	    }
-	goodies->rg_ttype = savtype;
+	resisdata->rg_ttype = savtype;
     }
 
-    workingPoint.p_x = goodies->rg_devloc->p_x;
-    workingPoint.p_y = goodies->rg_devloc->p_y;
+    workingPoint.p_x = resisdata->rg_devloc->p_x;
+    workingPoint.p_y = resisdata->rg_devloc->p_y;
 
-    pnum = DBPlane(goodies->rg_ttype);
+    pnum = DBPlane(resisdata->rg_ttype);
 
     /* for drivepoints, we don't have to find a device */
-    if (goodies->rg_status & DRIVEONLY)
+    if (resisdata->rg_status & DRIVEONLY)
     {
 	tile = PlaneGetHint(ResUse->cu_def->cd_planes[pnum]);
 	GOTOPOINT(tile, &workingPoint);
 	SourcePoint->p_x = workingPoint.p_x;
 	SourcePoint->p_y = workingPoint.p_y;
 
-	if (TiGetTypeExact(tile) == goodies->rg_ttype)
+	if (TiGetTypeExact(tile) == resisdata->rg_ttype)
 	    return tile;
 	else
 	{
@@ -1383,18 +1382,19 @@ FindStartTile(goodies, SourcePoint)
 	    if (workingPoint.p_x == LEFT(tile))
 	    {
 		for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
-		    if (TiGetRightType(tp) == goodies->rg_ttype)
+		    if (TiGetRightType(tp) == resisdata->rg_ttype)
 			return(tp);
 	    }
 	    else if (workingPoint.p_y == BOTTOM(tile))
 	    {
 		for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
-		    if (TiGetTopType(tp) == goodies->rg_ttype)
+		    if (TiGetTopType(tp) == resisdata->rg_ttype)
 			return(tp);
 	    }
 	}
-	TxError("Couldn't find wire at %d %d\n",
-			goodies->rg_devloc->p_x, goodies->rg_devloc->p_y);
+	TxError("Couldn't find wire at %s %s\n",
+		DBWPrintValue(resisdata->rg_devloc->p_x, (MagWindow *)NULL, TRUE),
+		DBWPrintValue(resisdata->rg_devloc->p_y, (MagWindow *)NULL, FALSE));
 	return NULL;
     }
 
@@ -1409,15 +1409,17 @@ FindStartTile(goodies, SourcePoint)
 	    t1 = TiGetRightType(tile);
 	else
 	{
-	    TxError("Couldn't find device at %d %d\n",
-			goodies->rg_devloc->p_x, goodies->rg_devloc->p_y);
+	    TxError("Couldn't find device at %s %s\n",
+			DBWPrintValue(resisdata->rg_devloc->p_x, (MagWindow *)NULL, TRUE),
+			DBWPrintValue(resisdata->rg_devloc->p_y, (MagWindow *)NULL, FALSE));
 	    return(NULL);
 	}
     }
     else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)) == 0)
     {
-	TxError("Couldn't find device at %d %d\n",
-		goodies->rg_devloc->p_x, goodies->rg_devloc->p_y);
+	TxError("Couldn't find device at %s %s\n",
+		DBWPrintValue(resisdata->rg_devloc->p_x, (MagWindow *)NULL, TRUE),
+		DBWPrintValue(resisdata->rg_devloc->p_y, (MagWindow *)NULL, FALSE));
 	return(NULL);
     }
     else
@@ -1708,8 +1710,9 @@ FindStartTile(goodies, SourcePoint)
     /* Didn't find a terminal (S/D or substrate) type tile anywhere.  Flag an error. */
 
     if (devptr == NULL)
-	TxError("Couldn't find a terminal of the device at %d %d\n",
-			goodies->rg_devloc->p_x, goodies->rg_devloc->p_y);
+	TxError("Couldn't find a terminal of the device at %s %s\n",
+			DBWPrintValue(resisdata->rg_devloc->p_x, (MagWindow*)NULL, TRUE),
+			DBWPrintValue(resisdata->rg_devloc->p_y, (MagWindow*)NULL, FALSE));
     return((Tile *) NULL);
 }
 

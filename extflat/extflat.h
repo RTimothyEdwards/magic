@@ -27,7 +27,6 @@
 #include "extflat/EFtypes.h" /* EFCapValue, HierName, EFPerimArea, EFNode */
 #include "extflat/EFint.h" /* Def, HierContext, Connection, Distance, CallArg */
 
-
 extern float EFScale;		/* Scale factor to multiply all coords by */
 extern char *EFTech;		/* Technology of extracted circuit */
 extern char *EFStyle;           /* Extraction style of extracted circuit */

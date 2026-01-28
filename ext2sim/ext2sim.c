@@ -35,9 +35,9 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "dbwind/dbwind.h"	/* for DBWclientID */
 #include "commands/commands.h"  /* for module auto-load */
 #include "textio/txcommands.h"
+#include "extract/extract.h"	/* for extDevTable */
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
-#include "extract/extract.h"	/* for extDevTable */
 #include "utils/runstats.h"
 #include "utils/malloc.h"
 

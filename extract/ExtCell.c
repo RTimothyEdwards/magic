@@ -39,6 +39,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "debug/debug.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
+#include "resis/resis.h"
 #include "utils/signals.h"
 #include "utils/stack.h"
 #include "utils/utils.h"
@@ -114,6 +115,25 @@ ExtCell(def, outName, doLength)
     extNumErrors = extNumWarnings = 0;
     savePlane = extCellFile(def, f, doLength);
     if (f != NULL) fclose(f);
+
+    /* Integrated extresist ---  Run "extresist" on the cell def just
+     * extracted and produce an annotation file "<file>.res.ext".
+     */
+
+    if (ExtOptions & EXT_DOEXTRESIST)
+    {
+        ResisData *resisdata = ResInit();
+
+	UndoDisable();
+
+	ResOptionsFlags |= ResOpt_Signal;
+        resisdata->mainDef = def;
+        resisdata->savePlanes = (struct saveList *)NULL;        /* unused */
+
+        ExtResisForDef(def, resisdata);
+
+	UndoEnable();
+    }
 
     if (extNumErrors > 0 || extNumWarnings > 0)
     {
@@ -493,7 +513,10 @@ extCellFile(def, f, doLength)
 	extUniqueCell(def, EXT_UNIQ_TEMP);
 
     /* Prep any isolated substrate areas */
-    saveSub = extPrepSubstrate(def);
+    if (ExtOptions & EXT_DOEXTRESIST)
+	saveSub = extResPrepSubstrate(def);
+    else
+	saveSub = extPrepSubstrate(def);
 
     /* Remove any label markers that were made by a previous extraction */
     for (lab = def->cd_labels; lab; lab = lab->lab_next)

@@ -34,8 +34,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "tiles/tile.h"
 #include "database/database.h"	/* for TileType definition */
 #include "extflat/extflat.h"
+#include "extflat/extparse.h"
 #include "extflat/EFint.h"
-#include "extract/extract.h"	/* for device class list */
+#include "extract/extract.h"
 #include "extract/extractInt.h"	/* for extGetDevType()	*/
 
 /* C99 compat */

@@ -16,19 +16,8 @@
  *     *********************************************************************
  */
 
-/* These must be in the order of "known devices" in extract/extract.h.	*/
-/* This table is also used in extract/ExtBasic.c			*/
-
-/* Note: "fet" refers to the original fet type; "mosfet" refers to the	*/
-/* new type.  The main difference is that "fet" records area/perimeter	*/
-/* while "mosfet" records length/width.					*/
-
-#ifndef MAGIC_WRAPPER
-const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
-		"devcap", "devcaprev", "vsource", "diode", "pdiode",
-		"ndiode", "subckt", "rsubckt", "msubckt", "csubckt",
-		"dsubckt", "veriloga", NULL};
-#endif
+#ifndef _MAGIC__EXTFLAT__EXTPARSE_H
+#define _MAGIC__EXTFLAT__EXTPARSE_H
 
 /*
  * The following table describes the kinds of lines
@@ -80,5 +69,7 @@ keyTable[] =
 /* atoCap - convert a string to a EFCapValue */
 #define	atoCap(s)	((EFCapValue)atof(s))
 
-extern int efReadLineNum;      /* Current line number in the .ext file */
+extern int efReadLineNum;	/* Current line number in the .ext file */
+extern char *efReadFileName;	/* Name of current .ext file being read */
 
+#endif /* _MAGIC__EXTFLAT__EXTPARSE_H */

@@ -19,6 +19,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <math.h>
 
 #include "utils/magic.h"
+#include "utils/main.h"
 #include "utils/geometry.h"
 #include "utils/geofast.h"
 #include "tiles/tile.h"
@@ -29,6 +30,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extract/extract.h"
 #include "extract/extractInt.h"
 #include "extflat/extflat.h"
+#include "extflat/extparse.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/utils.h"
@@ -36,50 +38,54 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "resis/resis.h"
 
-/* constants defining where various fields can be found in .ext files. */
-/* (FIXME---Needs to be changed to positions in .ext files) */
+/* constants defining where various fields can be found in .ext files.	*/
+/* The value corresponds to the argument number on the list after	*/
+/* parsing by efReadLine().						*/
 
-#define		RDEV_LENGTH		4
-#define		RDEV_WIDTH		5
-#define		RDEV_DEVX		6
-#define		RDEV_DEVY		7
-#define		RDEV_ATTR		8
-#define		RDEV_NUM_ATTR		3
-#define		RESNODENAME	1
-#define		NODERESISTANCE	2
-#define		COUPLETERMINAL1 1
-#define		COUPLETERMINAL2 2
-#define		COUPLEVALUE	3
-#define		REALNAME	1
-#define		ALIASNAME	2
-#define		NODES_NODENAME	0
-#define		NODES_NODEX	1
-#define		NODES_NODEY	2
-#define		NODES_NODETYPE	3
-#define		NODE_BBOX_LL_X	5
-#define		NODE_BBOX_LL_Y	6
-#define		NODE_BBOX_UR_X	7
-#define		NODE_BBOX_UR_Y	8
-#define		NODELAMBDA	2
-#define		NODEUNITS	1
-#define		ATTRIBUTENODENAME	1
-#define		ATTRIBUTEVALUE		2
+#define		FET_NAME		1
+#define		FET_X			2
+#define		FET_Y			3
+#define		FET_AREA		4
+#define		FET_PERIM		5
+#define		FET_SUBS		6
+#define		FET_GATE		7
+#define		FET_GATE_ATTR		9
+#define		FET_SOURCE		10
+#define		FET_SOURCE_ATTR		12
+#define		FET_DRAIN		13
+#define		FET_DRAIN_ATTR		15
 
-#define		RES_EXT_ATTR		0
+#define		DEV_NAME		2
+#define		DEV_X			3
+#define		DEV_Y			4
+
+#define		NODES_NODENAME		1
+#define		NODES_NODEX		4
+#define		NODES_NODEY		5
+#define		NODES_NODETYPE		6
+
+#define		COUPLETERMINAL1		1
+#define		COUPLETERMINAL2		2
+#define		COUPLEVALUE		3
+
 #define		RES_EXT_ATTR_NAME	1
 #define		RES_EXT_ATTR_X		2
 #define		RES_EXT_ATTR_Y		3
-#define		RES_EXT_ATTR_TILE	6
+#define		RES_EXT_ATTR_TYPE	6
 #define		RES_EXT_ATTR_TEXT	7
 
-#define MAXTOKEN 		1024
-#define MAXLINE 		40
+#define		PORT_NAME		1
+#define		PORT_LLX		3
+#define		PORT_LLY		4
+#define		PORT_URX		5
+#define		PORT_URY		6
+#define		PORT_TYPE		7
+
 #define MAXDIGIT		20
 
 ResExtNode	*ResInitializeNode();
 
 ResExtNode	*ResOriginalNodes;	/*Linked List of Nodes 	*/
-static float	resscale = 1.0;       	/* Scale factor		*/
 char		RDEV_NOATTR[1] = {'0'};
 ResFixPoint	*ResFixList;
 
@@ -96,27 +102,49 @@ ResFixPoint	*ResFixList;
  */
 
 int
-ResReadExt(char *extfile);
+ResReadExt(char *extfile)
 {
     char *line = NULL, *argv[128];
-    int	result, fettype, readdrivepoints;
-    int size = 0;
+    int	result, locresult;
+    int argc, n, size = 0;
     FILE *fp;
+    CellDef *dbdef;
+    ResExtNode *curnode;
+
+    /* Search for the .ext fie in the same way that efReadDef() does. */
 
     fp = PaOpen(extfile, "r", ".ext", EFSearchPath, EFLibPath, (char **)NULL);
+    if ((fp == NULL) && (dbdef = DBCellLookDef(extfile)) != NULL)
+    {
+	char *filepath, *sptr;
+
+	filepath = StrDup((char **)NULL, dbdef->cd_file);
+	sptr = strrchr(filepath, '/');
+	if (sptr)
+	{
+	    *sptr = '\0';
+	    fp = PaOpen(extfile, "r", ".ext", filepath, EFLibPath, (char **)NULL);
+	}
+	freeMagic(filepath);
+    }
+
+    /* Try with the standard search path */
+    if ((fp == NULL) && (EFSearchPath == NULL))
+	fp = PaOpen(extfile, "r", ".ext", Path, EFLibPath, (char **)NULL);
+
     if (fp == NULL)
     {
     	TxError("Cannot open file %s%s\n", extfile, ".ext");
 	return 1;
     }
-    readdrivepoints = FALSE;
 
     /* Read in the file.  Makes use of various functions
      * from extflat, mostly in EFread.c.
      */
 
-    EFSaveLocs = False;
+    EFSaveLocs = FALSE;
     efReadLineNum = 0;
+    result = 0;
 
     while ((argc = efReadLine(&line, &size, fp, argv)) >= 0)
     {
@@ -137,35 +165,33 @@ ResReadExt(char *extfile);
 	 */
 	switch (keyTable[n].k_key)
 	{
-	    case SCALE:
-		resscale = (float)atof(argv[1]);
-		if (resscale == 0.0) resscale = 1.0;
-		break;
 	    case DEVICE:
-		ResReadSubckt(argc, argv);
+		locresult = ResReadDevice(argc, argv);
 		break;
 	    case FET:
-		ResReadDevice(argc, argv);
+		locresult = ResReadFET(argc, argv);
 		break;
 	    case MERGE:
-		ResReadDrivePoint(argc, argv);
+		/* To be completed */
+		/* ResReadDrivePoint(argc, argv); */
 		break;
 	    case NODE:
 	    case SUBSTRATE:
-		ResReadNode(argc, argv);
+		curnode = ResReadNode(argc, argv);
 		break;
 	    case PORT:
-		ResReadPort(argc, argv);
+		locresult = ResReadPort(argc, argv);
 		break;
 	    case ATTR:
-		result = ResExtAttribute(curnodename,
-			argv[1], &readdrivepoints);
+		locresult = ResReadAttribute(curnode, argc, argv);
+		break;
+	    case CAP:
+		locresult = ResReadCapacitor(argc, argv);
 		break;
 	    default:
 		break;
-
-	    /* to do:  Handle CAP, RESISTOR, maybe others? */
 	}
+	if (locresult == 1) result = 1;
     }
     fclose(fp);
     return(result);
@@ -175,10 +201,45 @@ ResReadExt(char *extfile);
 /*
  *-------------------------------------------------------------------------
  *
- * ResReadNode-- Reads in a node file, puts location of nodes into node
- *	structures.
+ * ResReadNode-- Reads in a node statement, puts location and type of
+ *	node into a node structure.
  *
- * Results: 0 if the node was read correctly, 1 otherwise.
+ * Results:  Pointer to the node record if the node was read correctly,
+ *	NULL otherwise.
+ *
+ * Side Effects: see above
+ *
+ *-------------------------------------------------------------------------
+ */
+
+ResExtNode *
+ResReadNode(int argc, char *argv[])
+{
+    HashEntry	*entry;
+    ResExtNode	*node;
+
+    entry = HashFind(&ResNodeTable, argv[NODES_NODENAME]);
+    node = ResInitializeNode(entry);
+
+    node->location.p_x = atoi(argv[NODES_NODEX]);
+    node->location.p_y = atoi(argv[NODES_NODEY]);
+    node->type = DBTechNameType(argv[NODES_NODETYPE]);
+
+    if (node->type == -1)
+    {
+	TxError("Bad tile type name in .ext file for node %s\n", node->name);
+	return NULL;
+    }
+    return node;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResReadPort-- Reads in a port statement from the .ext file and sets
+ *	node records accordingly to mark the node as a drivepoint.
+ *
+ * Results:  0 if successful and 1 otherwise.
  *
  * Side Effects: see above
  *
@@ -186,366 +247,255 @@ ResReadExt(char *extfile);
  */
 
 int
-ResReadNode(int argc, char *argv[])
+ResReadPort(int argc,
+    char *argv[])
 {
     HashEntry	*entry;
     ResExtNode	*node;
-    char *cp;
-    float lambda;
 
-    entry = HashFind(&ResNodeTable, line[NODES_NODENAME]);
+    entry = HashFind(&ResNodeTable, argv[PORT_NAME]);
     node = ResInitializeNode(entry);
 
-    node->location.p_x = atoi(line[NODES_NODEX]);
-    node->location.p_y = atoi(line[NODES_NODEY]);
-    if ((cp = strchr(line[NODES_NODETYPE], ';'))) *cp = '\0';
-    node->type = DBTechNameType(line[NODES_NODETYPE]);
+    node->drivepoint.p_x = atoi(argv[PORT_LLX]);
+    node->drivepoint.p_y = atoi(argv[PORT_LLY]);
+    node->status |= FORCE;
+    /* To do:  Check for multiple ports on a net;  each port needs its
+     * own drivepoint.
+     */
+    node->status |= DRIVELOC | PORTNODE;
+    node->rs_bbox.r_ll = node->drivepoint;
+    node->rs_bbox.r_ur.p_x = atoi(argv[PORT_URX]);
+    node->rs_bbox.r_ur.p_y = atoi(argv[PORT_URY]);
+    node->rs_ttype = DBTechNoisyNameType(argv[PORT_TYPE]);
+    node->type = node->rs_ttype;
 
     if (node->type == -1)
     {
-	TxError("Bad tile type name in .ext file for node %s\n",
-			node->name);
+	TxError("Bad tile type name in .ext file for node %s\n", node->name);
 	return 1;
     }
+    return 0;
+}
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResNodeAddDevice --
+ *
+ *	Given a device and a node which connects to one of its terminals,
+ *	add the device to the node's device list.  Device type is one
+ *	of the indexes defined by GATE, SOURCE, or DRAIN (to do: generalize
+ *	this).
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Allocates memory for a devPtr, adds to the node's firstDev linked
+ *	list.
+ * 
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResNodeAddDevice(ResExtNode *node,
+    RDev *device,
+    int termtype)
+{
+    devPtr *tptr;
+
+    tptr = (devPtr *)mallocMagic((unsigned)(sizeof(devPtr)));
+    tptr->thisDev = device;
+    tptr->nextDev = node->firstDev;
+    node->firstDev = tptr;
+    tptr->terminal = termtype;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ *  ResReadDevice--
+ *
+ *	Process a "device" line from a ext file.
+ *
+ * Results: returns 0 if line was added correctly.
+ *
+ * Side Effects: Allocates devicesl
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResReadDevice(int argc,
+    char *argv[])
+{
+    RDev	*device;
+    int		rvalue, i, j, k;
+    ExtDevice	*devptr;
+    TileType	ttype;
+    HashEntry	*entry;
+    ResExtNode	*node;
+
+    device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
+
+    device->resistance = 0;	/* Linear resistance from FET line, unused */
+
+    device->status = FALSE;
+    device->nextDev = ResRDevList;
+
+    /* Find the device definition record corresponding to the device name */
+    devptr = (ExtDevice *)NULL;
+    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+    {
+	for (devptr = ExtCurStyle->exts_device[ttype]; devptr;
+			devptr = devptr->exts_next)
+	    if (!strcmp(devptr->exts_deviceName, argv[DEV_NAME])) break;
+	if (devptr != NULL) break;
+    }
+
+    device->location.p_x = atoi(argv[DEV_X]);
+    device->location.p_y = atoi(argv[DEV_Y]);
+
+    device->rs_gattr = RDEV_NOATTR;
+    device->rs_sattr = RDEV_NOATTR;
+    device->rs_dattr = RDEV_NOATTR;
+    device->rs_devptr = devptr;
+
+    device->source = (ResExtNode *)NULL;
+    device->drain = (ResExtNode *)NULL;
+    device->subs = (ResExtNode *)NULL;
+
+    /* Pass over parameters and find the next argument */
+    for (i = DEV_Y; i < argc; i++)
+	if (!StrIsInt(argv[i]) && !(strchr(argv[i], '=')))
+	    break;
+
+    if (i == argc)
+    {
+	TxError("Bad device %s:  Too few arguments in .ext file\n",
+		argv[DEV_NAME]);
+	return 1;
+    }
+
+    /* Find and record the device terminal nodes */
+    /* Note that this only records up to two terminals matching FET
+     * source and drain;  it needs to be expanded to include an
+     * arbitrary number of terminals.
+     */
+
+    if (strcmp(argv[i], "None"))
+    {
+	entry = HashFind(&ResNodeTable, argv[i]);
+	device->subs = (ResExtNode *)HashGetValue(entry);
+	ResNodeAddDevice(device->subs, device, SUBS);
+    }
+    i++;
+    entry = HashFind(&ResNodeTable, argv[i]);
+    device->gate = (ResExtNode *)HashGetValue(entry);
+    device->rs_gattr = StrDup((char **)NULL, argv[i + 2]);
+    ResNodeAddDevice(device->gate, device, GATE);
+    i += 3;
+    
+    if (i < argc - 2)
+    {
+	entry = HashFind(&ResNodeTable, argv[i]);
+	device->source = (ResExtNode *)HashGetValue(entry);
+	device->rs_sattr = StrDup((char **)NULL, argv[i + 2]);
+	ResNodeAddDevice(device->source, device, SOURCE);
+	i += 3;
+    }
+
+    if (i < argc - 2)
+    {
+	entry = HashFind(&ResNodeTable, argv[i]);
+	device->drain = (ResExtNode *)HashGetValue(entry);
+	device->rs_dattr = StrDup((char **)NULL, argv[i + 2]);
+	ResNodeAddDevice(device->drain, device, DRAIN);
+	i += 3;
+    }
+    if (i < argc - 2)
+    {
+	TxError("Warning:  Device %s has more than 4 ports (not handled).\n", 
+		argv[DEV_NAME]);
+    }
+
+    device->rs_ttype = extGetDevType(devptr->exts_deviceName);
+
+    ResRDevList = device;
+    device->layout = NULL;
     return 0;
 }
 
 /*
  *-------------------------------------------------------------------------
  *
- *  ResReadSubckt-- Processes a subcircuit line from a ext file.
- *	    This uses the "user subcircuit" extension defined in
- *	    IRSIM, although it is mostly intended as a way to work
- *	    around the device type limitations of the .ext format
- *	    when using extresist.
+ *  ResReadFET-- Processes a "fet" line from a ext file.
  *
  * Results: returns 0 if line was added correctly.
  *
- * Side Effects: Allocates devices and adds nodes to the node hash table.
+ * Side Effects: Allocates devices.
  *
  *-------------------------------------------------------------------------
  */
 
 int
-ResReadSubckt(line)
-    char line[][MAXTOKEN];
+ResReadFET(int argc,
+    char *argv[])
 {
     RDev	*device;
     int		rvalue, i, j, k;
-    static int	nowarning = TRUE;
-    float	lambda;
-    TileType	ttype = TT_SPACE;
-    char	*lptr = NULL, *wptr = NULL;
     ExtDevice	*devptr;
-
-    device = (RDev *) mallocMagic((unsigned) (sizeof(RDev)));
-
-    device->status = FALSE;
-    device->nextDev = ResRDevList;
-
-    lambda = (float)ExtCurStyle->exts_unitsPerLambda / resscale;
-    device->location.p_x = 0;
-    device->location.p_y = 0;
-
-    device->rs_gattr=RDEV_NOATTR;
-    device->rs_sattr=RDEV_NOATTR;
-    device->rs_dattr=RDEV_NOATTR;
-
-    ResRDevList = device;
-    device->layout = NULL;
-    device->source = device->drain = device->gate = device->subs = NULL;
-
-    /* The last argument is the name of the device */
-    for (i = 1; line[i][0] != '\0'; i++);
-    i--;
-
-    /* To do:  Replace this search with a pre-prepared hash	*/
-    /* table to key off of the device name.			*/
-    for (j = 0; j < EFDevNumTypes; j++)
-	if (!strcmp(EFDevTypes[j], line[i]))
-	    break;
-
-    /* Read attributes, especially to pick up values for L, W, X, and Y;
-     * and source and drain area and perimeter, that are critical for use
-     * by extresist.
-     */
-    for (k = 1; line[k][0] != '\0'; k++)
-    {
-	char *eqptr;
-	eqptr = strchr(line[k], '=');
-	if (eqptr != NULL)
-	{
-	    if (k < i) i = k;
-	    eqptr++;
-	    switch (line[k][0]) {
-		case 'l':
-		    lptr = eqptr;
-		    break;
-		case 'w':
-		    wptr = eqptr;
-		    break;
-		case 'x':
-		    device->location.p_x = (int)((float)atof(eqptr) / lambda);
-		    break;
-		case 'y':
-		    device->location.p_y = (int)((float)atof(eqptr) / lambda);
-		    break;
-		case 's':
-		    device->rs_sattr = StrDup((char **)NULL, eqptr);
-		    break;
-		case 'd':
-		    device->rs_dattr = StrDup((char **)NULL, eqptr);
-		    break;
-	    }
-	}
-    }
-
-    if (j == EFDevNumTypes)
-    {
-	TxError("Failure to find device type %s\n", line[i]);
-	return 1;
-    }
-    ttype = extGetDevType(EFDevTypes[j]);
-    ASSERT(ttype >= 0, "ttype<0");
-
-    /* Find the device record that corresponds to the device name */
-    for (devptr = ExtCurStyle->exts_device[ttype]; devptr; devptr = devptr->exts_next)
-	if (!strcmp(devptr->exts_deviceName, EFDevTypes[j]))
-	    break;
-
-    device->rs_devptr = devptr;
-    device->rs_ttype = ttype;
-
-    if (lptr != NULL && wptr != NULL)
-    {
-	HashEntry *he;
-	float rpersquare;
-
-	he = HashLookOnly(&devptr->exts_deviceResist, "linear");
-	if (he != NULL)
-	    rpersquare = (ResValue)(spointertype)HashGetValue(he);
-	else
-	    rpersquare = (ResValue)0.0;
-	/* Subcircuit types may not have a length or width value, in which  */
-	/* case it is zero.  Don't induce a divide-by-zero error.	    */
-	if (MagAtof(wptr) == 0)
-	    device->resistance = 0;
-	else
-	    device->resistance = MagAtof(lptr) * rpersquare/MagAtof(wptr);
-    }
-    else
-	device->resistance = 0;
-
-    rvalue = 0;
-    for (k = 1; k < i; k++)
-    {
-	if (k > SUBS)
-	{
-	    TxError("Device %s has more than 4 ports (not handled).\n", line[i]);
-	    break;	    /* No method to handle more ports than this */
-	}
-	rvalue += ResExtNewNode(line[k], k, device);
-    }
-
-    return rvalue;
-}
-
-/*
- *-------------------------------------------------------------------------
- *
- *  ResReadDevice-- Processes a device line from a ext file.
- *
- * Results: returns 0 if line was added correctly.
- *
- * Side Effects: Allocates devices and adds nodes to the node hash table.
- *
- *-------------------------------------------------------------------------
- */
-
-int
-ResReadDevice(line, rpersquare, devptr)
-    char	line[][MAXTOKEN];
-    float	rpersquare;
-    ExtDevice	*devptr;
-
-{
-    RDev	*device;
-    int		rvalue, i, j, k;
-    char	*newattr, tmpattr[MAXTOKEN];
-    static int	nowarning = TRUE;
-    float	lambda;
-    ExtDevice *devtest;
-
-    if ((line[RDEV_WIDTH][0] == '\0') || (line[RDEV_LENGTH][0] == '\0'))
-    {
-     	  TxError("error in input file:\n");
-	  return 1;
-    }
+    TileType	ttype;
+    HashEntry	*entry;
+    ResExtNode	*node;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
-    if (nowarning && rpersquare == 0)
-    {
-	TxError("Warning:  FET resistance not included or "
-		"set to zero in technology file-\n");
-	TxError("All driven nodes will be extracted\n");
-	nowarning = FALSE;
-    }
-    if (MagAtof(line[RDEV_WIDTH]) != 0)
-	device->resistance = MagAtof(line[RDEV_LENGTH]) * rpersquare /
-		MagAtof(line[RDEV_WIDTH]);
-    else
-	device->resistance = 0;
+
+    device->resistance = 0;	/* Linear resistance from FET line, unused */
 
     device->status = FALSE;
     device->nextDev = ResRDevList;
 
-    /* Check that devptr matches the device name and number of terminals */
-    /* Note that this routine is only called for the original "fet"	 */
-    /* types with fixed names, so the names must match and there must	 */
-    /* always be three terminals (two source/drain terminals).		 */
+    /* Find the device definition record corresponding to the device name */
+    devptr = (ExtDevice *)NULL;
+    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+    {
+	for (devptr = ExtCurStyle->exts_device[ttype]; devptr;
+			devptr = devptr->exts_next)
+	    if (!strcmp(devptr->exts_deviceName, argv[FET_NAME])) break;
+	if (devptr != NULL) break;
+    }
 
-    if (devptr->exts_deviceSDCount != 2)
-	for (devtest = devptr->exts_next; devtest; devtest = devtest->exts_next)
-	    if (devtest->exts_deviceSDCount == 2)
-	    {
-		devptr = devtest;
-		break;
-	    }
-
-    lambda = (float)ExtCurStyle->exts_unitsPerLambda / resscale;
-    device->location.p_x = (int)((float)atof(line[RDEV_DEVX]) / lambda);
-    device->location.p_y = (int)((float)atof(line[RDEV_DEVY]) / lambda);
+    device->location.p_x = atoi(argv[FET_X]);
+    device->location.p_y = atoi(argv[FET_Y]);
 
     device->rs_gattr=RDEV_NOATTR;
     device->rs_sattr=RDEV_NOATTR;
     device->rs_dattr=RDEV_NOATTR;
     device->rs_devptr = devptr;
 
-    device->gate = device->source = device->drain = device->subs = NULL;
+    /* Find and record the FET terminal nodes */
+
+    entry = HashFind(&ResNodeTable, argv[FET_GATE]);
+    device->gate = (ResExtNode *)HashGetValue(entry);
+    
+    entry = HashFind(&ResNodeTable, argv[FET_SOURCE]);
+    device->source = (ResExtNode *)HashGetValue(entry);
+
+    entry = HashFind(&ResNodeTable, argv[FET_DRAIN]);
+    device->drain = (ResExtNode *)HashGetValue(entry);
+
+    entry = HashFind(&ResNodeTable, argv[FET_SUBS]);
+    device->subs = (ResExtNode *)HashGetValue(entry);
 
     device->rs_ttype = extGetDevType(devptr->exts_deviceName);
 
-    /* ext attributes look like g=a1,a2   	*/
-    /* ext attributes are "a1","a2"	   	*/
-    /* Do conversion from one to the other here	*/
-    /* NOTE:  As of version 8.3.366, .ext attributes will end in two	*/
-    /* integer values, not quoted, for device area and perimeter.  Do	*/
-    /* not quote them.							*/
+    /* Copy attributes verbatim */
+    device->rs_gattr = StrDup((char **)NULL, argv[FET_GATE_ATTR]);
+    device->rs_sattr = StrDup((char **)NULL, argv[FET_SOURCE_ATTR]);
+    device->rs_dattr = StrDup((char **)NULL, argv[FET_DRAIN_ATTR]);
 
-    for (i = RDEV_ATTR; i < RDEV_ATTR + RDEV_NUM_ATTR; i++)
-    {
-	char *cptr, *sptr;
-	int d1, d2;
-
-     	if (line[i][0] == '\0') break;
-
-	sptr = &line[i][2];	/* Start after "s=" or "d=" */
-	tmpattr[0] = '\0';
-	while ((cptr = strchr(sptr, ',')) != NULL)
-	{
-	    if (sscanf(sptr, "%d,%d", &d1, &d2) == 2)
-	    {
-		strcat(tmpattr, sptr);
-		sptr = NULL;
-		break;
-	    }
-	    else
-	    {
-		*cptr = '\0';
-		strcat(tmpattr, "\"");
-		strcat(tmpattr, sptr);
-		strcat(tmpattr, "\",");
-		sptr = cptr + 1;
-		*cptr = ',';
-	    }
-	}
-	if (sptr && (strlen(sptr) != 0))
-	{
-	    strcat(tmpattr, "\"");
-	    strcat(tmpattr, sptr);
-	    strcat(tmpattr, "\"");
-	}
-
-	newattr = (char *)mallocMagic(strlen(tmpattr) + 1);
-	strcpy(newattr, tmpattr);
-	switch (line[i][0])
-	{
-	    case 'g':
-		device->rs_gattr = newattr;
-		break;
-	    case 's':
-		device->rs_sattr = newattr;
-		break;
-	    case 'd':
-		device->rs_dattr = newattr;
-		break;
-	    default:
-		TxError("Bad fet attribute\n");
-	       	break;
-	}
-    }
     ResRDevList = device;
     device->layout = NULL;
-    rvalue = ResExtNewNode(line[GATE], GATE, device) +
-     	     ResExtNewNode(line[SOURCE], SOURCE, device) +
-     	     ResExtNewNode(line[DRAIN], DRAIN, device);
-
-    return rvalue;
-}
-
-/*
- *-------------------------------------------------------------------------
- *
- * ResExtNewNode-- Adds a new node to the Node Hash Table.
- *
- * Results: returns zero if node is added correctly, one otherwise.
- *
- * Side Effects: Allocates a new ResExtNode
- *
- *-------------------------------------------------------------------------
- */
-
-int
-ResExtNewNode(line, type, device)
-    char 	line[];
-    int		type;
-    RDev	*device;
-
-{
-    HashEntry		*entry;
-    ResExtNode		*node;
-    devPtr		*tptr;
-
-    if (line[0] == '\0')
-    {
-     	TxError("Missing device connection\n");
-	return 1;
-    }
-    entry = HashFind(&ResNodeTable, line);
-    node = ResInitializeNode(entry);
-    tptr = (devPtr *)mallocMagic((unsigned)(sizeof(devPtr)));
-    tptr->thisDev = device;
-    tptr->nextDev = node->firstDev;
-    node->firstDev = tptr;
-    tptr->terminal = type;
-    switch(type)
-    {
-     	case GATE:
-	    device->gate = node;
-	    break;
-     	case SOURCE:
-	    device->source = node;
-	    break;
-     	case DRAIN:
-	    device->drain = node;
-	    break;
-     	case SUBS:
-	    device->subs = node;
-	    break;
-	default:
-	    TxError("Bad Terminal Specifier\n");
-	    break;
-    }
     return 0;
 }
 
@@ -565,102 +515,36 @@ ResExtNewNode(line, type, device)
  */
 
 int
-ResReadCapacitor(line)
-    char line[][MAXTOKEN];
-
+ResReadCapacitor(int argc,
+    char *argv[])
 {
     HashEntry	*entry1, *entry2;
     ResExtNode	*node1, *node2;
 
-    if (line[COUPLETERMINAL1][0] == 0 || line[COUPLETERMINAL2][0] == 0)
-    {
-     	TxError("Bad Capacitor\n");
-	return(1);
-    }
-    entry1 = HashFind(&ResNodeTable, line[COUPLETERMINAL1]);
+    entry1 = HashFind(&ResNodeTable, argv[COUPLETERMINAL1]);
     node1 = ResInitializeNode(entry1);
+
     if (ResOptionsFlags & ResOpt_Signal)
     {
-        node1->capacitance += MagAtof(line[COUPLEVALUE]);
-        if (strcmp(line[COUPLETERMINAL2], "GND") == 0 ||
-		strcmp(line[COUPLETERMINAL2], "Vdd") == 0)
-        {
-            return 0;
-        }
-        entry2 = HashFind(&ResNodeTable, line[COUPLETERMINAL2]);
+        node1->capacitance += MagAtof(argv[COUPLEVALUE]);
+        entry2 = HashFind(&ResNodeTable, argv[COUPLETERMINAL2]);
         node2 = ResInitializeNode(entry2);
-        node2->capacitance += MagAtof(line[COUPLEVALUE]);
+        node2->capacitance += MagAtof(argv[COUPLEVALUE]);
         return 0;
     }
-    if (strcmp(line[COUPLETERMINAL2], "GND") == 0)
-    {
-        node1->capacitance += MagAtof(line[COUPLEVALUE]);
-	return 0;
-    }
-    if (strcmp(line[COUPLETERMINAL2], "Vdd") == 0)
-    {
-        node1->cap_vdd += MagAtof(line[COUPLEVALUE]);
-	return 0;
-    }
-    entry2 = HashFind(&ResNodeTable, line[COUPLETERMINAL2]);
+
+    entry2 = HashFind(&ResNodeTable, argv[COUPLETERMINAL2]);
     node2 = ResInitializeNode(entry2);
-    if (strcmp(line[COUPLETERMINAL1], "GND") == 0)
-    {
-        node2->capacitance += MagAtof(line[COUPLEVALUE]);
-	return 0;
-    }
-    if (strcmp(line[COUPLETERMINAL1], "Vdd") == 0)
-    {
-        node2->cap_vdd += MagAtof(line[COUPLEVALUE]);
-	return 0;
-    }
-    node1->cap_couple += MagAtof(line[COUPLEVALUE]);
-    node2->cap_couple += MagAtof(line[COUPLEVALUE]);
+
+    node1->cap_couple += MagAtof(argv[COUPLEVALUE]);
+    node2->cap_couple += MagAtof(argv[COUPLEVALUE]);
     return 0;
 }
 
-
 /*
  *-------------------------------------------------------------------------
  *
- *  ResReadResistor-- Adds the capacitance  from a R line to the appropriate
- *	node.
- *
- *  Results
- *	Return 0 to keep search going, 1 to abort
- *
- *  Side Effects: modifies resistance field of ResExtNode
- *
- *-------------------------------------------------------------------------
- */
-
-int
-ResReadResistor(line)
-    char line[][MAXTOKEN];
-{
-    HashEntry	*entry;
-    ResExtNode	*node;
-
-    if (line[RESNODENAME][0] == 0)
-    {
-     	TxError("Bad Resistor\n");
-	return 1;
-    }
-    entry = HashFind(&ResNodeTable, line[RESNODENAME]);
-    node = ResInitializeNode(entry);
-    if (node->resistance != 0)
-    {
-     	  TxError("Duplicate Resistance Entries\n");
-	  return 1;
-    }
-    node->resistance = MagAtof(line[NODERESISTANCE]);
-    return(0);
-}
-
-/*
- *-------------------------------------------------------------------------
- *
- *  ResExtAttribute--checks to see if a node attribute is a resistance
+ *  ResReadAttribute--checks to see if a node attribute is a resistance
  *	attribute. If it is, add it to the correct node's status flag.
  *	Only works with 5.0 1/line attributes
  *
@@ -673,25 +557,18 @@ ResReadResistor(line)
  */
 
 int
-ResReadAttribute(aname, avalue, readdrivepoints)
-    char *aname;
-    char *avalue;
-    bool *readdrivepoints;
-
+ResReadAttribute(ResExtNode *node,
+    int argc,
+    char *argv[])
 {
-    HashEntry	*entry;
-    ResExtNode	*node;
+    char	*aname, *avalue;
     char	digit[MAXDIGIT];
     int		i;
     static int	notwarned = TRUE;
 
-    if (aname[0] == 0)
-    {
-     	TxError("Bad Resistor\n");
-	return 1;
-    }
-    entry = HashFind(&ResNodeTable, aname);
-    node = ResInitializeNode(entry);
+    aname = argv[RES_EXT_ATTR_NAME];
+    avalue = argv[RES_EXT_ATTR_TEXT];
+
     if (strncmp(avalue, "res:skip", 8) == 0)
     {
      	if (node->status & FORCE)
@@ -723,132 +600,13 @@ ResReadAttribute(aname, avalue, readdrivepoints)
     else if (strncmp(avalue, "res:drive", 9) == 0 &&
      	      (ResOptionsFlags & ResOpt_Signal))
     {
-	if (*readdrivepoints == FALSE)
-	{
-	    ResExtProcessDrivePoints(rootname);
-	    *readddrivepoints = TRUE;
-	}
-	/* is the attribute in root.ext? */
-	if (node->drivepoint.p_x != INFINITY)
-	    node->status |= DRIVELOC;
-	else
-	{
-	    if (notwarned)
-	    TxError("Drivepoint for %s not defined in %s.ext; is it "
-		    "defined in a child  cell?\n", node->name, rootname);
-	    notwarned = FALSE;
-	}
+	node->drivepoint.p_x = atoi(argv[RES_EXT_ATTR_X]);
+	node->drivepoint.p_y = atoi(argv[RES_EXT_ATTR_Y]);
+	node->rs_ttype = DBTechNoisyNameType(argv[RES_EXT_ATTR_TYPE]);
+	node->status |= DRIVELOC;
     }
     return 0;
 }
-
-/*
- *-------------------------------------------------------------------------
- *
- * ResExtProcessDrivePoints -- if the ext file contains a res:drive attribute,
- *	and we are doing a signal extraction,
- *	we need to search through the .ext file looking for attr labels that
- *	contain this text. For efficiency, the .ext file is only parsed when
- *	the first res:drive is encountered.  res:drive labels only work if
- *	they are in the root cell.
- *
- *	FIXME---The .ext file is being read and this routine should only
- *	read in additional lines as necessary.
- *
- * Results:
- *	None.
- *
- * Side Effects:
- *
- *-------------------------------------------------------------------------
- */
-
-void
-ResExtProcessDrivePoints(FILE *fp)
-{
-    char	line[MAXLINE][MAXTOKEN];
-    FILE	*fp;
-    HashEntry	*entry;
-    ResExtNode	*node;
-
-    while (gettokens(line, fp) != 0)
-    {
-     	if (strncmp(line[RES_EXT_ATTR], "attr", 4) != 0 ||
-		strncmp(line[RES_EXT_ATTR_TEXT], "\"res:drive\"", 11) != 0)
-	    continue;
-
-	entry = HashFind(&ResNodeTable, line[RES_EXT_ATTR_NAME]);
-	node = ResInitializeNode(entry);
-	node->drivepoint.p_x = atoi(line[RES_EXT_ATTR_X]);
-	node->drivepoint.p_y = atoi(line[RES_EXT_ATTR_Y]);
-	node->rs_ttype = DBTechNoisyNameType(line[RES_EXT_ATTR_TILE]);
-    }
-    fclose(fp);
-}
-
-/*
- *-------------------------------------------------------------------------
- *
- * ResExtProcessFixPoints -- if the ext file contains a "res:fix:name" label
- *	and we are checking for power supply noise, then we have to
- *	parse the .ext file looking for the fix label locations.  This
- *	is only done after the first res:fix label is encountered.
- *
- *	(FIXME---This is now all in the .ext file so the information does
- *	 not need to be read twice.)
- *
- * Results:
- *	None.
- *
- * Side Effects:
- *	For each new name, allocate memory
- *
- *-------------------------------------------------------------------------
- */
-
-void
-ResExtProcessFixPoints(filename)
-    char	*filename;
-{
-    char	line[MAXLINE][MAXTOKEN], *label, *c;
-    FILE	*fp;
-    ResFixPoint	*thisfix;
-
-    fp = PaOpen(filename, "r", ".ext", (ExtLocalPath == NULL) ? "." : ExtLocalPath,
-			(char *)NULL, (char **)NULL);
-    if (fp == NULL)
-    {
-     	TxError("Cannot open file %s%s\n", filename, ".ext");
-	return;
-    }
-    while (gettokens(line, fp) != 0)
-    {
-     	if (strncmp(line[RES_EXT_ATTR], "attr", 4) != 0 ||
-		strncmp(line[RES_EXT_ATTR_TEXT], "\"res:fix", 8) != 0)
-	    continue;
-	label = line[RES_EXT_ATTR_TEXT];
-	label += 8;
-	if (*label == ':') label++;
-	if ((c=strrchr(label, '"')) != NULL) *c = '\0';
-	else if (*label != '\0')
-	{
-	    TxError("Bad res:fix attribute label %s\n",
-	       			line[RES_EXT_ATTR_TEXT]);
-	    *label ='\0';
-	}
-	thisfix = (ResFixPoint *)mallocMagic((unsigned)(sizeof(ResFixPoint)
-		    + strlen(label)));
-	thisfix->fp_next = ResFixList;
-	ResFixList = thisfix;
-	thisfix->fp_loc.p_x = atoi(line[RES_EXT_ATTR_X]);
-	thisfix->fp_loc.p_y = atoi(line[RES_EXT_ATTR_Y]);
-	thisfix->fp_ttype = DBTechNoisyNameType(line[RES_EXT_ATTR_TILE]);
-	thisfix->fp_tile = NULL;
-	strcpy(thisfix->fp_name, label);
-    }
-    fclose(fp);
-}
-
 
 /*
  *-------------------------------------------------------------------------

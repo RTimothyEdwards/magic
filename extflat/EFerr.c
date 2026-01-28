@@ -36,9 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "textio/textio.h"
-
-extern char *efReadFileName;
-extern int efReadLineNum;
+#include "extflat/extparse.h"
 
 #ifdef MAGIC_WRAPPER
 extern int Tcl_printf();

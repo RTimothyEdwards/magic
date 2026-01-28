@@ -32,7 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/stack.h"
 #include "utils/tech.h"
 #include "textio/txcommands.h"
-#include	"resis/resis.h"
+#include "resis/resis.h"
 
 #define MILLIOHMSPEROHM 1000
 
@@ -842,24 +842,26 @@ ResPruneTree(node, minTdi, nodelist1, nodelist2, resistorlist)
  */
 
 int
-ResDoSimplify(tolerance, rctol, goodies)
-    float	    tolerance;
-    float	    rctol;
-    ResGlobalParams *goodies;
+ResDoSimplify(tolerance,resisdata)
+    float	tolerance;
+    ResisData 	*resisdata;
 
 {
     resNode 		*node, *slownode;
     float 		bigres = 0;
     float		millitolerance;
     float		totalcap;
+    float		rctol;
     resResistor		*res;
 
-    ResSetPathRes();
+    rctol = resisdata->tdiTolerance;
+    ResSetPathRes(resisdata);
+
     for (node = ResNodeList; node != NULL; node = node->rn_more)
     	 bigres = MAX(bigres, node->rn_noderes);
 
     bigres /= OHMSTOMILLIOHMS; /* convert from milliohms to ohms */
-    goodies->rg_maxres = bigres;
+    resisdata->rg_maxres = bigres;
 
 #ifdef PARANOID
     ResSanityChecks("ExtractSingleNet", ResResList, ResNodeList, ResDevList);
@@ -870,7 +872,7 @@ ResDoSimplify(tolerance, rctol, goodies)
     /* we're calculating lumped values so that the capacitance  */
     /* values get calculated correctly.				*/
 
-    (void) ResDistributeCapacitance(ResNodeList, goodies->rg_nodecap);
+    (void) ResDistributeCapacitance(ResNodeList, resisdata->rg_nodecap);
 
     if (((tolerance > bigres) || ((ResOptionsFlags & ResOpt_Simplify) == 0)) &&
 	    ((ResOptionsFlags & ResOpt_DoLumpFile) == 0))
@@ -895,43 +897,48 @@ ResDoSimplify(tolerance, rctol, goodies)
 	------*/
     }
 
-    if (ResOptionsFlags & ResOpt_Tdi)
+    if (ResOriginNode == NULL)
     {
-	if (goodies->rg_nodecap != -1 &&
+	TxError("Error:  Network simplification:  Failed to to get origin node.\n");
+    	resisdata->rg_Tdi = 0;
+    }
+    else if (ResOptionsFlags & ResOpt_Tdi)
+    {
+	if ((resisdata->rg_nodecap != -1) &&
 	 	(totalcap = ResCalculateChildCapacitance(ResOriginNode)) != -1)
 	{
-	    RCDelayStuff	*rc = (RCDelayStuff *) ResNodeList->rn_client;
+	    RCDelayStuff *rc = (RCDelayStuff *) ResNodeList->rn_client;
 
-	    goodies->rg_nodecap = totalcap;
+	    resisdata->rg_nodecap = totalcap;
 	    ResCalculateTDi(ResOriginNode, (resResistor *)NULL,
-	      					goodies->rg_bigdevres);
+	      					resisdata->rg_bigdevres);
 	    if (rc != (RCDelayStuff *)NULL)
-		goodies->rg_Tdi = rc->rc_Tdi;
+		resisdata->rg_Tdi = rc->rc_Tdi;
 	    else
-		goodies->rg_Tdi = 0;
+		resisdata->rg_Tdi = 0;
 
 	    slownode = ResNodeList;
 	    for (node = ResNodeList; node != NULL; node = node->rn_more)
 	    {
 	      	rc = (RCDelayStuff *)node->rn_client;
-		if ((rc != NULL) && (goodies->rg_Tdi < rc->rc_Tdi))
+		if ((rc != NULL) && (resisdata->rg_Tdi < rc->rc_Tdi))
 		{
 		    slownode = node;
-		    goodies->rg_Tdi = rc->rc_Tdi;
+		    resisdata->rg_Tdi = rc->rc_Tdi;
 		}
 	    }
 	    slownode->rn_status |= RN_MAXTDI;
 	}
 	else
-	    goodies->rg_Tdi = -1;
+	    resisdata->rg_Tdi = -1;
     }
     else
-    	 goodies->rg_Tdi = 0;
+    	resisdata->rg_Tdi = 0;
 
-    if ((rctol+1) * goodies->rg_bigdevres * goodies->rg_nodecap >
-	    rctol * goodies->rg_Tdi &&
+    if ((rctol+1) * resisdata->rg_bigdevres * resisdata->rg_nodecap >
+	    rctol * resisdata->rg_Tdi &&
 	    (ResOptionsFlags & ResOpt_Tdi) &&
-	    goodies->rg_Tdi != -1)
+	    resisdata->rg_Tdi != -1)
 	return 0;
 
     /* Simplify network; resistors are still in milliohms, so use
@@ -960,11 +967,11 @@ ResDoSimplify(tolerance, rctol, goodies)
 	    /* have time constants less than the tolerance.		*/
 
 	    if ((ResOptionsFlags & ResOpt_Tdi) &&
-	           goodies->rg_Tdi != -1 &&
+	           resisdata->rg_Tdi != -1 &&
 		   rctol != 0)
 	    {
 	        ResPruneTree(ResOriginNode, (rctol + 1) *
-			goodies->rg_bigdevres * goodies->rg_nodecap / rctol,
+			resisdata->rg_bigdevres * resisdata->rg_nodecap / rctol,
 		   	&ResNodeList, &ResNodeQueue, &ResResList);
 	    }
 	    ResOriginNode->rn_status &= ~MARKED;
@@ -999,7 +1006,7 @@ ResDoSimplify(tolerance, rctol, goodies)
  */
 
 void
-ResSetPathRes()
+ResSetPathRes(ResisData *resisdata)
 {
     HeapEntry	he;
     resNode	*node;
@@ -1026,7 +1033,15 @@ ResSetPathRes()
     }
     if (ResOriginNode == NULL)
     {
-	resDevice *res = ResGetDevice(gparams.rg_devloc, gparams.rg_ttype);
+	resDevice *res = ResGetDevice(resisdata->rg_devloc, resisdata->rg_ttype);
+	if (res == (resDevice *)NULL)
+	{
+	    TxError("Error:  No device type %s found at location %s %s\n",
+			DBTypeLongNameTbl[resisdata->rg_ttype],
+			DBWPrintValue(resisdata->rg_devloc->p_x, (MagWindow *)NULL, TRUE),
+			DBWPrintValue(resisdata->rg_devloc->p_y, (MagWindow *)NULL, FALSE));
+	    return;
+	}
 	ResOriginNode = res->rd_fet_source;
 	ResOriginNode->rn_why = RES_NODE_ORIGIN;
 	ResOriginNode->rn_noderes = 0;
