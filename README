@@ -1,0 +1,53 @@
+Hierarchical "extresist" notes:
+------------------------------------
+Project started January 28, 2026
+
+Follow-on from code development of "extresist" to remove dependence
+on ".sim" and ".node" files and instead to read only the ".ext" file
+that will be annotated.
+
+When we last left off. . .
+The code works both for running the "extresist" code standalone,
+and for using "extract do resistance" to run the detailed extraction
+in sequence with the normal extraction.
+
+Since "extresist" has only ever been recommended for use with flattened
+layout, the differences appear minimal.  However, by avoiding the
+(flat) .sim file in favor of the (hierarchical) .ext file, it is now
+possible in theory to run "extresist" on hierarchical layouts.
+
+The one thing that is missing from this is the ability to find where
+a wire connects to a subcell, and to mark this as a kind of terminal;
+specifically, a terminal that connects to a subcell, as opposed to a
+terminal that connects to a device.  If the contents of subcells are
+considered to be "black boxes", then each cell def should have its
+own self-contained network of drivers and terminals.  Drivers are
+already handled as requiring being ports.  That's meaningful only on
+the cell top level, where something has to be marked as a point of
+entry for each signal expected to drive the subcircuit.  However,
+within a hierarchy, all drivepoints that are parent-to-child connections
+will be identified and recorded as "merge" entries in the .ext file.
+Since the ".ext" files are built from bottom up, it should be possible
+to get a complete list of drive points with exact locations instead of
+relying on port labels as the expected point of entry.
+
+Question:  If "extresist" is done right after "extract", then won't
+the parent cell not be available at the time of processing any given
+cell, such that the list of node merges not be available?  How to work
+around that problem? 
+
+There is a point in extExtractStack() in ExtMain.c when all cells up
+to the top have been processed but the substrate planes have not been
+replaced.  Here the "extresist" could simply operate on the same stack
+as "extract", and parent cell .ext files will be available to parse
+for "merge" statements for finding drive points upward in the hierarchy.
+At the top level, when no parent exists, then the declared ports can be
+used to determine the drive points.
+
+This will require duplicating the code that actually runs "extresist",
+because it will have to be run independently in any routine that calls
+"ExtCell".  This looks like two places, discounting "ExtTech" which
+shouldn't need it:  ExtractOneCell() and extExtractStack().
+
+Start by running tests of how the existing code works given a hierarchical
+layout.
