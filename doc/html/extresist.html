@@ -92,17 +92,25 @@ information.
       The <B>extresist</B> command provides a method for generating
       a more detailed model of resistance, in which long network
       routes and branching routes are replaced with resistor devices
-      and device networks. <P>
+      and device networks.  This is known as "full R-C extraction". <P>
 
-      Using <B>extresist</B> is a multi-step process.  It is first
-      necessary to run both <B>extract</B> and <B>ext2sim</B> to get
-      the initial netlist (with lumped, not detailed, resistances).
-      After a <TT>.sim</TT> file has been generated, the
-      <B>extresist all</B> command may be run.  The output is
+      Using <B>extresist</B> as a standalone command is a multi-step
+      process.  It is first necessary to run <B>extract</B> to get
+      the initial netlist.
+      After a <TT>.ext</TT> file has been generated, the
+      <B>extresist</B> command may be run.  The output is
       a file <TT>.res.ext</TT> for each cell in the hierarchy.
-      Finally, with the option <B>extresist on</B> set,
-      <B>ext2sim</B> or <B>ext2spice</B> will generate the final,
-      detailed simulation file. <P>
+      Finally, with the option <B>extresist on</B> set, <B>ext2spice</B>
+      will generate the final, detailed simulation file. <P>
+
+      Prior to magic version 8.3.597, it was also necessary to run
+      <B>ext2sim labels on</B> and <B>ext2sim</B> to write out a
+      <TT>.sim</TT> and a <TT>.node</TT> file before running
+      <B>extresist</B>.  This is no longer necessary.  There is since
+      magic version 8.3.597 an option <B>extract do resistance</B>
+      that runs the resistance extraction in sequence with the regular
+      extraction, producing both the <TT>.ext</TT> and <TT>.res.ext</TT>
+      files.
 
       More details on using <B>extresist</B> can be found in
       <B>magic</B> Tutorial number 8.
@@ -117,6 +125,7 @@ information.
    <BLOCKQUOTE>
       <A HREF=extract.html><B>extract</B></A> <BR>
       <A HREF=ext2sim.html><B>ext2sim</B></A> <BR>
+      <A HREF=ext2spice.html><B>ext2spice</B></A> <BR>
    </BLOCKQUOTE>
 
 <P><IMG SRC=graphics/line1.gif><P>

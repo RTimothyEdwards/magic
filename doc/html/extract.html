@@ -42,9 +42,11 @@ Circuit netlist extractor
 		<DL>
 		  <DT> <B>capacitance</B>
 		  <DD> Extract local parasitic capacitance values to substrate
-		  <DT> <B>resistance</B>
-		  <DD> Extract lumped resistance values.  Note that this
-			is <I>not</I> the same as full parasitic resistance.
+		  <DT> <B>coupling</B>
+		  <DD> Extract the parasitic coupling capacitance between
+			nodes.
+		  <DT> <B>lumped</B>
+		  <DD> Extract lumped resistance values.
 			The values extracted are "lumped" resistance and
 			indicate the value for which the delay through the
 			net can be computed with R times C, where R is the
@@ -55,9 +57,10 @@ Circuit netlist extractor
 			command.  Lumped resistances have no meaning in
 			SPICE netlists and will only be used when running
 			<B>ext2sim</B> to generate a .sim netlist.
-		  <DT> <B>coupling</B>
-		  <DD> Extract the parasitic coupling capacitance between
-			nodes.
+			Prior to magic version 8.3.597, this option was
+			<B>resistance</B>, but as that was often confused
+			with full parasitic resistance extraction, it has
+			been changed.
 		  <DT> <B>length</B>
 		  <DD> Extract the length of the shortest path from a driver
 			to a receiver, for computing more accurate parasitic
@@ -73,7 +76,7 @@ Circuit netlist extractor
 			array instances, is guaranteed to be strictly positive.
 		  <DT> <B>all</B>
 		  <DD> Apply all standard options (does not include options
-			"local", "labelcheck", or "aliases").
+			"local", "labelcheck", "aliases", or "resistance").
 		  <DT> <B>local</B>
 		  <DD> Write all .ext files to the current working directory.
 			If not specified, each .ext file will be placed in the
@@ -109,6 +112,18 @@ Circuit netlist extractor
 			Note the difference:  "extract unique" is a command that
 			runs immediately, and cannot be undone;
 			"extract do unique" is an option setting for "extract".
+		  <DT> <B>resistance</B>
+		  <DD> (Added in magic version 8.3.597) This setting replaces
+			the use of the standalone command "extresist".  The
+			effect is the same:  Magic performs full R-C extraction,
+			generating a <TT>.res.ext</TT> file that annotates the
+			existing <TT>.ext</TT> file (see the "extresist" command
+			documentation).  The "extresist" command options can
+			still be used to set options such as tolerance for the
+			R-C extraction.
+			Note that prior to magic version 8.3.597, this option
+			name would produce the lumped resistance approximation
+			(see <B>lumped</B>, above).
 		</DL>
 	      </BLOCKQUOTE>
 		These options (except for "local") determine how much
@@ -223,7 +238,9 @@ Circuit netlist extractor
 		<I>Warning:</I>  This operation immediately modifies the
 		existing layout in preparation for extraction.  Label
 		modifications are permanent, and cannot be undone.  All
-		cells in the hierarchy may potentially be modified. <BR>
+		cells in the hierarchy may potentially be modified.  To avoid
+		this issue, use the "extract do unique" option instead (see
+		above). <BR>
 	   <DT> <B>warn</B> [[<B>no</B>] <I>option</I>]
 	   <DD> Enable/disable reporting of non-fatal errors, where <I>option</I>
 		may be one of the following:
