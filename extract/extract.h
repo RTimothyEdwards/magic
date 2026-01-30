@@ -113,6 +113,8 @@ extern void ExtDumpCaps();
 
 extern int extEnumTilePerim(Tile *tpIn, TileType dinfo, const TileTypeBitMask *maskp, int pNum, int (*func)(), ClientData cdata);
 extern Plane *extPrepSubstrate();
+extern FILE *ExtFileOpen(CellDef *def, char *file, char *mode, char **prealfile);
+
 
 /* C99 compat */
 extern void ExtAll();

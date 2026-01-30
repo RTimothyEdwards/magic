@@ -39,7 +39,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "debug/debug.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
-#include "resis/resis.h"
 #include "utils/signals.h"
 #include "utils/stack.h"
 #include "utils/utils.h"
@@ -51,7 +50,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations */
 int extOutputUsesFunc();
-FILE *extFileOpen();
 
 Plane* extCellFile();
 void extHeader();
@@ -97,7 +95,7 @@ ExtCell(def, outName, doLength)
     if (def->cd_flags & CDNOEXTRACT)
 	return extPrepSubstrate(def);
 
-    f = extFileOpen(def, outName, "w", &filename);
+    f = ExtFileOpen(def, outName, "w", &filename);
 
     TxPrintf("Extracting %s into %s:\n", def->cd_name, filename);
 
@@ -116,25 +114,6 @@ ExtCell(def, outName, doLength)
     savePlane = extCellFile(def, f, doLength);
     if (f != NULL) fclose(f);
 
-    /* Integrated extresist ---  Run "extresist" on the cell def just
-     * extracted and produce an annotation file "<file>.res.ext".
-     */
-
-    if (ExtOptions & EXT_DOEXTRESIST)
-    {
-        ResisData *resisdata = ResInit();
-
-	UndoDisable();
-
-	ResOptionsFlags |= ResOpt_Signal;
-        resisdata->mainDef = def;
-        resisdata->savePlanes = (struct saveList *)NULL;        /* unused */
-
-        ExtResisForDef(def, resisdata);
-
-	UndoEnable();
-    }
-
     if (extNumErrors > 0 || extNumWarnings > 0)
     {
 	TxPrintf("%s:", def->cd_name);
@@ -152,7 +131,7 @@ ExtCell(def, outName, doLength)
 /*
  * ----------------------------------------------------------------------------
  *
- * extFileOpen --
+ * ExtFileOpen --
  *
  * Open the .ext file corresponding to a .mag file.
  * If def->cd_file is non-NULL, the .ext file is just def->cd_file with
@@ -170,7 +149,7 @@ ExtCell(def, outName, doLength)
  */
 
 FILE *
-extFileOpen(def, file, mode, prealfile)
+ExtFileOpen(def, file, mode, prealfile)
     CellDef *def;	/* Cell whose .ext file is to be written */
     char *file;		/* If non-NULL, open 'name'.ext; otherwise,
 			 * derive filename from 'def' as described

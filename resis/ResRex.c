@@ -114,7 +114,7 @@ ExtResisForDef(celldef, resisdata)
 
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* Read in the .ext file */
-    result = (ResReadExt(celldef->cd_name) == 0);
+    result = (ResReadExt(celldef) == 0);
 
     /* Clean up the EFDevTypes table */
     for (idx = 0; idx < EFDevNumTypes; idx++) freeMagic(EFDevTypes[idx]);
@@ -1043,20 +1043,17 @@ ResProcessNode(
 	}
     }
 
-    /* special handling for FORCE and DRIVELOC labels:		*/
-    /* set minRes = node->minsizeres if it exists, 0 otherwise	*/
+    /* Special handling for FORCE and DRIVELOC labels:		*/
+    /* Set minRes = node->minsizeres if it exists, 0 otherwise.	*/
 
     if (node->status & (FORCE|DRIVELOC))
     {
 	if (node->status & MINSIZE)
-	{
 	    minRes = node->minsizeres;
-	}
 	else
-	{
 	    minRes = 0;
-	}
-	if (node->status  & DRIVELOC)
+
+	if (node->status & DRIVELOC)
 	{
 	    resisdata->rg_devloc = &node->drivepoint;
 	    resisdata->rg_status |= DRIVEONLY;
@@ -1825,6 +1822,9 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 		     	    node->name, resisdata->rg_Tdi / Z_TO_P, RCdev / Z_TO_P);
 	    }
         }
+	else
+	    TxPrintf("Adding  %s\n", node->name);
+
         for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)
         {
 	    if ((layoutDev = ResGetDevice(&ptr->thisDev->location, ptr->thisDev->rs_ttype)))

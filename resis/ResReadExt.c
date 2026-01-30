@@ -58,6 +58,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define		DEV_NAME		2
 #define		DEV_X			3
 #define		DEV_Y			4
+#define		DEV_PARAM_START		7
 
 #define		NODES_NODENAME		1
 #define		NODES_NODEX		4
@@ -102,7 +103,7 @@ ResFixPoint	*ResFixList;
  */
 
 int
-ResReadExt(char *extfile)
+ResReadExt(CellDef *def)
 {
     char *line = NULL, *argv[128];
     int	result, locresult;
@@ -111,31 +112,12 @@ ResReadExt(char *extfile)
     CellDef *dbdef;
     ResExtNode *curnode;
 
-    /* Search for the .ext fie in the same way that efReadDef() does. */
+    /* Search for the .ext file in the same way that efReadDef() does. */
 
-    fp = PaOpen(extfile, "r", ".ext", EFSearchPath, EFLibPath, (char **)NULL);
-    if ((fp == NULL) && ((dbdef = DBCellLookDef(extfile)) != NULL)
-			&& (dbdef->cd_file != NULL))
-    {
-	char *filepath, *sptr;
-
-	filepath = StrDup((char **)NULL, dbdef->cd_file);
-	sptr = strrchr(filepath, '/');
-	if (sptr)
-	{
-	    *sptr = '\0';
-	    fp = PaOpen(extfile, "r", ".ext", filepath, EFLibPath, (char **)NULL);
-	}
-	freeMagic(filepath);
-    }
-
-    /* Try with the standard search path */
-    if ((fp == NULL) && (EFSearchPath == NULL))
-	fp = PaOpen(extfile, "r", ".ext", Path, EFLibPath, (char **)NULL);
-
+    fp = ExtFileOpen(def, (char *)NULL, "r", (char **)NULL);
     if (fp == NULL)
     {
-    	TxError("Cannot open file %s%s\n", extfile, ".ext");
+    	TxError("Cannot open file %s%s\n", def->cd_name, ".ext");
 	return 1;
     }
 
@@ -335,10 +317,10 @@ ResReadDevice(int argc,
     TileType	ttype;
     HashEntry	*entry;
     ResExtNode	*node;
+    ResValue	rpersquare;
+    float	wval;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
-
-    device->resistance = 0;	/* Linear resistance from FET line, unused */
 
     device->status = FALSE;
     device->nextDev = ResRDevList;
@@ -365,10 +347,25 @@ ResReadDevice(int argc,
     device->drain = (ResExtNode *)NULL;
     device->subs = (ResExtNode *)NULL;
 
-    /* Pass over parameters and find the next argument */
+    entry = HashLookOnly(&devptr->exts_deviceResist, "linear");
+    if (entry != NULL)
+	rpersquare = (ResValue)(spointertype)HashGetValue(entry);
+    else
+	rpersquare = (ResValue)10000.0;		/* Default to a sane value */
+
+    /* For devices, the device width is in the parameter list */
+    wval = 0.0;
     for (i = DEV_Y; i < argc; i++)
-	if (!StrIsInt(argv[i]) && !(strchr(argv[i], '=')))
+    {
+	char *eptr;
+	if ((eptr = strchr(argv[i], '=')) != NULL)
+	{
+	    if (*argv[i] == 'w')
+		sscanf(eptr + 1, "%f", &wval);
+	}
+	else if (!StrIsInt(argv[i]))
 	    break;
+    }
 
     if (i == argc)
     {
@@ -376,6 +373,8 @@ ResReadDevice(int argc,
 		argv[DEV_NAME]);
 	return 1;
     }
+    else
+	device->resistance = wval * rpersquare;	/* Channel resistance */
 
     /* Find and record the device terminal nodes */
     /* Note that this only records up to two terminals matching FET
@@ -448,10 +447,10 @@ ResReadFET(int argc,
     TileType	ttype;
     HashEntry	*entry;
     ResExtNode	*node;
+    ResValue	rpersquare;
+    float	area, perim, wval, lval;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
-
-    device->resistance = 0;	/* Linear resistance from FET line, unused */
 
     device->status = FALSE;
     device->nextDev = ResRDevList;
@@ -469,10 +468,24 @@ ResReadFET(int argc,
     device->location.p_x = atoi(argv[FET_X]);
     device->location.p_y = atoi(argv[FET_Y]);
 
-    device->rs_gattr=RDEV_NOATTR;
-    device->rs_sattr=RDEV_NOATTR;
-    device->rs_dattr=RDEV_NOATTR;
+    device->rs_gattr = RDEV_NOATTR;
+    device->rs_sattr = RDEV_NOATTR;
+    device->rs_dattr = RDEV_NOATTR;
     device->rs_devptr = devptr;
+
+    entry = HashLookOnly(&devptr->exts_deviceResist, "linear");
+    if (entry != NULL)
+	rpersquare = (ResValue)(spointertype)HashGetValue(entry);
+    else
+	rpersquare = (ResValue)10000.0;		/* Default to a sane value */
+
+    /* For old-style FETs, the width is determined from area and perimeter */ 
+    area = MagAtof(argv[FET_AREA]);
+    perim = MagAtof(argv[FET_PERIM]);
+    lval = 0.5 * (perim + sqrt(perim * perim - 4 * area));
+    wval = area / lval;
+
+    device->resistance = wval * rpersquare;	/* Channel resistance */
 
     /* Find and record the FET terminal nodes */
 

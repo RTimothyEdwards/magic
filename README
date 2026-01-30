@@ -49,5 +49,104 @@ because it will have to be run independently in any routine that calls
 "ExtCell".  This looks like two places, discounting "ExtTech" which
 shouldn't need it:  ExtractOneCell() and extExtractStack().
 
-Start by running tests of how the existing code works given a hierarchical
-layout.
+Done.  Now it should be possible to read the .ext file of every parent
+cell of a cell def to find all of the potential points of entry.
+Dealing with those points of entry will be the hard part.
+
+First, re-run the existing test (non-hierarchical) to make sure that
+moving the point where extResisForDef() is called didn't mess up
+anything.  Looks good.
+
+Next, run a test of how the existing code works given a hierarchical
+layout.  Example in ~/devel/magic/extresist_new/hierarchical/.  Copying
+layout from chipalooza_projects_2, top level cell sky130_am_ip__ldo_01v8.
+
+First problem:  Not finding the .ext files when reading for extresist.
+But this literally *just* worked fine for the non-hierarchical cell.
+What gives? --- "EFSearchPath" is NULL, this is not what's changed
+by "extract path"?  The value is in global variable ExtLocalPath.
+Oh. . . So it *writes* the .res.ext file to the right place but it
+doesn't *read* the .res.ext file from the right place.  This also
+means that the non-hierarchical test pulled the wrong .ext file and
+should be done over, although eyeballing it, it looks okay.
+There is a command "extFileOpen" that should be used.
+Fixed, try again.
+
+This more or less worked.
+Needs to print out the name of the cell being processed.
+Once cell, looks like the level shifter, had "missing terminal
+connection" errors.
+
+Might be source-drain connected?  No, these are perfectly normal
+transistors. . .  Why this cell specifically?  Happens even if
+only the cell itself is being extracted (no hierarchy).
+Error issued at ResRex.c:1512.  layoutDev->rd_terminals has all
+null contents.
+Note that "rd_fet_gate/source/drain/subs" is equivalent to
+"rd_terminals[0/1/2/3]" and either form might be used.  The
+rd_terminals[*] form seems to be used only for initialization.
+Looks like ResNewSDDevice() was never run.
+
+Would have come from walking the device on all four sides;
+ResNewSDDevice would have been called from ResEachTile.
+
+Break on ResEachTile() for the gate tile in question, which would
+be at 1406, 563.  Apparently that never happens?
+5th call to ResProcessTiles().
+
+Note that "Adding <node name>" only appears sometimes.  When it
+is omitted, resisdata->rg_bigdevres is zero.  Example, VPWR?
+rg_bigdevres copied from "minRes" in ResProcessNode().
+"Find largest SD device connected to node" seems non-controversial
+and should produce a result for node VPWR.
+Break on ResProcessNode until node->name is "VPWR".  Problem happens
+immediately.
+
+Ah---Caused by ptr->thisDev->resistance = 0.
+This is "linear resistance" from FET line.  In .sim files, this is
+found in the devptr record and is relevant.
+Added code to get the value of device width from the .ext file and
+determine the linear resistance according to the tech file values.
+(Except that the open PDKs don't have these values. . .  something
+to deal with later.) (Since this seems important, made it default
+to 10k instead of 0.)
+
+Oddly, these changes made exactly zero difference to the output.
+"minRes" is being set to zero, perhaps for no good reason.
+Now things are worse:  "Adding" only shows up once, for VPB,
+and now there's a new error about "VPWR" being an "orphaned node"
+and being connected (arbitrarily) to "VPWR.t1". . .
+Went back to setting minRes to zero for FORCE or DRIVELOC.
+Anyway, this seems to have nothing to do with the missing terminal
+connection and has just been a distraction.
+
+Example where ResNewSDDevice() is being called correctly:
+tile = pdiff at 686, 439
+tile has clientdata with resDev = L=30, W=168 @656, 439.
+Tile came from a contact point record, cp->cp_tile[0].
+
+This does not say a whole lot about why a terminal connection
+wasn't found.
+
+Staring at it for a while, I get it now:  These devices are on nets that
+are split into two unconnected parts but labeled the same.  So the
+connectivity is tracing from one of the labels, and the other gets
+unprocessed.  Probably gets solved by using "extract do unique"?
+Yes, it does!
+
+Found an error in other code:  "extract do unique" turned a font label
+into a regular label, so it got left that way.  No, this is something
+else and is in the original cell.  Actually, this is a strange error.
+"select area labels" even when applied to the entire cell, does not
+find (or does not display) VGND, LVPWR, VPWR, or VPB font labels.
+All non-font labels and font labels VNB, A, and X are displayed.
+This behavior is not new and I will punt on it.  Have no idea what's
+going on, as the graphics routines appear to be working and displaying
+the font label as expected.
+
+Anyway, with "extract do unique" and "extract do resistance", I can get
+a full R-C extraction netlist from the LDO layout.  That leaves a lot
+to be analyzed. . .
+
+Will need a simpler hierarchical layout example.
+

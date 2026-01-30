@@ -648,8 +648,21 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
 		    return;
 		}
 		else if (!resist)
-		    TxError("Warning:  Ports \"%s\" and \"%s\" are electrically "
+		{
+		    char *uptr1, *uptr2;
+
+		    /* Do not generate an error message if one or both node names
+		     * is made by "extract unique".
+		     */
+		    if ((uptr1 = strstr(nodeName1, "_uq")) != 0) *uptr1 = '\0';
+		    if ((uptr2 = strstr(nodeName2, "_uq")) != 0) *uptr2 = '\0';
+		    if ((uptr1 == NULL && uptr2 == NULL) ||
+				strcmp(nodeName1, nodeName2)) 
+			TxError("Warning:  Ports \"%s\" and \"%s\" are electrically "
 				"shorted.\n", nodeName1, nodeName2);
+		    if (uptr1) *uptr1 = '_';
+		    if (uptr2) *uptr2 = '_';
+		}
 		else
 		    /* Do not merge the nodes when folding in extresist parasitics */
 		    return;
