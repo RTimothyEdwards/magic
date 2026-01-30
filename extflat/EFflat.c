@@ -61,15 +61,17 @@ int efFlatGlobHash(HierName *);
 bool efFlatGlobCmp(HierName *, HierName *);
 char *efFlatGlobCopy(HierName *);
 void efFlatGlobError(EFNodeName *nameGlob, EFNodeName *nameFlat);
-int efAddNodes(HierContext *hc, bool stdcell);
-int efAddConns(HierContext *hc, bool doWarn);
-int efAddOneConn(HierContext *hc, char *name1, char *name2, Connection *conn, bool doWarn);
+int efAddNodes(HierContext *hc, int flags);
+int efAddConns(HierContext *hc, int flags);
+int efAddOneConn(HierContext *hc, char *name1, char *name2, Connection *conn, int flags);
 
 /* Flags passed to efFlatNode() */
 
 #define FLATNODE_STDCELL    0x01
 #define FLATNODE_DOWARN	    0x02
 #define FLATNODE_NOABSTRACT 0x04
+#define FLATNODE_HIER 	    0x08
+#define FLATNODE_CHILD 	    0x10
 
 
 /*
@@ -216,7 +218,7 @@ EFFlatBuildOneLevel(def, flags)
     efFlatRootUse.use_def = efFlatRootDef;
 
     /* Record all nodes down the hierarchy from here */
-    flatnodeflags = 0;    /* No FLATNODE_DOWARN */
+    flatnodeflags = FLATNODE_HIER;    /* No FLATNODE_DOWARN */
     efFlatNodes(&efFlatContext, INT2CD(flatnodeflags));
 
     /* Expand all subcells that contain connectivity information but	*/
@@ -320,9 +322,7 @@ efFlatNodes(hc, clientData)
     ClientData clientData;
 {
     int flags = (int)CD2INT(clientData);
-
-    bool stdcell = (flags & FLATNODE_STDCELL) ? TRUE : FALSE;
-    bool doWarn = (flags & FLATNODE_DOWARN) ? TRUE : FALSE;
+    int hierflags = 0;
 
     if (flags & FLATNODE_NOABSTRACT)
     {
@@ -332,13 +332,19 @@ efFlatNodes(hc, clientData)
 			def->def_name);
     }
 
-    (void) efHierSrUses(hc, efFlatNodes, clientData);
+    /* If called with FLATNODE_HIER set, then set the FLATNODE_CHILD
+     * flag while calling efHierSrUses(), to prevent efAddNodes() from
+     * duplicating the capacitance of nodes in child cells.
+     */
+
+    hierflags = flags | ((flags & FLATNODE_HIER) ? FLATNODE_CHILD : 0);
+    (void) efHierSrUses(hc, efFlatNodes, INT2CD(hierflags));
 
     /* Add all our own nodes to the table */
-    efAddNodes(hc, stdcell);
+    efAddNodes(hc, flags);
 
     /* Process our own connections and adjustments */
-    (void) efAddConns(hc, doWarn);
+    (void) efAddConns(hc, flags);
 
     return (0);
 }
@@ -386,11 +392,11 @@ efFlatNodesStdCell(hc)
     }
 
     /* Add all our own nodes to the table */
-    efAddNodes(hc, TRUE);
+    efAddNodes(hc, (int)FLATNODE_STDCELL);
 
     /* Process our own connections and adjustments */
     if (!(hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT))
-	(void) efAddConns(hc, TRUE);
+	(void) efAddConns(hc, (int)FLATNODE_DOWARN);
 
     return (0);
 }
@@ -413,10 +419,10 @@ efFlatNodesDeviceless(hc, cdata)
     if ((HashGetNumEntries(&hc->hc_use->use_def->def_devs) == 0) && (newcount == 0))
     {
 	/* Add all our own nodes to the table */
-	efAddNodes(hc, TRUE);
+	efAddNodes(hc, (int)FLATNODE_STDCELL);
 
 	/* Process our own connections and adjustments */
-	efAddConns(hc, TRUE);
+	efAddConns(hc, (int)FLATNODE_DOWARN);
 
 	/* Mark this definition as having no devices, so it will not be visited */
 	hc->hc_use->use_def->def_flags |= DEF_NODEVICES;
@@ -455,7 +461,7 @@ efFlatNodesDeviceless(hc, cdata)
 int
 efAddNodes(
     HierContext *hc,
-    bool stdcell)
+    int flags)
 {
     Def *def = hc->hc_use->use_def;
     EFNodeName *nn, *newname, *oldname;
@@ -465,6 +471,8 @@ efAddNodes(
     HierName *hierName;
     int size, asize;
     HashEntry *he;
+    bool stdcell = (flags & FLATNODE_STDCELL) ? TRUE : FALSE;
+    bool is_child = (flags & FLATNODE_CHILD) ? TRUE : FALSE;
     bool is_subcircuit = (def->def_flags & DEF_SUBCIRCUIT) ? TRUE : FALSE;
 
     size = sizeof (EFNode) + (efNumResistClasses-1) * sizeof (EFPerimArea);
@@ -503,12 +511,15 @@ efAddNodes(
 	// If called with "hierarchy on", all local node caps and adjustments
 	// have been output and should be ignored.
 
-	newnode->efnode_cap = (!stdcell) ? node->efnode_cap : (EFCapValue)0.0;
+	if (!stdcell && !is_child)
+	    newnode->efnode_cap = node->efnode_cap;
+	else
+	    newnode->efnode_cap = (EFCapValue)0.0;
 	newnode->efnode_client = (ClientData) NULL;
 	newnode->efnode_flags = node->efnode_flags;
 	newnode->efnode_type = node->efnode_type;
 	newnode->efnode_num = 1;
-	if (!stdcell)
+	if (!stdcell && !is_child)
 	    bcopy((char *) node->efnode_pa, (char *) newnode->efnode_pa,
 			efNumResistClasses * sizeof (EFPerimArea));
 	else
@@ -601,7 +612,7 @@ efAddNodes(
 int
 efAddConns(
     HierContext *hc,
-    bool doWarn)
+    int flags)
 {
     Connection *conn;
 
@@ -614,9 +625,9 @@ efAddConns(
     {
 	/* Special case for speed when no array info is present */
 	if (conn->conn_1.cn_nsubs == 0)
-	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn, doWarn);
+	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn, flags);
 	else
-	    efHierSrArray(hc, conn, efAddOneConn, INT2CD(doWarn));
+	    efHierSrArray(hc, conn, efAddOneConn, INT2CD(flags));
     }
 
     return (0);
@@ -648,18 +659,23 @@ efAddOneConn(
     char *name1,	/* These are strings, not HierNames */
     char *name2,
     Connection *conn,
-    bool doWarn)
+    int flags)
 {
     HashEntry *he1, *he2;
     EFNode *node, *newnode;
     int n;
 
+    bool doWarn = (flags & FLATNODE_DOWARN) ? TRUE : FALSE;
+    bool doHier = (flags & FLATNODE_HIER) ? TRUE : FALSE;
+
     he1 = EFHNLook(hc->hc_hierName, name1, (doWarn) ? "connect(1)" : NULL);
     if (he1 == NULL)
 	return 0;
 
-    /* Adjust the resistance and capacitance of its corresponding node */
     node = ((EFNodeName *) HashGetValue(he1))->efnn_node;
+
+    /* Adjust the resistance and capacitance of its corresponding node */
+
     node->efnode_cap += conn->conn_cap;
     for (n = 0; n < efNumResistClasses; n++)
     {

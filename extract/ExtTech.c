@@ -1368,7 +1368,7 @@ ExtTechSimplePerimCap(argc, argv)
 
     if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder)
     {
-	TechError("Cannot parse area cap line without plane ordering!\n");
+	TechError("Cannot parse perimeter cap line without plane ordering!\n");
 	return;
     }
 
@@ -1376,9 +1376,14 @@ ExtTechSimplePerimCap(argc, argv)
     TTMaskSetMask(allExtractTypes, &types);
     plane1 = DBTechNoisyNamePlane(argv[2]);
 
-    TTMaskCom2(&nottypes, &types);
+    /* As part of the "simple perimeter" simplifications, "nottypes" can
+     * only be space.  This prevents perimeter edges from being seen
+     * between, e.g., poly and transistor gates, or metal and metal
+     * resistors.
+     */
+    TTMaskSetOnlyType(&nottypes, TT_SPACE);
+
     TTMaskAndMask(&types, &DBPlaneTypes[plane1]);
-    TTMaskAndMask(&nottypes, &DBPlaneTypes[plane1]);
 
     capVal = aToCap(argv[argc - 1]);
 
@@ -1632,7 +1637,7 @@ ExtTechSimpleOverlapCap(argv)
 
     if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder)
     {
-	TechError("Cannot parse area cap line without plane ordering!\n");
+	TechError("Cannot parse overlap cap line without plane ordering!\n");
 	return;
     }
 
@@ -1732,7 +1737,7 @@ ExtTechSimpleSideOverlapCap(argv)
 
     if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder)
     {
-	TechError("Cannot parse area cap line without plane ordering!\n");
+	TechError("Cannot parse side overlap cap line without plane ordering!\n");
 	return;
     }
 
@@ -1740,9 +1745,14 @@ ExtTechSimpleSideOverlapCap(argv)
     TTMaskSetMask(allExtractTypes, &types);
     plane1 = DBTechNoisyNamePlane(argv[2]);
 
-    TTMaskCom2(&nottypes, &types);
+    /* As part of the "simple sideoverlap" simplifications, "nottypes"
+     * can only be space.  This prevents perimeter edges from being
+     * seen between, e.g., poly and transistor gates, or metal and
+     * metal resistors.
+     */
+    TTMaskSetOnlyType(&nottypes, TT_SPACE);
+
     TTMaskAndMask(&types,    &DBPlaneTypes[plane1]);
-    TTMaskAndMask(&nottypes, &DBPlaneTypes[plane1]);
 
     DBTechNoisyNameMask(argv[3], &ov);
     TTMaskSetMask(allExtractTypes, &ov);
