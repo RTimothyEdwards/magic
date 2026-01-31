@@ -100,9 +100,6 @@ EFHNIsGlob(hierName)
     retstr = (char *)Tcl_GetVar2(magicinterp, "globals", hierName->hn_name,
 		TCL_GLOBAL_ONLY);
     if (retstr != NULL) return TRUE;
-
-    // retstr = (char *)Tcl_GetVar(magicinterp, hierName->hn_name, TCL_GLOBAL_ONLY);
-    // if (retstr != NULL) return TRUE;
 #endif
     return hierName->hn_name[strlen(hierName->hn_name) - 1] == '!';
 }
@@ -520,13 +517,22 @@ EFHNBest(hierName1, hierName2)
 
     last1 = hierName1->hn_name[strlen(hierName1->hn_name) - 1];
     last2 = hierName2->hn_name[strlen(hierName2->hn_name) - 1];
+
     if (last1 != '!' || last2 != '!')
     {
+#if 0
+	/* NOTE (Jan. 31, 2026):  The handling of trailing "!" as a global
+	 * is at best incorrect;  the node output should not consider the
+	 * ancestor hierarchy, but it does.  I am disabling the check here,
+	 * and treating all names as local.  It could be reinstated, but
+	 * I think global names are just a bad idea altogether.
+	 */
 	/* Prefer global over local names */
 	if (last1 == '!') return TRUE;
 	if (last2 == '!') return FALSE;
+#endif
 
-	/* Neither name is global, so chose label over generated name */
+	/* Neither name is global, so choose label over generated name */
 	if (last1 != '#' && last2 == '#') return TRUE;
 	if (last1 == '#' && last2 != '#') return FALSE;
     }
