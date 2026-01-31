@@ -82,6 +82,12 @@ extern void efHNRecord();
  * variables cause nets named VDD and GND to become globals, which was
  * not intended.
  *
+ * Updated 1/2026:  Also seems like a bad idea to treat the suffix "!"
+ * automatically as a global.  By removing this, a global pin must be
+ * manually declared by putting it in the "globals" array variable.
+ * When not compiled with Tcl/Tk support, the original behavior is
+ * implemented.
+ *
  * Results:
  *	TRUE if the name is a global.
  *
@@ -99,9 +105,10 @@ EFHNIsGlob(hierName)
     char *retstr;
     retstr = (char *)Tcl_GetVar2(magicinterp, "globals", hierName->hn_name,
 		TCL_GLOBAL_ONLY);
-    if (retstr != NULL) return TRUE;
-#endif
+    return (retstr != NULL) ? TRUE : FALSE;
+#else
     return hierName->hn_name[strlen(hierName->hn_name) - 1] == '!';
+#endif
 }
 
 /*
