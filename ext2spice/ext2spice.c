@@ -1932,6 +1932,7 @@ topVisit(
     {
 	char stmp[MAX_STR_SIZE];
 	int portidx;
+	bool found = FALSE;
 
 	sname = (EFNodeName *) HashGetValue(he);
 	if (sname == NULL) continue;	/* Should not happen */
@@ -1939,33 +1940,68 @@ topVisit(
 	snode = sname->efnn_node;
 	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
 
+	/* Found a node which is also a port */
+
+	portidx = snode->efnode_name->efnn_port;
+	if (portidx >= 0)
+	{
+	    if (sorted_ports[portidx] == NULL)
+	    {
+		if ((def->def_flags & DEF_ABSTRACT))
+		{
+		    EFHNSprintf(stmp, sname->efnn_hier);
+		    pname = stmp;
+		}
+		else
+		    pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
+
+		hep = HashLookOnly(&portNameTable, pname);
+		if (hep == (HashEntry *)NULL)
+		{
+		    hep = HashFind(&portNameTable, pname);
+		    HashSetValue(hep, (ClientData)(pointertype)portidx);
+		    sorted_ports[portidx] = StrDup((char **)NULL, pname);
+		}
+		else
+		{
+		    /* Node that was unassigned has been found to be
+		     * a repeat (see NOTE at top), so make sure its
+		     * port number is set correctly.
+		     */
+		    snode->efnode_name->efnn_port = (int)(pointertype)HashGetValue(hep);
+		}
+		found = TRUE;
+	    }
+	}
+
+	if (!(def->def_flags & DEF_ABSTRACT))
+	    heh = HashLookOnly(&efNodeHashTable, (char *)snode->efnode_name->efnn_hier);
+
+	/* Might need to check here for a port that was optimized out? */
+
+	/* If snode is flagged as a port but no port number was found, then
+	 * check the all of the node's name entries to see if any of them has
+	 * a port number.
+	 */
+
 	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	{
+	    if (found == TRUE) break;
 	    portidx = nodeName->efnn_port;
 	    if (portidx < 0) continue;
 
-	    /* Check if the same hierName is recorded in the flattened/optimized
-	     * def's efNodeHashTable.  If not, then it has been optimized out
-	     * and should be removed from the port list.
-	     */
-	    if (def->def_flags & DEF_ABSTRACT)
-    	        heh = HashLookOnly(&efNodeHashTable, (char *)nodeName->efnn_hier);
-	    else
-    	        heh = HashLookOnly(&efNodeHashTable,
-			    (char *)snode->efnode_name->efnn_hier);
-
-	    /* If view is abstract, rely on the given port name, not
-	     * the node.  Otherwise, artifacts of the abstract view
-	     * may cause nodes to be merged and the names lost.
-	     */
-
 	    if (def->def_flags & DEF_ABSTRACT)
 	    {
+    	        heh = HashLookOnly(&efNodeHashTable, (char *)nodeName->efnn_hier);
+
+		/* If view is abstract, rely on the given port name, not
+		 * the node.  Otherwise, artifacts of the abstract view
+		 * may cause nodes to be merged and the names lost.
+		 */
 		EFHNSprintf(stmp, nodeName->efnn_hier);
 		pname = stmp;
 	    }
 	    else
-		// pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 		pname = nodeSpiceName(nodeName->efnn_hier, NULL);
 
 	    if (heh == (HashEntry *)NULL) /* pname now resolved for log output */
@@ -1983,7 +2019,10 @@ topVisit(
 	    	hep = HashFind(&portNameTable, pname);
 		HashSetValue(hep, (ClientData)(pointertype)nodeName->efnn_port);
 		if (sorted_ports[portidx] == NULL)
+		{
 		    sorted_ports[portidx] = StrDup((char **)NULL, pname);
+		    found = TRUE;
+		}
 	    }
 	    else
 	    {
