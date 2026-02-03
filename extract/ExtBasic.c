@@ -86,6 +86,8 @@ typedef struct		/* Position of each terminal (below) tile position */
 {
     int		pnum;
     Point	pt;
+    Tile	*tile;	/* Any tile beloging to the terminal */
+    TileType	type;	/* Type of "tile", including split information */
 } TermTilePos;
 
 /* Field definitions for tr_devmatch */
@@ -148,6 +150,7 @@ int extTransTileFunc();
 int extTransPerimFunc();
 int extTransFindSubs();
 int extTransFindId();
+void extTermAPFunc();
 
 int extAnnularTileFunc();
 int extResistorTileFunc();
@@ -2169,8 +2172,6 @@ extTransFindTermArea(tile, dinfo, eapd)
     TileType dinfo;
     ExtAreaPerimData *eapd;
 {
-    void extTermAPFunc();	/* Forward declaration */
-
     extEnumTerminal(tile, dinfo, DBConnectTbl, extTermAPFunc, (ClientData)eapd);
     return 1;
 }
@@ -2258,6 +2259,8 @@ extOutputDevices(def, transList, outFile)
 	    extTransRec.tr_termpos[i].pnum = 0;
 	    extTransRec.tr_termpos[i].pt.p_x = 0;
 	    extTransRec.tr_termpos[i].pt.p_y = 0;
+	    extTransRec.tr_termpos[i].tile = NULL;
+	    extTransRec.tr_termpos[i].type = TT_SPACE;
 	}
 
 	arg.fra_def = def;
@@ -2281,6 +2284,58 @@ extOutputDevices(def, transList, outFile)
 	arg.fra_region = (ExtRegion *) reg;
 	arg.fra_each = extTransTileFunc;
 	ntiles = ExtFindNeighbors(reg->treg_tile, reg->treg_dinfo, arg.fra_pNum, &arg);
+
+	/* Once the entire device has been marked with the device region,
+	 * replacing the node region, search each terminal to determine
+	 * if the terminal is shared by multiple devices.  Note that this
+	 * algorithm is not foolproof:  In the rare case that three or more
+	 * devices share the same terminal, and more than one of them have
+	 * the same gate, then those gates will have the same node record and
+	 * will not be seen as individual devices.
+	 */
+
+	for (i = 0; i < MAXSD; i++)
+	{
+	    Tile *termtile = extTransRec.tr_termpos[i].tile;
+	    if (termtile != NULL)
+	    {
+		/* Find the area and perimeter of the terminal area (connected
+		 * area outside the boundary on a single plane).  Note that
+		 * this does not consider terminal area outside of the cell
+		 * or how area or perimeter may be shared or overlap between
+		 * devices.
+		 */
+
+		int shared;
+		ExtAreaPerimData eapd;
+		TileType termtype = extTransRec.tr_termpos[i].type;
+
+		eapd.eapd_area = eapd.eapd_perim = 0;
+		TTMaskCom2(&eapd.eapd_mask, &DBConnectTbl[termtype & TT_LEFTMASK]);
+		eapd.eapd_gatemask = &ExtCurStyle->exts_deviceMask;
+		eapd.eapd_gatenode = (NodeRegion *)reg;
+		eapd.eapd_shared = NULL;
+
+		extEnumTerminal(termtile,
+				termtype & (TT_DIAGONAL | TT_SIDE | TT_DIRECTION),
+				DBConnectTbl, extTermAPFunc,
+				(ClientData)&eapd);
+
+		shared = 1;  /* Count self since we divide by "shared" */
+		free_magic1_t mm1 = freeMagic1_init();
+		while (eapd.eapd_shared)
+		{
+		    shared++;
+		    freeMagic1(&mm1, eapd.eapd_shared);
+		    eapd.eapd_shared = eapd.eapd_shared->nl_next;
+		}
+		freeMagic1_end(&mm1);
+
+		extTransRec.tr_termarea[i] = eapd.eapd_area;
+		extTransRec.tr_termperim[i] = eapd.eapd_perim;
+		extTransRec.tr_termshared[i] = shared;
+	    }
+	}
 
 	/* Re-mark with extTransRec.tr_gatenode */
 	arg.fra_uninit = (ClientData) reg;
@@ -3912,8 +3967,11 @@ extTransPerimFunc(bp)
 		    extTransRec.tr_termvector[thisterm].p_y = 0;
 		    extTransRec.tr_termpos[thisterm].pnum = DBPlane(toutside);
 		    extTransRec.tr_termpos[thisterm].pt = bp->b_outside->ti_ll;
-
-		    /* Find the total area of this terminal */
+		    /* tile and dinfo need only be one valid terminal tile,
+		     * and do not need to be updated.
+		     */
+		    extTransRec.tr_termpos[thisterm].tile = bp->b_outside;
+		    extTransRec.tr_termpos[thisterm].type = dinfo | toutside;
 		}
 		else if (extTransRec.tr_termnode[thisterm] == termNode)
 		{
@@ -3944,42 +4002,6 @@ extTransPerimFunc(bp)
 
 		/* Add the length to this terminal's perimeter */
 		extTransRec.tr_termlen[thisterm] += len;
-
-		if (extTransRec.tr_termarea[thisterm] == 0)
-		{
-		    /* Find the area and perimeter of the terminal area (connected
-		     * area outside the boundary on a single plane).  Note that
-		     * this does not consider terminal area outside of the cell
-		     * or how area or perimeter may be shared or overlap between
-		     * devices.
-		     */
-
-		    ExtAreaPerimData eapd;
-		    int shared;
-
-		    eapd.eapd_area = eapd.eapd_perim = 0;
-		    TTMaskCom2(&eapd.eapd_mask, &DBConnectTbl[toutside]);
-		    eapd.eapd_gatemask = &ExtCurStyle->exts_deviceMask;
-		    eapd.eapd_gatenode = extTransRec.tr_gatenode;
-		    eapd.eapd_shared = NULL;
-
-		    extEnumTerminal(bp->b_outside, dinfo, DBConnectTbl,
-					extTermAPFunc, (ClientData)&eapd);
-
-		    shared = 1;  /* Count self since we divide by "shared" */
-		    free_magic1_t mm1 = freeMagic1_init();
-		    while (eapd.eapd_shared)
-		    {
-			shared++;
-			freeMagic1(&mm1, eapd.eapd_shared);
-			eapd.eapd_shared = eapd.eapd_shared->nl_next;
-		    }
-		    freeMagic1_end(&mm1);
-
-		    extTransRec.tr_termarea[thisterm] = eapd.eapd_area;
-		    extTransRec.tr_termperim[thisterm] = eapd.eapd_perim;
-		    extTransRec.tr_termshared[thisterm] = shared;
-		}
 
 		/* Update the boundary traversal vector */
 		switch(bp->b_direction) {
