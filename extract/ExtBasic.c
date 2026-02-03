@@ -3966,7 +3966,7 @@ extTransPerimFunc(bp)
 		    extEnumTerminal(bp->b_outside, dinfo, DBConnectTbl,
 					extTermAPFunc, (ClientData)&eapd);
 
-		    shared = 0;
+		    shared = 1;  /* Count self since we divide by "shared" */
 		    free_magic1_t mm1 = freeMagic1_init();
 		    while (eapd.eapd_shared)
 		    {
