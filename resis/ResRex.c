@@ -30,7 +30,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/utils.h"
 #include "utils/tech.h"
 #include "textio/txcommands.h"
-#include	"resis/resis.h"
+#include "commands/commands.h"
+#include "resis/resis.h"
 
 #define INITFLATSIZE		1024
 #define MAXNAME			1000
@@ -69,10 +70,6 @@ FILE	*ResLumpFile;
 FILE	*ResFHFile;
 
 int	ResPortIndex;	/* Port ordering to backannotate into magic */
-
-/* external declarations */
-extern ResExtNode *ResInitializeNode();
-extern CellUse	  *CmdGetSelectedCell();
 
 /*
  *-------------------------------------------------------------------------
@@ -131,7 +128,7 @@ ExtResisForDef(celldef, resisdata)
 			DBIsSubcircuit(celldef))
 	    ResCheckExtNodes(celldef, resisdata);
 
-	if (ResOptionsFlags & ResOpt_Stat)
+	if (ResOptionsFlags & ResOpt_Stats)
 	    ResPrintStats((ResisData *)NULL, "");
     }
 
@@ -280,10 +277,11 @@ CmdExtResis(win, cmd)
 	"ignore	  names	      don't extract these nets",
 	"include  names	      extract only these nets",
 	"box      type        extract the signal under the box on layer type",
-	"cell	   cellname    extract the network for the cell named cellname",
+	"cell	   cellname   extract the network for the cell named cellname",
 	"blackbox [on/off]    treat subcircuits with ports as black boxes",
-	"fasthenry [freq]      extract subcircuit network geometry into .fh file",
+	"fasthenry [freq]     extract subcircuit network geometry into .fh file",
 	"geometry	      extract network centerline geometry (experimental)",
+	"stats		      print extresist statistics",
 	"help                 print this message",
 	NULL
     };
@@ -293,8 +291,8 @@ typedef enum {
 	RES_THRESH, RES_TOL,
 	RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT,
 	RES_SKIP, RES_IGNORE, RES_INCLUDE, RES_BOX, RES_CELL,
-	RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY, RES_HELP,
-	RES_RUN
+	RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY, RES_STATS,
+	RES_HELP, RES_RUN
 } ResOptions;
 
     resisdata = ResInit();
@@ -324,7 +322,6 @@ typedef enum {
     switch (option)
     {
 	 case RES_TOL:
-	    ResOptionsFlags |=  ResOpt_ExplicitRtol;
 	    if (cmd->tx_argc > 2)
 	    {
 		resisdata->tdiTolerance = MagAtof(cmd->tx_argv[2]);
@@ -410,6 +407,23 @@ typedef enum {
 	      	   ResOptionsFlags |= ResOpt_Blackbox;
 		else
 	      	   ResOptionsFlags &= ~ResOpt_Blackbox;
+	    }
+	    return;
+	case RES_STATS:
+	    if (cmd->tx_argc == 2)
+	    {
+		value = (ResOptionsFlags & ResOpt_Stats) ?
+			TRUE : FALSE;
+		TxPrintf("%s\n", onOff[value]);
+	    }
+	    else
+	    {
+		value = Lookup(cmd->tx_argv[2], onOff);
+
+		if (value)
+	      	   ResOptionsFlags |= ResOpt_Stats;
+		else
+	      	   ResOptionsFlags &= ~ResOpt_Stats;
 	    }
 	    return;
 	case RES_SIMP:
@@ -784,7 +798,7 @@ resPortFunc(scx, lab, tpath, result)
 		sprintf(nodename, "%s/%s", scx->scx_use->cu_id, lab->lab_text);
 
 		entry = HashFind(&ResNodeTable, nodename);
-		node = ResInitializeNode(entry);
+		node = ResExtInitNode(entry);
 
 		/* Digital outputs are drivers */
 		if (pclass == PORT_CLASS_OUTPUT) node->status |= FORCE;
@@ -916,7 +930,7 @@ ResCheckPorts(cellDef)
 		/* We have to make sure it's listed as a separate node	*/
 		/* and a drivepoint.					*/
 
-		node = ResInitializeNode(entry);
+		node = ResExtInitNode(entry);
 		TxPrintf("Port: name = %s is new node %p\n",
 			lab->lab_text, (void *)node);
 		TxPrintf("Location is (%d, %d); drivepoint (%d, %d)\n",
@@ -1271,42 +1285,44 @@ ResCheckExtNodes(celldef, resisdata)
 /*
  *-------------------------------------------------------------------------
  *
- * ResFixUpConnections-- Changes the connection to a terminal of the sim
- *	device.  The new name is formed by appending .t# to the old name.
+ * ResFixUpConnections--
+ *	Changes the connection to a terminal of a device.
+ * 	The new name is formed by appending .t# to the old name.
  *	The new name is added to the hash table of node names.
  *
- * Results:none
+ * Results:
+ *	None.
  *
- * Side Effects: Allocates new ResExtNodes. Modifies the terminal connections
- *	of ext Devices.
+ * Side Effects:
+ *	Allocates new ResExtNodes. Modifies the terminal connections
+ *	of devices.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResFixUpConnections(simDev, layoutDev, simNode, nodename)
-    RDev		*simDev;
+ResFixUpConnections(extDev, layoutDev, extNode, nodename)
+    RDev		*extDev;
     resDevice		*layoutDev;
-    ResExtNode		*simNode;
+    ResExtNode		*extNode;
     char		*nodename;
-
 {
     static char	newname[MAXNAME], oldnodename[MAXNAME];
     int		notdecremented;
     resNode	*gate, *source, *drain, *subs;
 
-    /* If we aren't doing output (i.e. this is just a statistical run) */
+    /* If we aren't doing output (i.e. this is just a statistical run)	*/
     /* don't patch up networks.  This cuts down on memory use.		*/
 
-    if ((ResOptionsFlags & (ResOpt_DoRsmFile | ResOpt_DoExtFile)) == 0)
+    if ((ResOptionsFlags & ResOpt_DoExtFile) == 0)
 	return;
 
-    if (simDev->layout == NULL)
+    if (extDev->layout == NULL)
     {
 	layoutDev->rd_status |= RES_DEV_SAVE;
-	simDev->layout = layoutDev;
+	extDev->layout = layoutDev;
     }
-    simDev->status |= TRUE;
+    extDev->status |= TRUE;
     if (strcmp(nodename, oldnodename) != 0)
     {
 	strcpy(oldnodename, nodename);
@@ -1314,7 +1330,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
     notdecremented = TRUE;
 
-    if (simDev->gate == simNode)
+    if (extDev->gate == extNode)
     {
 	if ((gate = layoutDev->rd_fet_gate) != NULL)
 	{
@@ -1326,8 +1342,8 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		notdecremented = FALSE;
 	    }
 
-	    ResFixDevName(newname, GATE, simDev, gate);
-	    gate->rn_name = simDev->gate->name;
+	    ResFixDevName(newname, GATE, extDev, gate);
+	    gate->rn_name = extDev->gate->name;
      	    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
 	}
 	else
@@ -1335,10 +1351,10 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	    TxError("Missing gate connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
-	    simNode->status |= DONTKILL;
+	    extNode->status |= DONTKILL;
 	}
     }
-    if (simDev->subs == simNode)
+    if (extDev->subs == extNode)
     {
 	if ((subs = layoutDev->rd_fet_subs) != NULL)
 	{
@@ -1347,8 +1363,8 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	       	resNodeNum--;
 		notdecremented = FALSE;
 	    }
-	    ResFixDevName(newname, SUBS, simDev, subs);
-	    subs->rn_name = simDev->subs->name;
+	    ResFixDevName(newname, SUBS, extDev, subs);
+	    subs->rn_name = extDev->subs->name;
      	    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
 	}
 	else
@@ -1356,11 +1372,11 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	    TxError("Missing substrate connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
-	    simNode->status |= DONTKILL;
+	    extNode->status |= DONTKILL;
 	}
     }
 
-    if (simDev->source == simNode)
+    if (extDev->source == extNode)
     {
 	/* Check for devices with only one terminal.  If it was cast as drain,	*/
 	/* then swap it with the source so that the code below handles it	*/
@@ -1372,13 +1388,13 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	    layoutDev->rd_fet_drain = (struct resnode *)NULL;
 	}
 
-     	if (simDev->drain == simNode)
+     	if (extDev->drain == extNode)
 	{
 	    if ((layoutDev->rd_fet_source != NULL) &&
 			(layoutDev->rd_fet_drain == NULL))
 	    {
 		/* Handle source/drain-tied devices */
-		if (simDev->drain == simDev->source)
+		if (extDev->drain == extDev->source)
 		    layoutDev->rd_fet_drain = layoutDev->rd_fet_source;
 	    }
 
@@ -1390,12 +1406,12 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		    resNodeNum--;
 		    notdecremented = FALSE;
 		}
-	        ResFixDevName(newname, SOURCE, simDev, source);
-	        source->rn_name = simDev->source->name;
+	        ResFixDevName(newname, SOURCE, extDev, source);
+	        source->rn_name = extDev->source->name;
 		(void)sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
 	        if (drain->rn_name != NULL)  resNodeNum--;
-	        ResFixDevName(newname, DRAIN, simDev, drain);
-	        drain->rn_name = simDev->drain->name;
+	        ResFixDevName(newname, DRAIN, extDev, drain);
+	        drain->rn_name = extDev->drain->name;
 	       	/* one to each */
 	    }
 	    else
@@ -1403,7 +1419,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		TxError("Missing terminal connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
-		simNode->status |= DONTKILL;
+		extNode->status |= DONTKILL;
 	    }
 	}
 	else
@@ -1414,7 +1430,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		{
 		    if (source != drain)
 		    {
-			if (drain->rn_why & RES_NODE_ORIGIN)
+			if (drain->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK))
 			{
 			   ResMergeNodes(drain, source, &ResNodeQueue,
 					&ResNodeList);
@@ -1440,8 +1456,8 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 			notdecremented = FALSE;
 		    }
 		}
-	        ResFixDevName(newname, SOURCE, simDev, source);
-	        source->rn_name = simDev->source->name;
+	        ResFixDevName(newname, SOURCE, extDev, source);
+	        source->rn_name = extDev->source->name;
 
 	    }
 	    else
@@ -1449,11 +1465,11 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	       	TxError("Missing terminal connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
-		simNode->status |= DONTKILL;
+		extNode->status |= DONTKILL;
 	    }
 	}
     }
-    else if (simDev->drain == simNode)
+    else if (extDev->drain == extNode)
     {
 	/* Check for devices with only one terminal.  If it was cast as source,	*/
 	/* then swap it with the drain so that the code below handles it	*/
@@ -1471,7 +1487,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	    {
 		if (drain != source)
 		{
-		    if (source->rn_why & ORIGIN)
+		    if (source->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK))
 		    {
 			 ResMergeNodes(source, drain, &ResNodeQueue,
 				&ResNodeList);
@@ -1501,15 +1517,15 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		    notdecremented = FALSE;
 		}
 	    }
-	    ResFixDevName(newname, DRAIN, simDev, drain);
-	    drain->rn_name = simDev->drain->name;
+	    ResFixDevName(newname, DRAIN, extDev, drain);
+	    drain->rn_name = extDev->drain->name;
 	}
 	else
 	{
 	    TxError("Missing terminal connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
-	    simNode->status |= DONTKILL;
+	    extNode->status |= DONTKILL;
 	}
     }
     else
@@ -1545,13 +1561,13 @@ ResFixDevName(line, type, device, layoutnode)
     if (layoutnode->rn_name != NULL)
     {
         entry = HashFind(&ResNodeTable, layoutnode->rn_name);
-        node = ResInitializeNode(entry);
+        node = ResExtInitNode(entry);
 
     }
     else
     {
         entry = HashFind(&ResNodeTable, line);
-        node = ResInitializeNode(entry);
+        node = ResExtInitNode(entry);
     }
     tptr = (devPtr *) mallocMagic((unsigned) (sizeof(devPtr)));
     tptr->thisDev = device;

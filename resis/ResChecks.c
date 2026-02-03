@@ -64,7 +64,7 @@ ResSanityChecks(nodename, resistorList, nodeList, devlist)
     for (node = nodeList; node != NULL; node=node->rn_more)
     {
      	node->rn_status &= ~RES_REACHED_NODE;
-	if (node->rn_why == RES_NODE_ORIGIN)
+	if (node->rn_why & RES_NODE_ORIGIN)
 	  		STACKPUSH((ClientData) node, resSanityStack);
     }
     for (resistor = resistorList; resistor != NULL; resistor = resistor->rr_nextResistor)

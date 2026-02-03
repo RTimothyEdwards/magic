@@ -33,9 +33,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define MAXNAME			1000
 #define KV_TO_mV		1000000
 
-extern ResExtNode *ResInitializeNode();
-
-
 /*
  *-------------------------------------------------------------------------
  *
@@ -58,7 +55,7 @@ ResPrintExtRes(outextfile, resistors, nodename)
     int	        nodenum=0;
     char	newname[MAXNAME];
     HashEntry  *entry;
-    ResExtNode *node, *ResInitializeNode();
+    ResExtNode *node;
 
     for (; resistors != NULL; resistors = resistors->rr_nextResistor)
     {
@@ -73,7 +70,7 @@ ResPrintExtRes(outextfile, resistors, nodename)
 	{
      	    (void)sprintf(newname, "%s%s%d", nodename, ".r", nodenum++);
      	    entry = HashFind(&ResNodeTable, newname);
-	    node = ResInitializeNode(entry);
+	    node = ResExtInitNode(entry);
 	    resistors->rr_connection1->rn_name = node->name;
 	    node->oldname = nodename;
 	}
@@ -81,7 +78,7 @@ ResPrintExtRes(outextfile, resistors, nodename)
 	{
      	    (void)sprintf(newname, "%s%s%d", nodename, ".r", nodenum++);
      	    entry = HashFind(&ResNodeTable, newname);
-	    node = ResInitializeNode(entry);
+	    node = ResExtInitNode(entry);
 	    resistors->rr_connection2->rn_name = node->name;
 	    node->oldname = nodename;
 	}
@@ -222,7 +219,7 @@ ResPrintExtNode(outextfile, nodelist, node)
     int		nodenum = 0;
     char	newname[MAXNAME+32], tmpname[MAXNAME], *cp;
     HashEntry  *entry;
-    ResExtNode *newnode, *ResInitializeNode();
+    ResExtNode *newnode;
     bool	DoKillNode = TRUE;
     bool	NeedFix = FALSE;
     resNode	*snode;
@@ -271,7 +268,7 @@ ResPrintExtNode(outextfile, nodelist, node)
 
      	    (void)sprintf(newname, "%s%s%d", tmpname, ".n", nodenum++);
      	    entry = HashFind(&ResNodeTable, newname);
-	    newnode = ResInitializeNode(entry);
+	    newnode = ResExtInitNode(entry);
 	    snode->rn_name = newnode->name;
 	    newnode->oldname = nodename;
 	}
@@ -419,16 +416,16 @@ ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
 	else
 	{
 	    HashEntry  *entry;
-	    ResExtNode *simnode;
+	    ResExtNode *extnode;
 
 	    /* If we process another sim file node while doing this	*/
 	    /* one, mark it as status "REDUNDANT" so we don't duplicate	*/
 	    /* the entry.						*/
 
      	    entry = HashFind(&ResNodeTable, nodeptr->rn_name);
-	    simnode = (ResExtNode *)HashGetValue(entry);
-	    if (simnode != NULL)
-		simnode->status |= REDUNDANT;
+	    extnode = (ResExtNode *)HashGetValue(entry);
+	    if (extnode != NULL)
+		extnode->status |= REDUNDANT;
 	}
 	resWriteNodeName(fp, nodeptr);
 

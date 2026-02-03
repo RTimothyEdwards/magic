@@ -93,7 +93,7 @@ ResFirst(tile, dinfo, arg)
  *
  * resMultiPlaneTerm --
  *
- * Callback function to set a junk field
+ * Callback function to set a resInfo field
  *
  *--------------------------------------------------------------------------
  */
@@ -102,13 +102,13 @@ int
 resMultiPlaneTerm(
     Tile *tile,
     TileType dinfo,	// Unused (but should be handled)
-    tileJunk *junk2)
+    resInfo *rinfo2)
 {
-    tileJunk *Junk;
+    resInfo *Info;
     
-    Junk = resAddField(tile);
-    Junk->tj_status |= RES_TILE_SD;
-    junk2->sourceEdge |= OTHERPLANE;
+    Info = resAddField(tile);
+    Info->ri_status |= RES_TILE_SD;
+    rinfo2->sourceEdge |= OTHERPLANE;
     return 0;
 }
 
@@ -117,7 +117,7 @@ resMultiPlaneTerm(
  *
  * resSubstrateTerm --
  *
- * Callback function to set a junk field
+ * Callback function to set a resInfo field
  *
  *--------------------------------------------------------------------------
  */
@@ -128,10 +128,10 @@ resSubstrateTerm(
     TileType dinfo,
     ClientData clientdata)	/* (unused) */
 {
-    tileJunk *Junk;
+    resInfo *Info;
     
-    Junk = resAddField(tile);
-    Junk->tj_status |= RES_TILE_SUBS;
+    Info = resAddField(tile);
+    Info->ri_status |= RES_TILE_SUBS;
     return 0;
 }
 
@@ -168,7 +168,7 @@ ResEach(tile, dinfo, pNum, arg)
 /*
  *-------------------------------------------------------------------------
  *
- * ResAddPlumbing-- Each tile is a tileJunk structure associated with it
+ * ResAddPlumbing-- Each tile has a resInfo structure associated with it
  * to keep track of various things used by the extractor. ResAddPlumbing
  * adds this structure and sets the tile's ClientData field to point to it.
  * If the tile is a device, then a device structure is also added;
@@ -188,7 +188,7 @@ ResAddPlumbing(tile, dinfo, arg)
     TileType	dinfo;
     ClientData	*arg;
 {
-    tileJunk		*Junk, *junk2;
+    resInfo		*Info, *rinfo2;
     static Stack	*resDevStack = NULL;
     TileType		loctype, t1;
     Tile		*tp1, *tp2, *source;
@@ -208,7 +208,7 @@ ResAddPlumbing(tile, dinfo, arg)
 	    loctype = TiGetTypeExact(tile);
 
 	devptr = ExtCurStyle->exts_device[loctype];
-     	junk2 = resAddField(tile);
+     	rinfo2 = resAddField(tile);
 	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), loctype))
 	{
 	    int i, nterms, pNum;
@@ -249,8 +249,8 @@ ResAddPlumbing(tile, dinfo, arg)
 	    resDev->rd_status = 0;
             resDev->rd_nextDev = (resDevice *)*arg;
 	    *arg = (ClientData)resDev;
-	    junk2->deviceList =  resDev;
-	    junk2->tj_status |= RES_TILE_DEV;
+	    rinfo2->deviceList =  resDev;
+	    rinfo2->ri_status |= RES_TILE_DEV;
 
 	    for (i = 0; i < nterms - 2; i++)
 	    {
@@ -263,10 +263,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		    if TTMaskHasType(&(devptr->exts_deviceSDTypes[i]),
 				TiGetBottomType(tp2))
 		    {
-			junk2->sourceEdge |= TOPEDGE;
+			rinfo2->sourceEdge |= TOPEDGE;
 			source = tp2;
-			Junk = resAddField(source);
-			Junk->tj_status |= RES_TILE_SD;
+			Info = resAddField(source);
+			Info->ri_status |= RES_TILE_SD;
 			break;
 		    }
 		}
@@ -278,10 +278,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		    if TTMaskHasType(&(devptr->exts_deviceSDTypes[i]),
 				TiGetTopType(tp2))
 		    {
-			junk2->sourceEdge |= BOTTOMEDGE;
+			rinfo2->sourceEdge |= BOTTOMEDGE;
 			source = tp2;
-			Junk = resAddField(source);
-			Junk->tj_status |= RES_TILE_SD;
+			Info = resAddField(source);
+			Info->ri_status |= RES_TILE_SD;
 			break;
 		    }
 		}
@@ -293,10 +293,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		    if TTMaskHasType(&(devptr->exts_deviceSDTypes[i]),
 				TiGetLeftType(tp2))
 		    {
-			junk2->sourceEdge |= RIGHTEDGE;
+			rinfo2->sourceEdge |= RIGHTEDGE;
 			source = tp2;
-			Junk = resAddField(source);
-			Junk->tj_status |= RES_TILE_SD;
+			Info = resAddField(source);
+			Info->ri_status |= RES_TILE_SD;
 			break;
 		    }
 		}
@@ -309,9 +309,9 @@ ResAddPlumbing(tile, dinfo, arg)
 				TiGetRightType(tp2))
 		    {
 			source = tp2;
-			Junk = resAddField(source);
-			Junk->tj_status |= RES_TILE_SD;
-			junk2->sourceEdge |= LEFTEDGE;
+			Info = resAddField(source);
+			Info->ri_status |= RES_TILE_SD;
+			rinfo2->sourceEdge |= LEFTEDGE;
 			break;
 		    }
 		}
@@ -327,7 +327,7 @@ ResAddPlumbing(tile, dinfo, arg)
 			    DBSrPaintArea((Tile *)NULL, 
 				    ResUse->cu_def->cd_planes[pNum],
 				    &r, &(devptr->exts_deviceSDTypes[i]),
-				    resMultiPlaneTerm, (ClientData)junk2);
+				    resMultiPlaneTerm, (ClientData)rinfo2);
 		    }
 		}
 
@@ -360,10 +360,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		{
 		    if (TiGetBottomType(tp2) == t1)
 		    {
-		        tileJunk *j = resAddField(tp2);
-			if ((j->tj_status & RES_TILE_SD) == 0)
+		        resInfo *re = resAddField(tp2);
+			if ((re->ri_status & RES_TILE_SD) == 0)
 			{
-			    j->tj_status |= RES_TILE_SD;
+			    re->ri_status |= RES_TILE_SD;
 	            	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
@@ -373,10 +373,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		{
 		    if (TiGetTopType(tp2) == t1)
 		    {
-		        tileJunk *j = resAddField(tp2);
-			if ((j->tj_status & RES_TILE_SD) == 0)
+		        resInfo *re = resAddField(tp2);
+			if ((re->ri_status & RES_TILE_SD) == 0)
 			{
-			    j->tj_status |= RES_TILE_SD;
+			    re->ri_status |= RES_TILE_SD;
 	            	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
@@ -386,10 +386,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		{
 		    if (TiGetLeftType(tp2) == t1)
 		    {
-		        tileJunk *j = resAddField(tp2);
-			if ((j->tj_status & RES_TILE_SD) == 0)
+		        resInfo *re = resAddField(tp2);
+			if ((re->ri_status & RES_TILE_SD) == 0)
 			{
-			    j->tj_status |= RES_TILE_SD;
+			    re->ri_status |= RES_TILE_SD;
 	            	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
@@ -399,10 +399,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		{
 		    if (TiGetRightType(tp2) == t1)
 		    {
-		        tileJunk *j = resAddField(tp2);
-			if ((j->tj_status & RES_TILE_SD) == 0)
+		        resInfo *re = resAddField(tp2);
+			if ((re->ri_status & RES_TILE_SD) == 0)
 			{
-			    j->tj_status |= RES_TILE_SD;
+			    re->ri_status |= RES_TILE_SD;
 	            	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
@@ -430,7 +430,7 @@ ResAddPlumbing(tile, dinfo, arg)
 	    STACKPUSH((ClientData)tile, resDevStack);
 	    while (!StackEmpty(resDevStack))
 	    {
-	       	tileJunk *j0;
+	       	resInfo *re0;
 
 		tp1 = (Tile *) STACKPOP(resDevStack);
 		if (IsSplit(tp1))
@@ -446,17 +446,17 @@ ResAddPlumbing(tile, dinfo, arg)
 		    t1 = TiGetTypeExact(tp1);
 
 		devptr = ExtCurStyle->exts_device[t1];
-		j0 = (tileJunk *) TiGetClientPTR(tp1);
+		re0 = (resInfo *) TiGetClientPTR(tp1);
 		/* top */
 		for (tp2 = RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
 		{
 		    if ((TiGetBottomType(tp2) == t1) &&
 			      (TiGetClient(tp2) == CLIENTDEFAULT))
 		    {
-     	  		Junk = resAddField(tp2);
+     	  		Info = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
-	       		Junk->deviceList = resDev;
-	       		Junk->tj_status |= RES_TILE_DEV;
+	       		Info->deviceList = resDev;
+	       		Info->ri_status |= RES_TILE_DEV;
 
 			/* Update device position to point to the lower-leftmost tile */
 			if ((tp2->ti_ll.p_x < resDev->rd_inside.r_ll.p_x) ||
@@ -472,9 +472,9 @@ ResAddPlumbing(tile, dinfo, arg)
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetBottomType(tp2))
 		    {
-			Junk = resAddField(tp2);
-			if (Junk->tj_status & RES_TILE_SD)
-			       	    j0->sourceEdge |= TOPEDGE;
+			Info = resAddField(tp2);
+			if (Info->ri_status & RES_TILE_SD)
+			       	    re0->sourceEdge |= TOPEDGE;
 		    }
 		}
 		/* bottom */
@@ -483,10 +483,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		    if ((TiGetTopType(tp2) == t1) &&
 			      (TiGetClient(tp2) == CLIENTDEFAULT))
 		    {
-     	  		Junk = resAddField(tp2);
+     	  		Info = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
-	       		Junk->deviceList =  resDev;
-	       		Junk->tj_status |= RES_TILE_DEV;
+	       		Info->deviceList =  resDev;
+	       		Info->ri_status |= RES_TILE_DEV;
 
 			/* Update device position to point to the lower-leftmost tile */
 			if ((tp2->ti_ll.p_x < resDev->rd_inside.r_ll.p_x) ||
@@ -502,9 +502,9 @@ ResAddPlumbing(tile, dinfo, arg)
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetTopType(tp2))
 		    {
-			Junk = resAddField(tp2);
-			if (Junk->tj_status & RES_TILE_SD)
-			    j0->sourceEdge |= BOTTOMEDGE;
+			Info = resAddField(tp2);
+			if (Info->ri_status & RES_TILE_SD)
+			    re0->sourceEdge |= BOTTOMEDGE;
 		    }
 		}
 		/* right */
@@ -513,10 +513,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		    if ((TiGetLeftType(tp2) == t1) &&
 			      (TiGetClient(tp2) == CLIENTDEFAULT))
 		    {
-			Junk = resAddField(tp2);
+			Info = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
-	       		Junk->deviceList =  resDev;
-	       		Junk->tj_status |= RES_TILE_DEV;
+	       		Info->deviceList =  resDev;
+	       		Info->ri_status |= RES_TILE_DEV;
 
 			/* Update device position to point to the lower-leftmost tile */
 			if ((tp2->ti_ll.p_x < resDev->rd_inside.r_ll.p_x) ||
@@ -532,9 +532,9 @@ ResAddPlumbing(tile, dinfo, arg)
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetLeftType(tp2))
 		    {
-     	  		Junk = resAddField(tp2);
-			if (Junk->tj_status & RES_TILE_SD)
-			    j0->sourceEdge |= RIGHTEDGE;
+     	  		Info = resAddField(tp2);
+			if (Info->ri_status & RES_TILE_SD)
+			    re0->sourceEdge |= RIGHTEDGE;
 		    }
 		}
 		/* left */
@@ -543,10 +543,10 @@ ResAddPlumbing(tile, dinfo, arg)
 		    if ((TiGetRightType(tp2) == t1) &&
 			      (TiGetClient(tp2) == CLIENTDEFAULT))
 		    {
-     	  		Junk = resAddField(tp2);
+     	  		Info = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
-	       		Junk->deviceList =  resDev;
-	       		Junk->tj_status |= RES_TILE_DEV;
+	       		Info->deviceList =  resDev;
+	       		Info->ri_status |= RES_TILE_DEV;
 
 			/* Update device position to point to the lower-leftmost tile */
 			if ((tp2->ti_ll.p_x < resDev->rd_inside.r_ll.p_x) ||
@@ -562,9 +562,9 @@ ResAddPlumbing(tile, dinfo, arg)
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetRightType(tp2))
 		    {
-     	  		Junk = resAddField(tp2);
-			if (Junk->tj_status & RES_TILE_SD)
-			    j0->sourceEdge |= LEFTEDGE;
+     	  		Info = resAddField(tp2);
+			if (Info->ri_status & RES_TILE_SD)
+			    re0->sourceEdge |= LEFTEDGE;
 		    }
 		}
 	    }
@@ -573,10 +573,10 @@ ResAddPlumbing(tile, dinfo, arg)
 
 	    if (source != (Tile *) NULL)
 	    {
-	        tileJunk *j = (tileJunk *) TiGetClientPTR(source);
+	        resInfo *re = (resInfo *) TiGetClientPTR(source);
 
 		STACKPUSH((ClientData)source, resDevStack);
-		j->tj_status &= ~RES_TILE_SD;
+		re->ri_status &= ~RES_TILE_SD;
 	    }
 	    while (!StackEmpty(resDevStack))
 	    {
@@ -592,12 +592,12 @@ ResAddPlumbing(tile, dinfo, arg)
 		/* top */
 		for (tp2 = RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
 		{
-		    tileJunk *j2 = (tileJunk *) TiGetClientPTR(tp2);
+		    resInfo *re2 = (resInfo *) TiGetClientPTR(tp2);
 		    if (TiGetBottomType(tp2) == t1)
 		    {
-			if (j2->tj_status & RES_TILE_SD)
+			if (re2->ri_status & RES_TILE_SD)
 			{
-			    j2->tj_status &= ~RES_TILE_SD;
+			    re2->ri_status &= ~RES_TILE_SD;
 	            	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
@@ -605,12 +605,12 @@ ResAddPlumbing(tile, dinfo, arg)
 		/* bottom */
 		for(tp2 = LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
 		{
-		    tileJunk *j2 = (tileJunk *) TiGetClientPTR(tp2);
+		    resInfo *re2 = (resInfo *) TiGetClientPTR(tp2);
 		    if (TiGetTopType(tp2) == t1)
 		    {
-			if (j2->tj_status & RES_TILE_SD)
+			if (re2->ri_status & RES_TILE_SD)
 			{
-			    j2->tj_status &= ~RES_TILE_SD;
+			    re2->ri_status &= ~RES_TILE_SD;
 	           	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
@@ -618,12 +618,12 @@ ResAddPlumbing(tile, dinfo, arg)
 		/* right */
 		for (tp2 = TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
 		{
-		    tileJunk *j2 = (tileJunk *) TiGetClientPTR(tp2);
+		    resInfo *re2 = (resInfo *) TiGetClientPTR(tp2);
 		    if (TiGetLeftType(tp2) == t1)
 		    {
-			if (j2->tj_status & RES_TILE_SD)
+			if (re2->ri_status & RES_TILE_SD)
 			{
-			    j2->tj_status &= ~RES_TILE_SD;
+			    re2->ri_status &= ~RES_TILE_SD;
 	            	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
@@ -631,12 +631,12 @@ ResAddPlumbing(tile, dinfo, arg)
 		/* left */
 		for (tp2 = BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
 		{
-		    tileJunk *j2 = (tileJunk *) TiGetClientPTR(tp2);
+		    resInfo *re2 = (resInfo *) TiGetClientPTR(tp2);
 		    if (TiGetRightType(tp2) == t1)
 		    {
-			if (j2->tj_status & RES_TILE_SD)
+			if (re2->ri_status & RES_TILE_SD)
 			{
-			    j2->tj_status &= ~RES_TILE_SD;
+			    re2->ri_status &= ~RES_TILE_SD;
 	            	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
@@ -650,7 +650,7 @@ ResAddPlumbing(tile, dinfo, arg)
 /*
  *-------------------------------------------------------------------------
  *
- * ResRemovePlumbing-- Removes and deallocates all the tileJunk fields.
+ * ResRemovePlumbing-- Removes and deallocates all the resInfo fields.
  *
  * Results: returns 0
  *
@@ -702,7 +702,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 {
     Tile	*tile;
     ResDevTile	*oldTile;
-    tileJunk	*tstruct;
+    resInfo	*tstruct;
     TileType	tt, residue;
     int		pNum;
 
@@ -735,9 +735,9 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	GOTOPOINT(tile, &(TileList->area.r_ll));
 
 	tt = TiGetType(tile);
-	tstruct = (tileJunk *) TiGetClientPTR(tile);
+	tstruct = (resInfo *) TiGetClientPTR(tile);
 
-	if ((tstruct == (tileJunk *)CLIENTDEFAULT) ||
+	if ((tstruct == (resInfo *)CLIENTDEFAULT) ||
 		    (tstruct->deviceList == NULL) ||
 		    !TTMaskHasType(&ExtCurStyle->exts_deviceMask, tt))
 	{
@@ -745,11 +745,11 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 			TileList->area.r_ll.p_x,
 			TileList->area.r_ll.p_y);
 	}
-	else if ((tstruct->tj_status & RES_TILE_MARK) == 0)
+	else if ((tstruct->ri_status & RES_TILE_MARK) == 0)
 	{
 	    resDevice	*rd = tstruct->deviceList;
 
-	    tstruct->tj_status |= RES_TILE_MARK;
+	    tstruct->ri_status |= RES_TILE_MARK;
 	    rd->rd_perim += TileList->perim;
 	    rd->rd_length += TileList->overlap;
 	    rd->rd_area += (TileList->area.r_xtop - TileList->area.r_xbot)
@@ -851,17 +851,17 @@ ResRemoveFromQueue(node, list)
     node->rn_less = NULL;
 }
 
-tileJunk *
+resInfo *
 resAddField(tile)
     Tile    *tile;
 {
     ClientData ticlient = TiGetClient(tile);
-    tileJunk *Junk = (tileJunk *)CD2PTR(ticlient);
+    resInfo *Info = (resInfo *)CD2PTR(ticlient);
     if (ticlient == CLIENTDEFAULT)
     {
-     	Junk = (tileJunk *) mallocMagic((unsigned) (sizeof(tileJunk)));
-	ResJunkInit(Junk);
-	TiSetClientPTR(tile, Junk);
+     	Info = (resInfo *) mallocMagic((unsigned) (sizeof(resInfo)));
+	ResInfoInit(Info);
+	TiSetClientPTR(tile, Info);
     }
-    return Junk;
+    return Info;
 }

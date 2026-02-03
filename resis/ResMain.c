@@ -35,13 +35,12 @@ resNode     		*ResNodeList = NULL;	/* Processed Nodes 	  */
 resDevice 		*ResDevList = NULL;	/* Devices		  */
 ResContactPoint		*ResContactList = NULL;	/* Contacts		  */
 resNode			*ResNodeQueue = NULL;	/* Pending nodes	  */
-resNode			*ResOriginNode = NULL;	/* node where R=0	  */
+resNode			*ResNodeAtOrigin = NULL; /* node where R=0	  */
 resNode			*resCurrentNode;
 int			ResTileCount = 0;	/* Number of tiles rn_status */
 extern ExtRegion 	*ResFirst();
 extern Tile		*FindStartTile();
 extern int		ResEachTile();
-extern ResExtNode	*ResInitializeNode();
 TileTypeBitMask		ResSDTypesBitMask;
 TileTypeBitMask		ResSubTypesBitMask;
 
@@ -184,7 +183,7 @@ ResDissolveContacts(contacts)
  *  ResMakePortBreakpoints --
  *
  *  Search for nodes which are ports, and force them to be breakpoints
- *  in the "tileJunk" field of their respective tiles in ResUse.  This
+ *  in the "resInfo" field of their respective tiles in ResUse.  This
  *  ensures that connected nodes that stretch between two ports will
  *  not be assumed to be "hanging" nodes.
  *
@@ -205,7 +204,7 @@ ResMakePortBreakpoints(def)
     int ResAddBreakpointFunc();	/* Forward Declaration */
 
     HashStartSearch(&hs);
-    while((entry = HashNext(&ResNodeTable,&hs)) != NULL)
+    while((entry = HashNext(&ResNodeTable, &hs)) != NULL)
     {
 	node = (ResExtNode *)HashGetValue(entry);
 	if (node->status & PORTNODE)
@@ -266,7 +265,7 @@ ResMakePortBreakpoints(def)
  *  ResMakeLabelBreakpoints --
  *
  *  Search for labels that are part of a node, and force them to be
- *  breakpoints in the "tileJunk" field of their respective tiles in
+ *  breakpoints in the "resInfo" field of their respective tiles in
  *  ResUse.  This ensures (among other things) that pins of a top level
  *  cell will be retained and become the endpoint of a net.
  *
@@ -292,7 +291,7 @@ ResMakeLabelBreakpoints(def, resisdata)
 	if (*(slab->lab_text) == '\0') continue;
 
 	entry = HashFind(&ResNodeTable, slab->lab_text);
-	node = ResInitializeNode(entry);
+	node = ResExtInitNode(entry);
 
 	/* If the drivepoint position changes and the drivepoint is	*/
 	/* in the "resisdata" record, then make sure the tile type	*/
@@ -344,7 +343,7 @@ ResMakeLabelBreakpoints(def, resisdata)
  *
  * ResAddBreakpointFunc --
  *
- *	Add a breakpoint to the "tileJunk" structure of the tile
+ *	Add a breakpoint to the "resInfo" structure of the tile
  *
  *----------------------------------------------------------------------------
  */
@@ -355,7 +354,7 @@ ResAddBreakpointFunc(tile, dinfo, node)
    TileType dinfo;		/* (unused) */
    ResExtNode *node;
 {
-    tileJunk *junk;
+    resInfo *info;
 
     if (TiGetClient(tile) == CLIENTDEFAULT)
 	return 0;
@@ -430,15 +429,15 @@ ResFindNewContactTiles(contacts)
 	    if ((IsSplit(tile) && TTMaskHasType(&mask, TiGetRightType(tile)))
 			|| TTMaskHasType(&mask, TiGetLeftType(tile)))
 	    {
-		tileJunk *j = (tileJunk *)TiGetClientPTR(tile);
+		resInfo *ri = (resInfo *)TiGetClientPTR(tile);
 		cElement *ce;
 
 		ce = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
 		contacts->cp_tile[contacts->cp_currentcontact] = tile;
 		ce->ce_thisc = contacts;
-		ce->ce_nextc = j->contactList;
+		ce->ce_nextc = ri->contactList;
 		(contacts->cp_currentcontact) += 1;
-		j->contactList = ce;
+		ri->contactList = ce;
 	    }
 	    else if (!IsSplit(tile))
 	    {
@@ -452,15 +451,15 @@ ResFindNewContactTiles(contacts)
 		     */
 		    if (TTMaskIntersect(DBResidueMask(ttype), &mask))
 		    {
-			tileJunk *j = (tileJunk *)TiGetClientPTR(tile);
+			resInfo *ri = (resInfo *)TiGetClientPTR(tile);
 			cElement *ce;
 
 			ce = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
 			contacts->cp_tile[contacts->cp_currentcontact] = tile;
 			ce->ce_thisc = contacts;
-			ce->ce_nextc = j->contactList;
+			ce->ce_nextc = ri->contactList;
 			(contacts->cp_currentcontact) += 1;
-			j->contactList = ce;
+			ri->contactList = ce;
 		    }
 		}
 	    }
@@ -524,7 +523,7 @@ ResProcessTiles(resisdata, origin)
     while (ResNodeQueue != NULL)
     {
 	/*
-	 * merged keeps track of whether another node gets merged into
+	 * "merged" keeps track of whether another node gets merged into
 	 * the current one.  If it does, then the node must be processed
 	 * because additional junctions or contacts were added
 	 */
@@ -542,16 +541,14 @@ ResProcessTiles(resisdata, origin)
 		for (tilenum = 0; tilenum < TILES_PER_JUNCTION; tilenum++)
 		{
 	      	    Tile *tile = rj->rj_Tile[tilenum];
-		    tileJunk *j = (tileJunk *)TiGetClientPTR(tile);
+		    resInfo *ri = (resInfo *)TiGetClientPTR(tile);
 
-		    if ((j->tj_status & RES_TILE_DONE) == 0)
+		    if ((ri->ri_status & RES_TILE_DONE) == 0)
 		    {
 			resCurrentNode = resptr2;
 			merged |= ResEachTile(tile, (Point *)NULL);
 		    }
-		    if (merged & ORIGIN) break;
 		}
-		if (merged & ORIGIN) break;
 		rj->rj_status = TRUE;
 	    }
 	}
@@ -562,16 +559,15 @@ ResProcessTiles(resisdata, origin)
 	{
 	    ResContactPoint *cp = workingc->ce_thisc;
 
-	    if (merged & ORIGIN) break;
 	    if (cp->cp_status == FALSE)
 	    {
 		int newstatus = TRUE;
 		for (tilenum = 0; tilenum < cp->cp_currentcontact; tilenum++)
 		{
 	      	    Tile *tile = cp->cp_tile[tilenum];
-		    tileJunk *j = (tileJunk *) TiGetClientPTR(tile);
+		    resInfo *ri = (resInfo *) TiGetClientPTR(tile);
 
-		    if ((j->tj_status & RES_TILE_DONE) == 0)
+		    if ((ri->ri_status & RES_TILE_DONE) == 0)
 		    {
 			if (cp->cp_cnode[tilenum] == resptr2)
 			{
@@ -583,9 +579,7 @@ ResProcessTiles(resisdata, origin)
 			    newstatus = FALSE;
 			}
 		    }
-		    if (merged & ORIGIN) break;
 		}
-		if (merged & ORIGIN) break;
 		cp->cp_status = newstatus;
 	    }
 	}
@@ -601,15 +595,15 @@ ResProcessTiles(resisdata, origin)
 	    ResRemoveFromQueue(resptr2, &ResNodeQueue);
 	    resptr2->rn_more = ResNodeList;
 	    resptr2->rn_less = NULL;
-	    resptr2->rn_status &= ~PENDING;
-	    resptr2->rn_status |= FINISHED | MARKED;
+	    resptr2->rn_status &= ~RES_PENDING;
+	    resptr2->rn_status |= RES_FINISHED | RES_MARKED;
 	    if (ResNodeList != NULL)
 	    {
 		ResNodeList->rn_less = resptr2;
 	    }
 	    if (resptr2->rn_noderes == 0)
 	    {
-		ResOriginNode=resptr2;
+		ResNodeAtOrigin = resptr2;
 	    }
 	    ResNodeList = resptr2;
 	    ResCleanNode(resptr2, FALSE, &ResNodeList, &ResNodeQueue);
@@ -688,7 +682,7 @@ ResCalcPerimOverlap(tile, dev)
  * resMakeDevFunc --
  *
  *  Callback function from ResExtractNet.  For each device in a node's
- *  device list pulled from the .sim file, find the tile(s) corresponding
+ *  device list pulled from the .ext file, find the tile(s) corresponding
  *  to the device in the source tree, and fill out the complete device
  *  record (namely the full device area).
  *
@@ -726,7 +720,7 @@ resMakeDevFunc(tile, dinfo, cx)
 
     /* If more than one tile type extracts to the same device, then */
     /* the device type may be different from what was recorded when */
-    /* the sim file was read.  Restricted to the plane of the	    */
+    /* the .ext file was read.  Restricted to the plane of the	    */
     /* original type to avoid conflict with completely different    */
     /* devices (like transistors vs. MiM caps).			    */
 
@@ -1014,7 +1008,7 @@ ResExtractNet(node, resisdata, cellname)
     ResDevList = NULL;
     ResNodeQueue = NULL;
     ResContactList = NULL;
-    ResOriginNode = NULL;
+    ResNodeAtOrigin = NULL;
 
     /* Pass back network pointers */
 
@@ -1169,7 +1163,7 @@ ResExtractNet(node, resisdata, cellname)
 
     ResDissolveContacts(ResContactList);
 
-    /* Add "junk" fields to tiles */
+    /* Add "resInfo" fields to tiles */
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
@@ -1182,10 +1176,17 @@ ResExtractNet(node, resisdata, cellname)
 			(ClientData) &ResDevList);
     }
 
-    /* Finish preprocessing. */
+    /* If this is a top-level cell, then determine where connections
+     * are made into the cell from ports.  Otherwise, determine points
+     * of entry by looking at how all parent cells connect to this
+     * cell.
+     */
 
     ResMakePortBreakpoints(ResUse->cu_def);
     ResMakeLabelBreakpoints(ResUse->cu_def, resisdata);
+
+    /* Finish preprocessing. */
+
     ResFindNewContactTiles(ResContactList);
     ResPreProcessDevices(DevTiles, ResDevList, ResUse->cu_def);
 
@@ -1309,7 +1310,7 @@ ResGetTileFunc(tile, dinfo, tpptr)
  *-------------------------------------------------------------------------
  *
  * FindStartTile-- To start the extraction, we need to find the first driver.
- *	The sim file gives us the location of a point in or near (within 1
+ *	The .ext file gives us the location of a point in or near (within 1
  *	unit) of the device. FindStartTile looks for the device, then
  *	for adjoining diffusion. The diffusion tile is returned.
  *
@@ -1450,8 +1451,9 @@ FindStartTile(resisdata, SourcePoint)
 		else
 		{
 		    const ClientData ticlient = TiGetClient(tp);
-		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
-		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
+		    const resInfo *rinfo = (resInfo *)CD2PTR(ticlient);
+
+		    if (ticlient != CLIENTDEFAULT && rinfo->ri_status & RES_TILE_DEV)
 			complex = TRUE;
 		}
 	    }
@@ -1471,8 +1473,8 @@ FindStartTile(resisdata, SourcePoint)
 		else
 		{
 		    const ClientData ticlient = TiGetClient(tp);
-		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
-		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
+		    const resInfo *rinfo = (resInfo *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && rinfo->ri_status & RES_TILE_DEV)
 			complex = TRUE;
 		}
 	    }
@@ -1492,8 +1494,8 @@ FindStartTile(resisdata, SourcePoint)
 		else
 		{
 		    const ClientData ticlient = TiGetClient(tp);
-		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
-		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
+		    const resInfo *rinfo = (resInfo *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && rinfo->ri_status & RES_TILE_DEV)
 			complex = TRUE;
 		}
 	    }
@@ -1513,8 +1515,8 @@ FindStartTile(resisdata, SourcePoint)
 		else
 		{
 		    const ClientData ticlient = TiGetClient(tp);
-		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
-		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
+		    const resInfo *rinfo = (resInfo *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && rinfo->ri_status & RES_TILE_DEV)
 			complex = TRUE;
 		}
 	    }
@@ -1527,7 +1529,7 @@ FindStartTile(resisdata, SourcePoint)
 
 		if (devStack == NULL) devStack = StackNew(8);
 
-		((tileJunk *)TiGetClientPTR(tile))->tj_status |= RES_TILE_PUSHED;
+		((resInfo *)TiGetClientPTR(tile))->ri_status |= RES_TILE_PUSHED;
        		STACKPUSH((ClientData)tile, devStack);
 		while (!StackEmpty(devStack))
 		{
@@ -1554,12 +1556,12 @@ FindStartTile(resisdata, SourcePoint)
 			    const ClientData ticlient = TiGetClient(tp);
 			    if (ticlient != CLIENTDEFAULT)
 			    {
-				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
-				if (tj->tj_status & RES_TILE_DEV)
+				resInfo *rinfo = (resInfo *)CD2PTR(ticlient);
+				if (rinfo->ri_status & RES_TILE_DEV)
 				{
-				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    if (!(rinfo->ri_status & RES_TILE_PUSHED))
 				    {
-				        tj->tj_status |= RES_TILE_PUSHED;
+				        rinfo->ri_status |= RES_TILE_PUSHED;
 				        STACKPUSH((ClientData)tp, devStack);
 				    }
 				}
@@ -1588,12 +1590,12 @@ FindStartTile(resisdata, SourcePoint)
 			    const ClientData ticlient = TiGetClient(tp);
 			    if (ticlient != CLIENTDEFAULT)
 			    {
-				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
-				if (tj->tj_status & RES_TILE_DEV)
+				resInfo *rinfo = (resInfo *)CD2PTR(ticlient);
+				if (rinfo->ri_status & RES_TILE_DEV)
 				{
-				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    if (!(rinfo->ri_status & RES_TILE_PUSHED))
 				    {
-					tj->tj_status |= RES_TILE_PUSHED;
+					rinfo->ri_status |= RES_TILE_PUSHED;
 					STACKPUSH((ClientData)tp, devStack);
 				    }
 				}
@@ -1622,12 +1624,12 @@ FindStartTile(resisdata, SourcePoint)
 			    const ClientData ticlient = TiGetClient(tp);
 			    if (ticlient != CLIENTDEFAULT)
 			    {
-				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
-				if (tj->tj_status & RES_TILE_DEV)
+				resInfo *rinfo = (resInfo *)CD2PTR(ticlient);
+				if (rinfo->ri_status & RES_TILE_DEV)
 				{
-				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    if (!(rinfo->ri_status & RES_TILE_PUSHED))
 				    {
-					tj->tj_status |= RES_TILE_PUSHED;
+					rinfo->ri_status |= RES_TILE_PUSHED;
 					STACKPUSH((ClientData)tp, devStack);
 				    }
 				}
@@ -1656,12 +1658,12 @@ FindStartTile(resisdata, SourcePoint)
 			    const ClientData ticlient = TiGetClient(tp);
 			    if (ticlient != CLIENTDEFAULT)
 			    {
-				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
-				if (tj->tj_status & RES_TILE_DEV)
+				resInfo *rinfo = (resInfo *)CD2PTR(ticlient);
+				if (rinfo->ri_status & RES_TILE_DEV)
 				{
-				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    if (!(rinfo->ri_status & RES_TILE_PUSHED))
 				    {
-					tj->tj_status |= RES_TILE_PUSHED;
+					rinfo->ri_status |= RES_TILE_PUSHED;
 					STACKPUSH((ClientData)tp, devStack);
 				    }
 				}
@@ -1720,7 +1722,7 @@ FindStartTile(resisdata, SourcePoint)
  *-------------------------------------------------------------------------
  *
  * ResGetDevice -- Once the net is extracted, we still have to equate
- *	the sim file devices with the layout devices. ResGetDevice
+ *	the .ext file devices with the layout devices. ResGetDevice
  *	looks for a device at the given location.  "type" is also
  *	specified to that the right plane will be searched.
  *
@@ -1756,7 +1758,7 @@ ResGetDevice(pt, type)
     {
         if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile))
               	   || TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetRightType(tile)))
-            return (((tileJunk *)CD2PTR(ticlient))->deviceList);
+            return (((resInfo *)CD2PTR(ticlient))->deviceList);
     }
     else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
     {
@@ -1764,7 +1766,7 @@ ResGetDevice(pt, type)
 	 * error and indicates a problem that needs debugging.
 	 */
 	if (ticlient != CLIENTDEFAULT)
-            return (((tileJunk *)CD2PTR(ticlient))->deviceList);
+            return (((resInfo *)CD2PTR(ticlient))->deviceList);
     }
     return NULL;
 }

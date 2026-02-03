@@ -52,9 +52,9 @@ bool ResCalcEastWest();
  */
 
 bool
-ResCalcTileResistance(tile, junk, pendingList, doneList)
+ResCalcTileResistance(tile, info, pendingList, doneList)
     Tile 	*tile;
-    tileJunk 	*junk;
+    resInfo 	*info;
     resNode	**pendingList, **doneList;
 
 {
@@ -67,7 +67,7 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
     merged = FALSE;
     device = FALSE;
 
-    if ((p1 = junk->breakList) == NULL) return FALSE;
+    if ((p1 = info->breakList) == NULL) return FALSE;
     for (; p1; p1 = p1->br_next)
     {
 	int	x = p1->br_loc.p_x;
@@ -133,7 +133,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     resElement	*element;
     resNode	*currNode;
     float	rArea;
-    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
+    resInfo	*info = (resInfo *)TiGetClientPTR(tile);
 
     merged = FALSE;
     height = TOP(tile) - BOTTOM(tile);
@@ -143,12 +143,12 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
      * breakpoint, then return.
      */
 
-    p1 = junk->breakList;
+    p1 = info->breakList;
     if   (p1->br_next == NULL)
     {
 	p1->br_this->rn_float.rn_area += height * (LEFT(tile) - RIGHT(tile));
 	freeMagic((char *)p1);
-	junk->breakList = NULL;
+	info->breakList = NULL;
 	return(merged);
     }
 
@@ -164,14 +164,14 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 
     /* Re-sort nodes left to right. */
 
-    ResSortBreaks(&junk->breakList, TRUE);
+    ResSortBreaks(&info->breakList, TRUE);
 
     /*
      * Eliminate breakpoints with the same X coordinate and merge
      * their nodes.
      */
 
-    p2= junk->breakList;
+    p2= info->breakList;
 
     /* Add extra left area to leftmost node */
 
@@ -213,7 +213,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    }
 
 	    /*
-	     * Was the node used in another junk or breakpoint?
+	     * Was the node used in another info or breakpoint?
 	     * If so, replace the old node with the new one.
 	     */
 
@@ -278,7 +278,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 
     p2->br_this->rn_float.rn_area += height * (RIGHT(tile) - p2->br_loc.p_x);
     freeMagic((char *)p2);
-    junk->breakList = NULL;
+    info->breakList = NULL;
     return merged;
 }
 
@@ -309,7 +309,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     resElement	*element;
     resNode	*currNode;
     float	rArea;
-    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
+    resInfo	*info = (resInfo *)TiGetClientPTR(tile);
 
     merged = FALSE;
     width = RIGHT(tile) - LEFT(tile);
@@ -319,17 +319,17 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
      * breakpoint, then return.
      */
 
-    p1 = junk->breakList;
+    p1 = info->breakList;
     if (p1->br_next == NULL)
     {
 	p1->br_this->rn_float.rn_area += width * (TOP(tile) - BOTTOM(tile));
      	freeMagic((char *)p1);
-	junk->breakList = NULL;
+	info->breakList = NULL;
 	return(merged);
     }
 
     /* Re-sort nodes south to north. */
-    ResSortBreaks(&junk->breakList, FALSE);
+    ResSortBreaks(&info->breakList, FALSE);
 
     /* Simplified split tile handling */
     if (IsSplit(tile))
@@ -346,7 +346,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
      * their nodes.
      */
 
-    p2 = junk->breakList;
+    p2 = info->breakList;
 
     /* Add extra left area to leftmost node */
 
@@ -388,7 +388,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    }
 
 	    /*
-	     * Was the node used in another junk or breakpoint?
+	     * Was the node used in another info or breakpoint?
 	     * If so, replace the old node with the new one.
 	     */
 	    p3 = p2->br_next;
@@ -449,7 +449,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     }
     p2->br_this->rn_float.rn_area += width * (TOP(tile) - p2->br_loc.p_y);
     freeMagic((char *)p2);
-    junk->breakList = NULL;
+    info->breakList = NULL;
     return(merged);
 }
 
@@ -482,7 +482,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
     bool 	merged;
     int		devcount, devedge, deltax, deltay;
     Breakpoint	*p1, *p2, *p3;
-    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
+    resInfo	*info = (resInfo *)TiGetClientPTR(tile);
 
     merged = FALSE;
 
@@ -491,10 +491,10 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
      *	breakpoint, then return.
      */
 
-    if   (junk->breakList->br_next == NULL)
+    if   (info->breakList->br_next == NULL)
     {
-     	freeMagic((char *)junk->breakList);
-	junk->breakList = NULL;
+     	freeMagic((char *)info->breakList);
+	info->breakList = NULL;
 	return(merged);
     }
 
@@ -503,7 +503,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 
     devcount = 0;
     devedge = 0;
-    for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+    for (p1 = info->breakList; p1 != NULL; p1 = p1->br_next)
     {
 	if (p1->br_this->rn_why == RES_NODE_DEVICE)
 	{
@@ -525,9 +525,9 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
         (devedge & TOPEDGE) == devedge 	||
         (devedge & BOTTOMEDGE) == devedge)
     {
-	ResSortBreaks(&junk->breakList,TRUE);
+	ResSortBreaks(&info->breakList,TRUE);
         p2 = NULL;
-        for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+        for (p1 = info->breakList; p1 != NULL; p1 = p1->br_next)
         {
 	    if (p1->br_this->rn_why == RES_NODE_DEVICE)
 	        break;
@@ -587,9 +587,9 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	}
 
         /* Re-sort nodes south to north. */
-	ResSortBreaks(&junk->breakList, FALSE);
+	ResSortBreaks(&info->breakList, FALSE);
         p2 = NULL;
-        for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+        for (p1 = info->breakList; p1 != NULL; p1 = p1->br_next)
         {
 	    if (p1->br_this->rn_why == RES_NODE_DEVICE)
 	    {
@@ -684,17 +684,17 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	      (RIGHT(tile) - LEFT(tile)) > (TOP(tile) - BOTTOM(tile))))
 	{
             /* re-sort nodes south to north. */
-	    ResSortBreaks(&junk->breakList, FALSE);
+	    ResSortBreaks(&info->breakList, FALSE);
 
 	    /* eliminate duplicate S/D pointers */
-	    for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+	    for (p1 = info->breakList; p1 != NULL; p1 = p1->br_next)
 	    {
 	      	if  (p1->br_this->rn_why == RES_NODE_DEVICE &&
 		       (p1->br_loc.p_y == BOTTOM(tile) ||
 		        p1->br_loc.p_y == TOP(tile)))
 		{
 		    p3 = NULL;
-		    p2 = junk->breakList;
+		    p2 = info->breakList;
 		    while (p2 != NULL)
 		    {
 			if (p2->br_this == p1->br_this && p2 != p1 &&
@@ -703,9 +703,9 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 			{
 			    if (p3 == NULL)
 			    {
-				junk->breakList = p2->br_next;
+				info->breakList = p2->br_next;
 				freeMagic((char *) p2);
-				p2 = junk->breakList;
+				p2 = info->breakList;
 			    }
 			    else
 			    {
@@ -727,14 +727,14 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	else
 	{
 	    /* Eliminate duplicate S/D pointers */
-	    for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+	    for (p1 = info->breakList; p1 != NULL; p1 = p1->br_next)
 	    {
 	      	if (p1->br_this->rn_why == RES_NODE_DEVICE &&
 		       (p1->br_loc.p_x == LEFT(tile) ||
 		        p1->br_loc.p_x == RIGHT(tile)))
 		{
 		    p3 = NULL;
-		    p2 = junk->breakList;
+		    p2 = info->breakList;
 		    while (p2 != NULL)
 		    {
 			if (p2->br_this == p1->br_this	&& p2 != p1 &&
@@ -743,9 +743,9 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 			{
 			    if (p3 == NULL)
 			    {
-				junk->breakList = p2->br_next;
+				info->breakList = p2->br_next;
 				freeMagic((char *) p2);
-				p2 = junk->breakList;
+				p2 = info->breakList;
 			    }
 			    else
 			    {
@@ -805,7 +805,7 @@ ResDoContacts(contact, nodes, resList)
 	int y = contact->cp_center.p_y;
 
 	resptr = (resNode *) mallocMagic((unsigned) (sizeof(resNode)));
-	InitializeNode(resptr, x, y, RES_NODE_CONTACT);
+	InitializeResNode(resptr, x, y, RES_NODE_CONTACT);
 	ResAddToQueue(resptr, nodes);
 
  	ccell = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
@@ -858,7 +858,7 @@ ResDoContacts(contact, nodes, resList)
 	    Tile *tile = contact->cp_tile[tilenum];
 
 	    resptr = (resNode *) mallocMagic((unsigned) (sizeof(resNode)));
-	    InitializeNode(resptr, x, y, RES_NODE_CONTACT);
+	    InitializeResNode(resptr, x, y, RES_NODE_CONTACT);
 	    ResAddToQueue(resptr, nodes);
 
  	    /* Add contact pointer to node  */

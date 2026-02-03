@@ -53,7 +53,7 @@ ResDoneWithNode(resptr)
     resResistor	*rr1;
 
     resptr2 = NULL;
-    resptr->rn_status |= RESTRUE;
+    resptr->rn_status |= RES_TRUE;
     status = UNTOUCHED;
 
     /* are there any resistors? */
@@ -93,9 +93,9 @@ ResDoneWithNode(resptr)
 	    ResMergeNodes(resptr2, resptr, &ResNodeQueue, &ResNodeList);
 	    resptr2->rn_float.rn_area += rr1->rr_float.rr_area;
 	    ResEliminateResistor(rr1, &ResResList);
-	    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
+	    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
 	    {
-		resptr2->rn_status &= ~RESTRUE;
+		resptr2->rn_status &= ~RES_TRUE;
 		ResDoneWithNode(resptr2);
 	    }
 	    resptr2 = NULL;
@@ -108,14 +108,16 @@ ResDoneWithNode(resptr)
     /* Eliminations that can be only if there are no devices connected */
     /* to node.  Series and dangling connections fall in this group.	*/
 
-    if ((resptr->rn_te == NULL) && (resptr->rn_why != RES_NODE_ORIGIN)
-		&& (status == UNTOUCHED))
+    if ((status == UNTOUCHED) && (resptr->rn_te == NULL) &&
+		!(resptr->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)))
      	status = ResSeriesCheck(resptr);
 
-    if ((status == UNTOUCHED) && (resptr->rn_why != RES_NODE_ORIGIN))
+    if ((status == UNTOUCHED) &&
+		!(resptr->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)))
 	status = ResParallelCheck(resptr);
 
-    if ((status == UNTOUCHED) && (resptr->rn_why != RES_NODE_ORIGIN))
+    if ((status == UNTOUCHED) &&
+		!(resptr->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)))
 	status = ResTriangleCheck(resptr);
 }
 
@@ -242,9 +244,9 @@ ResSeriesCheck(resptr)
 	ResEliminateResistor(rr1, &ResResList);
 	ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
 	status = SINGLE;
-	if (resptr2->rn_status & RESTRUE)
+	if (resptr2->rn_status & RES_TRUE)
 	{
-	    resptr2->rn_status &= ~RESTRUE;
+	    resptr2->rn_status &= ~RES_TRUE;
 	    ResDoneWithNode(resptr2);
 	}
 	resptr2 = NULL;
@@ -280,9 +282,9 @@ ResSeriesCheck(resptr)
 			rr1->rr_connection1 = rr2->rr_connection2;
 			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		    }
-		    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
+		    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
 		    {
-			resptr2->rn_status &= ~RESTRUE;
+			resptr2->rn_status &= ~RES_TRUE;
 			ResDoneWithNode(resptr2);
 		    }
 		    resptr2 = NULL;
@@ -311,9 +313,9 @@ ResSeriesCheck(resptr)
 			rr1->rr_connection1 = rr2->rr_connection1;
 			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		    }
-		    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
+		    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
 		    {
-			resptr2->rn_status &= ~RESTRUE;
+			resptr2->rn_status &= ~RES_TRUE;
 			ResDoneWithNode(resptr2);
 		    }
 		    resptr2 = NULL;
@@ -345,9 +347,9 @@ ResSeriesCheck(resptr)
 			rr1->rr_connection2 = rr2->rr_connection2;
 			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		    }
-		    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
+		    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
 		    {
-			resptr2->rn_status &= ~RESTRUE;
+			resptr2->rn_status &= ~RES_TRUE;
 			ResDoneWithNode(resptr2);
 		    }
 		    resptr2 = NULL;
@@ -376,9 +378,9 @@ ResSeriesCheck(resptr)
 			rr1->rr_connection2 = rr2->rr_connection1;
 			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		    }
-		    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
+		    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
 		    {
-			resptr2->rn_status &= ~RESTRUE;
+			resptr2->rn_status &= ~RES_TRUE;
 			ResDoneWithNode(resptr2);
 		    }
 		    resptr2 = NULL;
@@ -433,10 +435,10 @@ ResParallelCheck(resptr)
 		ResFixParallel(r1, r2);
 	        status = PARALLEL;
 		resptr2 = NULL;
-		if (resptr3->rn_status & RESTRUE)
+		if (resptr3->rn_status & RES_TRUE)
 		{
 		    resptr2 = resptr3;
-		    resptr2->rn_status &= ~RESTRUE;
+		    resptr2->rn_status &= ~RES_TRUE;
 		}
 		ResDoneWithNode(resptr);
 		if (resptr2 != NULL) ResDoneWithNode(resptr2);
@@ -531,8 +533,8 @@ ResTriangleCheck(resptr)
 	        /* is arbitrarily assigned to the location  */
 		/* occupied by the first node.		    */
 
-		InitializeNode(n3, resptr->rn_loc.p_x, resptr->rn_loc.p_y, TRIANGLE);
-		n3->rn_status = FINISHED | RESTRUE | MARKED;
+		InitializeResNode(n3, resptr->rn_loc.p_x, resptr->rn_loc.p_y, TRIANGLE);
+		n3->rn_status = RES_FINISHED | RES_TRUE | RES_MARKED;
 
 		n3->rn_less = NULL;
 		n3->rn_more = ResNodeList;
@@ -580,13 +582,13 @@ ResTriangleCheck(resptr)
 		element->re_nextEl = n3->rn_re;
 		element->re_thisEl = rr3;
 		n3->rn_re = element;
-		if ((n1->rn_status & RESTRUE) == RESTRUE)
-		    n1->rn_status &= ~RESTRUE;
+		if ((n1->rn_status & RES_TRUE) == RES_TRUE)
+		    n1->rn_status &= ~RES_TRUE;
 		else
 		    n1 = NULL;
 
-		if ((n2->rn_status & RESTRUE) == RESTRUE)
-		    n2->rn_status &= ~RESTRUE;
+		if ((n2->rn_status & RES_TRUE) == RES_TRUE)
+		    n2->rn_status &= ~RES_TRUE;
 		else
 		    n2 = NULL;
 
@@ -637,15 +639,18 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	return;
     }
 
-    /* don't want to merge away startpoint */
+    /* don't want to merge away start or end points */
     if (node2->rn_why & RES_NODE_ORIGIN)
       	node1->rn_why = RES_NODE_ORIGIN;
+
+    if (node2->rn_why & RES_NODE_SINK)
+      	node1->rn_why = RES_NODE_SINK;
 
     /* set node resistance */
     if (node1->rn_noderes > node2->rn_noderes)
     {
 	node1->rn_noderes = node2->rn_noderes;
-	if ((node1->rn_status & FINISHED) != FINISHED)
+	if ((node1->rn_status & RES_FINISHED) != RES_FINISHED)
 	{
 	    ResRemoveFromQueue(node1, pendingList);
 	    ResAddToQueue(node1, pendingList);
@@ -654,7 +659,7 @@ ResMergeNodes(node1, node2, pendingList, doneList)
     node1->rn_float.rn_area += node2->rn_float.rn_area;
 
     /* combine relevant flags */
-    node1->rn_status |= (node2->rn_status & RN_MAXTDI);
+    node1->rn_status |= (node2->rn_status & RES_MAXTDI);
 
     /* merge device lists */
     workingDev = node2->rn_te;
@@ -680,13 +685,13 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	tJunc = workingJunc;
 	for (i = 0; i < TILES_PER_JUNCTION; i++)
 	{
-	    tileJunk *junk;
+	    resInfo *info;
 
 	    tile = tJunc->je_thisj->rj_Tile[i];
-	    junk = (tileJunk *) TiGetClientPTR(tile);
+	    info = (resInfo *) TiGetClientPTR(tile);
 
-	    if ((junk->tj_status & RES_TILE_DONE) == FALSE)
-		ResFixBreakPoint(&junk->breakList, node2, node1);
+	    if ((info->ri_status & RES_TILE_DONE) == FALSE)
+		ResFixBreakPoint(&info->breakList, node2, node1);
 	}
         tJunc->je_thisj->rj_jnode = node1;
 	workingJunc = workingJunc->je_nextj;
@@ -703,13 +708,13 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	{
 	    if (workingCon->ce_thisc->cp_cnode[i] == node2)
 	    {
-	        tileJunk *junk;
+	        resInfo *info;
 
 		workingCon->ce_thisc->cp_cnode[i] = node1;
 	        tile =tCon->ce_thisc->cp_tile[i];
-		junk = (tileJunk *) TiGetClientPTR(tile);
-	   	if ((junk->tj_status & RES_TILE_DONE) == FALSE)
-		    ResFixBreakPoint(&junk->breakList, node2, node1);
+		info = (resInfo *) TiGetClientPTR(tile);
+	   	if ((info->ri_status & RES_TILE_DONE) == FALSE)
+		    ResFixBreakPoint(&info->breakList, node2, node1);
 	    }
 	}
 	workingCon = workingCon->ce_nextc;
@@ -749,7 +754,7 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	tRes->re_nextEl = node1->rn_re;
 	node1->rn_re = tRes;
     }
-    if ((node2->rn_status & FINISHED) == FINISHED)
+    if ((node2->rn_status & RES_FINISHED) == RES_FINISHED)
       	ResRemoveFromQueue(node2, doneList);
     else
       	ResRemoveFromQueue(node2, pendingList);
@@ -859,7 +864,7 @@ ResEliminateResistor(resistor, homelist)
  *-------------------------------------------------------------------------
  *
  * ResCleanNode--removes the linked lists of junctions and contacts after
- *		they are no longer needed. If the 'junk' option is used,
+ *		they are no longer needed. If the 'info' option is used,
  *		the node is eradicated.
  *
  * Results:
@@ -871,9 +876,9 @@ ResEliminateResistor(resistor, homelist)
  */
 
 void
-ResCleanNode(resptr, junk, homelist1, homelist2)
+ResCleanNode(resptr, info, homelist1, homelist2)
     resNode *resptr;
-    int	    junk;
+    int	    info;
     resNode **homelist1;
     resNode **homelist2;
 {
@@ -896,7 +901,7 @@ ResCleanNode(resptr, junk, homelist1, homelist2)
 	freeMagic((char *)jcell->je_thisj);
 	freeMagic((char *)jcell);
     }
-    if (junk == TRUE)
+    if (info == TRUE)
     {
 	if (resptr->rn_client != (ClientData)NULL)
 	{

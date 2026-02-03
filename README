@@ -150,3 +150,137 @@ to be analyzed. . .
 
 Will need a simpler hierarchical layout example.
 
+---------------------------------------------------------------------
+For now, work on analyzing the code to understand how the points of
+entry (above) and exit (below) are handled.  My understanding of my
+previous work (which has been a while) is that there is *no* dealing
+with exit points, and entry points only consider labeled ports.
+
+Confirm this, then strategize on how to rewrite this such that any
+given cell can find its exit points by looking at its .ext file
+"merge" records, and its entry points by looking at its parent's
+.ext file "merge" records to itself.  The full list of parent uses
+can be used to find all potential points of entry (some of which
+might not be used in a given instance of the cell).  Overlaps must
+be detected and handled.
+
+The current process stack looks like:
+
+    ResMain.c:  extExtractStack()
+	ResRex.c:  ExtResisForDef()	
+	    ResRex.c:  ResCheckExtNodes()
+		ResRex.c:  ResProcessNode()
+		    ResMain.c:  ResExtractNet()
+		    ResSimple.c:  ResDoSimplify()
+		    ResRex.c:  ResWriteExtFile()
+
+RexExtractNet() does the following:
+
+    (loop over devices)
+	resMakeDevFunc()
+
+    ResShaveContacts()
+    ResConnectWithSD()
+    ResDissolveContacts()
+
+    (loop over planes)
+	ResAddPlumbing()
+
+    ResMakePortBreakpoints()
+    ResMakeLabelBreakpoints()
+    ResFindNewContactTiles()
+    ResPreProcessDevices()
+
+    ResProcessTiles()
+	ResEachTile()
+	(Then work through ResNodeQueue stack)
+
+The relevant parts here to what needs to be added functionally are the
+two routines ResMakePortBreakpoints() and ResMakeLabelBreakpoints()
+These two routines should be run *only* on the top level cell of a layout,
+since there is no other information specifying what it connects to.
+Otherwise, I need two new routines which effectively do the same thing:
+
+    ResMakeBreakpointsUp()
+    ResMakeBreakpointsDown()
+
+I have a question as to whether these really are supposed to be
+"breakpoints" or if that is an appropriate designation for a terminal.
+Both routines above call ResAddBreakpointFunc() which calls NEWPORT()
+(macro).  This is different than a breakpoint, which has NEWBREAK,
+so I should probably rename the routines above to make them correct.
+Each resInfo record (attached to a tile) has a "breakList" and a
+"portList".  But---"resAllPortNodes()" creates a NEWBREAK for every
+entry in portList, and ResMakeLabelBreakpoints() calls
+ResAddBreakpointFunc(), although the latter calls NEWPORT.  This seems
+circular and could be a case of "I did this when I didn't know what I
+was doing".  "resAllPortNodes()" is called at the end of ResEachTile().
+
+Another question:  ResMakePortBreakpoints() does not check the cell def but
+works from the node list created by reading the .ext file, where any node
+that has a "port" entry is flagged.  But all ports are labels, so wouldn't
+ResMakeLabelBreakpoints() create a redundant entry?
+
+Note check at ResProcesNode() for node->status & REDUNDANT; It is not clear
+to me what REDUNDANT ought to be doing in the ResReadExt code.  Possibly it
+should just be eliminated, and replaced by forcing EXTRACT_DOUNIQUE.  For
+R-C extraction there should never be two of the same node name in different
+places.  "node_uq0" would be just a name, like "node.n0";  it should not
+matter that the label is for a junction or a terminal.
+
+The routines appear to assume one "drive point" and multiple "terminals".
+This would be a typical digital setup.  The node can have a single
+"drivepoint" position.  This is not particularly meaningful for analog.
+
+Maybe it makes sense to pre-partition nets so that they all end up with
+the single-driver, multiple-terminal form?  The idea that a net has multiple
+drivers means that there are multiple points of attachment to that net from
+outside.  But it may be sufficient just to arbitrarily pick one node as the
+driver and declare all the rest to be terminals.
+
+------------------------
+At what point in the call stack above is it possible to know whether the
+current cell def is a top level cell or not?  Should be possible for
+anything with "def" in its argument list.
+Top level cell has def->cd_parents->cu_parent = 0?
+
+What prevents a breakpoint from being considered dangling and getting
+removed?  Answer:  The node is marked with RES_NODE_ORIGIN.  This origin
+is placed at the position of a port, and if breakpoints are added, then
+only the resInfo record at the origin position keeps RES_NODE_ORIGIN,
+and that keeps the record from being pruned from the node.  Will likely
+need a different flag, such as "RES_NODE_SINK".
+
+Seems like this should run after basic extraction and before simplification.
+If a list of parent and child connection points exists after reading the
+.ext files, then the connection points can be located and the resInfo
+at the connection point can be set to be a sink.  That may involve adding
+a junction, which might be as simple as just calling ResProcessJunction()?
+Or more likely, need a new handler (in ResJunct.c) to process a sink point.
+Note that "ResProcessJunction()" requires two connecting tiles, which would
+not be the case with a sink.
+
+Analyze how these junction processor routines work.  The resInfo field of
+"tp" is searched, but the resInfo field of "tile" gets the new breakpoint.
+
+Need to keep in mind the difference between ResNodeList, which has entries
+of type "resNode" (which is basically a sub-node), and ResOriginalNodes,
+which has entries of type "ResExtNode".  Particularly confusing is
+ResOriginalNodes vs. ResOriginNode. . . may want to change something, like
+referring to the originals as Nets?
+
+(Cleaned up a bunch of mess in the code meanwhile.)
+
+Added RES_NODE_SINK and handling, but nothing defines it yet.  It will
+prevent nodes having the flag from being merged or simplified away, like
+RES_NODE_ORIGIN.
+
+Now need a routine that reads the "merge" lines from .ext files and 
+creates sinks.
+
+Currently resAllPortNodes() runs at the end of ResEachTile().
+It takes the Info record attached to the tile, runs through the portList,
+and adds a new breakpoint. . . to the same tile.  There is no check of
+whether the port intersects the tile, which is probably wrong.
+
+Time to start working with some simple examples.

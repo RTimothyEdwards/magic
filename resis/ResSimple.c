@@ -77,7 +77,7 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 
     if (*nodelist == NULL) return;
     node = *nodelist;
-    node->rn_status |= MARKED | FINISHED;
+    node->rn_status |= RES_MARKED | RES_FINISHED;
     *nodelist = node->rn_more;
     if (node->rn_more != NULL)
         node->rn_more->rn_less = (resNode *) NULL;
@@ -138,7 +138,8 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
      * more than 1, delete the current resistor to break the deadlock.
      */
 
-    if (numreceive == 0 && numdrive == 1 && node->rn_why != RES_NODE_ORIGIN)
+    if (numreceive == 0 && numdrive == 1 &&
+			!(node->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)))
     {
 	resistor1->rr_status |= RES_DEADEND;
 	if (resistor1->rr_value < tolerance)
@@ -155,8 +156,8 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 	    {
 	     	if (resisptr->re_thisEl->rr_connection1 == otherNode)
 		{
-		    if ((resisptr->re_thisEl->rr_connection2->rn_status & MARKED)
-				!= MARKED)
+		    if ((resisptr->re_thisEl->rr_connection2->rn_status & RES_MARKED)
+				!= RES_MARKED)
 		    {
 		       	 PendingReceivers++;
 		    }
@@ -180,9 +181,9 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 			(UnMarkedReceivers == 0 && MarkedReceivers > 1 &&
 			resistor2 == resistor1 && PendingReceivers == 0))
 	    {
-	     	if (otherNode->rn_status & MARKED)
+	     	if (otherNode->rn_status & RES_MARKED)
 		{
-		     otherNode->rn_status &= ~MARKED;
+		     otherNode->rn_status &= ~RES_MARKED;
 		     ResRemoveFromQueue(otherNode, biglist);
 		     otherNode->rn_less = NULL;
 		     otherNode->rn_more = *nodelist;
@@ -208,9 +209,9 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 	        ResDeleteResPointer(resistor1->rr_connection2, resistor1);
 	        ResEliminateResistor(resistor1, reslist);
 	        ResMergeNodes(otherNode, node, nodelist, biglist);
-	        if (otherNode->rn_status & MARKED)
+	        if (otherNode->rn_status & RES_MARKED)
 	        {
-	            otherNode->rn_status &= ~MARKED;
+	            otherNode->rn_status &= ~RES_MARKED;
 	            ResRemoveFromQueue(otherNode, biglist);
 	            otherNode->rn_less= NULL;
 		    otherNode->rn_more = *nodelist;
@@ -287,12 +288,12 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
         resisptr->re_nextEl = node2->rn_re;
         node2->rn_re = resisptr;
 	ResEliminateResistor(resistor2, reslist);
-	otherNode->rn_status |= (node->rn_status & RN_MAXTDI);
+	otherNode->rn_status |= (node->rn_status & RES_MAXTDI);
 	ResCleanNode(node, TRUE, biglist, nodelist);
 	node1->rn_status &= ~RES_DONE_ONCE;
-	if (node1->rn_status & MARKED)
+	if (node1->rn_status & RES_MARKED)
 	{
-	    node1->rn_status &= ~MARKED;
+	    node1->rn_status &= ~RES_MARKED;
 	    ResRemoveFromQueue(node1, biglist);
 	    node1->rn_less = NULL;
 	    node1->rn_more = *nodelist;
@@ -301,9 +302,9 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 	    *nodelist = node1;
 	}
 	node2->rn_status &= ~RES_DONE_ONCE;
-	if (node2->rn_status & MARKED)
+	if (node2->rn_status & RES_MARKED)
 	{
-	    node2->rn_status &= ~MARKED;
+	    node2->rn_status &= ~RES_MARKED;
 	    ResRemoveFromQueue(node2, biglist);
 	    node2->rn_less = NULL;
 	    node2->rn_more = *nodelist;
@@ -334,7 +335,7 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 		if (resisptr->re_thisEl->rr_status & RES_DONE_ONCE)
 		    continue;
 
-		if (resisptr->re_thisEl->rr_connection2->rn_status & MARKED)
+		if (resisptr->re_thisEl->rr_connection2->rn_status & RES_MARKED)
 		{
 		    /*
 		     * Mark big resistors so we only process them
@@ -343,7 +344,7 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 		    if (resisptr->re_thisEl->rr_value > tolerance)
 			resisptr->re_thisEl->rr_status |= RES_DONE_ONCE;
 
-		    resisptr->re_thisEl->rr_connection2->rn_status &= ~MARKED;
+		    resisptr->re_thisEl->rr_connection2->rn_status &= ~RES_MARKED;
 		    ResRemoveFromQueue(resisptr->re_thisEl->rr_connection2, biglist);
 	     	    resisptr->re_thisEl->rr_connection2->rn_less= NULL;
 		    resisptr->re_thisEl->rr_connection2->rn_more = *nodelist;
@@ -527,7 +528,7 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 
 	ResEliminateResistor(current, reslist);
 	ResAddResistorToList(working, reslist);
-	if (node2->rn_why & RES_NODE_ORIGIN)
+	if (node2->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK))
 	{
 	    ResMergeNodes(node2, node1, pendingList, biglist);
 	    node1 = node2;
@@ -541,7 +542,7 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 	 */
 	ResRemoveFromQueue(node1, biglist);
 	ResAddToQueue(node1, pendingList);
-	node1->rn_status &= ~(RES_DONE_ONCE | FINISHED);
+	node1->rn_status &= ~(RES_DONE_ONCE | RES_FINISHED);
 	ResDoneWithNode(node1);
 	while (*pendingList != NULL)
 	    ResSimplifyNet(pendingList, biglist, reslist, tolerance);
@@ -897,7 +898,7 @@ ResDoSimplify(tolerance,resisdata)
 	------*/
     }
 
-    if (ResOriginNode == NULL)
+    if (ResNodeAtOrigin == NULL)
     {
 	TxError("Error:  Network simplification:  Failed to to get origin node.\n");
     	resisdata->rg_Tdi = 0;
@@ -905,12 +906,12 @@ ResDoSimplify(tolerance,resisdata)
     else if (ResOptionsFlags & ResOpt_Tdi)
     {
 	if ((resisdata->rg_nodecap != -1) &&
-	 	(totalcap = ResCalculateChildCapacitance(ResOriginNode)) != -1)
+	 	(totalcap = ResCalculateChildCapacitance(ResNodeAtOrigin)) != -1)
 	{
 	    RCDelayStuff *rc = (RCDelayStuff *) ResNodeList->rn_client;
 
 	    resisdata->rg_nodecap = totalcap;
-	    ResCalculateTDi(ResOriginNode, (resResistor *)NULL,
+	    ResCalculateTDi(ResNodeAtOrigin, (resResistor *)NULL,
 	      					resisdata->rg_bigdevres);
 	    if (rc != (RCDelayStuff *)NULL)
 		resisdata->rg_Tdi = rc->rc_Tdi;
@@ -927,7 +928,7 @@ ResDoSimplify(tolerance,resisdata)
 		    resisdata->rg_Tdi = rc->rc_Tdi;
 		}
 	    }
-	    slownode->rn_status |= RN_MAXTDI;
+	    slownode->rn_status |= RES_MAXTDI;
 	}
 	else
 	    resisdata->rg_Tdi = -1;
@@ -957,11 +958,11 @@ ResDoSimplify(tolerance,resisdata)
 	for (node = ResNodeList; node != NULL; node = node->rn_more)
 	{
 	    if (node->rn_noderes == 0)
-	      	ResOriginNode = node;
+	      	ResNodeAtOrigin = node;
 
-	    node->rn_status |= FINISHED;
+	    node->rn_status |= RES_FINISHED;
 	}
-        if (ResOriginNode != NULL)
+        if (ResNodeAtOrigin != NULL)
         {
             /* if Tdi is enabled, prune all branches whose end nodes	*/
 	    /* have time constants less than the tolerance.		*/
@@ -970,22 +971,22 @@ ResDoSimplify(tolerance,resisdata)
 	           resisdata->rg_Tdi != -1 &&
 		   rctol != 0)
 	    {
-	        ResPruneTree(ResOriginNode, (rctol + 1) *
+	        ResPruneTree(ResNodeAtOrigin, (rctol + 1) *
 			resisdata->rg_bigdevres * resisdata->rg_nodecap / rctol,
 		   	&ResNodeList, &ResNodeQueue, &ResResList);
 	    }
-	    ResOriginNode->rn_status &= ~MARKED;
-	    if (ResOriginNode->rn_less == NULL)
-		ResNodeList = ResOriginNode->rn_more;
+	    ResNodeAtOrigin->rn_status &= ~RES_MARKED;
+	    if (ResNodeAtOrigin->rn_less == NULL)
+		ResNodeList = ResNodeAtOrigin->rn_more;
 	    else
-	        ResOriginNode->rn_less->rn_more = ResOriginNode->rn_more;
+	        ResNodeAtOrigin->rn_less->rn_more = ResNodeAtOrigin->rn_more;
 
-	    if (ResOriginNode->rn_more != NULL)
-	        ResOriginNode->rn_more->rn_less = ResOriginNode->rn_less;
+	    if (ResNodeAtOrigin->rn_more != NULL)
+	        ResNodeAtOrigin->rn_more->rn_less = ResNodeAtOrigin->rn_less;
 
-	    ResOriginNode->rn_more = NULL;
-	    ResOriginNode->rn_less = NULL;
-	    ResNodeQueue = ResOriginNode;
+	    ResNodeAtOrigin->rn_more = NULL;
+	    ResNodeAtOrigin->rn_less = NULL;
+	    ResNodeQueue = ResNodeAtOrigin;
 	    while (ResNodeQueue != NULL)
 	        ResSimplifyNet(&ResNodeQueue, &ResNodeList, &ResResList, millitolerance);
 
@@ -1022,16 +1023,16 @@ ResSetPathRes(ResisData *resisdata)
     {
 	if (node->rn_noderes == 0)
 	{
-	    ResOriginNode = node;
-	    node->rn_status |= FINISHED;
+	    ResNodeAtOrigin = node;
+	    node->rn_status |= RES_FINISHED;
 	}
 	else
 	{
 	    node->rn_noderes = RES_INFINITY;
-	    node->rn_status &= ~FINISHED;
+	    node->rn_status &= ~RES_FINISHED;
 	}
     }
-    if (ResOriginNode == NULL)
+    if (ResNodeAtOrigin == NULL)
     {
 	resDevice *res = ResGetDevice(resisdata->rg_devloc, resisdata->rg_ttype);
 	if (res == (resDevice *)NULL)
@@ -1042,12 +1043,12 @@ ResSetPathRes(ResisData *resisdata)
 			DBWPrintValue(resisdata->rg_devloc->p_y, (MagWindow *)NULL, FALSE));
 	    return;
 	}
-	ResOriginNode = res->rd_fet_source;
-	ResOriginNode->rn_why = RES_NODE_ORIGIN;
-	ResOriginNode->rn_noderes = 0;
+	ResNodeAtOrigin = res->rd_fet_source;
+	ResNodeAtOrigin->rn_why = RES_NODE_ORIGIN;
+	ResNodeAtOrigin->rn_noderes = 0;
     }
-    ASSERT(ResOriginNode != NULL, "ResDoSimplify");
-    resPathNode(ResOriginNode);
+    ASSERT(ResNodeAtOrigin != NULL, "ResDoSimplify");
+    resPathNode(ResNodeAtOrigin);
     while (HeapRemoveTop(&ResistorHeap,&he))
 	resPathRes((resResistor *)he.he_id);
 }
@@ -1058,7 +1059,7 @@ ResSetPathRes(ResisData *resisdata)
  *
  *	Given node "node", add every resistor connected to the node, and
  *	for which the node on the other side has not been processed, to
- *	the heap.  Node is marked with FINISHED to prevent going 'round
+ *	the heap.  Node is marked with RES_FINISHED to prevent going 'round
  *	and 'round loops.
  *-------------------------------------------------------------------------
  */
@@ -1070,7 +1071,7 @@ resPathNode(node)
 {
     resElement	*re;
 
-    node->rn_status |= FINISHED;
+    node->rn_status |= RES_FINISHED;
     for (re = node->rn_re; re; re = re->re_nextEl)
     {
      	resResistor *res = re->re_thisEl;
@@ -1078,7 +1079,7 @@ resPathNode(node)
 
 	if (res->rr_status & RES_HEAP) continue;
 	if ((node2 = res->rr_node[0]) == node) node2 = res->rr_node[1];
-	if ((node2->rn_status & FINISHED) == 0)
+	if ((node2->rn_status & RES_FINISHED) == 0)
 	    HeapAddInt(&ResistorHeap,  node->rn_noderes + res->rr_value,
 			(char *)res);
     }
@@ -1114,8 +1115,8 @@ resPathRes(res)
     res->rr_status &= ~RES_MARKED;
     node0 = res->rr_node[0];
     node1 = res->rr_node[1];
-    flag0 = node0->rn_status & FINISHED;
-    flag1 = node1->rn_status & FINISHED;
+    flag0 = node0->rn_status & RES_FINISHED;
+    flag1 = node1->rn_status & RES_FINISHED;
     if (flag0 && flag1)
     {
         res->rr_status |= RES_TDI_IGNORE;

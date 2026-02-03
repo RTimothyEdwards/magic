@@ -46,22 +46,22 @@ resNodeIsPort(node, x, y, tile)
     Rect 	*rect;
     Point 	p;
     resPort 	*pl, *lp;
-    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
+    resInfo	*info = (resInfo *)TiGetClientPTR(tile);
 
     p.p_x = x;
     p.p_y = y;
 
-    for (pl = junk->portList; pl; pl = pl->rp_nextPort)
+    for (pl = info->portList; pl; pl = pl->rp_nextPort)
     {
 	rect = &(pl->rp_bbox);
 	if (GEO_ENCLOSE(&p, rect))
 	{
 	    node->rn_name = pl->rp_nodename;
-	    if (junk->portList == pl)
-		junk->portList = pl->rp_nextPort;
+	    if (info->portList == pl)
+		info->portList = pl->rp_nextPort;
 	    else
 	    {
-	        for (lp = junk->portList; lp && (lp->rp_nextPort != pl);
+	        for (lp = info->portList; lp && (lp->rp_nextPort != pl);
 			lp = lp->rp_nextPort);
 		lp->rp_nextPort = pl->rp_nextPort;
 	    }
@@ -77,7 +77,8 @@ resNodeIsPort(node, x, y, tile)
  * resAllPortNodes --
  *
  *	Generate new nodes and breakpoints for every unused port declared
- *	on a tile.
+ *	on a tile.  However, if "startpoint" is inside the port position,
+ *	then it has already been processed, so ignore it.
  *
  *--------------------------------------------------------------------------
  */
@@ -90,15 +91,15 @@ resAllPortNodes(tile, list)
     int		x, y;
     resNode	*resptr;
     resPort 	*pl;
-    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
+    resInfo	*info = (resInfo *)TiGetClientPTR(tile);
 
     free_magic1_t mm1 = freeMagic1_init();
-    for (pl = junk->portList; pl; pl = pl->rp_nextPort)
+    for (pl = info->portList; pl; pl = pl->rp_nextPort)
     {
 	x = pl->rp_loc.p_x;
 	y = pl->rp_loc.p_y;
 	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-	InitializeNode(resptr, x, y, RES_NODE_ORIGIN);
+	InitializeResNode(resptr, x, y, RES_NODE_ORIGIN);
 	resptr->rn_status = TRUE;
 	resptr->rn_noderes = 0;
 	resptr->rn_name = pl->rp_nodename;
@@ -225,7 +226,7 @@ ResEachTile(tile, startpoint)
     int		xj, yj, i;
     bool	merged;
     tElement	*tcell;
-    tileJunk	*tstructs= (tileJunk *)TiGetClientPTR(tile);
+    resInfo	*tstructs= (resInfo *)TiGetClientPTR(tile);
     ExtDevice   *devptr;
     int		sides;
 
@@ -262,7 +263,7 @@ ResEachTile(tile, startpoint)
 	int x = startpoint->p_x;
 	int y = startpoint->p_y;
 	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-	InitializeNode(resptr, x, y, RES_NODE_ORIGIN);
+	InitializeResNode(resptr, x, y, RES_NODE_ORIGIN);
 	resptr->rn_status = TRUE;
 	resptr->rn_noderes = 0;
 	ResAddToQueue(resptr, &ResNodeQueue);
@@ -278,7 +279,7 @@ ResEachTile(tile, startpoint)
 	 * for single tile device, but not as good for multiple ones.
 	 */
 
-	if (tstructs->tj_status & RES_TILE_DEV)
+	if (tstructs->ri_status & RES_TILE_DEV)
  	{
 	    if (tstructs->deviceList->rd_fet_gate == NULL)
 	    {
@@ -291,7 +292,7 @@ ResEachTile(tile, startpoint)
 		tcell->te_thist = tstructs->deviceList;
 		tcell->te_nextt = NULL;
 
-		InitializeNode(resptr, x, y, RES_NODE_JUNCTION);
+		InitializeResNode(resptr, x, y, RES_NODE_JUNCTION);
 		resptr->rn_te = tcell;
 		ResAddToQueue(resptr, &ResNodeQueue);
 		resNodeIsPort(resptr, x, y, tile);
@@ -516,7 +517,7 @@ ResEachTile(tile, startpoint)
 	}
     }
 
-    tstructs->tj_status |= RES_TILE_DONE;
+    tstructs->ri_status |= RES_TILE_DONE;
 
     resAllPortNodes(tile, &ResNodeQueue);
 

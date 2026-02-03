@@ -84,8 +84,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #define MAXDIGIT		20
 
-ResExtNode	*ResInitializeNode();
-
 ResExtNode	*ResOriginalNodes;	/*Linked List of Nodes 	*/
 char		RDEV_NOATTR[1] = {'0'};
 ResFixPoint	*ResFixList;
@@ -202,11 +200,17 @@ ResReadNode(int argc, char *argv[])
     ResExtNode	*node;
 
     entry = HashFind(&ResNodeTable, argv[NODES_NODENAME]);
-    node = ResInitializeNode(entry);
+    node = ResExtInitNode(entry);
 
-    node->location.p_x = atoi(argv[NODES_NODEX]);
-    node->location.p_y = atoi(argv[NODES_NODEY]);
-    node->type = DBTechNameType(argv[NODES_NODETYPE]);
+    /* If this node was previously read as a port, then don't change the
+     * location.
+     */
+    if (!(node->status & PORTNODE))
+    {
+	node->location.p_x = atoi(argv[NODES_NODEX]);
+	node->location.p_y = atoi(argv[NODES_NODEY]);
+	node->type = DBTechNameType(argv[NODES_NODETYPE]);
+    }
 
     if (node->type == -1)
     {
@@ -237,7 +241,7 @@ ResReadPort(int argc,
     ResExtNode	*node;
 
     entry = HashFind(&ResNodeTable, argv[PORT_NAME]);
-    node = ResInitializeNode(entry);
+    node = ResExtInitNode(entry);
 
     node->drivepoint.p_x = atoi(argv[PORT_LLX]);
     node->drivepoint.p_y = atoi(argv[PORT_LLY]);
@@ -536,19 +540,19 @@ ResReadCapacitor(int argc,
     ResExtNode	*node1, *node2;
 
     entry1 = HashFind(&ResNodeTable, argv[COUPLETERMINAL1]);
-    node1 = ResInitializeNode(entry1);
+    node1 = ResExtInitNode(entry1);
 
     if (ResOptionsFlags & ResOpt_Signal)
     {
         node1->capacitance += MagAtof(argv[COUPLEVALUE]);
         entry2 = HashFind(&ResNodeTable, argv[COUPLETERMINAL2]);
-        node2 = ResInitializeNode(entry2);
+        node2 = ResExtInitNode(entry2);
         node2->capacitance += MagAtof(argv[COUPLEVALUE]);
         return 0;
     }
 
     entry2 = HashFind(&ResNodeTable, argv[COUPLETERMINAL2]);
-    node2 = ResInitializeNode(entry2);
+    node2 = ResExtInitNode(entry2);
 
     node1->cap_couple += MagAtof(argv[COUPLEVALUE]);
     node2->cap_couple += MagAtof(argv[COUPLEVALUE]);
@@ -625,7 +629,7 @@ ResReadAttribute(ResExtNode *node,
 /*
  *-------------------------------------------------------------------------
  *
- * ResInitializeNode --
+ * ResExtInitNode --
  *	Gets the node corresponding to a given hash table entry.  If no
  *	such node exists, one is created.
  *
@@ -637,7 +641,7 @@ ResReadAttribute(ResExtNode *node,
  */
 
 ResExtNode *
-ResInitializeNode(entry)
+ResExtInitNode(entry)
     HashEntry	*entry;
 {
     ResExtNode	*node;
@@ -651,7 +655,6 @@ ResInitializeNode(entry)
 	node->status = FALSE;
 	node->forward = (ResExtNode *) NULL;
 	node->capacitance = 0;
-	node->cap_vdd = 0;
 	node->cap_couple = 0;
 	node->resistance = 0;
 	node->type = 0;
@@ -662,8 +665,6 @@ ResInitializeNode(entry)
 	node->drivepoint.p_y = INFINITY;
 	node->location.p_x = INFINITY;
 	node->location.p_y = INFINITY;
-	node->rs_sublist[0] = NULL;
-	node->rs_sublist[1] = NULL;
     }
     while (node->status & FORWARD)
     {

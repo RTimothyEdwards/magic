@@ -52,7 +52,7 @@ ResNewSDDevice(tile, tp, xj, yj, direction, PendingList)
     resDevice	*resDev;
     tElement	*tcell;
     int		newnode;
-    tileJunk	*j;
+    resInfo	*ri;
 
     newnode = FALSE;
 
@@ -62,9 +62,9 @@ ResNewSDDevice(tile, tp, xj, yj, direction, PendingList)
      */
     if (TiGetClient(tp) == CLIENTDEFAULT) return;
 
-    j = (tileJunk *) TiGetClientPTR(tp);
-    resDev = j->deviceList;
-    if ((j->sourceEdge & direction) != 0)
+    ri = (resInfo *) TiGetClientPTR(tp);
+    resDev = ri->deviceList;
+    if ((ri->sourceEdge & direction) != 0)
     {
 	if (resDev->rd_fet_source == (resNode *) NULL)
 	{
@@ -94,8 +94,8 @@ ResNewSDDevice(tile, tp, xj, yj, direction, PendingList)
     {
 	tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));
 	tcell->te_nextt = NULL;
-	tcell->te_thist = j->deviceList;
-	InitializeNode(resptr, xj, yj, RES_NODE_DEVICE);
+	tcell->te_thist = ri->deviceList;
+	InitializeResNode(resptr, xj, yj, RES_NODE_DEVICE);
 	resptr->rn_te = tcell;
 	ResAddToQueue(resptr, PendingList);
     }
@@ -125,11 +125,11 @@ ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
     resDevice	*resDev;
     tElement	*tcell;
     int		newnode;
-    tileJunk	*j;
+    resInfo	*ri;
 
     newnode = FALSE;
-    j = (tileJunk *) TiGetClientPTR(tp);
-    resDev = j->deviceList;
+    ri = (resInfo *) TiGetClientPTR(tp);
+    resDev = ri->deviceList;
 
     /* Arrived at a device that has a terminal connected to substrate	*/
     /* that is not a FET bulk terminal (e.g., varactor, diode).		*/
@@ -150,8 +150,8 @@ ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
     {
 	tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));
 	tcell->te_nextt = NULL;
-	tcell->te_thist = j->deviceList;
-	InitializeNode(resptr, xj, yj, RES_NODE_DEVICE);
+	tcell->te_thist = ri->deviceList;
+	InitializeResNode(resptr, xj, yj, RES_NODE_DEVICE);
 	resptr->rn_te = tcell;
 	ResAddToQueue(resptr, PendingList);
     }
@@ -181,8 +181,8 @@ ResProcessJunction(tile, tp, xj, yj, NodeList)
     ResJunction *junction;
     resNode	*resptr;
     jElement    *jcell;
-    tileJunk	*j0 = (tileJunk *)TiGetClientPTR(tile);
-    tileJunk	*j2 = (tileJunk *)TiGetClientPTR(tp);
+    resInfo	*ri0 = (resInfo *)TiGetClientPTR(tile);
+    resInfo	*ri2 = (resInfo *)TiGetClientPTR(tp);
 
 #ifdef PARANOID
     if (tile == tp)
@@ -191,12 +191,12 @@ ResProcessJunction(tile, tp, xj, yj, NodeList)
 	return;
     }
 #endif
-    if (j2->tj_status & RES_TILE_DONE) return;
+    if (ri2->ri_status & RES_TILE_DONE) return;
     resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
     resptr->rn_te = (tElement *) NULL;
     junction = (ResJunction *) mallocMagic((unsigned)(sizeof(ResJunction)));
     jcell = (jElement *) mallocMagic((unsigned)(sizeof(jElement)));
-    InitializeNode(resptr, xj, yj, RES_NODE_JUNCTION);
+    InitializeResNode(resptr, xj, yj, RES_NODE_JUNCTION);
     resptr->rn_je = jcell;
     ResAddToQueue(resptr, NodeList);
 
@@ -208,10 +208,10 @@ ResProcessJunction(tile, tp, xj, yj, NodeList)
     junction->rj_Tile[1] = tp;
     junction->rj_loc.p_x =xj;
     junction->rj_loc.p_y =yj;
-    junction->rj_nextjunction[0] = j0->junctionList;
-    j0->junctionList = junction;
-    junction->rj_nextjunction[1] = j2->junctionList;
-    j2->junctionList = junction;
+    junction->rj_nextjunction[0] = ri0->junctionList;
+    ri0->junctionList = junction;
+    junction->rj_nextjunction[1] = ri2->junctionList;
+    ri2->junctionList = junction;
 
     NEWBREAK(junction->rj_jnode,tile, junction->rj_loc.p_x, 
 		    junction->rj_loc.p_y, NULL);
