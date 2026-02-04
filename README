@@ -284,3 +284,45 @@ and adds a new breakpoint. . . to the same tile.  There is no check of
 whether the port intersects the tile, which is probably wrong.
 
 Time to start working with some simple examples.
+
+Simplest example I can think of:  "hier_nmos".  Has one subcell "simple_nmos".
+No metal.  "hier_nmos" connects to all four transistor terminals with
+additional material of the same type.
+
+Initial result:  (1) The lower cell "simple_nmos" has no extraction, which
+makes sense as it does not have ports and magic does not survey the parent
+for attachment points, which is what needs to be worked on.
+(2) The top level splits one node, G, which has a 33-ohm resistance.
+(3) The top level has one capacitance which is G to B (138aF).
+
+But:  G is split into G and G.n0, but G.n0 does not go anywhere.  G.n0 should
+be passed to "simple_nmos".  There is no survey of sinks, which is why G is
+passed to the subcell insead of G.n0.  But if G.n0 is unused, then why is it
+even in the netlist, since it represents a dangling node?
+
+Check:  "resAllPortNodes" called on tile at -20, -270 (psd)
+There is only one port in portList, pointing to name "B".  But there is also
+a break in breakList at this position.
+
+So "resAllPortNodes" creates a new net, effectively, based on the port, and
+adds it to the queue.  But this was equal to the startpoint and probably
+should have been ignored.  But why was it the startpoint?  This is circular.
+Likely because ports are now being read directly from the .ext file.
+Calls: ResReadPort().  Since ports come before nodes in the .ext file, this
+creates a node, but it also gives it a DRIVELOC and PORTNODE status.  I will
+leave this as-is for now but it needs to be addressed.
+
+"ResProcessTiles()" ---> "ResEachTile()" determines when a tile is a device
+gate or terminal and acts accordingly;  should it also be detecting ports
+here?
+
+ResEachTile:
+1) If it's a startpoint, place a breakpoint
+2) If it's a device type, place a breakpoint.
+
+Huge point of confusion:  ResInitializeNode() initializes a net structure
+read from the .ext file, while InitializeNode() initializes a sub-node
+structure.
+
+Suggest changing ResInitializeNode() to ResExtInitNode() and
+InitializeNode to InitializeResNode().  Now they are harder to confuse (done).
