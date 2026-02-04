@@ -114,7 +114,8 @@ ResReadExt(char *extfile)
     /* Search for the .ext fie in the same way that efReadDef() does. */
 
     fp = PaOpen(extfile, "r", ".ext", EFSearchPath, EFLibPath, (char **)NULL);
-    if ((fp == NULL) && (dbdef = DBCellLookDef(extfile)) != NULL)
+    if ((fp == NULL) && ((dbdef = DBCellLookDef(extfile)) != NULL)
+			&& (dbdef->cd_file != NULL))
     {
 	char *filepath, *sptr;
 
