@@ -1689,23 +1689,43 @@ subcktVisit(
     	HashStartSearch(&hs);
 	while ((he = HashNext(&def->def_nodes, &hs)))
     	{
+	    bool found = FALSE;
+
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
 	    snode = sname->efnn_node;
 
 	    if ((snode == NULL) || !(snode->efnode_flags & EF_PORT)) continue;
 
+	    portidx = snode->efnode_name->efnn_port;
+
+	    if (portidx >= 0)
+	    {
+		if (nodeList[portidx] == NULL)
+		{
+		    nodeList[portidx] = snode->efnode_name;
+		    found = TRUE;
+		}
+	    }
+
+	    /* Normally there should be a port associated with snode, but
+	     * if not, go looking for one in the node name aliases.
+	     */
 	    for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	    {
+		if (found == TRUE) break;
+
 		portidx = nodeName->efnn_port;
 		if (portidx < 0) continue;
 		if (nodeList[portidx] == NULL)
 		{
 		    nodeList[portidx] = nodeName;
+		    found = TRUE;
 		}
 		else if (EFHNBest(nodeName->efnn_hier, nodeList[portidx]->efnn_hier))
 		{
 		    nodeList[portidx] = nodeName;
+		    found = TRUE;
 		}
 	    }
 	}
