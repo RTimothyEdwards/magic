@@ -202,13 +202,14 @@ ResReadNode(int argc, char *argv[])
     entry = HashFind(&ResNodeTable, argv[NODES_NODENAME]);
     node = ResExtInitNode(entry);
 
+    node->location.p_x = atoi(argv[NODES_NODEX]);
+    node->location.p_y = atoi(argv[NODES_NODEY]);
+
     /* If this node was previously read as a port, then don't change the
-     * location.
+     * node type, which is tracking the type at the drivepoint.
      */
     if (!(node->status & PORTNODE))
     {
-	node->location.p_x = atoi(argv[NODES_NODEX]);
-	node->location.p_y = atoi(argv[NODES_NODEY]);
 	node->type = DBTechNameType(argv[NODES_NODETYPE]);
     }
 
