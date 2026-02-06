@@ -641,7 +641,7 @@ ResDistributeCapacitance(nodelist, totalcap)
      	TxError("Error: Node with no area.\n");
 	return;
     }
-    capperarea = FEMTOTOATTO * totalcap / totalarea;
+    capperarea = totalcap / totalarea;
 
     for (workingNode = nodelist; workingNode != NULL; workingNode = workingNode->rn_more)
      	workingNode->rn_float.rn_area *= capperarea;

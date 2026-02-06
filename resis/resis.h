@@ -443,8 +443,6 @@ typedef struct capval
 /* Capacitance table constants */
 
 #define OHMSTOMILLIOHMS		1000
-#define FEMTOTOATTO		1000
-#define ATTOTOFEMTO		0.001
 
 #define UNTOUCHED	0
 #define SERIES		1

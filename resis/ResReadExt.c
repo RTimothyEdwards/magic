@@ -146,6 +146,15 @@ ResReadExt(CellDef *def)
 	 */
 	switch (keyTable[n].k_key)
 	{
+	    case SCALE:
+		/* NOTE:  Currently the code assumes that the .ext
+		 * file is read back immediately and has the same
+		 * scale values currently in the extraction style.
+		 * However, this should be style-independent and
+		 * scale values should be read back and used.
+		 * (to be completed).
+		 */
+		break;
 	    case DEVICE:
 		locresult = ResReadDevice(argc, argv);
 		break;
