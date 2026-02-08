@@ -30,6 +30,29 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <unistd.h>
 #include <ctype.h>
 #include <dirent.h>
+#ifdef __GLIBC__
+#  if (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 42)
+
+/* Code borrowed from the GLIBC 2.41 */
+#    include <termios.h>
+#    include <sys/ioctl.h>
+
+/* From unix/sysv/linux/bits/ioctl-types.h */
+#define NCC 8
+struct termio
+  {
+    unsigned short int c_iflag;        /* input mode flags */
+    unsigned short int c_oflag;        /* output mode flags */
+    unsigned short int c_cflag;        /* control mode flags */
+    unsigned short int c_lflag;        /* local mode flags */
+    unsigned char c_line;              /* line discipline */
+    unsigned char c_cc[NCC];           /* control characters */
+};
+
+#  else
+#    include <termio.h>
+#  endif
+#endif
 
 
 #include "utils/magsgtty.h"
