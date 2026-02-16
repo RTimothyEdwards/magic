@@ -2116,7 +2116,7 @@ efNodeMerge(node1ptr, node2ptr)
     /* Make all EFNodeNames point to "keeping" */
     if (removing->efnode_name)
     {
-	bool topportk, topportr, bestname;
+	bool topportk, topportr, bestname, swapnames;
 
 	for (nn = removing->efnode_name; nn; nn = nn->efnn_next)
 	{
@@ -2127,10 +2127,31 @@ efNodeMerge(node1ptr, node2ptr)
 	topportk = (keeping->efnode_flags & EF_TOP_PORT) ?  TRUE : FALSE;
 	topportr = (removing->efnode_flags & EF_TOP_PORT) ?  TRUE : FALSE;
 
-	/* Concatenate list of EFNodeNames, taking into account precedence */
-	if ((!keeping->efnode_name) || (!topportk && topportr)
-		    || EFHNBest(removing->efnode_name->efnn_hier,
-		     keeping->efnode_name->efnn_hier))
+	/* The node "keeping" is being kept, but we need to decide which
+	 * node name of the two will be the node name of "keeping".  If
+	 * "keeping" has the best node name, then we're good;  otherwise,
+	 * we need to copy the name from "removing" to "keeping".
+	 *
+	 * Order of precedence:
+	 * 1) If one node does not have a name, then use the name of the other.
+	 * 2) If one node is a port and the other isn't, then use the port name.
+	 * 3) Use the one with the preferred lexigraphical order according to
+	 *    EFHNBest().
+	 */
+	if ((!keeping->efnode_name) && (removing->efnode_name))
+	    swapnames = TRUE;
+	else if ((keeping->efnode_name) && (!removing->efnode_name))
+	    swapnames = FALSE;
+	else if (!topportk && topportr)
+	    swapnames = TRUE;
+	else if (topportk && !topportr)
+	    swapnames = FALSE;
+	else
+	    swapnames = EFHNBest(removing->efnode_name->efnn_hier,
+				keeping->efnode_name->efnn_hier);
+	
+	/* Concatenate list of EFNodeNames */
+	if (swapnames)
 	{
 	    /*
 	     * New official name is that of "removing".
