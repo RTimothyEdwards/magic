@@ -2508,7 +2508,8 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		/* handled as a dimension to avoid parsing the string	*/
 		/* value every time the coordinates are needed.		*/
 
-		if (!strcmp(propertyname, "FIXED_BBOX"))
+		if ((!strcmp(propertyname, "FIXED_BBOX")) ||
+			(!strcmp(propertyname, "OBS_BBOX")))
 		{
 		    Rect locbbox;
 
@@ -2546,7 +2547,8 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			    locbbox.r_xtop /= scaled;
 			    locbbox.r_ytop /= scaled;
 			}
-			cellDef->cd_flags |= CDFIXEDBBOX;
+			if (propertyname[0] == 'F')
+			    cellDef->cd_flags |= CDFIXEDBBOX;
 
 			proprec = (PropertyRecord *)mallocMagic(
 				sizeof(PropertyRecord) + 2 * sizeof(int));
@@ -4090,20 +4092,32 @@ dbWritePropFunc(key, proprec, cdata)
     int i;
     char newvalue[20];
 
-    switch (proprec->prop_type)
+    /* In "compatibility" mode, always write "string" to the output.
+     * this has no adverse effects other than marginally slower
+     * read-in of .mag files with properties, but it keeps the .mag
+     * file format compatible with earlier versions of magic.
+     */
+    if (DBPropCompat)
     {
-	case PROPERTY_TYPE_STRING:
-	    FPUTSR(f, "string ");
-	    break;
-	case PROPERTY_TYPE_INTEGER:
-	    FPUTSR(f, "integer ");
-	    break;
-	case PROPERTY_TYPE_DIMENSION:
-	    FPUTSR(f, "dimension ");
-	    break;
-	case PROPERTY_TYPE_DOUBLE:
-	    FPUTSR(f, "double ");
-	    break;
+	FPUTSR(f, "string ");
+    }
+    else
+    {
+	switch (proprec->prop_type)
+	{
+	    case PROPERTY_TYPE_STRING:
+		FPUTSR(f, "string ");
+		break;
+	    case PROPERTY_TYPE_INTEGER:
+		FPUTSR(f, "integer ");
+		break;
+	    case PROPERTY_TYPE_DIMENSION:
+		FPUTSR(f, "dimension ");
+		break;
+	    case PROPERTY_TYPE_DOUBLE:
+		FPUTSR(f, "double ");
+		break;
+	}
     }
     FPUTSR(f, key);
 

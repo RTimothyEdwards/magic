@@ -32,6 +32,16 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "utils/malloc.h"
 
+/* Global variable */
+
+bool DBPropCompat = TRUE;	/* If TRUE, then always save properties to
+				 * .mag files as type "string" for backwards
+				 * compatibility.  If FALSE, then properties
+				 * are saved to the .mag file along with their
+				 * type.  Regardless of the setting, properties
+				 * which are reserved keywords are converted
+				 * to the best internal representation on input.
+				 */
 
 /* ----------------------------------------------------------------------------
  *

@@ -25,7 +25,9 @@ Attach a "property" (string key and value pair) to the edit cell
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>property</B> [<I>type</I>] [<I>key</I> [<I>value</I>]] <BR><BR>
+      <B>property</B> [<I>type</I>] [<I>key</I> [<I>value</I>]] <BR>
+	or
+      <B>property</B> [<B>compat</B>] [<B>true</B>|<B>false</B>] <BR><BR>
       <BLOCKQUOTE>
          where <I>key</I> and <I>value</I> are any text strings. <BR>
 	 <I>type</I> may be one of <B>string</B>, <B>integer</B>,
@@ -52,7 +54,16 @@ Attach a "property" (string key and value pair) to the edit cell
       By default, properties are interpreted as verbatim string values,
       with exceptions for the reserved types (see below).  To force the
       values of the property to be interpreted as a specific type, use
-      the <I>type</I> option.
+      the <I>type</I> option. <P>
+
+      The <B>property compat</B> setting determines how properties are
+      written out to a .mag file.  The default setting is <B>true</B>
+      (backwards compatibility mode), which writes all properties as
+      type "<TT>string</TT>".  Properties which are reserved names
+      (see below) will be converted to the best type when reading the
+      .mag file.  However, if the user wants to create a property that
+      is handled differently than a string (namely, to be a dimensional
+      value that scales), then comptability mode should be turned off. <P>
    </BLOCKQUOTE>
 
    <BLOCKQUOTE>

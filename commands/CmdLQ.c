@@ -2296,6 +2296,8 @@ parsepositions:
     editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
 }
 
+#define PROPERTY_TYPE_COMPAT	4	/* Last entry in cmdPropertyType */
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2335,9 +2337,11 @@ CmdDoProperty(
 
     int printPropertiesFunc();		/* Forward declaration */
 
-    /* These should match the property codes in database.h.in */
+    /* These should match the property codes in database.h.in, except
+     * for "compat" which must come at the end.
+     */
     static const char * const cmdPropertyType[] = {
-	"string", "integer", "dimension", "double", NULL
+	"string", "integer", "dimension", "double", "compat", NULL
     };
 
     /* If a property type is given, parse it and then strip it from
@@ -2348,8 +2352,11 @@ CmdDoProperty(
 	proptype = Lookup(cmd->tx_argv[argstart], cmdPropertyType);
 	if (proptype >= 0)
 	{
-	    locargc--;
-	    argstart++;
+	    if (proptype != PROPERTY_TYPE_COMPAT)
+	    {
+		locargc--;
+		argstart++;
+	    }
 	}
 	else
 	    proptype = PROPERTY_TYPE_STRING;	/* default */
@@ -2373,6 +2380,19 @@ CmdDoProperty(
 
     else if (locargc == 2)
     {
+	/* If the property type was "compat", then give the state of the
+	 * compatibility flag and return.
+	 */
+	if (proptype == PROPERTY_TYPE_COMPAT)
+	{
+#ifdef MAGIC_WRAPPER
+	    Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(DBPropCompat));
+#else
+	    TxPrintf("%s\n", (DBPropCompat == TRUE) ? "True" : "False");
+#endif
+	    return;
+	}
+
 	/* print the value of the indicated property */
 	proprec = (PropertyRecord *)DBPropGet(def, cmd->tx_argv[argstart], &propfound);
 	if (propfound)
@@ -2469,6 +2489,25 @@ CmdDoProperty(
     }
     else if (locargc >= 3)
     {
+	/* If the property type was "compat", then set the state of the
+	 * compatibility flag and return.
+	 */
+	if (proptype == PROPERTY_TYPE_COMPAT)
+	{
+	    int idx;
+	    static const char * const cmdPropYesNo[] = {
+			"disable", "no", "false", "off", "0",
+			"enable", "yes", "true", "on", "1", 0 };
+	    idx = Lookup(cmd->tx_argv[2], cmdPropYesNo);
+	    if (idx < 0)
+	    {
+		TxError("Unknown property compat option \"%s\"\n", cmd->tx_argv[2]);
+		return;
+	    }
+	    DBPropCompat = (idx <= 4) ? FALSE : TRUE;
+	    return;
+	}
+
 	/* Catch the following known reserved keywords and cast them to the
 	 * expected property type.  If any property type was already given
 	 * to the command, it is overridden.  This ensures that the reserved

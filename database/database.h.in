@@ -1046,6 +1046,7 @@ extern int DBLambda[2];
 /* -------------------- Exported magic file suffix -------------------- */
 
 extern char *DBSuffix;		/* Suffix appended to all Magic cell names */
+extern bool DBPropCompat;	/* Backwards-compatible properties */
 
 /* -------------------- User Interface Stuff -------------------------- */
 
