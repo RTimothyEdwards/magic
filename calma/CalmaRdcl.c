@@ -505,28 +505,33 @@ calmaParseStructure(
 
     if (CalmaReadOnly || predefined)
     {
+	PropertyRecord *proprec;
 	char cstring[1024];
-
-	/* Writing the file position into a string is slow, but */
-	/* it prevents requiring special handling when printing	*/
-	/* out the properties.					*/
-
-	char *fpcopy = (char *)mallocMagic(20);
-	char *fncopy;
 
 	/* Substitute variable for PDK path or ~ for home directory	*/
 	/* the same way that cell references are handled in .mag files.	*/
 	DBPathSubstitute(filename, cstring, cifReadCellDef);
-	fncopy = StrDup(NULL, cstring);
-	sprintf(fpcopy, "%"DLONG_PREFIX"d", (dlong) filepos);
-	DBPropPut(cifReadCellDef, "GDS_START", (ClientData)fpcopy);
 
-	fpcopy = (char *)mallocMagic(20);
+	proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+	proprec->prop_type = PROPERTY_TYPE_DOUBLE;
+	proprec->prop_len = 1;
+	proprec->prop_value.prop_double[0] = filepos;
+	DBPropPut(cifReadCellDef, "GDS_START", (ClientData)proprec);
+
 	filepos = FTELL(calmaInputFile);
-	sprintf(fpcopy, "%"DLONG_PREFIX"d", (dlong) filepos);
-	DBPropPut(cifReadCellDef, "GDS_END", (ClientData)fpcopy);
 
-	DBPropPut(cifReadCellDef, "GDS_FILE", (ClientData)fncopy);
+	proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+	proprec->prop_type = PROPERTY_TYPE_DOUBLE;
+	proprec->prop_len = 1;
+	proprec->prop_value.prop_double[0] = filepos;
+	DBPropPut(cifReadCellDef, "GDS_END", (ClientData)proprec);
+
+	proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) - 7 +
+		strlen(cstring));
+	proprec->prop_type = PROPERTY_TYPE_STRING;
+	proprec->prop_len = 1;
+	strcpy(proprec->prop_value.prop_string, cstring);
+	DBPropPut(cifReadCellDef, "GDS_FILE", (ClientData)proprec);
 
     	if (predefined)
     	{

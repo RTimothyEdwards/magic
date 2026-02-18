@@ -108,7 +108,7 @@ defWriteHeader(
     float oscale,
     int units)		/* Units for UNITS; could be derived from oscale */
 {
-    char *propvalue;
+    PropertyRecord *proprec;
     bool propfound;
 
     TxPrintf("Diagnostic:  Write DEF header for cell %s\n", def->cd_name);
@@ -141,15 +141,20 @@ defWriteHeader(
     /* For DIEAREA, use the FIXED_BBOX property if present.  Otherwise,	*/
     /* use the extents of geometry (CellDef bounding box)		*/
 
-    propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &propfound);
+    proprec = DBPropGet(def, "FIXED_BBOX", &propfound);
     if (propfound)
     {
 	Rect bbox;
 
 	/* Die area, taken from the declared FIXED_BBOX.		*/
-	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		&bbox.r_xtop, &bbox.r_ytop) == 4)
-        {
+	if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
+	{
+	    bbox.r_xbot = proprec->prop_value.prop_integer[0];
+	    bbox.r_ybot = proprec->prop_value.prop_integer[1];
+	    bbox.r_xtop = proprec->prop_value.prop_integer[2];
+	    bbox.r_ytop = proprec->prop_value.prop_integer[3];
+
 	     fprintf(f, "   DIEAREA ( %.10g %.10g ) ( %.10g %.10g ) ;\n",
 			(float)bbox.r_xbot * oscale,
 			(float)bbox.r_ybot * oscale,
@@ -2786,15 +2791,21 @@ arrayDefFunc(
 
     if (use->cu_def->cd_flags & CDFIXEDBBOX)
     {
-	char *propval;
+	PropertyRecord *proprec;
 	bool found;
 
-	propval = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+	proprec = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
 	if (found)
 	{
-	    if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
-			&rect.r_xtop, &rect.r_ytop) == 4)
+	    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
+	    {
+		rect.r_xbot = proprec->prop_value.prop_integer[0];
+		rect.r_ybot = proprec->prop_value.prop_integer[1];
+		rect.r_xtop = proprec->prop_value.prop_integer[2];
+		rect.r_ytop = proprec->prop_value.prop_integer[3];
 		r = &rect;
+	    }
 	}
     }
 
@@ -2844,15 +2855,20 @@ defComponentFunc(
     xoff = yoff = 0;
     if (cellUse->cu_def->cd_flags & CDFIXEDBBOX)
     {
-	char *propval;
+	PropertyRecord *proprec;
 	bool found;
 
-	propval = (char *)DBPropGet(cellUse->cu_def, "FIXED_BBOX", &found);
+	proprec = DBPropGet(cellUse->cu_def, "FIXED_BBOX", &found);
 	if (found)
 	{
-	    if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
-			&rect.r_xtop, &rect.r_ytop) == 4)
+	    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
 	    {
+	 	rect.r_xbot = proprec->prop_value.prop_integer[0];
+	 	rect.r_ybot = proprec->prop_value.prop_integer[1];
+	 	rect.r_xtop = proprec->prop_value.prop_integer[2];
+	 	rect.r_ytop = proprec->prop_value.prop_integer[3];
+
 		r = &rect;
 		GeoTransRect(&cellUse->cu_transform, &rect, &bbrect);
 		GeoTransRect(&cellUse->cu_transform, &cellUse->cu_def->cd_bbox, &defrect);

@@ -25,9 +25,11 @@ Attach a "property" (string key and value pair) to the edit cell
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>property</B> [<I>key</I> [<I>value</I>]] <BR><BR>
+      <B>property</B> [<I>type</I>] [<I>key</I> [<I>value</I>]] <BR><BR>
       <BLOCKQUOTE>
-         where <I>key</I> and <I>value</I> are any text strings.
+         where <I>key</I> and <I>value</I> are any text strings. <BR>
+	 <I>type</I> may be one of <B>string</B>, <B>integer</B>,
+		<B>dimension</B>, or <B>double</B>.
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 
@@ -45,11 +47,48 @@ Attach a "property" (string key and value pair) to the edit cell
       with the key is returned.  With both arguments, the string
       <I>value</I> is associated with the string <I>key</I> as a
       property of the cell.  If <I>key</I> is an existing key, then
-      its original value will be overwritten.
+      its original value will be overwritten.  <P>
+
+      By default, properties are interpreted as verbatim string values,
+      with exceptions for the reserved types (see below).  To force the
+      values of the property to be interpreted as a specific type, use
+      the <I>type</I> option.
    </BLOCKQUOTE>
 
    <BLOCKQUOTE>
-      Property names reserved by and used by magic:
+      Types are interpreted as follows:
+      <DL>
+	<DT> <B>string</B> type:
+	<DD> The property value is a character string.  Character strings
+	     may contain spaces, but if so, then the string should be quoted
+	     or in braces, per Tcl syntax.
+	<DT> <B>integer</I> type:
+	<DD> The property value is an integer value or a list of integer
+	     values.  The values are not considered to be measurements and
+	     do not scale.  Multiple values may be passed on the command
+	     line as additional arguments, or the set of values may be
+	     given as a list.
+	<DT> <B>dimension</I> type:
+	<DD> The property value is an integer value or a list of integer
+	     values.  The values are considered to be (linear) dimensional
+	     measurements and therefore scale with the database internal
+	     units.  They are interpreted as having the values currently
+	     specified for <B>units</B>, and display back in the same
+	     units.  Multiple values may be passed on the command line as
+	     additional arguments, or the set of values may be given as a
+	     list.
+	<DT> <B>double</I> type:
+	<DD> The property value is a double-wide (64-bit) integer value or
+	     a list of double-wide integer values.  The values are not
+	     considered to be measurements and do not scale.  Multiple
+	     values may be passed on the command line as additional arguments,
+	     or the set of values may be given as a list.
+      </DL>
+   </BLOCKQUOTE>
+
+   <BLOCKQUOTE>
+      Property names reserved by and used by magic (types are <B>string</B>
+      unless otherwise noted):
       <DL>
 	<DT> <B>GDS_FILE</B>
 	<DD> The value is the name of a GDS file which contains the mask
@@ -60,12 +99,14 @@ Attach a "property" (string key and value pair) to the edit cell
 	<DD> If a <B>GDS_FILE</B> is defined, then this value indicates the
 	     byte position of the start of mask data for this cell definition
 	     in the file.  If set to value <B>0</B>, then the file will be
-	     searched for the data bounds.
+	     searched for the data bounds.  This property is always of type
+	     <B>double</B>.
 	<DT> <B>GDS_END</B>
 	<DD> If a <B>GDS_FILE</B> is defined, then this value indicates the
 	     byte position of the end of mask data for this cell definition
 	     in the file.  If <B>GDS_START</B> is set to <B>0</B>, then this
-	     property may be omitted.
+	     property may be omitted.  This property is always of type
+	     <B>double</B>.
 	<DT> <B>LEFview</B>
 	<DD> If set to <B>TRUE</B>, this cell is an abstract view such as that
 	     obtained from a LEF macro, and should not be used for extraction
@@ -97,6 +138,8 @@ Attach a "property" (string key and value pair) to the edit cell
 	     corresponding to the abutment box of the cell, in magic's internal
 	     units.  The abutment box is automatically read from LEF files, but
 	     may be defined for any file and can be used for placement alignment.
+	     This property is always of type <B>dimension</B> and must contain
+	     exactly four values.
 	<DT> <B>OBS_BBOX</B>
 	<DD> This property value is a space-sparated list of four integer values
 	     corresponding to a bounding box to be used when generating a LEF
@@ -104,7 +147,8 @@ Attach a "property" (string key and value pair) to the edit cell
 	     will be entirely covered in obstruction layers (unless cut-outs
 	     are required to accommodate pins).  Any set-back applied by the
 	     "lef write -hide <value>" option will be applied to this obstruction
-	     box.
+	     box.  This property is always of type <B>dimension</B> and must
+	     contain exactly four values.
 	<DT> <B>flatten</B>
 	<DD> This property is used in conjunction with the "flatten -doproperty"
 	     command option and marks the cell for flattening.  Cells without
@@ -146,7 +190,8 @@ Attach a "property" (string key and value pair) to the edit cell
 	     always generate mask layer <I>type</I> in the specified rectangle
 	     area when writing GDS or CIF output.  <I>type</I> may be a templayer,
 	     such that <I>type</I> could be defined as the absence of a mask layer,
-	     for example.
+	     for example.  This property is always of type <B>dimension</B> and
+	     must have a multiple of four values.
       </DL>
    </BLOCKQUOTE>
 
@@ -155,6 +200,11 @@ Attach a "property" (string key and value pair) to the edit cell
       <B>property</B> is implemented as a built-in command in <B>magic</B>.
       The property structure itself is implemented as a hash table in
       the cell definition structure.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=units.html><B>units</B></A> <BR>
    </BLOCKQUOTE>
 
 <P><IMG SRC=graphics/line1.gif><P>

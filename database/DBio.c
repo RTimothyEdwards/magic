@@ -2375,7 +2375,6 @@ nextLine:
     return (dbFgets(line, len, f) != NULL);
 }
 
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2398,23 +2397,32 @@ nextLine:
 
 bool
 dbReadProperties(cellDef, line, len, f, scalen, scaled)
-    CellDef *cellDef;	/* Cell whose elements are being read */
-    char *line;		/* Line containing << elements >> */
+    CellDef *cellDef;	/* Cell whose properties are being read */
+    char *line;		/* Line containing << properties >> */
     int len;		/* Size of buffer pointed to by line */
     FILETYPE f;		/* Input file */
     int scalen;		/* Scale up by this factor */
     int scaled;		/* Scale down by this factor */
 {
-    char propertyname[128], propertyvalue[2049], *storedvalue;
-    char *pvalueptr;
-    int ntok;
+    char propertytype[32], propertyname[128], propertyvalue[2049];
+    PropertyRecord *proprec;
+    char *storedvalue, *pvalueptr;
+    int ntok, option, proplen;
     unsigned int noeditflag;
+    char *pptr;
+    int numvals, ival;
+    dlong dval;
+
+    /* These type indexes must align with the property codes in database.h.in */
+    static const char * const propType[] = {
+		"string", "integer", "dimension", "double", 0
+    };
 
     /* Save CDNOEDIT flag if set, and clear it */
     noeditflag = cellDef->cd_flags & CDNOEDIT;
     cellDef->cd_flags &= ~CDNOEDIT;
 
-    /* Get first element line */
+    /* Get first property line */
     line[len - 1] = 'X';
     if (dbFgets(line, len, f) == NULL) return (FALSE);
 
@@ -2428,139 +2436,102 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		return (TRUE);
 	    }
 
-	/* Stop when at end of properties section (currently, only "string"
-	 * is defined)
-	 */
-	if (line[0] != 's') break;
+	/* Tokenize the input line */
+	ntok = sscanf(line, "%31s %127s %2048[^\n]",
+			propertytype, propertyname, propertyvalue);
 
-	/*
-	 * Properties may only be "string", for now.  This may be the only
-	 * property type ever needed.  Handle possible string buffer
-	 * overflows.
-	 */
-	if (line[0] == 's')
+	if (ntok > 0)
 	{
-	    pvalueptr = &propertyvalue[0];
+	    option = Lookup(propertytype, propType);
 
-	    if ((ntok = sscanf(line, "string %127s %2048[^\n]",
-		    propertyname, propertyvalue)) != 2)
+	    /* Stop when at end of properties section */
+	    if (option < 0) break;
+	}
+	if (ntok != 3)
+	{
+	    TxError("Skipping bad property line: %s", line);
+	    goto nextproperty;
+	}
+
+	/* Read the string value from the file, accounting for overflow */
+	pvalueptr = &propertyvalue[0];
+
+	/* Handle string overflows in property values */
+	if (line[len - 1] == '\0')
+	{
+	    int pvlen = strlen(pvalueptr);
+	    *(pvalueptr + pvlen - 1) = '\0';
+
+	    while (*(pvalueptr + pvlen - 1) == '\0')
 	    {
-		TxError("Skipping bad property line: %s", line);
-		goto nextproperty;
-	    }
+		char *newpvalue;
 
-	    /* Handle string overflows in property values */
-	    if (line[len - 1] == '\0')
-	    {
-		int pvlen = strlen(pvalueptr);
-		*(pvalueptr + pvlen - 1) = '\0';
-
-		while (*(pvalueptr + pvlen - 1) == '\0')
+		pvlen += 2048;
+		newpvalue = (char *)mallocMagic(pvlen);
+		strcpy(newpvalue, pvalueptr);
+		if (pvalueptr != &propertyvalue[0])
+		    freeMagic(pvalueptr);
+		pvalueptr = newpvalue;
+		*(pvalueptr + pvlen - 1) = 'X';
+		if (dbFgets(newpvalue + pvlen - 2048, 2048, f) == NULL)
 		{
-		    char *newpvalue;
-
-		    pvlen += 2048;
-		    newpvalue = (char *)mallocMagic(pvlen);
-		    strcpy(newpvalue, pvalueptr);
-		    if (pvalueptr != &propertyvalue[0])
-			freeMagic(pvalueptr);
-		    pvalueptr = newpvalue;
-		    *(pvalueptr + pvlen - 1) = 'X';
-		    if (dbFgets(newpvalue + pvlen - 2048, 2048, f) == NULL)
-		    {
-			freeMagic(pvalueptr);
-			cellDef->cd_flags |= noeditflag;
-			return (TRUE);
-		    }
+		    /* Oops, hit end-of-file in the middle of a property */
+		    freeMagic(pvalueptr);
+		    cellDef->cd_flags |= noeditflag;
+		    return (TRUE);
 		}
 	    }
 
-	    /* Go ahead and process the vendor GDS property */
-	    if (!strcmp(propertyname, "GDS_FILE"))
-		cellDef->cd_flags |= CDVENDORGDS;
+	    /* "pvalueptr" now points to a string containing the complete
+	     * property value.
+	     */
+	}
 
-	    /* Also process FIXED_BBOX property, as units must match,	*/
-	    /* and ditto for MASKHINTS_*.				*/
+	/* Handle properties by type.  Property types are:
+	 * (1) "string"		(the default)
+	 * (2) "integer"	(a fixed integer or list of integers)
+	 * (3) "dimension"	(an integer that scales with internal units)
+	 * (4) "double"		(a fixed double-wide integer or list thereof)
+	 */
 
-	    if (!strcmp(propertyname, "FIXED_BBOX"))
-	    {
-		Rect locbbox;
+	switch (option)
+	{
+	    case PROPERTY_TYPE_STRING:
+		/* Go ahead and process the vendor GDS property */
+		if (!strcmp(propertyname, "GDS_FILE"))
+		    cellDef->cd_flags |= CDVENDORGDS;
 
-		if (sscanf(pvalueptr, "%d %d %d %d",
-			&(locbbox.r_xbot),
-			&(locbbox.r_ybot),
-			&(locbbox.r_xtop),
-			&(locbbox.r_ytop)) != 4)
+		/* Also process FIXED_BBOX property, as units must	*/
+		/* match, and ditto for MASKHINTS_*.  This is		*/
+		/* backwards-compatibility handling for files that have	*/
+		/* either property as a string.  The property is best	*/
+		/* handled as a dimension to avoid parsing the string	*/
+		/* value every time the coordinates are needed.		*/
+
+		if (!strcmp(propertyname, "FIXED_BBOX"))
 		{
-		    TxError("Cannot read bounding box values in %s property",
-				propertyname);
-		    storedvalue = StrDup((char **)NULL, pvalueptr);
-		    (void) DBPropPut(cellDef, propertyname, storedvalue);
-		}
-		else
-		{
-		    if (scalen > 1)
-		    {
-			locbbox.r_xbot *= scalen;
-			locbbox.r_ybot *= scalen;
-			locbbox.r_xtop *= scalen;
-			locbbox.r_ytop *= scalen;
-		    }
-		    if (scaled > 1)
-		    {
-			locbbox.r_xbot /= scaled;
-			locbbox.r_ybot /= scaled;
-			locbbox.r_xtop /= scaled;
-			locbbox.r_ytop /= scaled;
-		    }
-		    cellDef->cd_flags |= CDFIXEDBBOX;
-		    storedvalue = (char *)mallocMagic(40);
-		    sprintf(storedvalue, "%d %d %d %d",
-			    locbbox.r_xbot, locbbox.r_ybot,
-			    locbbox.r_xtop, locbbox.r_ytop);
-		    (void) DBPropPut(cellDef, propertyname, storedvalue);
-		}
-	    }
-	    else if (!strncmp(propertyname, "MASKHINTS_", 10))
-	    {
-		Rect locbbox;
-		char *pptr = pvalueptr;
-		int  numvals, numrects = 0, slen, n;
+		    Rect locbbox;
 
-		while (*pptr != '\0')
-		{
-		    numvals = sscanf(pptr, "%d %d %d %d",
+		    if (sscanf(pvalueptr, "%d %d %d %d",
 				&(locbbox.r_xbot),
 				&(locbbox.r_ybot),
 				&(locbbox.r_xtop),
-				&(locbbox.r_ytop));
-		    if (numvals <= 0)
-			break;
-		    else if (numvals != 4)
+				&(locbbox.r_ytop)) != 4)
 		    {
 			TxError("Cannot read bounding box values in %s property",
 				propertyname);
+			/* Unable to parse correctly.  Save as a string value */
+			proplen = strlen(pvalueptr);
+			proprec = (PropertyRecord *)mallocMagic(
+				sizeof(PropertyRecord) - 7 + proplen);
+			proprec->prop_type = PROPERTY_TYPE_STRING;
+			proprec->prop_len = proplen;
+			strcpy(proprec->prop_value.prop_string, pvalueptr);
+			(void) DBPropPut(cellDef, propertyname, proprec);
 			break;
 		    }
 		    else
 		    {
-			if (numrects == 0)
-			{
-			    storedvalue = (char *)mallocMagic(40);
-			    *storedvalue = '\0';
-			    slen = -1;
-			}
-			else
-			{
-			    char *newvalue;
-			    slen = strlen(storedvalue);
-			    newvalue = (char *)mallocMagic(40 + slen);
-			    sprintf(newvalue, "%s ", storedvalue);
-			    freeMagic(storedvalue);
-			    storedvalue = newvalue;
-			}
-			numrects++;
-
 			if (scalen > 1)
 			{
 			    locbbox.r_xbot *= scalen;
@@ -2575,27 +2546,308 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			    locbbox.r_xtop /= scaled;
 			    locbbox.r_ytop /= scaled;
 			}
-			sprintf(storedvalue + slen + 1, "%d %d %d %d",
-				locbbox.r_xbot, locbbox.r_ybot,
-				locbbox.r_xtop, locbbox.r_ytop);
+			cellDef->cd_flags |= CDFIXEDBBOX;
 
-			/* Skip forward four values in pvalueptr */
-			for (n = 0; n < 4; n++)
-			{
-			    while ((*pptr != '\0') && !isspace(*pptr)) pptr++;
-			    while ((*pptr != '\0') && isspace(*pptr)) pptr++;
-			}
+			proprec = (PropertyRecord *)mallocMagic(
+				sizeof(PropertyRecord) + 2 * sizeof(int));
+			proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+			proprec->prop_len = 4;
+			proprec->prop_value.prop_integer[0] = locbbox.r_xbot;
+			proprec->prop_value.prop_integer[1] = locbbox.r_ybot;
+			proprec->prop_value.prop_integer[2] = locbbox.r_xtop;
+			proprec->prop_value.prop_integer[3] = locbbox.r_ytop;
+
+			(void) DBPropPut(cellDef, propertyname, proprec);
 		    }
 		}
-		(void) DBPropPut(cellDef, propertyname, storedvalue);
-	    }
-	    else
-	    {
-		storedvalue = StrDup((char **)NULL, pvalueptr);
-		(void) DBPropPut(cellDef, propertyname, storedvalue);
-	    }
-	    if (pvalueptr != &propertyvalue[0])
-		freeMagic(pvalueptr);
+		else if (!strncmp(propertyname, "MASKHINTS_", 10))
+		{
+		    pptr = pvalueptr;
+
+		    /* Do one pass through the string to count the number of
+		     * values and make sure they all parse as integers.
+		     */
+		    numvals = 0;
+		    while (*pptr != '\0')
+		    {
+			while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+			if (!isspace(*pptr))
+			{
+			    char *endptr;
+			    long result;
+
+			    /* Check that the value is an integer */
+			    result = strtol(pptr, &endptr, 0);
+			    if (endptr == pptr)
+			    {
+				/* Unable to parse correctly.  Save as a string value */
+				proplen = strlen(pvalueptr);
+				proprec = (PropertyRecord *)mallocMagic(
+					sizeof(PropertyRecord) - 7 + proplen);
+				proprec->prop_type = PROPERTY_TYPE_STRING;
+				proprec->prop_len = proplen;
+				strcpy(proprec->prop_value.prop_string, pvalueptr);
+				(void) DBPropPut(cellDef, propertyname, proprec);
+				break;
+			    }
+			    while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
+			    numvals++;
+			}
+		    }
+		    if (numvals % 4 != 0)
+		    {
+			TxError("Cannot read bounding box values in %s property",
+					propertyname);
+			/* This does not need to be a fatal error.  Extra
+			 * values will be unused.
+			 */
+		    }
+
+		    pptr = pvalueptr;
+		    proprec = (PropertyRecord *)mallocMagic(
+				sizeof(PropertyRecord) + ((numvals - 2) * sizeof(int)));
+		    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+		    proprec->prop_len = numvals;
+
+		    /* Do a second pass through the string to convert the values
+		     * to dimensions and save as an integer array.
+		     */
+		    numvals = 0;
+		    while (*pptr != '\0')
+		    {
+			while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+			if (!isspace(*pptr))
+			{
+			    sscanf(pptr, "%d", &ival);
+			    if (scalen > 1) ival *= scalen;
+			    if (scaled > 1) ival /= scaled;
+			    proprec->prop_value.prop_integer[numvals] = ival;
+
+			    while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
+			    numvals++;
+			}
+		    }
+		    (void) DBPropPut(cellDef, propertyname, proprec);
+		}
+		else if ((!strncmp(propertyname, "GDS_START", 9)) ||
+			(!strncmp(propertyname, "GDS_BEGIN", 9)) ||
+			(!strncmp(propertyname, "GDS_END", 7)))
+		{
+		    if (sscanf(pvalueptr, "%"DLONG_PREFIX"d", &dval) == 1)
+		    {
+			TxError("Cannot read file offset value in %s property",
+				propertyname);
+			/* Unable to parse correctly.  Save as a string value */
+			proplen = strlen(pvalueptr);
+			proprec = (PropertyRecord *)mallocMagic(
+				sizeof(PropertyRecord) - 7 + proplen);
+			proprec->prop_type = PROPERTY_TYPE_STRING;
+			proprec->prop_len = proplen;
+			strcpy(proprec->prop_value.prop_string, pvalueptr);
+			(void) DBPropPut(cellDef, propertyname, proprec);
+			break;
+		    }
+		    else
+		    {
+			proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+			proprec->prop_type = PROPERTY_TYPE_DOUBLE;
+			proprec->prop_len = 1;
+			proprec->prop_value.prop_double[0] = dval;
+			(void) DBPropPut(cellDef, propertyname, proprec);
+		    }
+		}
+		else
+		{
+		    proplen = strlen(pvalueptr);
+		    proprec = (PropertyRecord *)mallocMagic(
+				sizeof(PropertyRecord) - 7 + proplen);
+		    proprec->prop_type = PROPERTY_TYPE_STRING;
+		    proprec->prop_len = proplen;
+		    strcpy(proprec->prop_value.prop_string, pvalueptr);
+		    (void) DBPropPut(cellDef, propertyname, proprec);
+		}
+		if (pvalueptr != &propertyvalue[0])
+		    freeMagic(pvalueptr);
+		break;
+
+	    case PROPERTY_TYPE_INTEGER:
+		pptr = pvalueptr;
+
+		/* Do one pass through the string to count the number of
+		 * values and make sure they all parse as integers.
+		 */
+		numvals = 0;
+		while (*pptr != '\0')
+		{
+		    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+		    if (!isspace(*pptr))
+		    {
+			char *endptr;
+			long result;
+
+			/* Check that the value is an integer */
+			result = strtol(pptr, &endptr, 0);
+			if (endptr == pptr)
+			{
+			    /* Unable to parse correctly.  Save as a string value */
+			    proplen = strlen(pvalueptr);
+			    proprec = (PropertyRecord *)mallocMagic(
+					sizeof(PropertyRecord) - 7 + proplen);
+			    proprec->prop_type = PROPERTY_TYPE_STRING;
+			    proprec->prop_len = proplen;
+			    strcpy(proprec->prop_value.prop_string, pvalueptr);
+			    (void) DBPropPut(cellDef, propertyname, proprec);
+			    break;
+			}
+			while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
+			numvals++;
+		    }
+		}
+
+		pptr = pvalueptr;
+		proprec = (PropertyRecord *)mallocMagic(
+			sizeof(PropertyRecord) + ((numvals - 2) * sizeof(int)));
+		proprec->prop_type = PROPERTY_TYPE_INTEGER;
+		proprec->prop_len = numvals;
+
+		/* Do a second pass through the string to convert the values
+		 * to dimensions and save as an integer array.
+		 */
+		numvals = 0;
+		while (*pptr != '\0')
+		{
+		    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+		    if (!isspace(*pptr))
+		    {
+			sscanf(pptr, "%d", &ival);
+			proprec->prop_value.prop_integer[numvals] = ival;
+
+			while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
+			numvals++;
+		    }
+		}
+		(void) DBPropPut(cellDef, propertyname, proprec);
+		break;
+
+	    case PROPERTY_TYPE_DOUBLE:
+		pptr = pvalueptr;
+
+		/* Do one pass through the string to count the number of
+		 * values and make sure they all parse as integers.
+		 */
+		numvals = 0;
+		while (*pptr != '\0')
+		{
+		    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+		    if (!isspace(*pptr))
+		    {
+			char *endptr;
+			dlong result;
+
+			/* Check that the value is an integer */
+			result = strtoll(pptr, &endptr, 0);
+			if (endptr == pptr)
+			{
+			    /* Unable to parse correctly.  Save as a string value */
+			    proplen = strlen(pvalueptr);
+			    proprec = (PropertyRecord *)mallocMagic(
+					sizeof(PropertyRecord) - 7 + proplen);
+			    proprec->prop_type = PROPERTY_TYPE_STRING;
+			    proprec->prop_len = proplen;
+			    strcpy(proprec->prop_value.prop_string, pvalueptr);
+			    (void) DBPropPut(cellDef, propertyname, proprec);
+			    break;
+			}
+			while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
+			numvals++;
+		    }
+		}
+
+		pptr = pvalueptr;
+		proprec = (PropertyRecord *)mallocMagic(
+			sizeof(PropertyRecord) + ((numvals - 1) * sizeof(dlong)));
+		proprec->prop_type = PROPERTY_TYPE_DOUBLE;
+		proprec->prop_len = numvals;
+
+		/* Do a second pass through the string to convert the values
+		 * to dimensions and save as an integer array.
+		 */
+		numvals = 0;
+		while (*pptr != '\0')
+		{
+		    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+		    if (!isspace(*pptr))
+		    {
+			sscanf(pptr, "%"DLONG_PREFIX"d", &dval);
+			proprec->prop_value.prop_double[numvals] = dval;
+
+			while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
+			numvals++;
+		    }
+		}
+		(void) DBPropPut(cellDef, propertyname, proprec);
+		break;
+
+	    case PROPERTY_TYPE_DIMENSION:
+		pptr = pvalueptr;
+
+		/* Do one pass through the string to count the number of
+		 * values and make sure they all parse as integers.
+		 */
+		numvals = 0;
+		while (*pptr != '\0')
+		{
+		    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+		    if (!isspace(*pptr))
+		    {
+			char *endptr;
+			long result;
+
+			/* Check that the value is an integer */
+			result = strtol(pptr, &endptr, 0);
+			if (endptr == pptr)
+			{
+			    /* Unable to parse correctly.  Save as a string value */
+			    proplen = strlen(pvalueptr);
+			    proprec = (PropertyRecord *)mallocMagic(
+					sizeof(PropertyRecord) - 7 + proplen);
+			    proprec->prop_type = PROPERTY_TYPE_STRING;
+			    proprec->prop_len = proplen;
+			    strcpy(proprec->prop_value.prop_string, pvalueptr);
+			    (void) DBPropPut(cellDef, propertyname, proprec);
+			    break;
+			}
+			while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
+			numvals++;
+		    }
+		}
+
+		pptr = pvalueptr;
+		proprec = (PropertyRecord *)mallocMagic(
+			sizeof(PropertyRecord) + ((numvals - 2) * sizeof(int)));
+		proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+		proprec->prop_len = numvals;
+
+		/* Do a second pass through the string to convert the values
+		 * to dimensions and save as an integer array.
+		 */
+		numvals = 0;
+		while (*pptr != '\0')
+		{
+		    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+		    if (!isspace(*pptr))
+		    {
+			sscanf(pptr, "%d", &ival);
+			if (scalen > 1) ival *= scalen;
+			if (scaled > 1) ival /= scaled;
+			proprec->prop_value.prop_integer[numvals] = ival;
+
+			while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
+			numvals++;
+		    }
+		}
+		(void) DBPropPut(cellDef, propertyname, proprec);
+		break;
 	}
 
 nextproperty:
@@ -3290,68 +3542,23 @@ dbFindCellGCFFunc(cellUse, ggcf)
 }
 
 int
-dbFindPropGCFFunc(key, value, ggcf)
+dbFindPropGCFFunc(key, proprec, ggcf)
     char *key;
-    ClientData value;
+    PropertyRecord *proprec;
     int *ggcf;		/* Client data */
 {
-    Rect bbox;
-    char *vptr = value, *sptr;
-    int numvals, n;
+    int value, n;
 
-    if (!strcmp(key, "FIXED_BBOX"))
-    {
-	if (sscanf(value, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop) == 4)
-	{
-	    /* Check bounding box */
-	    if (bbox.r_xtop % (*ggcf) != 0)
-		*ggcf = FindGCF(bbox.r_xtop, *ggcf);
-	    if (bbox.r_xbot % (*ggcf) != 0)
-		*ggcf = FindGCF(bbox.r_xbot, *ggcf);
-	    if (bbox.r_ytop % (*ggcf) != 0)
-		*ggcf = FindGCF(bbox.r_ytop, *ggcf);
-	    if (bbox.r_ybot % (*ggcf) != 0)
-		*ggcf = FindGCF(bbox.r_ybot, *ggcf);
-	}
-	else
-	    TxError("Error:  Cannot parse FIXED_BBOX property value!\n");
-    }
-    else if (!strncmp(key, "MASKHINTS_", 10))
-    {
-	while (TRUE)
-	{
-	    numvals = sscanf(vptr, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop);
-	    if (numvals <= 0)
-		break;
-	    else if (numvals != 4)
-	    {
-		TxError("Error:  Cannot parse %s property value at \"%s\"!\n",
-			key, vptr);
-		break;
-	    }
-	    else
-	    {
-		/* Check bounding box */
-		if (bbox.r_xtop % (*ggcf) != 0)
-		    *ggcf = FindGCF(bbox.r_xtop, *ggcf);
-		if (bbox.r_xbot % (*ggcf) != 0)
-		    *ggcf = FindGCF(bbox.r_xbot, *ggcf);
-		if (bbox.r_ytop % (*ggcf) != 0)
-		    *ggcf = FindGCF(bbox.r_ytop, *ggcf);
-		if (bbox.r_ybot % (*ggcf) != 0)
-		    *ggcf = FindGCF(bbox.r_ybot, *ggcf);
-	    }
+    /* Only PROPERTY_TYPE_DIMENSION properties get handled */
+    if (proprec->prop_type != PROPERTY_TYPE_DIMENSION) return 0;
 
-	    /* Skip forward four values in value */
-	    for (n = 0; n < 4; n++)
-	    {
-		while (!isspace(*vptr) && (*vptr != '\0')) vptr++;
-		while (isspace(*vptr) && (*vptr != '\0')) vptr++;
-	    }
-	}
+    for (n = 0; n < proprec->prop_len; n++)
+    {
+	value = proprec->prop_value.prop_integer[n];
+	if (value % (*ggcf) != 0)
+	    *ggcf = FindGCF(value, *ggcf);
     }
+
     return (*ggcf == 1) ? 1 : 0;
 }
 
@@ -3443,7 +3650,7 @@ dbCountUseFunc(cellUse, count)
 
 struct keyValuePair {
     char *key;
-    char *value;
+    PropertyRecord *value;
 };
 
 /*
@@ -3493,15 +3700,15 @@ struct cellPropList {
  */
 
 int
-dbGetPropFunc(key, value, propRec)
+dbGetPropFunc(key, proprec, propRec)
     char *key;
-    ClientData value;
+    PropertyRecord *proprec;
     struct cellPropList *propRec;
 {
     propRec->keyValueList[propRec->idx] =
 		(struct keyValuePair *)mallocMagic(sizeof(struct keyValuePair));
     propRec->keyValueList[propRec->idx]->key = key;
-    propRec->keyValueList[propRec->idx]->value = (char *)value;
+    propRec->keyValueList[propRec->idx]->value = proprec;
     propRec->idx++;
 
     return 0;
@@ -3522,9 +3729,9 @@ dbGetPropFunc(key, value, propRec)
  */
 
 int
-dbCountPropFunc(key, value, count)
+dbCountPropFunc(key, proprec, count)
     char *key;
-    ClientData value;
+    PropertyRecord *proprec;
     int *count;		/* Client data */
 {
     (*count)++;
@@ -3868,120 +4075,70 @@ ioerror:
  * Side effects:
  *	Writes to the disk file.
  *
- * Warnings:
- *	This function assumes that all property values are strings!
- *	This is currently true;  if it changes in the future, this
- *	function will have to check each property against a list of
- *	expected property strings and output the value based on the
- *	known format of what it points to.
- *
- *	Also, this function assumes that properties FIXED_BBOX and
- *	MASKHINTS_* are in internal units, and converts them by
- *	dividing by the reducer value passed in cdata.  No other
- *	properties are altered.
- *
  * ----------------------------------------------------------------------------
  */
 
 int
-dbWritePropFunc(key, value, cdata)
+dbWritePropFunc(key, proprec, cdata)
     char *key;
-    char *value;
+    PropertyRecord *proprec;
     ClientData cdata;
 {
     pwfrec *pwf = (pwfrec *)cdata;
     FILE *f = pwf->pwf_file;
     int reducer = pwf->pwf_reducer;
-    char *newvalue = value;
+    int i;
+    char newvalue[20];
 
-    /* NOTE:  FIXED_BBOX is treated specially;  values are database */
-    /* values and should be divided by reducer.  Easiest to do it   */
-    /* here and revert values after.  Ditto for MASKHINTS_*.	    */
-
-    if (!strcmp(key, "FIXED_BBOX"))
+    switch (proprec->prop_type)
     {
-	Rect scalebox, bbox;
-
-	if (sscanf(value, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop) == 4)
-	{
-	    scalebox.r_xbot = bbox.r_xbot / reducer;
-	    scalebox.r_xtop = bbox.r_xtop / reducer;
-	    scalebox.r_ybot = bbox.r_ybot / reducer;
-	    scalebox.r_ytop = bbox.r_ytop / reducer;
-
-	    newvalue = mallocMagic(strlen(value) + 5);
-	    sprintf(newvalue, "%d %d %d %d",
-		    scalebox.r_xbot, scalebox.r_ybot,
-		    scalebox.r_xtop, scalebox.r_ytop);
-	}
-	else
-	    TxError("Error:  Cannot parse FIXED_BBOX property value!\n");
-	
+	case PROPERTY_TYPE_STRING:
+	    FPUTSR(f, "string ");
+	    break;
+	case PROPERTY_TYPE_INTEGER:
+	    FPUTSR(f, "integer ");
+	    break;
+	case PROPERTY_TYPE_DIMENSION:
+	    FPUTSR(f, "dimension ");
+	    break;
+	case PROPERTY_TYPE_DOUBLE:
+	    FPUTSR(f, "double ");
+	    break;
     }
-    else if (!strncmp(key, "MASKHINTS_", 10))
-    {
-	Rect scalebox, bbox;
-        char *vptr = value, *sptr;
-	int numvals, numrects = 0, n;
-
-	while (TRUE)
-	{
-	    numvals = sscanf(vptr, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop);
-	    if (numvals <= 0)
-		break;
-	    else if (numvals != 4)
-	    {
-		TxError("Error:  Cannot parse %s property value!\n", key);
-		/* Revert property value to original string */
-		if (newvalue != value) freeMagic(newvalue);
-		newvalue = value;
-		break;
-	    }
-	    else
-	    {
-		scalebox.r_xbot = bbox.r_xbot / reducer;
-		scalebox.r_xtop = bbox.r_xtop / reducer;
-		scalebox.r_ybot = bbox.r_ybot / reducer;
-		scalebox.r_ytop = bbox.r_ytop / reducer;
-		if (numrects == 0)
-		{
-		    newvalue = mallocMagic(40);
-		    sptr = newvalue;
-		}
-		else
-		{
-		    char *tempvalue;
-		    tempvalue = mallocMagic(strlen(newvalue) + 40);
-		    sprintf(tempvalue, "%s ", newvalue);
-		    sptr = tempvalue + strlen(newvalue) + 1;
-		    freeMagic(newvalue);
-		    newvalue = tempvalue;
-		}
-		sprintf(sptr, "%d %d %d %d",
-			scalebox.r_xbot, scalebox.r_ybot,
-			scalebox.r_xtop, scalebox.r_ytop);
-		numrects++;
-	    }
-
-	    /* Skip forward four values in value */
-	    for (n = 0; n < 4; n++)
-	    {
-		while (!isspace(*vptr)) vptr++;
-		while (isspace(*vptr) && (*vptr != '\0')) vptr++;
-	    }
-	}
-    }
-
-    FPUTSR(f, "string ");
     FPUTSR(f, key);
-    FPUTSR(f, " ");
-    FPUTSR(f, newvalue);
+
+    switch (proprec->prop_type)
+    {
+	case PROPERTY_TYPE_STRING:
+   	    FPUTSR(f, proprec->prop_value.prop_string);
+	    break;
+	case PROPERTY_TYPE_INTEGER:
+	    for (i = 0; i < proprec->prop_len; i++)
+	    {
+		snprintf(newvalue, 20, " %d", proprec->prop_value.prop_integer[i]);
+		FPUTSR(f, newvalue);
+	    }
+	    break;
+	case PROPERTY_TYPE_DIMENSION:
+	    /* Dimensions scale by the reducer */
+	    for (i = 0; i < proprec->prop_len; i++)
+	    {
+		snprintf(newvalue, 20, " %d", proprec->prop_value.prop_integer[i]
+				/ reducer);
+		FPUTSR(f, newvalue);
+	    }
+	    break;
+	case PROPERTY_TYPE_DOUBLE:
+	    for (i = 0; i < proprec->prop_len; i++)
+	    {
+		snprintf(newvalue, 20, " %"DLONG_PREFIX"d",
+				proprec->prop_value.prop_double[i]);
+		FPUTSR(f, newvalue);
+	    }
+	    break;
+    }
+
     FPUTSR(f, "\n");
-
-    if (newvalue != value) freeMagic(newvalue);
-
     return 0;
 }
 
@@ -4311,32 +4468,62 @@ dbWriteUseCommandsFunc(cellUse, cdarg)
  */
 
 int
-dbWritePropCommandsFunc(key, value, cdarg)
+dbWritePropCommandsFunc(key, proprec, cdarg)
     char *key;
-    char *value;
+    PropertyRecord *proprec;
     ClientData cdarg;
 {
     struct writeArg *arg = (struct writeArg *) cdarg;
-    char *escstr, *p, *v;
-    int vallen;
+    char *escstr, *p, *v, *value;
+    int i, vallen;
     FILE *f = arg->wa_file;
+    MagWindow *w;
 
-    /* Probably need to escape more than just quotes here. */
-    vallen = strlen(value) + 1;
-    for (v = value; *v != '\0'; v++)
-	if (*v == '"') vallen++;
-
-    escstr = (char *)mallocMagic(vallen);
-    p = escstr;
-    for (v = value; *v != '\0'; v++)
+    switch (proprec->prop_type)
     {
-	if (*v == '"')
-	    *p++ = '\\';
-	*p++ = *v;
+	case PROPERTY_TYPE_STRING:
+	    /* Probably need to escape more than just quotes here. */
+	    value = proprec->prop_value.prop_string;
+	    vallen = strlen(value) + 1;
+	    for (v = value; *v != '\0'; v++)
+		if (*v == '"') vallen++;
+
+	    escstr = (char *)mallocMagic(vallen);
+	    p = escstr;
+	    for (v = value; *v != '\0'; v++)
+	    {
+		if (*v == '"')
+		    *p++ = '\\';
+		*p++ = *v;
+	    }
+	    *p = '\0';
+	    fprintf(f, "property string %s \"%s\"\n", key, escstr);
+	    freeMagic(escstr);
+	    break;
+
+	case PROPERTY_TYPE_INTEGER:
+	    fprintf(f, "property integer ");
+	    for (i = 0; i < proprec->prop_len; i++)
+		fprintf(f, "%d ", proprec->prop_value.prop_integer[i]);
+	    fprintf(f, "\n");
+	    break;
+
+	case PROPERTY_TYPE_DIMENSION:
+	    windCheckOnlyWindow(&w, DBWclientID);
+	    fprintf(f, "property dimension ");
+	    for (i = 0; i < proprec->prop_len; i++)
+		fprintf(f, "%d ", DBWPrintValue(proprec->prop_value.prop_integer[i],
+				w, ((i % 2) == 0) ? TRUE : FALSE));
+	    fprintf(f, "\n");
+	    break;
+
+	case PROPERTY_TYPE_DOUBLE:
+	    fprintf(f, "property double ");
+	    for (i = 0; i < proprec->prop_len; i++)
+		fprintf(f, "%"DLONG_PREFIX"d ", proprec->prop_value.prop_double[i]);
+	    fprintf(f, "\n");
+	    break;
     }
-    *p = '\0';
-    fprintf(f, "property %s \"%s\"\n", key, escstr);
-    freeMagic(escstr);
     return 0;
 }
 

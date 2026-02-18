@@ -4998,6 +4998,7 @@ CIFGenLayer(
     BridgeData *bridge;
     BloatData *bloats;
     bool hstop = FALSE;
+    PropertyRecord *proprec;
     char *propvalue;
     bool found;
 
@@ -5454,10 +5455,17 @@ CIFGenLayer(
 
 		if (origDef && (origDef->cd_flags & CDFIXEDBBOX))
 		{
-		    propvalue = (char *)DBPropGet(origDef, "FIXED_BBOX", &found);
+		    proprec = DBPropGet(origDef, "FIXED_BBOX", &found);
 		    if (!found) break;
-		    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-				&bbox.r_xtop, &bbox.r_ytop) != 4) break;
+
+		    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+				(proprec->prop_len == 4))
+		    {
+			bbox.r_xbot = proprec->prop_value.prop_integer[0];
+			bbox.r_ybot = proprec->prop_value.prop_integer[1];
+			bbox.r_xtop = proprec->prop_value.prop_integer[2];
+			bbox.r_ytop = proprec->prop_value.prop_integer[3];
+		    }
 
 		    cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
 		    bbox.r_xbot *= cifScale;
@@ -5519,44 +5527,37 @@ CIFGenLayer(
 
 	    case CIFOP_MASKHINTS:
 		{
-		    int j, numfound;
+		    int n;
 		    char propname[512];
-		    char *propptr;
 		    char *layername = (char *)op->co_client;
 
-		    sprintf(propname, "MASKHINTS_%s", layername);
+		    snprintf(propname, 512, "MASKHINTS_%s", layername);
 		    
-		    propvalue = (char *)DBPropGet(cellDef, propname, &found);
+		    proprec = DBPropGet(cellDef, propname, &found);
 		    if (!found) break;	    /* No mask hints available */
-		    propptr = propvalue;
-		    while (*propptr)
-		    {
-			numfound = sscanf(propptr, "%d %d %d %d",
-				&bbox.r_xbot, &bbox.r_ybot,
-				&bbox.r_xtop, &bbox.r_ytop);
 
-			if (numfound != 4)
+		    if (proprec->prop_type == PROPERTY_TYPE_DIMENSION)
+		    {
+			for (n = 0; n < proprec->prop_len; n += 4)
 			{
-			    /* To do:  Allow keyword "rect", "tri", or "poly"
-			     * at the start of the list and parse accordingly.
-			     * For now, this only flags an error.
-			     */
-			    TxError("%s:  Cannot read rectangle values.\n", propname);
-			    break;
-			}
-			cifPlane = curPlane;
-			cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
-			bbox.r_xbot *= cifScale;
-			bbox.r_xtop *= cifScale;
-			bbox.r_ybot *= cifScale;
-			bbox.r_ytop *= cifScale;
-			cifScale = 1;
-			DBNMPaintPlane(curPlane, CIF_SOLIDTYPE, &bbox,
-				CIFPaintTable, (PaintUndoInfo *)NULL);
-			for (j = 0; j < 4; j++)
-			{
-			    while (*propptr && isspace(*propptr)) propptr++;
-			    while (*propptr && !isspace(*propptr)) propptr++;
+			    if ((n + 3) >= proprec->prop_len) break;
+
+			    cifPlane = curPlane;
+			    cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
+
+			    bbox.r_xbot = proprec->prop_value.prop_integer[n];
+			    bbox.r_ybot = proprec->prop_value.prop_integer[n + 1];
+			    bbox.r_xtop = proprec->prop_value.prop_integer[n + 2];
+			    bbox.r_ytop = proprec->prop_value.prop_integer[n + 3];
+
+			    bbox.r_xbot *= cifScale;
+			    bbox.r_ybot *= cifScale;
+			    bbox.r_xtop *= cifScale;
+			    bbox.r_ytop *= cifScale;
+
+			    cifScale = 1;
+			    DBNMPaintPlane(curPlane, CIF_SOLIDTYPE, &bbox,
+					CIFPaintTable, (PaintUndoInfo *)NULL);
 			}
 		    }
 		}

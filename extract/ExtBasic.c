@@ -326,7 +326,7 @@ extBasic(def, outFile)
     }
 
     /* Check for "device", as it modifies handling of parasitics */
-    propptr = (char *)DBPropGet(def, "device", &propfound);
+    propptr = DBPropGetString(def, "device", &propfound);
     if (propfound)
     {
 	/* Remove parasitics from local nodes */
@@ -1702,7 +1702,7 @@ extOutputParameters(def, transList, outFile)
      * and device name, and if detected, add the type corresponding to the
      * device name to the mask so it gets handled, too.
      */
-    propptr = DBPropGet(def, "device", &propfound);
+    propptr = DBPropGetString(def, "device", &propfound);
     if (propfound)
     {
 	char *devname;

@@ -152,10 +152,9 @@ DBCellRename(cellname, newname, doforce)
 
     if (doforce && ((celldef->cd_flags & CDVENDORGDS) == CDVENDORGDS))
     {
-	char *chkgdsfile;
 	bool isReadOnly;
 
-	chkgdsfile = (char *)DBPropGet(celldef, "GDS_FILE", &isReadOnly);
+	DBPropGet(celldef, "GDS_FILE", &isReadOnly);
 	/* Note that clearing GDS_FILE will also clear CDVENDORGDS flag */
 	if (isReadOnly) DBPropPut(celldef, "GDS_FILE", NULL);
 

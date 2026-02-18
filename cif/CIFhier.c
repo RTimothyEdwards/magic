@@ -214,53 +214,6 @@ typedef struct _maskHintsData
 /*
  * ----------------------------------------------------------------------------
  *
- * cifMaskHints --
- *
- *	Copy a mask hint into a target cell by adding it to the
- *	property list of the target cell.  If the target cell already
- *	has the same mask hint key, then the mask hint value is
- *	appended to the property in the target cell def.
- *
- * Returns:
- *	0 to keep the search going.
- *
- * Side effects:
- *	Modifies properties of the target cell def.
- *
- * ----------------------------------------------------------------------------
- */
-
-/* DEPRECATED */
-int
-cifMaskHints(
-    char *name,
-    char *value,
-    CellDef *targetDef)
-{
-    char *propvalue, *newval;
-    bool propfound;
-
-    if (!strncmp(name, "MASKHINTS_", 10))
-    {
-	/* Check if name exists already in the flattened cell */
-	propvalue = (char *)DBPropGet(targetDef, name, &propfound);
-	if (propfound)
-	{
-	    /* Append value to the property */
-	    newval = mallocMagic(strlen(value) + strlen(propvalue) + 2);
-	    sprintf(newval, "%s %s", propvalue, value);
-	}
-	else
-	    newval = StrDup((char **)NULL, value);
-
-	DBPropPut(targetDef, name, newval);
-    }
-    return 0;
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
  * cifFlatMaskHints --
  *
  *	Copy a mask hint into a flattened cell by transforming it into the
@@ -279,67 +232,68 @@ cifMaskHints(
 int
 cifFlatMaskHints(
     char *name,
-    char *value,
+    PropertyRecord *proprec,
     MaskHintsData *mhd)
 {
     Rect r, newr;
     char *vptr, *newval, *lastval, *propvalue;
     bool propfound;
-    int lastlen, numvals;
+    int i, lastlen, numvals;
+    PropertyRecord *newproprec, *oldproprec;
 
     if (!strncmp(name, "MASKHINTS_", 10))
     {
-	newval = (char *)NULL;
-	vptr = value;
-	while (*vptr != '\0')
+	/* Check if name exists already in the flattened cell */
+	oldproprec = (PropertyRecord *)DBPropGet(mhd->mh_def, name, &propfound);
+	if (propfound)
 	{
-	    numvals = sscanf(vptr, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
-			&r.r_xtop, &r.r_ytop);
-	    if (numvals == 4)
-	    {
-		/* Transform rectangle to top level coordinates */
-		GeoTransRect(mhd->mh_trans, &r, &newr);
-		lastval = newval;
-		lastlen = (lastval) ? strlen(lastval) : 0;
-		newval = mallocMagic(40 + lastlen);
-		if (lastval)
-		    strcpy(newval, lastval);
-		else
-		    *newval = '\0';
-		sprintf(newval + lastlen, "%s%d %d %d %d", (lastval) ? " " : "",
-			newr.r_xbot, newr.r_ybot, newr.r_xtop, newr.r_ytop);
-		if (lastval) freeMagic(lastval);
+	    newproprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+			(oldproprec->prop_len + proprec->prop_len - 2) * sizeof(int));
+	    newproprec->prop_len = oldproprec->prop_len + proprec->prop_len;
+	    newproprec->prop_type = PROPERTY_TYPE_DIMENSION;
+	}
+	else
+	{
+	    newproprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+			(proprec->prop_len - 2) * sizeof(int));
+	    newproprec->prop_len = proprec->prop_len;
+	    newproprec->prop_type = PROPERTY_TYPE_DIMENSION;
+	}
 
-		/* Parse through the four values and check if there's more */
-		while (*vptr && isspace(*vptr)) vptr++;
-		while (*vptr && !isspace(*vptr)) vptr++;
-		while (*vptr && isspace(*vptr)) vptr++;
-		while (*vptr && !isspace(*vptr)) vptr++;
-		while (*vptr && isspace(*vptr)) vptr++;
-		while (*vptr && !isspace(*vptr)) vptr++;
-		while (*vptr && isspace(*vptr)) vptr++;
-		while (*vptr && !isspace(*vptr)) vptr++;
-		while (*vptr && isspace(*vptr)) vptr++;
-	    }
-	    else
+	for (i = 0; i < proprec->prop_len; i += 4)
+	{
+	    /* There should be a multiple of 4 values but avoid an array overrun
+	     * if not.
+	     */
+	    if ((i + 3) >= proprec->prop_len)
 	    {
 		TxError("MASKHINTS_%s:  Expected 4 values, found only %d\n",
 				name + 10, numvals);
 		break;
 	    }
+
+	    r.r_xbot = proprec->prop_value.prop_integer[i];
+	    r.r_ybot = proprec->prop_value.prop_integer[i + 1];
+	    r.r_xtop = proprec->prop_value.prop_integer[i + 2];
+	    r.r_ytop = proprec->prop_value.prop_integer[i + 3];
+
+	    /* Transform rectangle to top level coordinates */
+	    GeoTransRect(mhd->mh_trans, &r, &newr);
+
+	    newproprec->prop_value.prop_integer[i] = newr.r_xbot;
+	    newproprec->prop_value.prop_integer[i + 1] = newr.r_ybot;
+	    newproprec->prop_value.prop_integer[i + 2] = newr.r_xtop;
+	    newproprec->prop_value.prop_integer[i + 3] = newr.r_ytop;
 	}
 
-	/* Check if name exists already in the flattened cell */
-	propvalue = (char *)DBPropGet(mhd->mh_def, name, &propfound);
+	/* If there were existing entries, copy them into the new property */
 	if (propfound)
 	{
-	    /* Append newval to the property */
-	    lastval = newval;
-	    newval = mallocMagic(strlen(lastval) + strlen(propvalue) + 2);
-	    sprintf(newval, "%s %s", propvalue, lastval);
-	    freeMagic(lastval);
+	    for (i = 0; i < oldproprec->prop_len; i++)
+		newproprec->prop_value.prop_integer[i + proprec->prop_len] =
+			oldproprec->prop_value.prop_integer[i];
 	}
-	DBPropPut(mhd->mh_def, name, newval);
+	DBPropPut(mhd->mh_def, name, newproprec);
     }
     return 0;
 }

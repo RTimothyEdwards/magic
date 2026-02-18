@@ -47,16 +47,16 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 void
 DBPropPut(cellDef, name, value)
-    CellDef *cellDef;	/* Pointer to definition of cell. */
-    char *name;		/* The name of the property desired. */
-    ClientData value;	/* MUST point to a malloc'ed structure, or NULL.
-			 * This will be freed when the CellDef is freed.
-			 */
+    CellDef *cellDef;		/* Pointer to definition of cell. */
+    char *name;			/* The name of the property desired. */
+    PropertyRecord *value;	/* MUST point to a malloc'ed structure, or NULL.
+				 * This will be freed when the CellDef is freed.
+				 */
 
 {
     HashTable *htab;
     HashEntry *entry;
-    char *oldvalue;
+    PropertyRecord *oldvalue;
 
     /* Honor the NOEDIT flag.  Note that the caller always assumes that */
     /* the value would be saved in the hash table, so if it is not	*/
@@ -95,12 +95,12 @@ DBPropPut(cellDef, name, value)
     }
 
     entry = HashFind(htab, name);
-    oldvalue = (char *)HashGetValue(entry);
-    if (oldvalue != NULL) freeMagic(oldvalue);
-    if (value == (ClientData)NULL)
+    oldvalue = (PropertyRecord *)HashGetValue(entry);
+    if (oldvalue != NULL) freeMagic((char *)oldvalue);
+    if (value == (PropertyRecord *)NULL)
 	HashRemove(htab, name);
     else
-	HashSetValue(entry, value);
+	HashSetValue(entry, PTR2CD(value));
 }
 
 /* ----------------------------------------------------------------------------
@@ -110,13 +110,13 @@ DBPropPut(cellDef, name, value)
  * Get a property from a celldef.
  *
  * Results:
- *	NULL if the property didn't exist, or if the property value was NULL.
- *	Otherwise, ClientData that represents the property.
+ *	NULL if the property didn't exist, or if the property record was NULL.
+ *	Otherwise, returns a pointer to the property record.
  *
  * ----------------------------------------------------------------------------
  */
 
-ClientData
+PropertyRecord *
 DBPropGet(cellDef, name, found)
     CellDef *cellDef;	/* Pointer to definition of cell. */
     char *name;		/* The name of the property desired. */
@@ -124,12 +124,12 @@ DBPropGet(cellDef, name, found)
 			 * exists.
 			 */
 {
-    ClientData result;
+    PropertyRecord *result;
     bool haveit;
     HashTable *htab;
     HashEntry *entry;
 
-    result = (ClientData) NULL;
+    result = (PropertyRecord *)NULL;
     haveit = FALSE;
     htab = (HashTable *) cellDef->cd_props;
     if (htab == (HashTable *) NULL) goto done;
@@ -138,10 +138,113 @@ DBPropGet(cellDef, name, found)
     if (entry != NULL)
     {
 	haveit = TRUE;
-	result = (ClientData) HashGetValue(entry);
+	result = (PropertyRecord *)HashGetValue(entry);
     }
 
 done:
+    if (found != (bool *) NULL) *found = haveit;
+    return result;
+}
+
+/* ----------------------------------------------------------------------------
+ *
+ * DBPropGetString --
+ *
+ * Get a string property from a celldef.
+ *
+ * Results:
+ *	NULL if the property didn't exist, or if the property record was NULL.
+ *	Otherwise, returns a pointer to the property's string record.
+ *
+ * Notes:
+ *	This is basically the original DBPropGet(), when properties were only
+ *	allowed to be strings.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+DBPropGetString(cellDef, name, found)
+    CellDef *cellDef;	/* Pointer to definition of cell. */
+    char *name;		/* The name of the property desired. */
+    bool *found;	/* If not NULL, filled in with TRUE iff the property
+			 * exists.
+			 */
+{
+    char *result = NULL;
+    PropertyRecord *proprec;
+    bool haveit;
+    HashTable *htab;
+    HashEntry *entry;
+
+    haveit = FALSE;
+    htab = (HashTable *) cellDef->cd_props;
+    if (htab == (HashTable *) NULL) goto pdone;
+
+    entry = HashLookOnly(htab, name);
+    if (entry != NULL)
+    {
+	proprec = (PropertyRecord *)HashGetValue(entry);
+	if (proprec->prop_type == PROPERTY_TYPE_STRING)
+	{
+	    haveit = TRUE;
+	    result = proprec->prop_value.prop_string;
+	}
+    }
+
+pdone:
+    if (found != (bool *) NULL) *found = haveit;
+    return result;
+}
+
+/* ----------------------------------------------------------------------------
+ *
+ * DBPropGetDouble --
+ *
+ * Get a single double-long integer property from a celldef.
+ *
+ * Results:
+ *	NULL if the property didn't exist, or if the property record was NULL.
+ *	Otherwise, returns a pointer to the property's value record.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+dlong
+DBPropGetDouble(cellDef, name, found)
+    CellDef *cellDef;	/* Pointer to definition of cell. */
+    char *name;		/* The name of the property desired. */
+    bool *found;	/* If not NULL, filled in with TRUE iff the property
+			 * exists.
+			 */
+{
+    dlong result = 0;
+    PropertyRecord *proprec;
+    bool haveit;
+    HashTable *htab;
+    HashEntry *entry;
+
+    haveit = FALSE;
+    htab = (HashTable *) cellDef->cd_props;
+    if (htab == (HashTable *) NULL) goto ddone;
+
+    entry = HashLookOnly(htab, name);
+    if (entry != NULL)
+    {
+	proprec = (PropertyRecord *)HashGetValue(entry);
+	if (proprec->prop_type == PROPERTY_TYPE_DOUBLE)
+	{
+	    haveit = TRUE;
+	    result = proprec->prop_value.prop_double[0];
+	}
+	else if (proprec->prop_type == PROPERTY_TYPE_STRING)
+	{
+	    haveit = TRUE;
+	    sscanf(proprec->prop_value.prop_string, "%"DLONG_PREFIX"d", &result);
+	}
+    }
+
+ddone:
     if (found != (bool *) NULL) *found = haveit;
     return result;
 }
@@ -168,7 +271,7 @@ DBPropEnum(cellDef, func, cdata)
 			 *
 			 *	int foo(name, value, cdata)
 			 *	    char *name;
-			 *	    ClientData value;
+			 *	    PropertyRecord *value;
 			 *	    ClientData cdata;
 			 *	{
 			 *	    -- return 0 to continue,
@@ -189,7 +292,7 @@ DBPropEnum(cellDef, func, cdata)
     HashStartSearch(&hs);
     while ((entry = HashNext(htab, &hs)) != NULL)
     {
-	res = (*func)(entry->h_key.h_name, (ClientData) entry->h_pointer, cdata);
+	res = (*func)(entry->h_key.h_name, (PropertyRecord *)entry->h_pointer, cdata);
 	if (res != 0) return res;
     }
 

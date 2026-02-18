@@ -824,46 +824,43 @@ CIFPaintCurrent(
 
 	    if (lrec != NULL)
 	    {
+		PropertyRecord *proprec;
 		char *propname;
+		int proplen;
 
 	    	propname = (char *)mallocMagic(11 + strlen(cifReadLayers[i]));
 	    	sprintf(propname, "MASKHINTS_%s", cifReadLayers[i]);
 
-	    	propstr = (char *)NULL;
-
 	    	/* Turn all linked Rects into a mask-hints property in the
 		 * target cell.
 		 */
+		proplen = 0;
+	    	while (lrec != NULL) proplen += 4;
+		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) *
+				(proplen - 2) * sizeof(int));
+		proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+		proprec->prop_len = proplen;
+
+		proplen = 0;
 	    	while (lrec != NULL)
 	    	{
-		    char *newstr;
-		    sprintf(locstr, "%d %d %d %d",
-				lrec->r_r.r_xbot / CIFCurStyle->cs_scaleFactor,
-				lrec->r_r.r_ybot / CIFCurStyle->cs_scaleFactor,
-				lrec->r_r.r_xtop / CIFCurStyle->cs_scaleFactor,
-				lrec->r_r.r_ytop / CIFCurStyle->cs_scaleFactor);
-		    if (propstr == NULL)
-		    {
-		    	newstr = (char *)mallocMagic(strlen(locstr) + 1);
-		    	sprintf(newstr, "%s", locstr);
-		    }
-		    else
-		    {
-		    	newstr = (char *)mallocMagic(strlen(locstr)
-					+ strlen(propstr) + 2);
-		    	sprintf(newstr, "%s %s", propstr, locstr);
-		    	freeMagic(propstr);
-		    }
-		    propstr = newstr;
+		    proprec->prop_value.prop_integer[proplen] =
+				lrec->r_r.r_xbot / CIFCurStyle->cs_scaleFactor;
+		    proprec->prop_value.prop_integer[proplen + 1] =
+				lrec->r_r.r_ybot / CIFCurStyle->cs_scaleFactor;
+		    proprec->prop_value.prop_integer[proplen + 2] =
+				lrec->r_r.r_xtop / CIFCurStyle->cs_scaleFactor;
+		    proprec->prop_value.prop_integer[proplen + 3] =
+				lrec->r_r.r_ytop / CIFCurStyle->cs_scaleFactor;
+
 		    free_magic1_t mm1 = freeMagic1_init();
 		    freeMagic1(&mm1, lrec);
 		    lrec = lrec->r_next;
 		    freeMagic1_end(&mm1);
+
+		    proplen += 4;
 		}
-		/* NOTE: propstr is transferred to the CellDef and should
-		 * not be free'd here.
-		 */
-		DBPropPut(cifReadCellDef, propname, propstr);
+		DBPropPut(cifReadCellDef, propname, proprec);
 	    	freeMagic(propname);
 	    }
 
@@ -902,6 +899,7 @@ cifMakeBoundaryFunc(
     /* If there are multiple rectangles defined with the boundary   */
     /* layer, then the last one defines the FIXED_BBOX property.    */
 
+    PropertyRecord *proprec;
     Rect area;
     char propertyvalue[128], *storedvalue;
     int savescale;
@@ -933,19 +931,24 @@ cifMakeBoundaryFunc(
 
     if (cifReadCellDef->cd_flags & CDFIXEDBBOX)
     {
-	char *propvalue;
+	PropertyRecord *proprec;
 	bool found;
 
 	/* Only flag a warning if the redefined boundary was	*/
 	/* different from the original.				*/
 
-	propvalue = (char *)DBPropGet(cifReadCellDef, "FIXED_BBOX", &found);
+	proprec = DBPropGet(cifReadCellDef, "FIXED_BBOX", &found);
 	if (found)
 	{
 	    Rect bbox;
-	    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop) == 4)
+	    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
 	    {
+		bbox.r_xbot = proprec->prop_value.prop_integer[0];
+		bbox.r_ybot = proprec->prop_value.prop_integer[1];
+		bbox.r_xtop = proprec->prop_value.prop_integer[2];
+		bbox.r_ytop = proprec->prop_value.prop_integer[3];
+
 		if ((bbox.r_xbot != area.r_xbot) ||
 			(bbox.r_ybot != area.r_ybot) ||
 			(bbox.r_xtop != area.r_xtop) ||
@@ -962,10 +965,15 @@ cifMakeBoundaryFunc(
 	}
     }
 
-    sprintf(propertyvalue, "%d %d %d %d",
-	    area.r_xbot, area.r_ybot, area.r_xtop, area.r_ytop);
-    storedvalue = StrDup((char **)NULL, propertyvalue);
-    DBPropPut(cifReadCellDef, "FIXED_BBOX", storedvalue);
+    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) + 2 * sizeof(int));
+    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+    proprec->prop_len = 4;
+    proprec->prop_value.prop_integer[0] = area.r_xbot;
+    proprec->prop_value.prop_integer[1] = area.r_ybot;
+    proprec->prop_value.prop_integer[2] = area.r_xtop;
+    proprec->prop_value.prop_integer[3] = area.r_ytop;
+
+    DBPropPut(cifReadCellDef, "FIXED_BBOX", proprec);
     cifReadCellDef->cd_flags |= CDFIXEDBBOX;
     return 0;
 }

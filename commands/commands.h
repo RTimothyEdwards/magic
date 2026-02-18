@@ -72,7 +72,7 @@ extern int cmdParseCoord(MagWindow *w, char *arg, bool is_relative, bool is_x);
 extern void cmdSaveCell(CellDef *cellDef, char *newName, bool noninteractive, bool tryRename);
 extern void CmdInit(void);
 
-extern void CmdDoProperty(CellDef *def, TxCommand *cmd, int argstart);
+extern void CmdDoProperty(CellDef *def, MagWindow *w, TxCommand *cmd, int argstart);
 extern void CmdPaintEraseButton(MagWindow *w, Point *refPoint, bool isPaint, bool isScreen);
 
 #endif /* _MAGIC__COMMANDS__COMMANDS_H */

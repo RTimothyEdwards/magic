@@ -1300,7 +1300,7 @@ CmdCellname(
 	    if (cellDef == (CellDef *) NULL)
 		TxError("Unknown cell %s\n", cellname);
 	    else
-		CmdDoProperty(cellDef, cmd, 3 + ((dolist) ? 1 : 0));
+		CmdDoProperty(cellDef, w, cmd, 3 + ((dolist) ? 1 : 0));
 	    break;
 
 	case IDX_DELETE:
@@ -4991,15 +4991,20 @@ cmdDumpParseArgs(
     bbox = def->cd_bbox;
     if (def->cd_flags & CDFIXEDBBOX)
     {
-	char *propvalue;
+	PropertyRecord *proprec;
 	bool found;
 
-	propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &found);
+	proprec = DBPropGet(def, "FIXED_BBOX", &found);
 	if (found)
 	{
-	    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop) != 4)
-		bbox = def->cd_bbox;
+	    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
+	    {
+		bbox.r_xbot = proprec->prop_value.prop_integer[0];
+		bbox.r_ybot = proprec->prop_value.prop_integer[1];
+		bbox.r_xtop = proprec->prop_value.prop_integer[2];
+		bbox.r_ytop = proprec->prop_value.prop_integer[3];
+	    }
 	}
     }
 

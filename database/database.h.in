@@ -704,6 +704,24 @@ struct conSrArg2
 
 #define CSA2_LIST_SIZE 65536            /* Number of entries per list */
 
+/* ------------------------  Properties  ------------------------------ */
+
+/* Note that the property record is a single allocated block large enough
+ * to hold the string or integer list, and can be freed as a single block.
+ * The array bounds, like those of lab_text for labels, are placeholders.
+ */
+
+typedef struct
+{
+    int		prop_type;	/* See codes below; e.g., PROPERTY_TYPE_STRING */
+    int		prop_len;	/* String length or number of values */
+    union {
+	char  prop_string[8];	/* For PROPERTY_TYPE_STRING */
+	int   prop_integer[2];	/* For PROPERTY_TYPE_INTEGER or _DIMENSION */
+	dlong prop_double[1];	/* For PROPERTY_TYPE_DOUBLE */
+    } prop_value;
+} PropertyRecord;
+
 /* -------------- Undo information passed to DBPaintPlane ------------- */
 
 typedef struct
@@ -735,6 +753,13 @@ typedef struct
 #define PAINT_NORMAL	0	/* Normal paint procedure */
 #define PAINT_MARK	1	/* Mark tiles that are painted */
 #define PAINT_XOR	2	/* Use with XOR function to prevent double-painting */
+
+/* ---------------------- Codes for properties -------------------------*/
+
+#define PROPERTY_TYPE_STRING	0	/* ASCII string property */
+#define PROPERTY_TYPE_INTEGER	1	/* Fixed integer property */
+#define PROPERTY_TYPE_DIMENSION	2	/* Integer property that scales with units */
+#define PROPERTY_TYPE_DOUBLE	3	/* Double-long integer (for file positions) */
 
 /* -------------------- Exported procedure headers -------------------- */
 
@@ -921,7 +946,9 @@ extern void DBFreePaintPlane();
 
     /* Cell properties */
 extern void DBPropPut();
-extern ClientData DBPropGet();
+extern PropertyRecord *DBPropGet();
+extern char *DBPropGetString();
+extern dlong DBPropGetDouble();
 extern int DBPropEnum();
 extern void DBPropClearAll();
 

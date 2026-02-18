@@ -1806,84 +1806,33 @@ typedef struct _cellpropstruct {
  * ----------------------------------------------------------------------------
  */
 
-int dbScaleProp(name, value, cps)
+int dbScaleProp(name, proprec, cps)
     char *name;
-    char *value;
+    PropertyRecord *proprec;
     CellPropStruct *cps;
 {
-    int scalen, scaled;
-    char *newvalue, *vptr;
-    Rect r;
+    int i, scalen, scaled;
+    Point p;
 
-    if ((strlen(name) > 5) && !strncmp(name + strlen(name) - 5, "_BBOX", 5))
+    /* Only "dimension" type properties get scaled */
+    if (proprec->prop_type != PROPERTY_TYPE_DIMENSION) return 0; 
+
+    /* Scale numerator held in point X value, */
+    /* scale denominator held in point Y value */
+    scalen = cps->cps_point.p_x;
+    scaled = cps->cps_point.p_y;
+
+    for (i = 0; i < proprec->prop_len; i += 2)
     {
-	if (sscanf(value, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
-			&r.r_xtop, &r.r_ytop) == 4)
-	{
-	    /* Scale numerator held in point X value, */
-	    /* scale denominator held in point Y value */
+	if ((i + 1) >= proprec->prop_len) break;
 
-	    scalen = cps->cps_point.p_x;
-	    scaled = cps->cps_point.p_y;
-
-	    DBScalePoint(&r.r_ll, scalen, scaled);
-	    DBScalePoint(&r.r_ur, scalen, scaled);
-
-	    newvalue = (char *)mallocMagic(40);
-	    sprintf(newvalue, "%d %d %d %d", r.r_xbot, r.r_ybot,
-			r.r_xtop, r.r_ytop);
-	    DBPropPut(cps->cps_def, name, newvalue);
-	}
+	p.p_x = proprec->prop_value.prop_integer[i];
+	p.p_y = proprec->prop_value.prop_integer[i + 1];
+	DBScalePoint(&p, scalen, scaled);
+	proprec->prop_value.prop_integer[i] = p.p_x;
+	proprec->prop_value.prop_integer[i + 1] = p.p_y;
     }
-    else if (!strncmp(name, "MASKHINTS_", 10))
-    {
-	char *vptr, *lastval;
-	int lastlen;
 
-	newvalue = (char *)NULL;
-	vptr = value;
-	while (*vptr != '\0')
-	{
-	    if (sscanf(vptr, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
-			&r.r_xtop, &r.r_ytop) == 4)
-	    {
-	    	/* Scale numerator held in point X value, */
-	    	/* scale denominator held in point Y value */
-
-	    	scalen = cps->cps_point.p_x;
-	    	scaled = cps->cps_point.p_y;
-
-	    	DBScalePoint(&r.r_ll, scalen, scaled);
-	    	DBScalePoint(&r.r_ur, scalen, scaled);
-
-		lastval = newvalue;
-		lastlen = (lastval) ? strlen(lastval) : 0;
-		newvalue = mallocMagic(40 + lastlen);
-
-		if (lastval)
-		    strcpy(newvalue, lastval);
-		else
-		    *newvalue = '\0';
-
-		sprintf(newvalue + lastlen, "%s%d %d %d %d", (lastval) ? " " : "",
-			r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop);
-		if (lastval) freeMagic(lastval);
-
-		/* Parse through the four values and check if there's more */
-                while (*vptr && !isspace(*vptr)) vptr++;
-                while (*vptr && isspace(*vptr)) vptr++;
-                while (*vptr && !isspace(*vptr)) vptr++;
-                while (*vptr && isspace(*vptr)) vptr++;
-                while (*vptr && !isspace(*vptr)) vptr++;
-                while (*vptr && isspace(*vptr)) vptr++;
-                while (*vptr && !isspace(*vptr)) vptr++;
-                while (*vptr && isspace(*vptr)) vptr++;
-	    }
-	    else break;
-	}
-	if (newvalue)
-	    DBPropPut(cps->cps_def, name, newvalue);
-    }
     return 0;	/* Keep enumerating through properties */
 }
 
@@ -1899,33 +1848,32 @@ int dbScaleProp(name, value, cps)
  * ----------------------------------------------------------------------------
  */
 
-int dbMoveProp(name, value, cps)
+int dbMoveProp(name, proprec, cps)
     char *name;
-    char *value;
+    PropertyRecord *proprec;
     CellPropStruct *cps;
 {
-    int origx, origy;
+    int i, origx, origy;
     char *newvalue;
-    Rect r;
+    Point p;
 
-    if (((strlen(name) > 5) && !strncmp(name + strlen(name) - 5, "_BBOX", 5))
-		|| !strncmp(name, "MASKHINTS_", 10))
+    /* Only "dimension" type properties get scaled */
+    if (proprec->prop_type != PROPERTY_TYPE_DIMENSION) return 0; 
+
+    origx = cps->cps_point.p_x;
+    origy = cps->cps_point.p_y;
+
+    for (i = 0; i < proprec->prop_len; i += 2)
     {
-	if (sscanf(value, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
-			&r.r_xtop, &r.r_ytop) == 4)
-	{
-	    origx = cps->cps_point.p_x;
-	    origy = cps->cps_point.p_y;
+	if ((i + 1) >= proprec->prop_len) break;
 
-	    DBMovePoint(&r.r_ll, origx, origy);
-	    DBMovePoint(&r.r_ur, origx, origy);
-
-	    newvalue = (char *)mallocMagic(40);
-	    sprintf(newvalue, "%d %d %d %d", r.r_xbot, r.r_ybot,
-			r.r_xtop, r.r_ytop);
-	    DBPropPut(cps->cps_def, name, newvalue);
-	}
+	p.p_x = proprec->prop_value.prop_integer[i];
+	p.p_y = proprec->prop_value.prop_integer[i + 1];
+	DBMovePoint(&p, origx, origy);
+	proprec->prop_value.prop_integer[i] = p.p_x;
+	proprec->prop_value.prop_integer[i + 1] = p.p_y;
     }
+
     return 0;	/* Keep enumerating through properties */
 }
 

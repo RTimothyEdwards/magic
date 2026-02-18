@@ -58,6 +58,8 @@ MAGIC_8.0 {
            DBPlaneTypes;
            DBPrintUseId;
 	   DBPropGet;
+	   DBPropGetString;
+	   DBPropGetDouble;
            DBPutLabel;
            DBReComputeBbox;
            DBSeeTypesAll;

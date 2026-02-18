@@ -1359,15 +1359,21 @@ DefReadLocation(
 
 	if (use->cu_def->cd_flags & CDFIXEDBBOX)
 	{
-	    char *propval;
+	    PropertyRecord *proprec;
 	    bool found;
 
-	    propval = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+	    proprec = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
 	    if (found)
 	    {
-		if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
-			    &rect.r_xtop, &rect.r_ytop) == 4)
+		if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
+		{
+		    rect.r_xbot = proprec->prop_value.prop_integer[0];
+		    rect.r_ybot = proprec->prop_value.prop_integer[1];
+		    rect.r_xtop = proprec->prop_value.prop_integer[2];
+		    rect.r_ytop = proprec->prop_value.prop_integer[3];
 		    r = &rect;
+		}
 	    }
 	}
     }
@@ -2453,7 +2459,7 @@ DefRead(
     FILE *f;
     char *filename;
     const char *token;
-    char *bboxstr;
+    PropertyRecord *proprec;
     int keyword, dscale, total;
     float oscale;
     Rect *dierect;
@@ -2605,14 +2611,17 @@ DefRead(
 		break;
 	    case DEF_DIEAREA:
 		dierect = LefReadRect(f, 0, oscale);
-		bboxstr = mallocMagic(40);
-		sprintf(bboxstr, "%d %d %d %d",
-			dierect->r_xbot,
-			dierect->r_ybot,
-			dierect->r_xtop,
-			dierect->r_ytop);
+		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+				2 * sizeof(int));
+		proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+		proprec->prop_len = 4;
+		proprec->prop_value.prop_integer[0] = dierect->r_xbot;
+		proprec->prop_value.prop_integer[1] = dierect->r_ybot;
+		proprec->prop_value.prop_integer[2] = dierect->r_xtop;
+		proprec->prop_value.prop_integer[3] = dierect->r_ytop;
 		if (rootDef == NULL) rootDef = DefNewCell(inName);
-		DBPropPut(rootDef, "FIXED_BBOX", bboxstr);
+		DBPropPut(rootDef, "FIXED_BBOX", proprec);
+
 		LefEndStatement(f);
 		break;
 	    case DEF_PROPERTYDEFINITIONS:

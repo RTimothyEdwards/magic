@@ -594,7 +594,7 @@ extHeader(def, f)
     /* are to be passed to instances of the cell	*/
     /* (created by defining property "parameter")	*/
 
-    propvalue = (char *)DBPropGet(def, "parameter", &propfound);
+    propvalue = DBPropGetString(def, "parameter", &propfound);
     if (propfound)
     {
 	// Use device parameter table to store the cell def parameters,

@@ -2150,6 +2150,7 @@ LefReadMacro(
     int keyword, pinNum, propsize, result;
     float x, y;
     bool has_size, is_imported = FALSE, propfound;
+    PropertyRecord *proprec;
     Rect lefBBox;
     Point gdsOffset;	/* Difference between GDS and LEF coordinates */
 
@@ -2250,7 +2251,12 @@ LefReadMacro(
 		    sprintf(tsave + strlen(tsave), " %s", token);
 		    token = LefNextToken(f, TRUE);
 		}
-		DBPropPut(lefMacro, "LEFclass", StrDup((char **)NULL, tsave + 1));
+		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+				strlen(tsave + 1) - 7);
+		proprec->prop_type = PROPERTY_TYPE_STRING;
+		proprec->prop_len = strlen(tsave + 1);
+		strcpy(proprec->prop_value.prop_string, tsave + 1);
+		DBPropPut(lefMacro, "LEFclass", proprec);
 		break;
 	    case LEF_SIZE:
 		token = LefNextToken(f, TRUE);
@@ -2294,7 +2300,12 @@ origin_error:
 		    sprintf(tsave + strlen(tsave), " %s", token);
 		    token = LefNextToken(f, TRUE);
 		}
-		DBPropPut(lefMacro, "LEFsymmetry", StrDup((char **)NULL, tsave + 1));
+		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+				strlen(tsave + 1) - 7);
+		proprec->prop_type = PROPERTY_TYPE_STRING;
+		proprec->prop_len = strlen(tsave + 1);
+		strcpy(proprec->prop_value.prop_string, tsave + 1);
+		DBPropPut(lefMacro, "LEFsymmetry", proprec);
 		break;
 	    case LEF_SOURCE:
 		token = LefNextToken(f, TRUE);
@@ -2305,12 +2316,19 @@ origin_error:
 	    case LEF_SITE:
 		token = LefNextToken(f, TRUE);
 		if (*token != '\n')
-		    DBPropPut(lefMacro, "LEFsite", StrDup((char **)NULL, token));
+		{
+		    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+				strlen(token) - 7);
+		    proprec->prop_type = PROPERTY_TYPE_STRING;
+		    proprec->prop_len = strlen(token);
+		    strcpy(proprec->prop_value.prop_string, token);
+		    DBPropPut(lefMacro, "LEFsite", proprec);
+		}
 		LefEndStatement(f);
 		break;
 	    case LEF_PROPERTY:
 		/* Append property key:value pairs to the cell property LEFproperties */
-		propval = (char *)DBPropGet(lefMacro, "LEFproperties", &propfound);
+		propval = DBPropGetString(lefMacro, "LEFproperties", &propfound);
 		if (propfound)
 		    propsize = strlen(propval);
 		else
@@ -2322,14 +2340,19 @@ origin_error:
 		    char *propext;
 		    sprintf(tsave, "%.127s", token);
 		    token = LefNextToken(f, TRUE);
-		    propext = (char *)mallocMagic(propsize + strlen(tsave) +
-			    strlen(token) + 4);
-		    if (propsize > 0)
-			sprintf(propext, "%s %s %s", propval, tsave, token);
-		    else
-			sprintf(propext, "%s %s", tsave, token);
 		    
-		    DBPropPut(lefMacro, "LEFproperties", StrDup((char **)NULL, propext));
+		    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+				propsize + strlen(tsave) + strlen(token) - 3);
+		    proprec->prop_type = PROPERTY_TYPE_STRING;
+		    proprec->prop_len = propsize + strlen(tsave) + strlen(token) + 4;
+
+		    if (propsize > 0)
+			sprintf(proprec->prop_value.prop_string, "%s %s %s",
+					propval, tsave, token);
+		    else
+			sprintf(proprec->prop_value.prop_string, "%s %s", tsave, token);
+
+		    DBPropPut(lefMacro, "LEFproperties", proprec);
 		}
 		LefEndStatement(f);
 		break;
@@ -2405,11 +2428,16 @@ foreign_error:
 	if (has_size)
 	{
 	    lefMacro->cd_flags |= CDFIXEDBBOX;
-	    propval = (char *)mallocMagic(40);
-	    sprintf(propval, "%d %d %d %d",
-		    lefBBox.r_xbot, lefBBox.r_ybot,
-		    lefBBox.r_xtop, lefBBox.r_ytop);
-	    DBPropPut(lefMacro, "FIXED_BBOX", propval);
+	    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+			(2 * sizeof(int)));
+	    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+	    proprec->prop_len = 4;
+	    proprec->prop_value.prop_integer[0] = lefBBox.r_xbot;
+	    proprec->prop_value.prop_integer[1] = lefBBox.r_ybot;
+	    proprec->prop_value.prop_integer[2] = lefBBox.r_xtop;
+	    proprec->prop_value.prop_integer[3] = lefBBox.r_ytop;
+
+	    DBPropPut(lefMacro, "FIXED_BBOX", proprec);
 	}
     }
     else
@@ -2419,11 +2447,16 @@ foreign_error:
 	if (has_size)
 	{
 	    lefMacro->cd_flags |= CDFIXEDBBOX;
-	    propval = (char *)mallocMagic(40);
-	    sprintf(propval, "%d %d %d %d",
-		    lefBBox.r_xbot, lefBBox.r_ybot,
-		    lefBBox.r_xtop, lefBBox.r_ytop);
-	    DBPropPut(lefMacro, "FIXED_BBOX", propval);
+	    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+			(2 * sizeof(int)));
+	    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+	    proprec->prop_len = 4;
+	    proprec->prop_value.prop_integer[0] = lefBBox.r_xbot;
+	    proprec->prop_value.prop_integer[1] = lefBBox.r_ybot;
+	    proprec->prop_value.prop_integer[2] = lefBBox.r_xtop;
+	    proprec->prop_value.prop_integer[3] = lefBBox.r_ytop;
+
+	    DBPropPut(lefMacro, "FIXED_BBOX", proprec);
 	}
 	else
 	{
@@ -2432,13 +2465,17 @@ foreign_error:
 
 	    /* Set the placement bounding box property to the current bounding box */
 	    lefMacro->cd_flags |= CDFIXEDBBOX;
-	    propval = (char *)mallocMagic(40);
-	    sprintf(propval, "%d %d %d %d",
-		    lefMacro->cd_bbox.r_xbot,
-		    lefMacro->cd_bbox.r_ybot,
-		    lefMacro->cd_bbox.r_xtop,
-		    lefMacro->cd_bbox.r_ytop);
-	    DBPropPut(lefMacro, "FIXED_BBOX", propval);
+	    lefMacro->cd_flags |= CDFIXEDBBOX;
+	    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+			(2 * sizeof(int)));
+	    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+	    proprec->prop_len = 4;
+	    proprec->prop_value.prop_integer[0] = lefMacro->cd_bbox.r_xbot;
+	    proprec->prop_value.prop_integer[1] = lefMacro->cd_bbox.r_ybot;
+	    proprec->prop_value.prop_integer[2] = lefMacro->cd_bbox.r_xtop;
+	    proprec->prop_value.prop_integer[3] = lefMacro->cd_bbox.r_ytop;
+
+	    DBPropPut(lefMacro, "FIXED_BBOX", proprec);
 	    DRCCheckThis(lefMacro, TT_CHECKPAINT, &lefMacro->cd_bbox);
 	}
     }
@@ -2453,7 +2490,13 @@ foreign_error:
     /* i.e., setting it to "FALSE" would be ineffective.	*/
 
     if (!is_imported)
-	DBPropPut(lefMacro, "LEFview", StrDup((char **)NULL, "TRUE"));
+    {
+	proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+	proprec->prop_type = PROPERTY_TYPE_STRING;
+	proprec->prop_len = 4;
+	strcpy(proprec->prop_value.prop_string, "TRUE");
+	DBPropPut(lefMacro, "LEFview", proprec);
+    }
 
     DBWAreaChanged(lefMacro, &lefMacro->cd_bbox, DBW_ALLWINDOWS,
 		&DBAllButSpaceBits);

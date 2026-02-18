@@ -328,14 +328,14 @@ lefWriteHeader(
 	{
 	    fprintf(f, "SITE %s\n", siteDef->cd_name);
 
-	    propvalue = (char *)DBPropGet(siteDef, "LEFsymmetry", &propfound);
+	    propvalue = DBPropGetString(siteDef, "LEFsymmetry", &propfound);
 	    if (propfound)
 		fprintf(f, IN0 "SYMMETRY %s ;\n", propvalue);
 	    else
 		/* Usually core cells have symmetry Y only. */
 		fprintf(f, IN0 "SYMMETRY Y ;\n");
 
-	    propvalue = (char *)DBPropGet(siteDef, "LEFclass", &propfound);
+	    propvalue = DBPropGetString(siteDef, "LEFclass", &propfound);
 	    if (propfound)
 		fprintf(f, IN0 "CLASS %s ;\n", propvalue);
 	    else
@@ -345,10 +345,20 @@ lefWriteHeader(
 	    boundary = siteDef->cd_bbox;
 	    if (siteDef->cd_flags & CDFIXEDBBOX)
 	    {
-		propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &propfound);
+		PropertyRecord *proprec;
+
+		proprec = DBPropGet(def, "FIXED_BBOX", &propfound);
 		if (propfound)
-		    sscanf(propvalue, "%d %d %d %d", &boundary.r_xbot,
-			    &boundary.r_ybot, &boundary.r_xtop, &boundary.r_ytop);
+		{
+		    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+				(proprec->prop_len == 4))
+		    {
+			boundary.r_xbot = proprec->prop_value.prop_integer[0];
+			boundary.r_ybot = proprec->prop_value.prop_integer[1];
+			boundary.r_xtop = proprec->prop_value.prop_integer[2];
+			boundary.r_ytop = proprec->prop_value.prop_integer[3];
+		    }
+		}
 	    }
 
 	    scale = CIFGetOutputScale(1000);	/* conversion to microns */
@@ -1288,7 +1298,7 @@ lefWriteMacro(
     /* default values are optional, so in this case we will leave those	*/
     /* entries blank.							*/
 
-    propvalue = (char *)DBPropGet(def, "LEFclass", &propfound);
+    propvalue = DBPropGetString(def, "LEFclass", &propfound);
     if (propfound)
     {
 	fprintf(f, IN0 "CLASS %s ;\n", propvalue);
@@ -1324,13 +1334,21 @@ lefWriteMacro(
 
     if (def->cd_flags & CDFIXEDBBOX)
     {
-	char *propvalue;
+	PropertyRecord *proprec;
 	bool found;
 
-	propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &found);
+	proprec = DBPropGet(def, "FIXED_BBOX", &found);
 	if (found)
-	    sscanf(propvalue, "%d %d %d %d", &boundary.r_xbot,
-		    &boundary.r_ybot, &boundary.r_xtop, &boundary.r_ytop);
+	{
+	    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
+	    {
+		boundary.r_xbot = proprec->prop_value.prop_integer[0];
+		boundary.r_ybot = proprec->prop_value.prop_integer[1];
+		boundary.r_xtop = proprec->prop_value.prop_integer[2];
+		boundary.r_ytop = proprec->prop_value.prop_integer[3];
+	    }
+	}
     }
 
     /* Check if (boundry less setback) is degenerate.  If so, then	*/
@@ -1358,11 +1376,11 @@ lefWriteMacro(
     lc.origin.p_x = 0;
     lc.origin.p_y = 0;
 
-    propvalue = (char *)DBPropGet(def, "LEFsymmetry", &propfound);
+    propvalue = DBPropGetString(def, "LEFsymmetry", &propfound);
     if (propfound)
 	fprintf(f, IN0 "SYMMETRY %s ;\n", propvalue);
 
-    propvalue = (char *)DBPropGet(def, "LEFsite", &propfound);
+    propvalue = DBPropGetString(def, "LEFsite", &propfound);
     if (propfound)
 	fprintf(f, IN0 "SITE %s ;\n", propvalue);
 
@@ -1821,20 +1839,24 @@ lefWriteMacro(
 	Rect layerBound, manualBound;
 	labelLinkedList *thislll;
 	bool propfound;
-	char *propvalue;
+	PropertyRecord *proprec;
 
 	/* If there is a property OBS_BBOX, then use the value of the	*/
 	/* defined box to set the minimum hidden area.  This will still	*/
 	/* get clipped to the setback.					*/
 
-	propvalue = (char *)DBPropGet(def, "OBS_BBOX", &propfound);
+	proprec = DBPropGet(def, "OBS_BBOX", &propfound);
 	if (propfound)
 	{
-	    if (sscanf(propvalue, "%d %d %d %d",
-			&(manualBound.r_xbot),
-			&(manualBound.r_ybot),
-			&(manualBound.r_xtop),
-			&(manualBound.r_ytop)) != 4)
+	    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
+	    {
+		manualBound.r_xbot = proprec->prop_value.prop_integer[0];
+		manualBound.r_ybot = proprec->prop_value.prop_integer[1];
+		manualBound.r_xtop = proprec->prop_value.prop_integer[2];
+		manualBound.r_ytop = proprec->prop_value.prop_integer[3];
+	    }
+	    else
 	    {
 		TxError("Improper values for obstruction bounding box "
 				"OBS_BBOX property");
@@ -2016,7 +2038,7 @@ lefWriteMacro(
 
     /* If there are any properties saved in LEFproperties, write them out */
 
-    propvalue = (char *)DBPropGet(def, "LEFproperties", &propfound);
+    propvalue = DBPropGetString(def, "LEFproperties", &propfound);
     if (propfound)
     {
 	char *delim;
@@ -2094,7 +2116,7 @@ lefGetSites(
     bool propfound;
     char *propvalue;
 
-    propvalue = (char *)DBPropGet(def, "LEFsite", &propfound);
+    propvalue = DBPropGetString(def, "LEFsite", &propfound);
     if (propfound)
 	he = HashFind(lefSiteTbl, propvalue); /* FIXME return value not used from call to function with no side-effects (reevaluate this entire func purpose?) */
 
@@ -2124,7 +2146,7 @@ lefGetProperties(
     bool propfound;
     char *propvalue;
 
-    propvalue = (char *)DBPropGet(def, "LEFproperties", &propfound);
+    propvalue = DBPropGetString(def, "LEFproperties", &propfound);
     if (propfound)
     {
 	char *key;

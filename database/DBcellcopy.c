@@ -380,17 +380,18 @@ struct propUseDefStruct {
  */
 
 int
-dbCopyMaskHintsFunc(key, value, puds)
+dbCopyMaskHintsFunc(key, proprec, puds)
     char *key;
-    ClientData value;
+    PropertyRecord *proprec;
     struct propUseDefStruct *puds;
 {
     CellDef *dest = puds->puds_dest;
     Transform *trans = puds->puds_trans;
-    char *propstr = (char *)value;
+    PropertyRecord *parentproprec, *newproprec;
     char *parentprop, *newvalue, *vptr;
     Rect r, rnew;
     bool propfound;
+    int i;
 
     if (!strncmp(key, "MASKHINTS_", 10))
     {
@@ -398,43 +399,48 @@ dbCopyMaskHintsFunc(key, value, puds)
 	int lastlen;
 
 	/* Append to existing mask hint (if any) */
-	parentprop = (char *)DBPropGet(dest, key, &propfound);
-	newvalue = (propfound) ? StrDup((char **)NULL, parentprop) : (char *)NULL;
+	parentproprec = (PropertyRecord *)DBPropGet(dest, key, &propfound);
 
-	vptr = propstr;
-	while (*vptr != '\0')
+	if (propfound)
 	{
-	    if (sscanf(vptr, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
-			&r.r_xtop, &r.r_ytop) == 4)
-	    {
-		GeoTransRect(trans, &r, &rnew);
-
-		lastval = newvalue;
-		lastlen = (lastval) ? strlen(lastval) : 0;
-		newvalue = mallocMagic(40 + lastlen);
-
-		if (lastval)
-		    strcpy(newvalue, lastval);
-		else
-		    *newvalue = '\0';
-
-		sprintf(newvalue + lastlen, "%s%d %d %d %d", (lastval) ?  " " : "",
-			rnew.r_xbot, rnew.r_ybot, rnew.r_xtop, rnew.r_ytop);
-		if (lastval) freeMagic(lastval);
-
-		while (*vptr && !isspace(*vptr)) vptr++;
-		while (*vptr && isspace(*vptr)) vptr++;
-		while (*vptr && !isspace(*vptr)) vptr++;
-		while (*vptr && isspace(*vptr)) vptr++;
-		while (*vptr && !isspace(*vptr)) vptr++;
-		while (*vptr && isspace(*vptr)) vptr++;
-		while (*vptr && !isspace(*vptr)) vptr++;
-		while (*vptr && isspace(*vptr)) vptr++;
-	    }
-	    else break;
+	    newproprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+			(proprec->prop_len + parentproprec->prop_len - 2) *
+			sizeof(int));
+	    newproprec->prop_type = PROPERTY_TYPE_DIMENSION;
+	    newproprec->prop_len = proprec->prop_len + parentproprec->prop_len;
 	}
-	if (newvalue)
-	    DBPropPut(dest, key, newvalue);
+	else
+	{
+	    newproprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+			(proprec->prop_len - 2) * sizeof(int));
+	    newproprec->prop_type = PROPERTY_TYPE_DIMENSION;
+	    newproprec->prop_len = proprec->prop_len;
+	}
+
+	for (i = 0; i < proprec->prop_len; i += 4)
+	{
+	    r.r_xbot = proprec->prop_value.prop_integer[i];
+	    r.r_ybot = proprec->prop_value.prop_integer[i + 1];
+	    r.r_xtop = proprec->prop_value.prop_integer[i + 2];
+	    r.r_ytop = proprec->prop_value.prop_integer[i + 3];
+
+	    GeoTransRect(trans, &r, &rnew);
+
+	    newproprec->prop_value.prop_integer[i] = rnew.r_xbot;
+	    newproprec->prop_value.prop_integer[i + 1] = rnew.r_ybot;
+	    newproprec->prop_value.prop_integer[i + 2] = rnew.r_xtop;
+	    newproprec->prop_value.prop_integer[i + 3] = rnew.r_ytop;
+	}
+
+	if (propfound)
+	{
+	    /* Append the original values to the end of the list */
+	    for (i = 0; i < parentproprec->prop_len; i++)
+		newproprec->prop_value.prop_integer[i + proprec->prop_len] =
+			parentproprec->prop_value.prop_integer[i];
+	}
+	    
+	DBPropPut(dest, key, newproprec);
     }
 
     return 0;

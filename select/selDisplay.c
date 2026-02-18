@@ -321,14 +321,20 @@ selRedisplayCellFunc(scx, window)
     if (scx->scx_use->cu_def->cd_flags & CDFIXEDBBOX)
     {
 	bool found;
-	char *propval;
+	PropertyRecord *proprec;
 
-	propval = (char *)DBPropGet(scx->scx_use->cu_def, "FIXED_BBOX", &found);
+	proprec = DBPropGet(scx->scx_use->cu_def, "FIXED_BBOX", &found);
 	if (found)
 	{
-	    if (sscanf(propval, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop) == 4)
+	    if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+			(proprec->prop_len == 4))
+	    {
+		bbox.r_xbot = proprec->prop_value.prop_integer[0];
+		bbox.r_ybot = proprec->prop_value.prop_integer[1];
+		bbox.r_xtop = proprec->prop_value.prop_integer[2];
+		bbox.r_ytop = proprec->prop_value.prop_integer[3];
 		GeoTransRect(&scx->scx_trans, &bbox, &tmp);
+	    }
 	    else
 		found = FALSE;
 	}

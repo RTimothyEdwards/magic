@@ -508,7 +508,7 @@ calmaDumpStructureZ(
 
 	    /* Is view abstract? */
 	    DBPropGet(edef, "LEFview", &isAbstract);
-	    chklibname = (char *)DBPropGet(edef, "GDS_FILE", &isReadOnly);
+	    chklibname = DBPropGetString(edef, "GDS_FILE", &isReadOnly);
 
 	    if (isAbstract && isReadOnly)
 	    {
@@ -716,7 +716,7 @@ calmaFullDumpZ(
      * names in the GDS file do not shadow any names in the database.
      */
 
-    viewopts = (char *)DBPropGet(def, "LEFview", &isAbstract);
+    viewopts = DBPropGetString(def, "LEFview", &isAbstract);
     if ((!isAbstract) || (strcasecmp(viewopts, "no_prefix")))
     {
 	/* Generate a SHORT name for this cell (else it is easy to run into the
@@ -870,7 +870,7 @@ calmaProcessDefZ(
     DBPropGet(def, "GDS_START", &hasContent);
     DBPropGet(def, "GDS_END", &hasGDSEnd);
     DBPropGet(def, "CIFhier", &needHier);
-    filename = (char *)DBPropGet(def, "GDS_FILE", &isReadOnly);
+    filename = DBPropGetString(def, "GDS_FILE", &isReadOnly);
 
     /* When used with "calma addendum true", don't output the read-only	*/
     /* cells.  This makes the library incomplete and dependent on the	*/
@@ -985,13 +985,12 @@ calmaProcessDefZ(
 	}
 	else
 	{
-	    offptr = (char *)DBPropGet(def, "GDS_END", NULL);
-	    sscanf(offptr, "%"DLONG_PREFIX"d", &cval);
+	    cval = DBPropGetDouble(def, "GDS_END", NULL);
 	    cellend = (z_off_t)cval;
-	    offptr = (char *)DBPropGet(def, "GDS_BEGIN", &oldStyle);
+	    cval = DBPropGetDouble(def, "GDS_BEGIN", &oldStyle);
 	    if (!oldStyle)
 	    {
-		offptr = (char *)DBPropGet(def, "GDS_START", NULL);
+		cval = DBPropGetDouble(def, "GDS_START", NULL);
 
 		/* Write our own header and string name, to ensure	*/
 		/* that the magic cell name and GDS name match.		*/
@@ -1008,7 +1007,6 @@ calmaProcessDefZ(
 		calmaOutStructNameZ(CALMA_STRNAME, def, outf);
 	    }
 
-	    sscanf(offptr, "%"DLONG_PREFIX"d", &cval);
 	    cellstart = (z_off_t)cval;
 
 	    /* GDS_START has been defined as the start of data after the cell	*/
@@ -1186,6 +1184,7 @@ calmaOutFuncZ(
     int dbunits;
     calmaOutputStructZ cos;
     bool propfound;
+    PropertyRecord *proprec;
     char *propvalue;
     extern int compport(const void *one, const void *two);	/* Forward declaration */
 
@@ -1247,14 +1246,20 @@ calmaOutFuncZ(
 
     /* Include any fixed bounding box as part of the area to process,	*/
     /* in case the fixed bounding box is larger than the geometry.	*/
-    propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &propfound);
+    proprec = DBPropGet(def, "FIXED_BBOX", &propfound);
     if (propfound)
     {
 	Rect bbox;
 
-	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		&bbox.r_xtop, &bbox.r_ytop) == 4)
+	if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+		(proprec->prop_len == 4))
+	{
+	    bbox.r_xbot = proprec->prop_value.prop_integer[0];
+	    bbox.r_ybot = proprec->prop_value.prop_integer[1];
+	    bbox.r_xtop = proprec->prop_value.prop_integer[2];
+	    bbox.r_ytop = proprec->prop_value.prop_integer[3];
 	    GeoInclude(&bbox, &bigArea);
+	}
     }
 
     CIFErrorDef = def;
