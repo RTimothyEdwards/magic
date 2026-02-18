@@ -2238,6 +2238,14 @@ efNodeMerge(node1ptr, node2ptr)
     if (removing->efnode_flags & EF_SUBS_NODE)
 	keeping->efnode_flags |= EF_SUBS_NODE;
 
+    /*
+     * If "removing" has the EF_GLOB_SUBS_NODE flag set, then copy the
+     * port record in the flags to "keeping".
+     */
+    if (removing->efnode_flags & EF_GLOB_SUBS_NODE)
+	keeping->efnode_flags |= EF_GLOB_SUBS_NODE;
+
+    /* If EFSaveLocs is set, then merge any disjoint segments from
     /* If EFSaveLocs is set, then merge any disjoint segments from
      * removing to keeping.
      */
