@@ -1619,6 +1619,7 @@ dbAbutmentUseFunc(selUse, use, transform, data)
 {
     Rect bbox, refbox;
     Transform *trans;
+    PropertyRecord *proprec;
     char *propvalue;
     char *refllx, *reflly, *refurx, *refury;
     bool found;
@@ -1642,14 +1643,25 @@ dbAbutmentUseFunc(selUse, use, transform, data)
     }
 
     trans = &use->cu_transform;
-    propvalue = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+    proprec = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
     if (!found)
 	bbox = use->cu_def->cd_bbox;
     else
     {
-	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		&bbox.r_xtop, &bbox.r_ytop) != 4)
+	if ((proprec->prop_type == PROPERTY_TYPE_DIMENSION) &&
+		(proprec->prop_len == 4))
+	{
+	    bbox.r_xbot = proprec->prop_value.prop_integer[0];
+	    bbox.r_ybot = proprec->prop_value.prop_integer[1];
+	    bbox.r_xtop = proprec->prop_value.prop_integer[2];
+	    bbox.r_ytop = proprec->prop_value.prop_integer[3];
+	}
+	else
+	{
+	    TxError("Unable to parse the cell's FIXED_BBOX property; using "
+			"the instance bounding box instead.\n");
 	    bbox = use->cu_def->cd_bbox;
+	}
     }
     GeoTransRect(trans, &bbox, &refbox);
 
