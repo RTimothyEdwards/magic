@@ -2635,9 +2635,9 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			(!strncmp(propertyname, "GDS_BEGIN", 9)) ||
 			(!strncmp(propertyname, "GDS_END", 7)))
 		{
-		    if (sscanf(pvalueptr, "%"DLONG_PREFIX"d", &dval) == 1)
+		    if (sscanf(pvalueptr, "%"DLONG_PREFIX"d", &dval) != 1)
 		    {
-			TxError("Cannot read file offset value in %s property",
+			TxError("Cannot read file offset value in %s property\n",
 				propertyname);
 			/* Unable to parse correctly.  Save as a string value */
 			proplen = strlen(pvalueptr);
