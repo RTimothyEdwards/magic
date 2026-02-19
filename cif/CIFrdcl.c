@@ -790,7 +790,7 @@ CIFPaintCurrent(
 
     	for (i = 0; i < cifNReadLayers; i++)
 	{
-	    LinkedRect *lrec = NULL;
+	    LinkedRect *lrec = NULL, *lsrch;
 	    char *propstr = NULL;
 	    char locstr[512];
 	    Plane *tempp;
@@ -835,7 +835,9 @@ CIFPaintCurrent(
 		 * target cell.
 		 */
 		proplen = 0;
-	    	while (lrec != NULL) proplen += 4;
+		for (lsrch = lrec; lsrch; lsrch = lsrch->r_next)
+		    proplen += 4;
+
 		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) *
 				(proplen - 2) * sizeof(int));
 		proprec->prop_type = PROPERTY_TYPE_DIMENSION;
