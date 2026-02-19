@@ -244,40 +244,61 @@ CIFPropRecordPath(
 {
     extern float CIFGetOutputScale(int convert);
     CIFPath *pathp;
-    char *pathstr, *sptr;
-    int components;
-    float x, y, oscale, mult;
+    char *namestr = NULL;
+    int components, i, x, y, mult, pathnum;
+    PropertyRecord *proprec;
+    bool propfound;
 
-    oscale = CIFGetOutputScale(1000);   /* 1000 for conversion to um */
-    if (oscale == 0.0) oscale = 1.0;
-    mult = (iswire == TRUE) ? 0.5 : 1.0;
+    /* If "name" is a property, then append a suffix to it to ensure uniqueness */
+    DBPropGet(def, propname, &propfound);
+    if (propfound)
+    {
+	pathnum = 0;
+	namestr = mallocMagic(strlen(propname) + 10);
+	while (propfound)
+	{
+	    sprintf(namestr, "%s_%d", propname, pathnum);
+	    DBPropGet(def, namestr, &propfound);
+	    pathnum++;
+	}
+    }
 
-    pathp = pathheadp;
-    components = 0;
+    mult = (iswire == TRUE) ? 1 : 0;
 
     /* Count the number of components in the path */
+    pathp = pathheadp;
+    components = 0;
     while (pathp != NULL)
     {
-	pathp = pathp->cifp_next;
 	components++;
+	pathp = pathp->cifp_next;
     }
-    /* Allocate enough space to hold 2 * N points at "infinity" */
-    pathstr = (char *)mallocMagic(components * 40);
+    /* Allocate enough space to hold 2 * N points. */
+    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
+		((components - 1) * 2) * sizeof(int));
+    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+    proprec->prop_len = components * 2;
 
     pathp = pathheadp;
-    sptr = pathstr;
+    i = 0;
     while (pathp != NULL)
     {
-	x = (float)pathp->cifp_x * oscale * mult;
-	y = (float)pathp->cifp_y * oscale * mult;
-	sprintf(sptr, "%.3f %.3f ", x, y);
-	sptr = sptr + strlen(sptr);
+	x = pathp->cifp_x >> mult;
+	y = pathp->cifp_y >> mult;
+        
+	proprec->prop_value.prop_integer[i] = x;
+	proprec->prop_value.prop_integer[i + 1] = y;
+
+	i += 2;
 	pathp = pathp->cifp_next;
     }
-
-    /* Reallocate pathstr to be no larger than needed to hold the path contents */
-    StrDup(&pathstr, pathstr);
-    DBPropPut(def, propname, (ClientData)pathstr);
+    if (namestr)
+    {
+	DBPropPut(def, namestr, proprec);
+	freeMagic(namestr);
+    }
+    else
+	DBPropPut(def, propname, proprec);
 }
 
 /*

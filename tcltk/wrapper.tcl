@@ -684,7 +684,10 @@ proc magic::cursorview {win} {
       *bypass crosshair ${olstx}um ${olsty}um
    }
 
-   if {[${win} box exists]} {
+   # I do not know why the T/F result gets lost or overridden sometimes
+   set gotbox [${win} box exists]
+   if {$gotbox == {}} {set gotbox false}
+   if {$gotbox} {
       set curunits [${win} units list]
       ${win} units microns noprint
       set dlst [${win} box position]

@@ -38,6 +38,7 @@ extern TileTypeBitMask *CalmaMaskHints;
 extern bool CalmaMergeTiles;
 extern bool CalmaFlattenArrays;
 extern bool CalmaNoDRCCheck;
+extern bool CalmaRecordPaths;
 extern bool CalmaFlattenUses;
 extern int  CalmaFlattenLimit;
 extern float CalmaMagScale;

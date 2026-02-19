@@ -779,8 +779,8 @@ CmdBox(
 	    break;
 	case BOX_EXISTS:
 #ifdef MAGIC_WRAPPER
-	    Tcl_SetResult(magicinterp, ToolGetBox(NULL, NULL) ?  "1" : "0",
-			NULL);
+	    Tcl_SetObjResult(magicinterp,
+			Tcl_NewBooleanObj(ToolGetBox(NULL, NULL) ?  TRUE : FALSE));
 #else
 	    TxPrintf("%s\n", ToolGetBox(NULL, NULL) ? "True" : "False");
 #endif

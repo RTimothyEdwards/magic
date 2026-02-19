@@ -692,7 +692,12 @@ calmaElementPath(void)
 	    }
 	}
 
-	CIFPropRecordPath(cifReadCellDef, pathheadp, TRUE, "path");
+	/* If requested by command option, record the path centerline as a
+	 * property of the cell def.
+	 */
+	if (CalmaRecordPaths)
+	    CIFPropRecordPath(cifReadCellDef, pathheadp, TRUE, "path");
+
 	CIFPaintWirePath(pathheadp, width,
 		(pathtype == CALMAPATH_SQUAREFLUSH || pathtype == CALMAPATH_CUSTOM) ?
 		FALSE : TRUE, plane, CIFPaintTable, (PaintUndoInfo *)NULL);

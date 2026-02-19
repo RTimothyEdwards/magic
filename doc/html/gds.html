@@ -182,6 +182,13 @@ Read GDSII input or generate GDSII output.
 		 than to subsplit the internal grid to such a fine value.
 		 The "<B>cif limit</B>" function may also be used to limit
 		 grid subdivision to a minimum value.
+	    <DT> <B>savepaths</B> [<B>yes</B>|<B>no</B>]
+	    <DD> When reading paths from a GDS file, record the centerline of
+		 the path as a property in the cell.  The default behavior is
+		 <B>no</B>.  If no argument is given, then return the status
+		 of the <B>savepaths</B> option.  The first path property is
+		 named "<TT>path</TT>", followed by "<TT>path_0</TT>" and
+		 increasing the suffix index for each individual path read.
 	    <DT> <B>unique</B> [<B>yes</B>|<B>no</B>]
 	    <DD> When reading a GDS file, this option forces magic to rename
 		 cell definitions in the database when a cell of the same name
