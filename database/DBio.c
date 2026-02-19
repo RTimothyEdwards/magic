@@ -4124,6 +4124,7 @@ dbWritePropFunc(key, proprec, cdata)
     switch (proprec->prop_type)
     {
 	case PROPERTY_TYPE_STRING:
+	    FPUTSR(f, " ");
    	    FPUTSR(f, proprec->prop_value.prop_string);
 	    break;
 	case PROPERTY_TYPE_INTEGER:
