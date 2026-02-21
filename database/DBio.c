@@ -4595,7 +4595,6 @@ DBCellWrite(cellDef, fileName)
     const char *cp1;
     char *cp2, *dotptr;
     char expandbuf[NAME_SIZE];
-    FILE *realf, *tmpf;
     int tmpres;
     struct stat statb;
     bool result, exists;
@@ -4725,6 +4724,7 @@ DBCellWrite(cellDef, fileName)
 	tmpname = StrDup((char **)NULL, expandname);
     }
 
+    FILE *realf = NULL, *tmpf;
     /*
      * See if we can create a temporary file in this directory.
      * If so, write to the temp file and then rename it after
@@ -4855,6 +4855,7 @@ DBCellWrite(cellDef, fileName)
 #endif
 	    realf = fopen(expandname, "r");
 
+	bool do_close = FALSE;
 	if (realf == NULL)
 	{
 	    cellDef->cd_flags |= CDMODIFIED;
@@ -4871,15 +4872,26 @@ DBCellWrite(cellDef, fileName)
 	    }
 
 #ifdef FILE_LOCKS
+	    /* when file locking is in use the FD needs to stay open to hold the lock
+	     *  as with fcntl() locking any call to close() on any FD even dup() and
+	     *  those from separate open() calls, will cause all locks to be dropped
+	     *  by all FDs as they are process wide locks and associated with file
+	     *  system st_dev(kernel-device)/st_ino(inode) and not with FD handles.
+	     */
 	    cellDef->cd_fd = -1;
 	    if (FileLocking && (is_locked == FALSE))
 		cellDef->cd_fd = fd;
 	    else if (FileLocking && (is_locked == TRUE))
 		cellDef->cd_fd = -2;
 	    else
+		do_close = TRUE;
+#else
+	    do_close = TRUE;
 #endif
-		fclose(realf);
 	}
+	if(do_close)
+	    fclose(realf);
+	/* invalidate even if we don't close to ensure cleanup below does not close */
 	realf = NULL;
     }
 
@@ -4887,6 +4899,8 @@ cleanup:
     SigEnableInterrupts();
     freeMagic(realname);
     freeMagic(tmpname);
+    if(realf)
+	fclose(realf);
     return result;
 }
 
