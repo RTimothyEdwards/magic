@@ -813,8 +813,8 @@ proc magic::gencell_change {instname gencell_type library parameters} {
         return
     }
 
-    set snaptype [snap list]
-    snap internal
+    set curunits [units]
+    units internal
     set savebox [box values]
 
     catch {setpoint 0 0 $Opts(focus)}
@@ -881,7 +881,7 @@ proc magic::gencell_change {instname gencell_type library parameters} {
     }
     identify $newinstname
     eval "box values $savebox"
-    snap $snaptype
+    units $curunits
 
     # Update window
     if {$gname != $old_gname} {
@@ -940,8 +940,8 @@ proc magic::gencell_change_orig {instname gencell_type library parameters} {
         return
     }
 
-    set snaptype [snap list]
-    snap internal
+    set curunits [units]
+    units internal
     set savebox [box values]
 
     catch {setpoint 0 0 $Opts(focus)}
@@ -969,7 +969,7 @@ proc magic::gencell_change_orig {instname gencell_type library parameters} {
     }
     identify $newinstname
     eval "box values $savebox"
-    snap $snaptype
+    units $curunits
     resumeall
     redraw
 }
@@ -1092,8 +1092,8 @@ proc magic::gencell_create {gencell_type library parameters {orient 0}} {
 	set parameters [dict remove $parameters gencell]
     }
 
-    set snaptype [snap list]
-    snap internal
+    set curunits [units]
+    units internal
     set savebox [box values]
 
     catch {setpoint 0 0 $Opts(focus)}
@@ -1123,7 +1123,7 @@ proc magic::gencell_create {gencell_type library parameters {orient 0}} {
 	identify $newinstname
 	set instname $newinstname
     }
-    snap $snaptype
+    units $curunits
     resumeall
     redraw
     return $instname

@@ -46,14 +46,14 @@ proc magic::drccallback {command} {
       }
       zoom {
 	 if {$value != {}} {
-	    set snaptype [snap]
-	    snap internal
+	    set curunits [units]
+	    units internal
 	    box values {*}$value
 	    magic::suspendall
 	    magic::findbox zoom
 	    magic::zoom 2
 	    magic::resumeall
-	    snap $snaptype
+	    units $curunits
 	 }
       }
    }

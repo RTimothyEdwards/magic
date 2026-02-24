@@ -156,6 +156,9 @@ cmdScaleCoord(
 	 * "snap" setting.  This behavior remains in effect until the "units"
 	 * command is used, in which case units follow the selected units
 	 * value indepedendently of the snap setting.
+	 *
+	 * Updated 12/24/2026 to handle space-separated values (in which
+	 * *endptr may be a space as well as NULL).
 	 */
 	if (DBWUnits == DBW_UNITS_DEFAULT)
 	    curunits = DBWSnapToGrid;
@@ -163,19 +166,22 @@ cmdScaleCoord(
 	    curunits = DBWUnits & DBW_UNITS_TYPE_MASK;
 
 	if ((*endptr == 'l')
-		|| ((*endptr == '\0') && (curunits == DBW_UNITS_LAMBDA)))
+		|| (((*endptr == '\0') || isspace(*endptr))
+		&& (curunits == DBW_UNITS_LAMBDA)))
 	{
 	    /* lambda or default units */
 	    dval *= (double)DBLambda[1];
 	    dval /= (double)DBLambda[0];
 	}
 	else if ((*endptr == 'i')
-		|| ((*endptr == '\0') && (curunits == DBW_UNITS_INTERNAL)))
+		|| (((*endptr == '\0') || isspace(*endptr))
+		&& (curunits == DBW_UNITS_INTERNAL)))
 	{
 	    /* internal units */
 	}
 	else if ((*endptr == 'g')
-		|| ((*endptr == '\0') && (curunits == DBW_UNITS_USER)))
+		|| (((*endptr == '\0') || isspace(*endptr))
+		&& (curunits == DBW_UNITS_USER)))
 	{
 	    /* grid units */
 	    if (w == (MagWindow *)NULL)
@@ -203,11 +209,12 @@ cmdScaleCoord(
 		    dval += (double)crec->dbw_gridRect.r_ybot;
 	    }
 	}
-	else if (*endptr == '\0' && (curunits == DBW_UNITS_MICRONS))
+	else if (((*endptr == '\0') || isspace(*endptr))
+		&& (curunits == DBW_UNITS_MICRONS))
 	{
 	    mscale = 1000;
 	}
-	else
+	else if (*endptr != '\0')
 	{
 	    /* natural units referred to the current cifoutput style */
 	    if (*(endptr + 1) == 'm')
@@ -249,7 +256,7 @@ cmdScaleCoord(
 		mscale = -1;
 	    }
 	}
-	if ((mscale != -1) && !isspace(*endptr))
+	if (mscale != -1)
 	    dval /= CIFGetOutputScale(mscale);
 	curval = round(dval);
 
@@ -297,9 +304,13 @@ cmdScaleCoord(
 		    parseop = PARSEOP_DIV;
 		    endptr++;
 		    break;
-		default:
+		case ' ':
+		case '\t':
 		    endptr++;
 		    break;
+		default:
+		    /* Should this flag an error? */
+		    return retval;
 	    }
 	    if (parseop != PARSEOP_NONE) break;
 	}

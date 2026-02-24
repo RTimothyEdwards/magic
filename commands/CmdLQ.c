@@ -2625,6 +2625,16 @@ CmdDoProperty(
 			if (isspace(*value) && (*value != '\0')) value++;
 			if (!isspace(*value))
 			{
+			    char *spptr, spchar;
+			    /* cmdParseCoord() can only handle one value at a
+			     * time, so look ahead and null out the next space
+			     * character if there is one.
+			     */
+			    spptr = value + 1;
+			    while (!isspace(*spptr) && (*spptr != '\0')) spptr++;
+			    spchar = *spptr;
+			    *spptr = '\0';
+			
 			    if (proptype == PROPERTY_TYPE_INTEGER)
 			    {
 			        if (sscanf(value, "%d", &propvalue) != 1)
@@ -2653,6 +2663,7 @@ CmdDoProperty(
 					((proplen % 2) == 0) ? TRUE : FALSE);
 			        proprec->prop_value.prop_integer[proplen] = propvalue;
 			    }
+			    *spptr = spchar;
 			    while (!isspace(*value) && (*value != '\0')) value++;
 			}
 		    }

@@ -138,7 +138,11 @@ proc magic::pushstack {{name ""}} {
    if {[catch {lindex $editstack end}]} {
       set editstack {}
    }
+   # Protect against changing units by always using internal units
+   set curunits [units]
+   units internal
    lappend editstack [view get]
+   units $curunits
    lappend editstack [cellname list window]
    set ltag [tag load]
    tag load {}
@@ -158,10 +162,11 @@ proc magic::popstack {} {
       tag load {}
       suspendall
       load [lindex $editstack end]
-      set snaptype [snap]
-      snap internal
+      # Protect against changing units by always using internal units
+      set curunits [units]
+      units internal
       view [lindex $editstack end-1]
-      snap $snaptype
+      units $curunits
       catch {magic::cellmanager}
       catch {magic::captions}
       resumeall
@@ -186,8 +191,8 @@ proc magic::clearstack {} {
 
 proc magic::pushbox {{values {}}} {
    global boxstack
-   set snaptype [snap list]
-   snap internal
+   set curunits [units]
+   units internal
    if {[catch {set boxstack}]} {
       set boxstack {}
    }
@@ -196,7 +201,7 @@ proc magic::pushbox {{values {}}} {
    } else {
       lappend boxstack $values
    }
-   snap $snaptype
+   units $curunits
    return
 }
 
@@ -210,8 +215,8 @@ proc magic::pushbox {{values {}}} {
 
 proc magic::popbox {{type values}} {
    global boxstack
-   set snaptype [snap list]
-   snap internal
+   set curunits [units]
+   units internal
    if {[catch {set boxstack}]} {
       error "No stack"
    } elseif {$boxstack == {}} {
@@ -231,7 +236,7 @@ proc magic::popbox {{type values}} {
       }
    }
    set boxstack [lrange $boxstack 0 end-1]
-   snap $snaptype
+   units $curunits
    return $b
 }
 
@@ -355,8 +360,8 @@ proc magic::ruler {{text {}} {orient auto}} {
    set mmx [expr {($llx + $urx) / 2}]
    set mmy [expr {($lly + $ury) / 2}]
 
-   set snapsave [snap]
-   snap internal
+   set curunits [units]
+   units internal
 
    if {$orient == "horizontal"} {
       element add line l1_$Opts(rulers) black $llx $lly $llx $ury
@@ -410,7 +415,7 @@ proc magic::ruler {{text {}} {orient auto}} {
 	  element configure l3_$Opts(rulers) flags arrowbottom
       }
    }
-   snap $snapsave
+   units $curunits
 }
 
 #---------------------------------------------------------------------

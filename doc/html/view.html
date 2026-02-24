@@ -45,10 +45,12 @@ view [get|bbox|llx lly urx ury]
       center and scale the screen view of the layout window to fit the layout. <P>
 
       <B>view bbox</B> returns the bounding box dimensions of the layout,
-      in the coordinate system of the layout. <P>
+      in the coordinate system of the layout (according to the units
+      set by the "units" command). <P>
 
       <B>view get</B> returns the coordinates of the screen limits in
-      the coordinate system of the layout (internal database units). <P>
+      the coordinate system of the layout (according to the units set
+      by the "units" command). <P>
 
       <B>view</B> <I>llx lly urx ury</I> sets the view so that the
       corners of the screen are at the indicated positions in the

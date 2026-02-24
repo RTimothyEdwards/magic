@@ -250,10 +250,10 @@ proc magic::change_label {} {
       setlabel size ${lsize}um
    }
    if {$loff != ""} {
-      set oldsnap [snap list]
-      snap internal
+      set oldunits [units]
+      units internal
       setlabel offset [join $loff]
-      snap $oldsnap
+      units $oldunits
    }
    if {$lrot != ""} {
       setlabel rotate $lrot

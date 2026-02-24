@@ -828,9 +828,9 @@ proc magic::setscrollvalues {win} {
    global Opts
 
    *bypass logcommands suspend
-   set svalues [${win} view get]
    set curunits [units list]
    units internal noprint
+   set svalues [${win} view get]
    set bvalues [${win} view bbox]
    units {*}$curunits
 
