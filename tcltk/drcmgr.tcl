@@ -53,7 +53,7 @@ proc magic::drccallback {command} {
 	    magic::findbox zoom
 	    magic::zoom 2
 	    magic::resumeall
-	    units $curunits
+	    units {*}$curunits
 	 }
       }
    }

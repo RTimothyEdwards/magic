@@ -881,7 +881,7 @@ proc magic::gencell_change {instname gencell_type library parameters} {
     }
     identify $newinstname
     eval "box values $savebox"
-    units $curunits
+    units {*}$curunits
 
     # Update window
     if {$gname != $old_gname} {
@@ -969,7 +969,7 @@ proc magic::gencell_change_orig {instname gencell_type library parameters} {
     }
     identify $newinstname
     eval "box values $savebox"
-    units $curunits
+    units {*}$curunits
     resumeall
     redraw
 }
@@ -1123,7 +1123,7 @@ proc magic::gencell_create {gencell_type library parameters {orient 0}} {
 	identify $newinstname
 	set instname $newinstname
     }
-    units $curunits
+    units {*}$curunits
     resumeall
     redraw
     return $instname

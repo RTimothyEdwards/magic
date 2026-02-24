@@ -142,7 +142,7 @@ proc magic::pushstack {{name ""}} {
    set curunits [units]
    units internal
    lappend editstack [view get]
-   units $curunits
+   units {*}$curunits
    lappend editstack [cellname list window]
    set ltag [tag load]
    tag load {}
@@ -166,7 +166,7 @@ proc magic::popstack {} {
       set curunits [units]
       units internal
       view [lindex $editstack end-1]
-      units $curunits
+      units {*}$curunits
       catch {magic::cellmanager}
       catch {magic::captions}
       resumeall
@@ -201,7 +201,7 @@ proc magic::pushbox {{values {}}} {
    } else {
       lappend boxstack $values
    }
-   units $curunits
+   units {*}$curunits
    return
 }
 
@@ -236,7 +236,7 @@ proc magic::popbox {{type values}} {
       }
    }
    set boxstack [lrange $boxstack 0 end-1]
-   units $curunits
+   units {*}$curunits
    return $b
 }
 
@@ -415,7 +415,7 @@ proc magic::ruler {{text {}} {orient auto}} {
 	  element configure l3_$Opts(rulers) flags arrowbottom
       }
    }
-   units $curunits
+   units {*}$curunits
 }
 
 #---------------------------------------------------------------------
