@@ -994,12 +994,39 @@ calmaElementSref(
      * and place the cell in the magic database.  However, if this is
      * a cell to be flattened a la "gds flatten", then we keep the GDS
      * coordinates, and don't scale to the magic database.
+     *
+     * NOTE:  Scaling everything in the middle or reading array data
+     * and then retroactively adjusting the array data read earlier
+     * is problematic, and probably incorrect.
      */
 
     for (n = 0; n < nref; n++)
     {
 	savescale = cifCurReadStyle->crs_scaleFactor;
-	calmaReadPoint(&refarray[n], 1);
+
+	/* If there is only one column, then X data in the 2nd or 3rd
+	 * entry is irrelevant.  If there is only one row, then Y data
+	 * in the 2nd or 3rd entry is irrelevant.  Prevent issues caused
+	 * by incorrect/uninitialized data in these positions by ignoring
+	 * them as needed.
+	 */
+	if ((n > 0) && (rows == 1))
+	{
+	    calmaReadX(&refarray[n], 1);
+	    calmaSkipBytes(4);
+	    refarray[n].p_y = 0;
+	}
+	else if ((n > 0) && (cols == 1))
+	{
+	    calmaSkipBytes(4);
+	    calmaReadY(&refarray[n], 1);
+	    refarray[n].p_x = 0;
+	}
+	else
+	{
+	    calmaReadPoint(&refarray[n], 1);
+	}
+
 	refunscaled[n] = refarray[n];	// Save for CDFLATGDS cells
 	refarray[n].p_x = CIFScaleCoord(refarray[n].p_x, COORD_EXACT);
 	if (savescale != cifCurReadStyle->crs_scaleFactor)

@@ -82,6 +82,8 @@ extern int calmaProcessDefZ(CellDef *def, gzFile outf, bool do_library);
 #endif
 extern bool calmaReadI2Record(int type, int *pvalue);
 extern bool calmaReadI4Record(int type, int *pvalue);
+extern void calmaReadX(Point *p, int iscale);
+extern void calmaReadY(Point *p, int iscale);
 extern void calmaReadPoint(Point *p, int iscale);
 extern bool calmaReadR8(double *pd);
 extern bool calmaReadStampRecord(int type, int *stampptr);
