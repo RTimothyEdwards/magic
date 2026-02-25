@@ -1002,7 +1002,7 @@ calmaElementSref(
 
     for (n = 0; n < nref; n++)
     {
-	savescale = cifCurReadStyle->crs_scaleFactor;
+	savescale = calmaReadScale1;
 
 	/* If there is only one column, then X data in the 2nd or 3rd
 	 * entry is irrelevant.  If there is only one row, then Y data
@@ -1010,6 +1010,7 @@ calmaElementSref(
 	 * by incorrect/uninitialized data in these positions by ignoring
 	 * them as needed.
 	 */
+
 	if ((n > 0) && (rows == 1))
 	{
 	    calmaReadX(&refarray[n], 1);
@@ -1023,11 +1024,30 @@ calmaElementSref(
 	    refarray[n].p_x = 0;
 	}
 	else
-	{
 	    calmaReadPoint(&refarray[n], 1);
+
+	if (savescale != calmaReadScale1)
+	{
+	    /* Scale changed, so update previous points read */
+	    int newscale = calmaReadScale1 / savescale;
+	    for (i = 0; i < n; i++)
+	    {
+		refarray[i].p_x *= newscale;
+		refarray[i].p_y *= newscale;
+	    }
 	}
 
+	if (FEOF(calmaInputFile))
+	    return -1;
+    }
+
+    for (n = 0; n < nref; n++)
 	refunscaled[n] = refarray[n];	// Save for CDFLATGDS cells
+
+    for (n = 0; n < nref; n++)
+    {
+	savescale = cifCurReadStyle->crs_scaleFactor;
+
 	refarray[n].p_x = CIFScaleCoord(refarray[n].p_x, COORD_EXACT);
 	if (savescale != cifCurReadStyle->crs_scaleFactor)
 	{
@@ -1048,9 +1068,6 @@ calmaElementSref(
 	    }
 	    refarray[n].p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
 	}
-
-	if (FEOF(calmaInputFile))
-	    return -1;
     }
 
     /* Skip remainder */
