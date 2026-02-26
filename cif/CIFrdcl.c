@@ -688,6 +688,8 @@ CIFPaintCurrent(
 	    }
 	    else if (op == NULL)
 	    {
+		LinkedRect *lrec = NULL, *lsrch;
+
 		/* Handle boundary layer */
 
 		op = cifCurReadStyle->crs_layers[i]->crl_ops;
@@ -702,6 +704,115 @@ CIFPaintCurrent(
 			(ClientData)NULL) == 1))
 		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
 			&CIFSolidBits, cifMakeBoundaryFunc, INT2CD(filetype));
+
+		/* Handle mask-hints input operator */
+
+		op = cifCurReadStyle->crs_layers[i]->crl_ops;
+		while (op)
+		{
+		    if (op->co_opcode == CIFOP_MASKHINTS) break;
+		    op = op->co_next;
+		}
+
+		if (op && (DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+			&DBAllButSpaceBits, cifCheckPaintFunc,
+			(ClientData)NULL) == 1))
+		{
+		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
+				&CIFSolidBits, cifMaskHintFunc,
+				(ClientData)&lrec);
+
+		    if (lrec != NULL)
+		    {
+			PropertyRecord *proprec, *proporig;
+			char *propname, *layername;
+			int proplen, i, savescale;
+			bool origfound = FALSE;
+	
+			layername = (char *)op->co_client;
+		    	propname = (char *)mallocMagic(11 + strlen(layername));
+		    	sprintf(propname, "MASKHINTS_%s", layername);
+	
+		    	/* Turn all linked Rects into a mask-hints property in the
+			 * target cell.
+			 */
+			proplen = 0;
+			for (lsrch = lrec; lsrch; lsrch = lsrch->r_next)
+			    proplen += 4;
+
+			/* If there is already a mask hint for this layer, then
+			 * prepend to its data.
+			 */
+			proporig = DBPropGet(cifReadCellDef, layername, &origfound);
+			if (origfound) proplen += proporig->prop_len;
+
+			proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) *
+					(proplen - 2) * sizeof(int));
+			proprec->prop_type = PROPERTY_TYPE_DIMENSION;
+			proprec->prop_len = proplen;
+
+			proplen = 0;
+		    	while (lrec != NULL)
+		    	{
+			    lrec->r_r.r_xtop =
+					CIFScaleCoord(lrec->r_r.r_xtop, COORD_EXACT);
+			    savescale = cifCurReadStyle->crs_scaleFactor;
+			    lrec->r_r.r_ytop =
+					CIFScaleCoord(lrec->r_r.r_ytop, COORD_EXACT);
+			    if (savescale != cifCurReadStyle->crs_scaleFactor)
+			    {
+				lrec->r_r.r_xtop *=
+					(savescale / cifCurReadStyle->crs_scaleFactor);
+				savescale = cifCurReadStyle->crs_scaleFactor;
+			    }
+			    lrec->r_r.r_xbot =
+					CIFScaleCoord(lrec->r_r.r_xbot, COORD_EXACT);
+			    if (savescale != cifCurReadStyle->crs_scaleFactor)
+			    {
+				lrec->r_r.r_xtop *=
+					(savescale / cifCurReadStyle->crs_scaleFactor);
+				lrec->r_r.r_ytop *=
+					(savescale / cifCurReadStyle->crs_scaleFactor);
+				savescale = cifCurReadStyle->crs_scaleFactor;
+			    }
+			    lrec->r_r.r_ybot =
+					CIFScaleCoord(lrec->r_r.r_ybot, COORD_EXACT);
+			    if (savescale != cifCurReadStyle->crs_scaleFactor)
+			    {
+				lrec->r_r.r_xtop *=
+					(savescale / cifCurReadStyle->crs_scaleFactor);
+				lrec->r_r.r_ytop *=
+					(savescale / cifCurReadStyle->crs_scaleFactor);
+				lrec->r_r.r_xbot *=
+					(savescale / cifCurReadStyle->crs_scaleFactor);
+			    }
+
+			    proprec->prop_value.prop_integer[proplen] =
+					lrec->r_r.r_xbot;
+			    proprec->prop_value.prop_integer[proplen + 1] =
+					lrec->r_r.r_ybot;
+			    proprec->prop_value.prop_integer[proplen + 2] =
+					lrec->r_r.r_xtop;
+			    proprec->prop_value.prop_integer[proplen + 3] =
+					lrec->r_r.r_ytop;
+	
+			    free_magic1_t mm1 = freeMagic1_init();
+			    freeMagic1(&mm1, lrec);
+			    lrec = lrec->r_next;
+			    freeMagic1_end(&mm1);
+	
+			    proplen += 4;
+			}
+
+			if (origfound)
+			    for (i = 0; i < proporig->prop_len; i++)
+				proprec->prop_value.prop_integer[proplen++] =
+					proporig->prop_value.prop_integer[i];
+
+			DBPropPut(cifReadCellDef, propname, proprec);
+		    	freeMagic(propname);
+		    }
+		}
 	    }
 
 	    /* Swap planes */
@@ -791,8 +902,6 @@ CIFPaintCurrent(
     	for (i = 0; i < cifNReadLayers; i++)
 	{
 	    LinkedRect *lrec = NULL, *lsrch;
-	    char *propstr = NULL;
-	    char locstr[512];
 	    Plane *tempp;
 
 	    if (!TTMaskHasType(CalmaMaskHints, i)) continue;

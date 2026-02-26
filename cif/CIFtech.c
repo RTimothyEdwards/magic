@@ -1117,6 +1117,8 @@ CIFTechLine(
 	newOp->co_opcode = CIFOP_CLOSE;
     else if (strcmp(argv[0], "orthogonal") == 0)
 	newOp->co_opcode = CIFOP_MANHATTAN;
+    else if (strcmp(argv[0], "not-square") == 0)
+	newOp->co_opcode = CIFOP_NOTSQUARE;
     else if (strcmp(argv[0], "bridge") == 0)
 	newOp->co_opcode = CIFOP_BRIDGE;
     else if (strcmp(argv[0], "bridge-lim") == 0)

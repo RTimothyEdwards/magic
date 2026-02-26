@@ -4458,14 +4458,16 @@ bridgeErase(
 	maskBits = DBPlaneTypes[i];
 	TTMaskAndMask(&maskBits, &brlims->co_paintMask);
 	if (!TTMaskEqual(&maskBits, &DBZeroTypeBits))
-	    if (DBSrPaintArea((Tile *) NULL, brlims->def->cd_planes[i], area, &brlims->co_paintMask, cifPaintFunc, CIFEraseTable))
+	    if (DBSrPaintArea((Tile *) NULL, brlims->def->cd_planes[i],
+			area, &brlims->co_paintMask, cifPaintFunc, CIFEraseTable))
 		return 0;
     }
 
     for (t = 0; t < TT_MAXTYPES; t++, temps++)
     {
         if (TTMaskHasType(&brlims->co_cifMask, t))
-           if (DBSrPaintArea((Tile *) NULL, *temps, area, &CIFSolidBits, cifPaintFunc, CIFEraseTable))
+           if (DBSrPaintArea((Tile *) NULL, *temps, area, &CIFSolidBits,
+			cifPaintFunc, CIFEraseTable))
                 return 0;
     }
 
@@ -4769,6 +4771,106 @@ cifBridgeLimFunc2(
 /*
  * ----------------------------------------------------------------------------
  *
+ * cifNotSquareFunc --
+ *
+ *	Process each tile and remove those which are square and not
+ *	connected to any other tile of the same type.  This operator aids
+ *	in the detection of bar contacts to distinguish them from regular
+ *	(square) contact cuts.  Because of the special nature of the
+ *	operator, only the negative-sense operator "not-square" is
+ *	implemented, as the positive-sense operator is not especially
+ *	useful (and can be implemented if needed with "not-square" and
+ *	"and-not"). 
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Modifies the CIF planes.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifNotSquareFunc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientData)		/* (unused) */
+{
+    Tile *tp;
+    TileType ttype;
+    Rect area;
+    int width, height;
+    bool isolated = TRUE;
+
+    if (IsSplit(tile)) return 0;	/* Non-Manhattan tiles are never square */
+    ttype = TiGetType(tile);
+    if (ttype == TT_SPACE) return 0;	/* Don't handle space tiles */
+
+    /* Search all four sides of the tile.  Tiles are only considered square
+     * for the purposes of this operator if they are also unconnected to any
+     * other tile.
+     */
+
+    /* Top */
+    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	if (TiGetBottomType(tp) == ttype)
+	{
+	    isolated = FALSE;
+	    break;
+	}
+
+    /* Left */
+    if (isolated)
+	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	    if (TiGetBottomType(tp) == ttype)
+	    {
+		isolated = FALSE;
+		break;
+	    }
+
+    /* Bottom */
+    if (isolated)
+	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	    if (TiGetBottomType(tp) == ttype)
+	    {
+		isolated = FALSE;
+		break;
+	    }
+
+    /* Right */
+    if (isolated)
+	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+	    if (TiGetBottomType(tp) == ttype)
+	    {
+		isolated = FALSE;
+		break;
+	    }
+
+    TiToRect(tile, &area);
+
+    if (isolated)
+    {
+	width = area.r_xtop - area.r_xbot;
+	height = area.r_ytop - area.r_ybot;
+	if (width == height) return 0;		/* Square and isolated */
+    }
+
+    area.r_xbot *= cifScale;
+    area.r_ybot *= cifScale;
+    area.r_xtop *= cifScale;
+    area.r_ytop *= cifScale;
+
+    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
+
+    CIFTileOps += 1;
+    return 0;
+}
+
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * cifInteractingRegions --
  *
  *	Process each disjoint region and copy the entire content of each
@@ -4779,6 +4881,7 @@ cifBridgeLimFunc2(
  *	None.
  *
  * Side effects:
+ *	Modifies the CIF planes.
  *
  * ----------------------------------------------------------------------------
  */
@@ -5396,7 +5499,6 @@ CIFGenLayer(
 		nextPlane = temp;
 		break;
 
-
 	    case CIFOP_MAXRECT:
 		cifPlane = curPlane;
 
@@ -5414,6 +5516,19 @@ CIFGenLayer(
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
 		cifInteractingRegions(op, area, cellDef, temps, curPlane);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
+	    case CIFOP_NOTSQUARE:
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    	&CIFSolidBits, cifNotSquareFunc,
+			(ClientData)NULL);
+
 		temp = curPlane;
 		curPlane = nextPlane;
 		nextPlane = temp;
@@ -5533,6 +5648,7 @@ CIFGenLayer(
 
 		    snprintf(propname, 512, "MASKHINTS_%s", layername);
 		    
+		    if (cellDef == (CellDef *)NULL) break;
 		    proprec = DBPropGet(cellDef, propname, &found);
 		    if (!found) break;	    /* No mask hints available */
 
