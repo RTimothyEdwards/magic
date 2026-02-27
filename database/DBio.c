@@ -4187,7 +4187,8 @@ DBCellWriteCommandFile(cellDef, f)
 
     Label *lab;
     struct writeArg arg;
-    int pNum;
+    char *dotptr;
+    int pNum, namelen;
     TileType type, stype;
     TileTypeBitMask typeMask, *sMask;
     static const char *directionNames[] = {"c", "n", "ne", "e", "se",
@@ -4197,12 +4198,20 @@ DBCellWriteCommandFile(cellDef, f)
 
     SigDisableInterrupts();
 
+    /* If cellDef->cd_name has the ".tcl" extension, then strip it off */
+   
+    namelen = strlen(cellDef->cd_name);
+    if ((namelen > 4) && (!strcmp(cellDef->cd_name +
+			strlen(cellDef->cd_name) - 4, ".tcl")))
+	*(cellDef->cd_name + strlen(cellDef->cd_name) - 4) = '\0';
+
     /* Write a descriptive header */
     fprintf(f, "# Command script for generating cell %s\n", cellDef->cd_name);
     fprintf(f, "\n");
     fprintf(f, "suspendall\n");
     fprintf(f, "tech unlock *\n");
-    fprintf(f, "snap internal\n");
+    fprintf(f, "set curunits [units]\n");
+    fprintf(f, "units internal\n");
     fprintf(f, "load %s -silent\n", cellDef->cd_name);
     fprintf(f, "box values 0 0 0 0\n");
 
@@ -4364,6 +4373,7 @@ DBCellWriteCommandFile(cellDef, f)
     fprintf(f, "select clear\n");
     fprintf(f, "view\n");
     fprintf(f, "tech revert\n");
+    fprintf(f, "units {*}$curunits\n");
     fprintf(f, "resumeall\n");
 
     if (fflush(f) == EOF || ferror(f))
