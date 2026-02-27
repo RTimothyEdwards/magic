@@ -3441,7 +3441,7 @@ DBCellFindScale(cellDef)
     /* Find greatest common factor of all geometry.  If this becomes 1, stop.	*/
 
     ggcf = DBLambda[1];
-    for (type = TT_PAINTBASE; type < DBNumUserLayers; type++)
+    for (type = TT_TECHDEPBASE; type < DBNumUserLayers; type++)
     {
 	if ((pNum = DBPlane(type)) < 0)
 	    continue;
