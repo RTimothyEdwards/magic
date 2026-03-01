@@ -2900,6 +2900,29 @@ CmdSnap(
 	TxPrintf("Usage: snap [internal | lambda | user]\n");
 	return;
     }
+
+    /* Backwards compatibility:  Use of "snap" to set units display and
+     * parsing has been deprecated as of February 2026.  However, as this
+     * is rather disruptive to existing scripts which use "snap" to change
+     * the parsing of units, then the following measure is being taken
+     * (for now, anyway):  If DBWUnits is set to DBW_UNITS_DEFAULT, then
+     * "snap internal" will set DBWUnits as well as DBWSnapToGrid.  If
+     * DBWUnits is changed first (e.g., "units internal"), then "snap" will
+     * affect only the snap grid.  The older usage will be accompanied by a
+     * warning message.  Note that backwards compatibility is being kept
+     * only in the case of "snap internal", which was commonly used in
+     * scripts to make sure that all units were interpreted as internal
+     * units.
+     */
+    if ((DBWUnits == DBW_UNITS_DEFAULT) && (n == SNAP_INTERNAL))
+    {
+	DBWUnits = DBW_UNITS_INTERNAL;
+	TxError("Warning:  snap setting is also changing units.  This usage "
+		"is deprecated\nand may be removed in the future.  Use "
+		"\"units\" to change units, and\nchange units before "
+		"setting snap to keep this message from appearing.\n");
+    }
+
     switch (n)
     {
 	case SNAP_OFF: case SNAP_INTERNAL:
