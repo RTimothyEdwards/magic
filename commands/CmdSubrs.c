@@ -761,13 +761,16 @@ cmdSaveCell(
     if (!tryRename || (fileName == NULL) || (strcmp(cellDef->cd_name, fileName) == 0))
 	goto cleanup;
 
-    /* Rename the cell */
-    if (!DBCellRenameDef(cellDef, fileName))
+    /* Rename the cell, unless fileName is a .tcl file (scripted output) */
+    if ((strlen(fileName) <= 4) || strcmp(fileName + strlen(fileName) - 4, ".tcl"))
     {
-	/* This should never happen */
-	TxError("Magic error: there is already a cell named \"%s\"\n",
+	if (!DBCellRenameDef(cellDef, fileName))
+	{
+	    /* This should never happen */
+	    TxError("Magic error: there is already a cell named \"%s\"\n",
 		    fileName);
-	goto cleanup;
+	    goto cleanup;
+	}
     }
 
     if (EditCellUse && (cellDef == EditCellUse->cu_def))

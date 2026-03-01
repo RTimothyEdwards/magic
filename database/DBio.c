@@ -4384,8 +4384,6 @@ ioerror:
 	return (FALSE);
     }
     SigEnableInterrupts();
-    TxPrintf("Saved cell %s as a sequence of magic commands (file %s.tcl).\n",
-		cellDef->cd_name, cellDef->cd_name);
     return (TRUE);
 }
 
@@ -4527,7 +4525,7 @@ dbWritePropCommandsFunc(key, proprec, cdarg)
 	    break;
 
 	case PROPERTY_TYPE_INTEGER:
-	    fprintf(f, "property integer ");
+	    fprintf(f, "property integer %s ", key);
 	    for (i = 0; i < proprec->prop_len; i++)
 		fprintf(f, "%d ", proprec->prop_value.prop_integer[i]);
 	    fprintf(f, "\n");
@@ -4535,15 +4533,15 @@ dbWritePropCommandsFunc(key, proprec, cdarg)
 
 	case PROPERTY_TYPE_DIMENSION:
 	    windCheckOnlyWindow(&w, DBWclientID);
-	    fprintf(f, "property dimension ");
+	    fprintf(f, "property dimension %s ", key);
 	    for (i = 0; i < proprec->prop_len; i++)
-		fprintf(f, "%d ", DBWPrintValue(proprec->prop_value.prop_integer[i],
+		fprintf(f, "%s ", DBWPrintValue(proprec->prop_value.prop_integer[i],
 				w, ((i % 2) == 0) ? TRUE : FALSE));
 	    fprintf(f, "\n");
 	    break;
 
 	case PROPERTY_TYPE_DOUBLE:
-	    fprintf(f, "property double ");
+	    fprintf(f, "property double %s ", key);
 	    for (i = 0; i < proprec->prop_len; i++)
 		fprintf(f, "%"DLONG_PREFIX"d ", proprec->prop_value.prop_double[i]);
 	    fprintf(f, "\n");
@@ -4624,6 +4622,8 @@ DBCellWrite(cellDef, fileName)
 	    {
 		result = DBCellWriteCommandFile(cellDef, realf);
 		fclose(realf);
+		TxPrintf("Saved cell %s as a sequence of magic commands "
+			"(file %s).\n", cellDef->cd_name, fileName);
 		return result;
 	    }
 	}
