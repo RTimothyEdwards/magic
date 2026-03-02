@@ -1500,6 +1500,7 @@ cifBloatAllFunc(
 
     while (!StackEmpty(BloatStack))
     {
+	Rect cifarea;
 	TileType tt;
 
 	POPTILE(t, dinfo, BloatStack);
@@ -1516,8 +1517,6 @@ cifBloatAllFunc(
 
 	if (op->co_distance > 0)
 	{
-	    Rect cifarea;
-
 	    cifarea.r_xbot = area.r_xbot;
 	    cifarea.r_ybot = area.r_ybot;
 	    cifarea.r_xtop = area.r_xtop;
@@ -1555,40 +1554,42 @@ cifBloatAllFunc(
 	{
 	    tt = TiGetTypeExact(t);
 	    if (op->co_distance > 0)
-		GeoClip(&area, &clipArea);
-	    DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
+		DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &cifarea,
+			CIFPaintTable, (PaintUndoInfo *) NULL);
+	    else
+		DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
 			CIFPaintTable, (PaintUndoInfo *) NULL);
 	}
 
 	/* Top */
-	for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
-	    if (TTMaskHasType(connect, TiGetBottomType(tp)))
-		PUSHTILE(tp,
-			(SplitDirection(tp) == ((tt & TT_DIRECTION) ? 1 : 0)) ?
-			(TileType)0 : (TileType)TT_SIDE,
-			BloatStack);
+	if ((op->co_distance == 0) || (area.r_ytop < clipArea.r_ytop))
+	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
+		if (TTMaskHasType(connect, TiGetBottomType(tp)))
+		    PUSHTILE(tp, (SplitDirection(tp) == ((tt & TT_DIRECTION) ? 1 : 0)) ?
+				(TileType)0 : (TileType)TT_SIDE, BloatStack);
 
 	/* Left */
-	for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
-	    if (TTMaskHasType(connect, TiGetRightType(tp)))
-		PUSHTILE(tp, (TileType)TT_SIDE, BloatStack);
+	if ((op->co_distance == 0) || (area.r_xbot > clipArea.r_xbot))
+	    for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
+		if (TTMaskHasType(connect, TiGetRightType(tp)))
+		    PUSHTILE(tp, (TileType)TT_SIDE, BloatStack);
 
 	/* Bottom */
-	for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
-	    if (TTMaskHasType(connect, TiGetTopType(tp)))
-		PUSHTILE(tp,
-			(SplitDirection(tp) == ((tt & TT_DIRECTION) ? 1 : 0)) ?
-			(TileType)TT_SIDE : (TileType)0,
-			BloatStack);
+	if ((op->co_distance == 0) || (area.r_ybot > clipArea.r_ybot))
+	    for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
+		if (TTMaskHasType(connect, TiGetTopType(tp)))
+		    PUSHTILE(tp, (SplitDirection(tp) == ((tt & TT_DIRECTION) ? 1 : 0)) ?
+				(TileType)TT_SIDE : (TileType)0, BloatStack);
 
 	/* Right */
-	for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
-	    if (TTMaskHasType(connect, TiGetLeftType(tp)))
-		PUSHTILE(tp, (TileType)0, BloatStack);
+	if ((op->co_distance == 0) || (area.r_xtop < clipArea.r_xtop))
+	    for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
+		if (TTMaskHasType(connect, TiGetLeftType(tp)))
+		    PUSHTILE(tp, (TileType)0, BloatStack);
     }
 
     /* Clear self */
-    TiSetClient(tile, CIF_UNPROCESSED);
+    // TiSetClient(tile, CIF_UNPROCESSED);
 
     /* NOTE:  Tiles must be cleared after the bloat-all function has
      * completed.  However, for bloat-all with a limiting distance,

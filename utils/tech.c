@@ -432,7 +432,8 @@ TechLoad(filename, initmask)
     char suffix[20], line[MAXLINESIZE], *realname;
     char *argv[MAXARGS];
     SectionID mask, badMask;
-    int argc, s;
+    int argc, s, repeatcount = 0;
+    off_t repeatpos;
     bool retval, skip;
     filestack *fstack, *newstack;
     filestack topfile;
@@ -603,6 +604,31 @@ TechLoad(filename, initmask)
     skip = FALSE;
     while ((argc = techGetTokens(line, sizeof line, &fstack, argv)) >= 0)
     {
+	/* Check for end-of-loop */
+	if ((argc == 1) && (!strcmp(argv[0], "endrepeat")))
+	{
+	    if (repeatcount > 0)
+	    {
+		repeatcount--;
+		fseek(fstack->file, repeatpos, SEEK_SET);
+	    }
+	    continue;
+	}
+	/* "repeat <number>" reads the lines until "endrepeat" <number> times */
+	else if ((argc == 2) && (!strcmp(argv[0], "repeat")))
+	{
+	    char *endptr;
+	    repeatcount = (off_t)strtol(argv[1], &endptr, 0);
+	    if (*endptr != '\0')
+	    {
+		TechError("Error: \"repeat\" with invalid count %s\n", argv[1]);
+		repeatcount = 0;
+	    }
+	    else
+		repeatpos = ftell(fstack->file);
+	    continue;
+	}
+
 	/* Check for file inclusions (can be nested) */
 	if ((argc > 1) && (!strcmp(argv[0], "include")))
 	{
