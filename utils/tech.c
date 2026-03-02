@@ -617,15 +617,17 @@ TechLoad(filename, initmask)
 	/* "repeat <number>" reads the lines until "endrepeat" <number> times */
 	else if ((argc == 2) && (!strcmp(argv[0], "repeat")))
 	{
-	    char *endptr;
-	    repeatcount = (off_t)strtol(argv[1], &endptr, 0);
-	    if (*endptr != '\0')
+	
+	    if (!StrIsInt(argv[1]))
 	    {
 		TechError("Error: \"repeat\" with invalid count %s\n", argv[1]);
 		repeatcount = 0;
 	    }
 	    else
+	    {
+		repeatcount = atoi(argv[1]) - 1;
 		repeatpos = ftell(fstack->file);
+	    }
 	    continue;
 	}
 
