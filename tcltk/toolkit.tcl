@@ -10,6 +10,8 @@
 # Revision 2	(names are hashed from properties)
 # March 9, 2021
 # Added spice-to-layout procedure
+# March 4, 2026
+# Changed to make use of new "units" command
 #--------------------------------------------------------------
 # Sets up the environment for a toolkit.  The toolkit must
 # supply a namespace that is the "library name".  For each
@@ -118,6 +120,8 @@ magic::tag add select "magic::gencell_update %1"
 
 proc magic::move_forward_by_width {instname} {
     select cell $instname
+    set curunits [units]
+    units internal
     set anum [lindex [array -list count] 1]
     set xpitch [lindex [array -list pitch] 0]
     set bbox [box values]
@@ -125,7 +129,8 @@ proc magic::move_forward_by_width {instname} {
     set posy [lindex $bbox 1]
     set width [expr [lindex $bbox 2] - $posx]
     set posx [expr $posx + $width + $xpitch * $anum]
-    box position ${posx}i ${posy}i
+    box position ${posx} ${posy}
+    units {*}$curunits
     return [lindex $bbox 3]
 }
 
@@ -141,10 +146,13 @@ proc magic::get_and_move_inst {cellname instname {anum 1}} {
     if {$newinst == ""} {return}
     identify $instname
     if {$anum > 1} {array 1 $anum}
+    set curunits [units]
+    units internal
     set bbox [box values]
     set posx [lindex $bbox 2]
     set posy [lindex $bbox 1]
-    box position ${posx}i ${posy}i
+    box position ${posx} ${posy}
+    units {*}$curunits
     return [lindex $bbox 3]
 }
 
@@ -155,11 +163,14 @@ proc magic::get_and_move_inst {cellname instname {anum 1}} {
 #    given layer.  Otherwise, the pin is created on the m1 layer.
 
 proc magic::create_new_pin {pinname portnum {layer m1}} {
-    box size 1um 1um
+    set curunits [units]
+    units microns
+    box size 1 1
     paint $layer
-    label $pinname FreeSans 16 0 0 0 c $layer
+    label $pinname FreeSans 1 0 0 0 c $layer
     port make $portnum
-    box move s 2um
+    box move s 2
+    units {*}$curunits
 }
 
 # generate_layout_add --
@@ -171,6 +182,9 @@ proc magic::create_new_pin {pinname portnum {layer m1}} {
 
 proc magic::generate_layout_add {subname subpins complist library} {
     global PDKNAMESPACE
+
+    set curunits [units]
+    units internal
 
     # Create a new subcircuit.
     load $subname -quiet
@@ -241,7 +255,7 @@ proc magic::generate_layout_add {subname subpins complist library} {
     box size 0 0
     set posx 0
     set posy [expr {round(3 / [cif scale out])}]
-    box position ${posx}i ${posy}i
+    box position ${posx} ${posy}
 
     # Find all instances in the circuit
     select top cell
@@ -374,6 +388,7 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	}
     }
     save $subname
+    units {*}$curunits
 }
 
 #--------------------------------------------------------------
