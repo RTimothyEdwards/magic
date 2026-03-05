@@ -1289,6 +1289,14 @@ extFindOverlap(tp, area, esws)
     TileType tin = TiGetType(bp->b_inside);
     TileType tout = TiGetType(bp->b_outside);
 
+    /* Get residues
+     * (Note:  Isn't it better to include contacts in the tables?)
+     */
+    if (DBIsContact(tin))
+	tin = DBPlaneToResidue(tin, esws->plane_of_boundary);
+    if (DBIsContact(tout))
+	tout = DBPlaneToResidue(tout, esws->plane_of_boundary);
+
     pMask = ExtCurStyle->exts_sideOverlapOtherPlanes[tin][tout];
     extOverlapDef = esws->def;
 
