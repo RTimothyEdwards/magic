@@ -634,7 +634,7 @@ subcktHierVisit(
 
     if (hasports || is_top)
 	return subcktVisit(use, hierName, is_top);
-    else if (def->def_flags & DEF_NODEVICES)
+    else if ((def->def_flags & DEF_NODEVICES) && (!isStub))
 	return 0;
     else
 	return subcktVisit(use, hierName, is_top);
