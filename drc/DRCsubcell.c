@@ -826,6 +826,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		 */
 		subArea = *erasebox;
 		GeoClip(&subArea, &cliparea);
+		if (GEO_RECTNULL(&subArea)) continue;
 		GEO_EXPAND(&subArea, DRCTechHalo, &intArea);
 
 		errorSaveType = DRCErrorType;
