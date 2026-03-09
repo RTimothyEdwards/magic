@@ -72,6 +72,12 @@ static int drcRulesOptimized = 0;
 
 static int DRCtag = 0;
 
+/* Keep track of what rule exemption or exception is in effect
+ * while reading the DRC tech file section.
+ */
+
+static char drcCurException = (char)DRC_EXCEPTION_NONE;
+
 /*
  * Forward declarations.
  */
@@ -79,6 +85,7 @@ int drcWidth(), drcSpacing(), drcEdge(), drcNoOverlap();
 int drcExactOverlap(), drcExtend();
 int drcSurround(), drcRectOnly(), drcOverhang();
 int drcStepSize(), drcOption(), drcOffGrid();
+int drcException(), drcExemption();
 int drcMaxwidth(), drcArea(), drcRectangle(), drcAngles();
 int drcCifSetStyle(), drcCifWidth(), drcCifSpacing();
 int drcCifMaxwidth(), drcCifArea();
@@ -301,6 +308,12 @@ drcTechFreeStyle()
 	/* Clear the Why string list */
 	freeMagic(DRCCurStyle->DRCWhyList);
 
+	/* Clear the exception list */
+	for (i = 0; i < DRCCurStyle->DRCExceptionSize; i++)
+	    freeMagic(DRCCurStyle->DRCExceptionList[i]);
+	if (DRCCurStyle->DRCExceptionList != (char **)NULL)
+	    freeMagic(DRCCurStyle->DRCExceptionList);
+
 	freeMagic(DRCCurStyle);
 	DRCCurStyle = NULL;
     }
@@ -384,6 +397,60 @@ drcWhyCreate(whystring)
     return DRCCurStyle->DRCWhySize;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ * drcExceptionCreate --
+ *
+ * Create an entry for a DRC rule exception/exemption type, if it does
+ * not already exist.
+ *
+ * Results:
+ *	The index of the exception (which is a signed character).
+ *
+ * Side effects:
+ *	Adds to the DRCExceptionList if "name" has not been used before.
+ *	Calls StrDup() and increments DRCExceptionSize.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char
+drcExceptionCreate(name)
+    char *name;
+{
+    int i;
+    char **newlist;
+
+    /* NOTE:  DRCExceptionList has "MASKHINTS_" prepended to the names */
+    for (i = 0; i < DRCCurStyle->DRCExceptionSize; i++)
+	if (!strcmp(name, DRCCurStyle->DRCExceptionList[i] + 10))
+	    return (char)i;
+
+    if (i > 127)
+    {
+	/* I would be shocked if this code ever got executed. */
+	TxError("Error:  Too many rule exceptions!  Limit is 127.\n");
+	return (char)DRC_EXCEPTION_NONE;
+    }
+
+    /* Create a new list that is one entry longer than the old list.
+     * This is not elegant but there will never be more than a handful
+     * of exceptions in a rule deck.
+     */
+    newlist = (char **)mallocMagic((i + 1) * sizeof(char *));
+    for (i = 0; i < DRCCurStyle->DRCExceptionSize; i++)
+	newlist[i] = DRCCurStyle->DRCExceptionList[i];
+
+    /* The rule deck does not have the "MASKHINTS_" prefix on the name */
+    newlist[i] = (char *)mallocMagic(strlen(name) + 11);
+    sprintf(newlist[i], "MASKHINTS_%s", name);
+    DRCCurStyle->DRCExceptionSize++;
+    if (DRCCurStyle->DRCExceptionList != (char **)NULL)
+	freeMagic(DRCCurStyle->DRCExceptionList);
+    DRCCurStyle->DRCExceptionList = newlist;
+    return (char)i;
+}
+    
 /*
  * ----------------------------------------------------------------------------
  *
@@ -571,6 +638,8 @@ DRCTechStyleInit()
     DRCCurStyle->DRCStepSize = 0;
     DRCCurStyle->DRCFlags = (char)0;
     DRCCurStyle->DRCWhySize = 0;
+    DRCCurStyle->DRCExceptionList = (char **)NULL;
+    DRCCurStyle->DRCExceptionSize = 0;
 
     HashInit(&DRCWhyErrorTable, 16, HT_STRINGKEYS);
 
@@ -663,6 +732,7 @@ DRCTechStyleInit()
 	    }
 
     drcCifInit();
+    drcCurException = (char)DRC_EXCEPTION_NONE;
 }
 
 /*
@@ -955,6 +1025,7 @@ drcCifAssign(cookie, dist, next, mask, corner, tag, cdist, flags, planeto, plane
     (cookie)->drcc_plane = planeto;
     (cookie)->drcc_mod = 0;
     (cookie)->drcc_cmod = 0;
+    (cookie)->drcc_exception = drcCurException;
 }
 
 // This is like drcCifAssign, but checks for bad plane numbers in planeto and
@@ -1031,50 +1102,37 @@ DRCTechAddRule(sectionName, argc, argv)
 	int    (*rk_proc)();	/* Procedure implementing this keyword */
 	const char *rk_err;	/* Error message */
     } ruleKeys[] = {
-	{"angles",	 4,	4,	drcAngles,
-    "layers 45|90 why"},
+	{"angles",	 4,	4,	drcAngles, "layers 45|90 why"},
 	{"edge",	 8,	10,	drcEdge,
     "layers1 layers2 distance okTypes cornerTypes cornerDistance [option] why [plane]"},
 	{"edge4way",	 8,	10,	drcEdge,
     "layers1 layers2 distance okTypes cornerTypes cornerDistance [option] why [plane]"},
-	{"exact_overlap", 2,	2,	drcExactOverlap,
-    "layers"},
+	{"exact_overlap", 2,	2,	drcExactOverlap, "layers"},
+	{"exception",	 2,	2,	drcException, "name"},
+	{"exemption",	 2,	2,	drcExemption, "name"},
 	{"extend",	 5,	6,	drcExtend,
     "layers1 layers2 distance [option] why"},
-	{"no_overlap",	 3,	3,	drcNoOverlap,
-    "layers1 layers2"},
-	{"option",	 2,	2,	drcOption,
-    "option_name option_value"},
-	{"overhang",	 5,	5,	drcOverhang,
-    "layers1 layers2 distance why"},
-	{"rect_only",	 3,	3,	drcRectOnly,
-    "layers why"},
+	{"no_overlap",	 3,	3,	drcNoOverlap, "layers1 layers2"},
+	{"option",	 2,	2,	drcOption, "option_name option_value"},
+	{"overhang",	 5,	5,	drcOverhang, "layers1 layers2 distance why"},
+	{"rect_only",	 3,	3,	drcRectOnly, "layers why"},
 	{"spacing",	 6,	7,	drcSpacing,
     "layers1 layers2 separation [layers3] adjacency why"},
-	{"stepsize",	 2,	2,	drcStepSize,
-    "step_size"},
+	{"stepsize",	 2,	2,	drcStepSize, "step_size"},
 	{"surround",	 6,	7,	drcSurround,
     "layers1 layers2 distance presence why"},
-	{"width",	 4,	5,	drcWidth,
-    "layers width why"},
+	{"width",	 4,	5,	drcWidth, "layers width why"},
 	{"widespacing",	 7,	8,	drcSpacing,
     "layers1 width layers2 separation adjacency why"},
-        {"area",	 5,	5,	drcArea,
-    "layers area horizon why"},
-        {"off_grid",	 4,	4,	drcOffGrid,
-    "layers pitch why"},
-        {"maxwidth",	 4,	6,	drcMaxwidth,
-    "layers maxwidth bends why"},
-	{"cifstyle",	 2,	2,	drcCifSetStyle,
-    "cif_style"},
-	{"cifwidth",	 4,	4,	drcCifWidth,
-    "layers width why"},
+        {"area",	 5,	5,	drcArea, "layers area horizon why"},
+        {"off_grid",	 4,	4,	drcOffGrid, "layers pitch why"},
+        {"maxwidth",	 4,	6,	drcMaxwidth, "layers maxwidth bends why"},
+	{"cifstyle",	 2,	2,	drcCifSetStyle, "cif_style"},
+	{"cifwidth",	 4,	4,	drcCifWidth, "layers width why"},
 	{"cifspacing",	 6,	6,	drcCifSpacing,
     "layers1 layers2 separation adjacency why"},
-	{"cifarea",	 5,	5,	drcCifArea,
-    "layers area horizon why"},
-	{"cifmaxwidth",	 5,	5,	drcCifMaxwidth,
-    "layers maxwidth bends why"},
+	{"cifarea",	 5,	5,	drcCifArea, "layers area horizon why"},
+	{"cifmaxwidth",	 5,	5,	drcCifMaxwidth, "layers maxwidth bends why"},
 	{"rectangle",	5,	5,	drcRectangle,
     "layers maxwidth [even|odd|any] why"},
 	{0}
@@ -3637,6 +3695,83 @@ drcRectangle(argc, argv)
 /*
  * ----------------------------------------------------------------------------
  *
+ * drcException, drcExemption --
+ *
+ * Process a DRC exception declaration
+ * This is of the form:
+ *
+ *	exception exception_name|none
+ * or
+ *	exemption exemption_name|none
+ *
+ * e.g,
+ *
+ *	exception SRAM
+ *	exemption SRAM
+ *
+ * The exception_name or exemption_name is the suffix part of a MASKHINTS_*
+ * property name;  e.g., the name SRAM corresponds to a property called
+ * MASKHINTS_SRAM.  This declaration is followed by a block of DRC rules
+ * that are subject to the exception or the exemption.  An exception is the
+ * opposite of an exemption:  If a rule is excepted, then the rule applies
+ * within areas delineated by bounding boxes defined by the
+ * MASKHINTS_<exception_name> property.  If a rule is exempted, then the
+ * rule applies only outside of areas delineated by bounding boxes defined
+ * by the MASKHINTS_<exemption_name> property.  The block of rules subject
+ * to the exemption or exception ends with another exception or exemption
+ * declaration.  If the following rules are not to be excepted or exempted
+ * at all, then use "exception none" or "exemption none".
+ *
+ * Results:
+ *	Returns 0.
+ *
+ * Side effects:
+ *	Updates drcCurException.  drcCurException is zero or positive for 
+ *	exceptions and negative for exemptions.  The index can be
+ *	recovered from a negative value by negating it and subtracting 1.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+drcException(argc, argv)
+    int argc;
+    char *argv[];
+{
+    int i;
+
+    if (DRCCurStyle == NULL) return 0;
+
+    /* Assume that argc must be 2 because the parser insists upon it */
+
+    if (!strcmp(argv[1], "none"))
+	drcCurException = (char)DRC_EXCEPTION_NONE;
+    else
+	drcCurException = drcExceptionCreate(argv[1]);
+    return (0);
+}
+
+int
+drcExemption(argc, argv)
+    int argc;
+    char *argv[];
+{
+    int i;
+
+    if (DRCCurStyle == NULL) return 0;
+
+    /* Assume that argc must be 2 because the parser insists upon it */
+
+    if (!strcmp(argv[1], "none"))
+	drcCurException = (char)DRC_EXCEPTION_NONE;
+    else
+	drcCurException = -(drcExceptionCreate(argv[1])) - 1;
+    return (0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * drcOption --
  *
  * Process an option declaration
@@ -4119,6 +4254,7 @@ drcTechFinalStyle(style)
 		    if (dp->drcc_dist > next->drcc_dist) continue;
 		    if (dp->drcc_cdist > next->drcc_cdist) continue;
 		    if (dp->drcc_plane != next->drcc_plane) continue;
+		    if (dp->drcc_exception != next->drcc_exception) continue;
 		    if (dp->drcc_flags & DRC_REVERSE)
 		    {
 			if (!(next->drcc_flags & DRC_REVERSE)) continue;

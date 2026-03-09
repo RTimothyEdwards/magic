@@ -358,6 +358,7 @@ struct propUseDefStruct {
    CellDef *puds_source;
    CellDef *puds_dest;
    Transform *puds_trans;	/* Transform from source use to dest */
+   Rect *puds_area;		/* Clip area in source coordinates */
 };
 
 /*
@@ -387,11 +388,12 @@ dbCopyMaskHintsFunc(key, proprec, puds)
 {
     CellDef *dest = puds->puds_dest;
     Transform *trans = puds->puds_trans;
+    Rect *clip = puds->puds_area;
     PropertyRecord *parentproprec, *newproprec;
     char *parentprop, *newvalue, *vptr;
     Rect r, rnew;
     bool propfound;
-    int i;
+    int i, j;
 
     if (!strncmp(key, "MASKHINTS_", 10))
     {
@@ -407,29 +409,33 @@ dbCopyMaskHintsFunc(key, proprec, puds)
 			(proprec->prop_len + parentproprec->prop_len - 2) *
 			sizeof(int));
 	    newproprec->prop_type = PROPERTY_TYPE_DIMENSION;
-	    newproprec->prop_len = proprec->prop_len + parentproprec->prop_len;
+	    newproprec->prop_len = parentproprec->prop_len;
 	}
 	else
 	{
 	    newproprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
 			(proprec->prop_len - 2) * sizeof(int));
 	    newproprec->prop_type = PROPERTY_TYPE_DIMENSION;
-	    newproprec->prop_len = proprec->prop_len;
+	    newproprec->prop_len = 0;
 	}
 
-	for (i = 0; i < proprec->prop_len; i += 4)
+	for (i = 0, j = 0; i < proprec->prop_len; i += 4)
 	{
 	    r.r_xbot = proprec->prop_value.prop_integer[i];
 	    r.r_ybot = proprec->prop_value.prop_integer[i + 1];
 	    r.r_xtop = proprec->prop_value.prop_integer[i + 2];
 	    r.r_ytop = proprec->prop_value.prop_integer[i + 3];
-
-	    GeoTransRect(trans, &r, &rnew);
-
-	    newproprec->prop_value.prop_integer[i] = rnew.r_xbot;
-	    newproprec->prop_value.prop_integer[i + 1] = rnew.r_ybot;
-	    newproprec->prop_value.prop_integer[i + 2] = rnew.r_xtop;
-	    newproprec->prop_value.prop_integer[i + 3] = rnew.r_ytop;
+	    GeoClip(&r, clip);
+	    if (!GEO_RECTNULL(&r))
+	    {
+		GeoTransRect(trans, &r, &rnew);
+		newproprec->prop_value.prop_integer[j] = rnew.r_xbot;
+		newproprec->prop_value.prop_integer[j + 1] = rnew.r_ybot;
+		newproprec->prop_value.prop_integer[j + 2] = rnew.r_xtop;
+		newproprec->prop_value.prop_integer[j + 3] = rnew.r_ytop;
+		newproprec->prop_len += 4;
+		j += 4;
+	    }
 	}
 
 	if (propfound)
@@ -474,6 +480,7 @@ DBCellCopyMaskHints(child, parent, transform)
     puds.puds_source = child->cu_def;
     puds.puds_dest = parent;
     puds.puds_trans = transform;
+    puds.puds_area = (Rect *)&TiPlaneRect;
     DBPropEnum(child->cu_def, dbCopyMaskHintsFunc, (ClientData)&puds);
 }
 
@@ -507,6 +514,7 @@ dbFlatCopyMaskHintsFunc(scx, def)
     puds.puds_source = scx->scx_use->cu_def;
     puds.puds_dest = def;
     puds.puds_trans = &scx->scx_trans;
+    puds.puds_area = &scx->scx_area;
 
     DBPropEnum(use->cu_def, dbCopyMaskHintsFunc, (ClientData)&puds);
 

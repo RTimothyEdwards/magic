@@ -48,7 +48,7 @@ int dbDRCDebug = 0;
 static DRCCookie drcOverlapCookie = {
     0, 0, 0, 0,
     { {0} }, { {0} },
-    0, 0, 0,
+    0, DRC_EXCEPTION_NONE, 0, 0,
     DRC_OVERLAP_TAG,
     (DRCCookie *) NULL
 };
@@ -727,6 +727,59 @@ drcTile (tile, dinfo, arg)
 	    for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
 			cptr = cptr->drcc_next)
 	    {
+		/* Handle rule exceptions and exemptions */
+		if (cptr->drcc_exception != (char)DRC_EXCEPTION_NONE)
+		{
+		    PropertyRecord *proprec;
+		    bool propfound, isinside;
+		    char *name;
+		    char idx = cptr->drcc_exception;
+		    if (idx < 0) idx = -idx - 1;
+		    name = DRCCurStyle->DRCExceptionList[idx];
+
+		    /* Is there any exception area defined? */
+		    proprec = DBPropGet(arg->dCD_celldef, name, &propfound);
+
+		    /* Quickest case:  Rule is an exception but there are no
+		     * exception areas.
+		     */
+		    if ((!propfound) && (cptr->drcc_exception >= 0))
+			continue;
+
+		    /* If an exception area exists, is the error edge inside? */
+		    if (propfound)
+		    {
+			int i;
+			Rect r, redge;
+
+			redge.r_xbot = redge.r_xtop = edgeX;
+			redge.r_ybot = edgeBot;
+			redge.r_ytop = edgeTop;
+			isinside = FALSE;
+			for (i = 0; i < proprec->prop_len; i += 4)
+			{
+			    if ((i + 4) > proprec->prop_len) break; 
+			    r.r_xbot = proprec->prop_value.prop_integer[i];
+			    r.r_ybot = proprec->prop_value.prop_integer[i + 1];
+			    r.r_xtop = proprec->prop_value.prop_integer[i + 2];
+			    r.r_ytop = proprec->prop_value.prop_integer[i + 3];
+
+			    if (GEO_OVERLAP(&redge, &r))
+			    {
+				isinside = TRUE;
+				break;
+			    }
+			}
+		    }
+
+		    /* Exemption rules are ignored if the edge is inside
+		     * an exception area.  Exception rules are ignored if
+		     * the edge is outside an exception area.
+		     */
+		    if (isinside && (cptr->drcc_exception < 0)) continue;
+		    if (!isinside && (cptr->drcc_exception >= 0)) continue;
+		}
+
 	    	/* DRC_ANGLES_90 and DRC_SPLITTILE rules are handled by	*/
 		/* the code above for non-Manhattan shapes and do not	*/
 		/* need to be processed again.				*/
@@ -1136,6 +1189,59 @@ drcTile (tile, dinfo, arg)
 	    for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
 				cptr = cptr->drcc_next)
 	    {
+		/* Handle rule exceptions and exemptions */
+		if (cptr->drcc_exception != (char)DRC_EXCEPTION_NONE)
+		{
+		    PropertyRecord *proprec;
+		    bool propfound, isinside;
+		    char *name;
+		    char idx = cptr->drcc_exception;
+		    if (idx < 0) idx = -idx - 1;
+		    name = DRCCurStyle->DRCExceptionList[idx];
+
+		    /* Is there any exception area defined? */
+		    proprec = DBPropGet(arg->dCD_celldef, name, &propfound);
+
+		    /* Quickest case:  Rule is an exception but there are no
+		     * exception areas.
+		     */
+		    if ((!propfound) && (cptr->drcc_exception >= 0))
+			continue;
+
+		    /* If an exception area exists, is the error edge inside? */
+		    if (propfound)
+		    {
+			int i;
+			Rect r, redge;
+
+			redge.r_ybot = redge.r_ytop = edgeY;
+			redge.r_xbot = edgeLeft;
+			redge.r_xtop = edgeRight;
+			isinside = FALSE;
+			for (i = 0; i < proprec->prop_len; i += 4)
+			{
+			    if ((i + 4) > proprec->prop_len) break; 
+			    r.r_xbot = proprec->prop_value.prop_integer[i];
+			    r.r_ybot = proprec->prop_value.prop_integer[i + 1];
+			    r.r_xtop = proprec->prop_value.prop_integer[i + 2];
+			    r.r_ytop = proprec->prop_value.prop_integer[i + 3];
+
+			    if (GEO_OVERLAP(&redge, &r))
+			    {
+				isinside = TRUE;
+				break;
+			    }
+			}
+		    }
+
+		    /* Exemption rules are ignored if the edge is inside
+		     * an exception area.  Exception rules are ignored if
+		     * the edge is outside an exception area.
+		     */
+		    if (isinside && (cptr->drcc_exception < 0)) continue;
+		    if (!isinside && (cptr->drcc_exception >= 0)) continue;
+		}
+
 	    	/* DRC_ANGLES_90 and DRC_SPLITTILE rules are handled by	*/
 		/* the code above for non-Manhattan shapes and do not	*/
 		/* need to be processed again.				*/

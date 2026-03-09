@@ -52,7 +52,7 @@ static ClientData drcSubClientData; /* To be passed to error function. */
 static DRCCookie drcSubcellCookie = {
     0, 0, 0, 0,
     { {0} }, { {0} },
-    0, 0, 0,
+    0, DRC_EXCEPTION_NONE, 0, 0,
     DRC_SUBCELL_OVERLAP_TAG,
     (DRCCookie *) NULL
 };
@@ -65,7 +65,7 @@ static DRCCookie drcSubcellCookie = {
 static DRCCookie drcInSubCookie = {
     0, 0, 0, 0,
     { {0} }, { {0} },
-    0, 0, 0,
+    0, DRC_EXCEPTION_NONE, 0, 0,
     DRC_IN_SUBCELL_TAG,
     (DRCCookie *) NULL
 };
@@ -79,7 +79,7 @@ static DRCCookie drcInSubCookie = {
 static DRCCookie drcOffGridCookie = {
     0, 0, 0, 0,
     { {0} }, { {0} },
-    0, 0, 0,
+    0, DRC_EXCEPTION_NONE, 0, 0,
     DRC_OFFGRID_TAG,
     (DRCCookie *) NULL
 };

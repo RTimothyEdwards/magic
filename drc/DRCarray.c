@@ -45,7 +45,7 @@ extern int drcArrayYankFunc(), drcArrayOverlapFunc();
 static DRCCookie drcArrayCookie = {
     0, 0, 0, 0,
     { {0} }, { {0} },
-    0, 0, 0,
+    0, DRC_EXCEPTION_NONE, 0, 0,
     DRC_ARRAY_OVERLAP_TAG,
     (DRCCookie *) NULL
 };
