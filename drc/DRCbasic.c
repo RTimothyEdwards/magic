@@ -731,7 +731,7 @@ drcTile (tile, dinfo, arg)
 		if (cptr->drcc_exception != (char)DRC_EXCEPTION_NONE)
 		{
 		    PropertyRecord *proprec;
-		    bool propfound, isinside;
+		    bool propfound, isinside = FALSE;
 		    char *name;
 		    char idx = cptr->drcc_exception;
 		    if (idx < 0) idx = -idx - 1;
@@ -739,12 +739,6 @@ drcTile (tile, dinfo, arg)
 
 		    /* Is there any exception area defined? */
 		    proprec = DBPropGet(arg->dCD_celldef, name, &propfound);
-
-		    /* Quickest case:  Rule is an exception but there are no
-		     * exception areas.
-		     */
-		    if ((!propfound) && (cptr->drcc_exception >= 0))
-			continue;
 
 		    /* If an exception area exists, is the error edge inside? */
 		    if (propfound)
@@ -776,8 +770,8 @@ drcTile (tile, dinfo, arg)
 		     * an exception area.  Exception rules are ignored if
 		     * the edge is outside an exception area.
 		     */
-		    if (isinside && (cptr->drcc_exception < 0)) continue;
 		    if (!isinside && (cptr->drcc_exception >= 0)) continue;
+		    if (isinside && (cptr->drcc_exception < 0)) continue;
 		}
 
 	    	/* DRC_ANGLES_90 and DRC_SPLITTILE rules are handled by	*/
@@ -1193,7 +1187,7 @@ drcTile (tile, dinfo, arg)
 		if (cptr->drcc_exception != (char)DRC_EXCEPTION_NONE)
 		{
 		    PropertyRecord *proprec;
-		    bool propfound, isinside;
+		    bool propfound, isinside = FALSE;
 		    char *name;
 		    char idx = cptr->drcc_exception;
 		    if (idx < 0) idx = -idx - 1;
@@ -1217,7 +1211,6 @@ drcTile (tile, dinfo, arg)
 			redge.r_ybot = redge.r_ytop = edgeY;
 			redge.r_xbot = edgeLeft;
 			redge.r_xtop = edgeRight;
-			isinside = FALSE;
 			for (i = 0; i < proprec->prop_len; i += 4)
 			{
 			    if ((i + 4) > proprec->prop_len) break; 

@@ -1753,7 +1753,7 @@ drcMaxwidth(argc, argv)
 	        if (PlaneMaskHasPlane(pmask2, plane2))
 		    break;
 
-	    if (plane2 == plane)
+	    if (PlaneMaskHasPlane(pmask, plane2))
 		TechError("Warning:  Exclude types for \"maxwidth\" are on the "
 			"same plane and so cannot be checked.\n");
 	}

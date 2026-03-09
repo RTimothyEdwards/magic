@@ -442,7 +442,7 @@ dbCopyMaskHintsFunc(key, proprec, puds)
 	{
 	    /* Append the original values to the end of the list */
 	    for (i = 0; i < parentproprec->prop_len; i++)
-		newproprec->prop_value.prop_integer[i + proprec->prop_len] =
+		newproprec->prop_value.prop_integer[i + j] =
 			parentproprec->prop_value.prop_integer[i];
 	}
 	    
