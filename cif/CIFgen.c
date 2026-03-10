@@ -5047,6 +5047,47 @@ cifInteractingRegions(
 /*
  * ----------------------------------------------------------------------------
  *
+ * cifCopyPropPlaneFunc --
+ *
+ * 	Copy the contents of a plane saved as a plane-type property into the
+ *	current CIF plane.  The property plane is in magic internal
+ *	coordinates, so each tile needs to be scaled and redrawn into the
+ *	current CIF plane.
+ *
+ * Results:
+ *	Zero to keep the search going
+ *
+ * Side effects:
+ *	Copies translated geometry into the target plane.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifCopyPropPlaneFunc(Tile *tile,
+    TileType dinfo,
+    Plane *curPlane)
+{
+    Rect bbox;
+
+    TiToRect(tile, &bbox);
+
+    cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
+
+    bbox.r_xbot *= cifScale;
+    bbox.r_ybot *= cifScale;
+    bbox.r_xtop *= cifScale;
+    bbox.r_ytop *= cifScale;
+
+    cifScale = 1;
+    DBNMPaintPlane(curPlane, CIF_SOLIDTYPE, &bbox,
+		CIFPaintTable, (PaintUndoInfo *)NULL);
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * CIFGenLayer --
  *
  *	This routine will generate one CIF layer.
@@ -5646,6 +5687,7 @@ CIFGenLayer(
 		    int n;
 		    char propname[512];
 		    char *layername = (char *)op->co_client;
+		    Tile *t;
 
 		    snprintf(propname, 512, "MASKHINTS_%s", layername);
 		    
@@ -5653,30 +5695,11 @@ CIFGenLayer(
 		    proprec = DBPropGet(cellDef, propname, &found);
 		    if (!found) break;	    /* No mask hints available */
 
-		    if (proprec->prop_type == PROPERTY_TYPE_DIMENSION)
-		    {
-			for (n = 0; n < proprec->prop_len; n += 4)
-			{
-			    if ((n + 3) >= proprec->prop_len) break;
-
-			    cifPlane = curPlane;
-			    cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
-
-			    bbox.r_xbot = proprec->prop_value.prop_integer[n];
-			    bbox.r_ybot = proprec->prop_value.prop_integer[n + 1];
-			    bbox.r_xtop = proprec->prop_value.prop_integer[n + 2];
-			    bbox.r_ytop = proprec->prop_value.prop_integer[n + 3];
-
-			    bbox.r_xbot *= cifScale;
-			    bbox.r_ybot *= cifScale;
-			    bbox.r_xtop *= cifScale;
-			    bbox.r_ytop *= cifScale;
-
-			    cifScale = 1;
-			    DBNMPaintPlane(curPlane, CIF_SOLIDTYPE, &bbox,
-					CIFPaintTable, (PaintUndoInfo *)NULL);
-			}
-		    }
+		    ASSERT (proprec->prop_type == PROPERTY_TYPE_PLANE, "CIFGenLayer");
+		    t = PlaneGetHint(proprec->prop_value.prop_plane);
+		    DBSrPaintArea(t, proprec->prop_value.prop_plane,
+				&TiPlaneRect, &CIFSolidBits,
+				cifCopyPropPlaneFunc, (ClientData)curPlane);
 		}
 		break;
 

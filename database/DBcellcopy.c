@@ -37,9 +37,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "commands/commands.h"
-
-/* C99 compat */
 #include "graphics/graphics.h"
+#include "cif/CIFint.h"
 
 /*
  * The following variable points to the tables currently used for
@@ -357,9 +356,42 @@ DBCellCheckCopyAllPaint(scx, mask, xMask, targetUse, func)
 struct propUseDefStruct {
    CellDef *puds_source;
    CellDef *puds_dest;
+   Plane *puds_plane;		/* Mask hint plane in dest */
    Transform *puds_trans;	/* Transform from source use to dest */
    Rect *puds_area;		/* Clip area in source coordinates */
 };
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * dbCopyMaskHintPlaneFunc --
+ *
+ *	Translate tiles from a child mask-hint property plane into the
+ *	coordinate system of the parent, and paint the mask-hint area
+ *	into the mask-hint property plane of the parent.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+int
+dbCopyMaskHintPlaneFunc(Tile *tile,
+    TileType dinfo,
+    struct propUseDefStruct *puds)
+{
+    Transform *trans = puds->puds_trans;
+    Rect *clip = puds->puds_area;
+    Rect r, rnew;
+    Plane *plane = puds->puds_plane;
+    
+    TiToRect(tile, &r);
+    GeoClip(&r, clip);
+    if (!GEO_RECTNULL(&r))
+    {
+	GeoTransRect(trans, &r, &rnew);
+	DBPaintPlane(plane, &rnew, CIFPaintTable, (PaintUndoInfo *)NULL);
+    }
+    return 0;
+}
 
 /*
  *-----------------------------------------------------------------------------
@@ -399,56 +431,34 @@ dbCopyMaskHintsFunc(key, proprec, puds)
     {
 	char *vptr, *lastval;
 	int lastlen;
+	Plane *plane;
 
-	/* Append to existing mask hint (if any) */
+	ASSERT(proprec->prop_type == PROPERTY_TYPE_PLANE, "dbCopyMaskHintsFunc");
+
+	/* Get the existing mask hint plane in the parent cell, and
+	 * create it if it does not already exist.
+	 */
 	parentproprec = (PropertyRecord *)DBPropGet(dest, key, &propfound);
 
 	if (propfound)
-	{
-	    newproprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-			(proprec->prop_len + parentproprec->prop_len - 2) *
-			sizeof(int));
-	    newproprec->prop_type = PROPERTY_TYPE_DIMENSION;
-	    newproprec->prop_len = parentproprec->prop_len;
-	}
+	    plane = parentproprec->prop_value.prop_plane;
 	else
 	{
-	    newproprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-			(proprec->prop_len - 2) * sizeof(int));
-	    newproprec->prop_type = PROPERTY_TYPE_DIMENSION;
+	    newproprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+	    newproprec->prop_type = PROPERTY_TYPE_PLANE;
 	    newproprec->prop_len = 0;
+	    plane = DBNewPlane((ClientData)TT_SPACE);
+	    newproprec->prop_value.prop_plane = plane;
+	    DBPropPut(dest, key, newproprec);
 	}
+	puds->puds_plane = plane;
 
-	for (i = 0, j = 0; i < proprec->prop_len; i += 4)
-	{
-	    r.r_xbot = proprec->prop_value.prop_integer[i];
-	    r.r_ybot = proprec->prop_value.prop_integer[i + 1];
-	    r.r_xtop = proprec->prop_value.prop_integer[i + 2];
-	    r.r_ytop = proprec->prop_value.prop_integer[i + 3];
-	    GeoClip(&r, clip);
-	    if (!GEO_RECTNULL(&r))
-	    {
-		GeoTransRect(trans, &r, &rnew);
-		newproprec->prop_value.prop_integer[j] = rnew.r_xbot;
-		newproprec->prop_value.prop_integer[j + 1] = rnew.r_ybot;
-		newproprec->prop_value.prop_integer[j + 2] = rnew.r_xtop;
-		newproprec->prop_value.prop_integer[j + 3] = rnew.r_ytop;
-		newproprec->prop_len += 4;
-		j += 4;
-	    }
-	}
-
-	if (propfound)
-	{
-	    /* Append the original values to the end of the list */
-	    for (i = 0; i < parentproprec->prop_len; i++)
-		newproprec->prop_value.prop_integer[i + j] =
-			parentproprec->prop_value.prop_integer[i];
-	}
-	    
-	DBPropPut(dest, key, newproprec);
+	/* Copy the properties from child to parent */
+	DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+		proprec->prop_value.prop_plane,
+		clip, &CIFSolidBits, dbCopyMaskHintPlaneFunc, 
+		(ClientData)puds);
     }
-
     return 0;
 }
 

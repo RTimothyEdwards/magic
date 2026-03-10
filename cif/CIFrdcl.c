@@ -718,6 +718,9 @@ CIFPaintCurrent(
 			&DBAllButSpaceBits, cifCheckPaintFunc,
 			(ClientData)NULL) == 1))
 		{
+		    /* (To do:  remove the linked Rects and paint directly
+		     * into the plane in cifMaskHintFunc())
+		     */
 		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
 				&CIFSolidBits, cifMaskHintFunc,
 				(ClientData)&lrec);
@@ -728,30 +731,29 @@ CIFPaintCurrent(
 			char *propname, *layername;
 			int proplen, i, savescale;
 			bool origfound = FALSE;
+			Plane *plane;
 	
 			layername = (char *)op->co_client;
 		    	propname = (char *)mallocMagic(11 + strlen(layername));
 		    	sprintf(propname, "MASKHINTS_%s", layername);
 	
-		    	/* Turn all linked Rects into a mask-hints property in the
-			 * target cell.
+			/* If there is already a mask hint plane for this layer,
+			 * then add to it;  otherwise, create a new plane.
 			 */
-			proplen = 0;
-			for (lsrch = lrec; lsrch; lsrch = lsrch->r_next)
-			    proplen += 4;
+			proprec = DBPropGet(cifReadCellDef, layername, &origfound);
+			if (origfound)
+			    plane = proprec->prop_value.prop_plane;
+			else
+			{
+			    proprec = (PropertyRecord *)mallocMagic(
+					sizeof(PropertyRecord));
+			    proprec->prop_type = PROPERTY_TYPE_PLANE;
+			    proprec->prop_len = 0;	/* (unused) */
+			    plane = DBNewPlane((ClientData)TT_SPACE);
+			    proprec->prop_value.prop_plane = plane;
+			    DBPropPut(cifReadCellDef, propname, proprec);
+			}
 
-			/* If there is already a mask hint for this layer, then
-			 * prepend to its data.
-			 */
-			proporig = DBPropGet(cifReadCellDef, layername, &origfound);
-			if (origfound) proplen += proporig->prop_len;
-
-			proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) *
-					(proplen - 2) * sizeof(int));
-			proprec->prop_type = PROPERTY_TYPE_DIMENSION;
-			proprec->prop_len = proplen;
-
-			proplen = 0;
 		    	while (lrec != NULL)
 		    	{
 			    lrec->r_r.r_xtop =
@@ -787,29 +789,14 @@ CIFPaintCurrent(
 					(savescale / cifCurReadStyle->crs_scaleFactor);
 			    }
 
-			    proprec->prop_value.prop_integer[proplen] =
-					lrec->r_r.r_xbot;
-			    proprec->prop_value.prop_integer[proplen + 1] =
-					lrec->r_r.r_ybot;
-			    proprec->prop_value.prop_integer[proplen + 2] =
-					lrec->r_r.r_xtop;
-			    proprec->prop_value.prop_integer[proplen + 3] =
-					lrec->r_r.r_ytop;
+			    DBPaintPlane(plane, &lrec->r_r, CIFPaintTable,
+					(PaintUndoInfo *)NULL);
 	
 			    free_magic1_t mm1 = freeMagic1_init();
 			    freeMagic1(&mm1, lrec);
 			    lrec = lrec->r_next;
 			    freeMagic1_end(&mm1);
-	
-			    proplen += 4;
 			}
-
-			if (origfound)
-			    for (i = 0; i < proporig->prop_len; i++)
-				proprec->prop_value.prop_integer[proplen++] =
-					proporig->prop_value.prop_integer[i];
-
-			DBPropPut(cifReadCellDef, propname, proprec);
 		    	freeMagic(propname);
 		    }
 		}
@@ -926,7 +913,9 @@ CIFPaintCurrent(
 			(CellDef *)NULL, CIFPlanes, FALSE, (ClientData)NULL);
 
 	    /* Scan the resulting plane and generate linked Rect structures for
-	     * each shape found.
+	     * each shape found.  (To do:  Remove the linked Rects and paint
+	     * directly into the plane in cifMaskHintFunc(), which is more
+	     * efficient but not hugely so.)
 	     */
 	    DBSrPaintArea((Tile *)NULL, presult, &TiPlaneRect, &CIFSolidBits,
 			cifMaskHintFunc, (ClientData)&lrec);
@@ -934,44 +923,45 @@ CIFPaintCurrent(
 	    if (lrec != NULL)
 	    {
 		PropertyRecord *proprec;
+		bool propfound;
 		char *propname;
-		int proplen;
+		Plane *plane;
 
 	    	propname = (char *)mallocMagic(11 + strlen(cifReadLayers[i]));
 	    	sprintf(propname, "MASKHINTS_%s", cifReadLayers[i]);
 
-	    	/* Turn all linked Rects into a mask-hints property in the
-		 * target cell.
+	    	/* Paint all linked Rects into a mask-hints property plane
+		 * in the target cell.
 		 */
-		proplen = 0;
-		for (lsrch = lrec; lsrch; lsrch = lsrch->r_next)
-		    proplen += 4;
 
-		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) *
-				(proplen - 2) * sizeof(int));
-		proprec->prop_type = PROPERTY_TYPE_DIMENSION;
-		proprec->prop_len = proplen;
+		proprec = DBPropGet(cifReadCellDef, propname, &propfound);
+		if (!propfound)
+		{
+		    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+		    proprec->prop_type = PROPERTY_TYPE_PLANE;
+		    proprec->prop_len = 0;	/* (unused) */
+		    plane = DBNewPlane((ClientData)TT_SPACE);
+		    proprec->prop_value.prop_plane = plane;
+		    DBPropPut(cifReadCellDef, propname, proprec);
+		}
+		else
+		    plane = proprec->prop_value.prop_plane;
 
-		proplen = 0;
 	    	while (lrec != NULL)
 	    	{
-		    proprec->prop_value.prop_integer[proplen] =
-				lrec->r_r.r_xbot / CIFCurStyle->cs_scaleFactor;
-		    proprec->prop_value.prop_integer[proplen + 1] =
-				lrec->r_r.r_ybot / CIFCurStyle->cs_scaleFactor;
-		    proprec->prop_value.prop_integer[proplen + 2] =
-				lrec->r_r.r_xtop / CIFCurStyle->cs_scaleFactor;
-		    proprec->prop_value.prop_integer[proplen + 3] =
-				lrec->r_r.r_ytop / CIFCurStyle->cs_scaleFactor;
+		    lrec->r_r.r_xbot /= CIFCurStyle->cs_scaleFactor;
+		    lrec->r_r.r_ybot /= CIFCurStyle->cs_scaleFactor;
+		    lrec->r_r.r_xtop /= CIFCurStyle->cs_scaleFactor;
+		    lrec->r_r.r_ytop /= CIFCurStyle->cs_scaleFactor;
+
+		    DBPaintPlane(plane, &lrec->r_r, CIFPaintTable,
+				(PaintUndoInfo *)NULL);
 
 		    free_magic1_t mm1 = freeMagic1_init();
 		    freeMagic1(&mm1, lrec);
 		    lrec = lrec->r_next;
 		    freeMagic1_end(&mm1);
-
-		    proplen += 4;
 		}
-		DBPropPut(cifReadCellDef, propname, proprec);
 	    	freeMagic(propname);
 	    }
 

@@ -1713,7 +1713,7 @@ dbTileMoveFunc(tile, dinfo, mvvals)
     if (IsSplit(tile))
 	type = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
     DBNMPaintPlane(mvvals->ptarget, exact, &targetRect,
-		DBStdPaintTbl(type, mvvals->pnum),
+		(mvvals->pnum < 0) ? CIFPaintTable : DBStdPaintTbl(type, mvvals->pnum),
 		(PaintUndoInfo *)NULL);
     return 0;
 }
@@ -1814,7 +1814,22 @@ int dbScaleProp(name, proprec, cps)
     int i, scalen, scaled;
     Point p;
 
-    /* Only "dimension" type properties get scaled */
+    /* Only "dimension" and "plane" type properties get scaled */
+
+    if (proprec->prop_type == PROPERTY_TYPE_PLANE)
+    {
+	Plane *newplane;
+	newplane = DBNewPlane((ClientData)TT_SPACE);
+	DBClearPaintPlane(newplane);
+	/* Plane index is unused;  arbitrarily substitute -1 */
+	dbScalePlane(proprec->prop_value.prop_plane, newplane, -1,
+			scalen, scaled, TRUE);
+	DBFreePaintPlane(proprec->prop_value.prop_plane);
+	TiFreePlane(proprec->prop_value.prop_plane);
+	proprec->prop_value.prop_plane = newplane;
+	return 0;
+    }
+
     if (proprec->prop_type != PROPERTY_TYPE_DIMENSION) return 0; 
 
     /* Scale numerator held in point X value, */
@@ -1857,7 +1872,22 @@ int dbMoveProp(name, proprec, cps)
     char *newvalue;
     Point p;
 
-    /* Only "dimension" type properties get scaled */
+    /* Only "dimension" and "plane" type properties get scaled */
+
+    if (proprec->prop_type == PROPERTY_TYPE_PLANE)
+    {
+	Plane *newplane;
+
+	newplane = DBNewPlane((ClientData) TT_SPACE);
+	DBClearPaintPlane(newplane);
+	/* Use plane index -1 to indicate use of CIFPaintTable */
+	dbMovePlane(proprec->prop_value.prop_plane, newplane, -1, origx, origy);
+        DBFreePaintPlane(proprec->prop_value.prop_plane);
+	TiFreePlane(proprec->prop_value.prop_plane);
+        proprec->prop_value.prop_plane = newplane;
+	return 0;
+    }
+
     if (proprec->prop_type != PROPERTY_TYPE_DIMENSION) return 0; 
 
     origx = cps->cps_point.p_x;

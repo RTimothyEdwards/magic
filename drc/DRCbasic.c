@@ -27,6 +27,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <string.h>		// for memcpy()
 #include <math.h>		// for sqrt() for diagonal check
+
+#include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
@@ -36,7 +38,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "utils/maxrect.h"
 #include "utils/malloc.h"
+#include "utils/undo.h"
 #include "textio/textio.h"
+#include "cif/CIFint.h"
 
 int dbDRCDebug = 0;
 
@@ -62,7 +66,33 @@ extern MaxRectsData *drcCanonicalMaxwidth();
 /*
  *-----------------------------------------------------------------------
  *
- * drcCifPointToSegment
+ * drcFoundOneFunc --
+ *
+ *	Simple callback for a plane search on a mask-hint plane inside
+ *	a DRC check area.
+ *
+ * Results:
+ *	Return 1 always, indicating that a tile has been found in the
+ *	DRC search area, and the search can end.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-----------------------------------------------------------------------
+ */
+
+int
+drcFoundOneFunc(Tile *tile,
+    TileType dinfo,
+    ClientData cdata)
+{
+    return 1;
+}
+
+/*
+ *-----------------------------------------------------------------------
+ *
+ * drcCifPointToSegment --
  *
  *	Euclidean-distance point-to-segment distance (squared)
  *	calculation (borrowed from XCircuit)
@@ -468,6 +498,13 @@ DRCBasicCheck (celldef, checkRect, clipRect, function, cdata)
 	DBResetTilePlane(celldef->cd_planes[planeNum], DRC_UNPROCESSED);
         (void) DBSrPaintArea ((Tile *) NULL, celldef->cd_planes[planeNum],
 		checkRect, &DBAllTypeBits, drcTile, (ClientData) &arg);
+
+#ifdef MAGIC_WRAPPER
+	/* Execute pending Tcl events, so the DRC process doesn't block.    */
+	UndoEnable();
+	while (Tcl_DoOneEvent(TCL_DONT_WAIT));
+	UndoDisable();
+#endif
     }
     drcCifCheck(&arg);
     if (arg.dCD_rlist != NULL) freeMagic(arg.dCD_rlist);
@@ -743,27 +780,17 @@ drcTile (tile, dinfo, arg)
 		    /* If an exception area exists, is the error edge inside? */
 		    if (propfound)
 		    {
-			int i;
-			Rect r, redge;
+			Rect redge;
 
 			redge.r_xbot = redge.r_xtop = edgeX;
 			redge.r_ybot = edgeBot;
 			redge.r_ytop = edgeTop;
-			isinside = FALSE;
-			for (i = 0; i < proprec->prop_len; i += 4)
-			{
-			    if ((i + 4) > proprec->prop_len) break; 
-			    r.r_xbot = proprec->prop_value.prop_integer[i];
-			    r.r_ybot = proprec->prop_value.prop_integer[i + 1];
-			    r.r_xtop = proprec->prop_value.prop_integer[i + 2];
-			    r.r_ytop = proprec->prop_value.prop_integer[i + 3];
 
-			    if (GEO_OVERLAP(&redge, &r))
-			    {
-				isinside = TRUE;
-				break;
-			    }
-			}
+			if (DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+				proprec->prop_value.prop_plane,
+				&redge, &CIFSolidBits, drcFoundOneFunc,
+				(ClientData)NULL) == 1)
+			    isinside = TRUE;
 		    }
 
 		    /* Exemption rules are ignored if the edge is inside
@@ -1205,26 +1232,17 @@ drcTile (tile, dinfo, arg)
 		    /* If an exception area exists, is the error edge inside? */
 		    if (propfound)
 		    {
-			int i;
-			Rect r, redge;
+			Rect redge;
 
 			redge.r_ybot = redge.r_ytop = edgeY;
 			redge.r_xbot = edgeLeft;
 			redge.r_xtop = edgeRight;
-			for (i = 0; i < proprec->prop_len; i += 4)
-			{
-			    if ((i + 4) > proprec->prop_len) break; 
-			    r.r_xbot = proprec->prop_value.prop_integer[i];
-			    r.r_ybot = proprec->prop_value.prop_integer[i + 1];
-			    r.r_xtop = proprec->prop_value.prop_integer[i + 2];
-			    r.r_ytop = proprec->prop_value.prop_integer[i + 3];
 
-			    if (GEO_OVERLAP(&redge, &r))
-			    {
-				isinside = TRUE;
-				break;
-			    }
-			}
+			if (DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+				proprec->prop_value.prop_plane,
+				&redge, &CIFSolidBits, drcFoundOneFunc,
+				(ClientData)NULL) == 1)
+			    isinside = TRUE;
 		    }
 
 		    /* Exemption rules are ignored if the edge is inside

@@ -106,7 +106,18 @@ DBPropPut(cellDef, name, value)
 
     entry = HashFind(htab, name);
     oldvalue = (PropertyRecord *)HashGetValue(entry);
-    if (oldvalue != NULL) freeMagic((char *)oldvalue);
+    /* All properties are allocated as a single block and can just be freed,
+     * except for plane properties, which require freeing the plane.
+     */
+    if (oldvalue != NULL)
+    {
+	if (oldvalue->prop_type == PROPERTY_TYPE_PLANE)
+	{
+	    DBFreePaintPlane(oldvalue->prop_value.prop_plane);
+	    TiFreePlane(oldvalue->prop_value.prop_plane);
+	}
+	freeMagic((char *)oldvalue);
+    }
     if (value == (PropertyRecord *)NULL)
 	HashRemove(htab, name);
     else

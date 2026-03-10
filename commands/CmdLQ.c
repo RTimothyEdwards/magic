@@ -45,9 +45,8 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/undo.h"
 #include "select/select.h"
 #include "netmenu/netmenu.h"
-
-/* C99 compat */
 #include "cif/cif.h"
+#include "cif/CIFint.h"
 
 /* Forward declarations */
 
@@ -2335,13 +2334,15 @@ CmdDoProperty(
     Tcl_Obj *tobj;
 #endif
 
-    int printPropertiesFunc();		/* Forward declaration */
+    /* Forward declarations */
+    int printPropertiesFunc();
+    int printPlanePropFunc();		
 
     /* These should match the property codes in database.h.in, except
      * for "compat" which must come at the end.
      */
     static const char * const cmdPropertyType[] = {
-	"string", "integer", "dimension", "double", "compat", NULL
+	"string", "integer", "dimension", "double", "plane", "compat", NULL
     };
 
     /* If a property type is given, parse it and then strip it from
@@ -2393,7 +2394,7 @@ CmdDoProperty(
 	    return;
 	}
 
-	/* print the value of the indicated property */
+	/* Print the value of the indicated property */
 	proprec = (PropertyRecord *)DBPropGet(def, cmd->tx_argv[argstart], &propfound);
 	if (propfound)
 	{
@@ -2434,6 +2435,14 @@ CmdDoProperty(
 			Tcl_SetObjResult(magicinterp, tobj);
 		    }
 		    break;
+		case PROPERTY_TYPE_PLANE:
+		    tobj = Tcl_NewListObj(0, NULL);
+		    DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+				proprec->prop_value.prop_plane,
+				&TiPlaneRect, &CIFSolidBits, printPlanePropFunc,
+				(ClientData)tobj);
+		    Tcl_SetObjResult(magicinterp, tobj);
+		    break;
 		case PROPERTY_TYPE_DOUBLE:
 		    if (proprec->prop_len == 1)
 			Tcl_SetObjResult(magicinterp,
@@ -2467,6 +2476,13 @@ CmdDoProperty(
 				proprec->prop_value.prop_integer[i], w,
 				((i % 2) == 0) ? TRUE : FALSE);
 		
+		    TxPrintf("\n");
+		    break;
+		case PROPERTY_TYPE_PLANE:
+		    DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+				proprec->prop_value.prop_plane,
+				&TiPlaneRect, &CIFSolidBits, printPlanePropFunc,
+				(ClientData)NULL);
 		    TxPrintf("\n");
 		    break;
 		case PROPERTY_TYPE_DOUBLE:
@@ -2514,7 +2530,7 @@ CmdDoProperty(
 	 * keyword functions work correctly.
 	 *
 	 * GDS_START, GDS_END:  PROPERTY_TYPE_DOUBLE
-	 * MASKHINTS_*:  PROPERTY_TYPE_DIMENSION
+	 * MASKHINTS_*:  PROPERTY_TYPE_PLANE
 	 * FIXED_BBOX:  PROPERTY_TYPE_DIMENSION
 	 */
 	if (!strcmp(cmd->tx_argv[argstart], "GDS_START"))
@@ -2528,7 +2544,7 @@ CmdDoProperty(
 	else if (!strcmp(cmd->tx_argv[argstart], "OBS_BBOX"))
 	    proptype = PROPERTY_TYPE_DIMENSION;
 	else if (!strncmp(cmd->tx_argv[argstart], "MASKHINTS_", 10))
-	    proptype = PROPERTY_TYPE_DIMENSION;
+	    proptype = PROPERTY_TYPE_PLANE;
 
 	if (strlen(cmd->tx_argv[argstart + 1]) == 0)
 	    DBPropPut(def, cmd->tx_argv[argstart], NULL);
@@ -2543,8 +2559,11 @@ CmdDoProperty(
 		proprec->prop_len = proplen;
 		strcpy(proprec->prop_value.prop_string, cmd->tx_argv[argstart + 1]);
 	    }
-	    else	/* PROPERTY_TYPE_INTEGER or PROPERTY_TYPE_DIMENSION */
+	    else	/* All non-string properties */
 	    {
+		Plane *plane;
+		Rect r;
+
 		/* Two choices:  If locargc == 3 then all values are in one
 		 * argument.  If locargc > 3, then parse each argument as a
 		 * separate value.
@@ -2555,6 +2574,12 @@ CmdDoProperty(
 		    if (proptype == PROPERTY_TYPE_DOUBLE)
 		        proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
 				(proplen - 1)*sizeof(dlong));
+		    else if (proptype == PROPERTY_TYPE_PLANE)
+		    {
+		        proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+			plane = DBNewPlane((ClientData)TT_SPACE);
+			proprec->prop_value.prop_plane = plane;
+		    }
 		    else
 		        proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
 				(proplen - 2)*sizeof(int));
@@ -2587,6 +2612,28 @@ CmdDoProperty(
 				proprec->prop_value.prop_double[i - 1] = 0;
 			    }
 			}
+			else if (proptype == PROPERTY_TYPE_PLANE)
+			{
+			    propvalue = cmdParseCoord(w, cmd->tx_argv[argstart + i],
+					FALSE, ((i % 2) == 0) ? FALSE : TRUE);
+			    switch ((i - 1) % 4)
+			    {
+				case 0:
+				    r.r_xbot = propvalue;
+				    break;
+				case 1:
+				    r.r_ybot = propvalue;
+				    break;
+				case 2:
+				    r.r_xtop = propvalue;
+				    break;
+				case 3:
+				    r.r_ytop = propvalue;
+				    DBPaintPlane(plane, &r, CIFPaintTable,
+						(PaintUndoInfo *)NULL);
+				    break;
+			    }
+			}
 			else	/* PROPERTY_TYPE_DIMENSION */
 			{
 			    propvalue = cmdParseCoord(w, cmd->tx_argv[argstart + i],
@@ -2601,22 +2648,32 @@ CmdDoProperty(
 		     * the valid number of arguments, then again to parse the
 		     * values, once the property record has been allocated
 		     */
-		    value = cmd->tx_argv[argstart + 1];
-		    for (proplen = 0; *value != '\0'; )
+		    if (proptype == PROPERTY_TYPE_PLANE)
 		    {
-			if (isspace(*value) && (*value != '\0')) value++;
-			if (!isspace(*value))
-			{
-			    proplen++;
-			    while (!isspace(*value) && (*value != '\0')) value++;
-			}
+		        proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+			plane = DBNewPlane((ClientData)TT_SPACE);
+			proprec->prop_value.prop_plane = plane;
 		    }
-		    if (proplen > 0)
+		    else
 		    {
-			proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-				(proplen - 2)*sizeof(int));
-			proprec->prop_type = proptype;
-			proprec->prop_len = proplen;
+			value = cmd->tx_argv[argstart + 1];
+			for (proplen = 0; *value != '\0'; )
+			{
+			    if (isspace(*value) && (*value != '\0')) value++;
+			    if (!isspace(*value))
+			    {
+				proplen++;
+				while (!isspace(*value) && (*value != '\0')) value++;
+			    }
+			}
+			if (proplen > 0)
+			{
+			    proprec = (PropertyRecord *)mallocMagic(
+					sizeof(PropertyRecord) +
+					(proplen - 2) * sizeof(int));
+			    proprec->prop_type = proptype;
+			    proprec->prop_len = proplen;
+			}
 		    }
 		    /* Second pass */
 		    value = cmd->tx_argv[argstart + 1];
@@ -2656,6 +2713,28 @@ CmdDoProperty(
 				    propvalue = 0;
 				}
 			        proprec->prop_value.prop_double[proplen] = dvalue;
+			    }
+			    else if (proptype == PROPERTY_TYPE_PLANE)
+			    {
+				propvalue = cmdParseCoord(w, value, FALSE,
+					((proplen % 2) == 0) ? TRUE : FALSE);
+				switch (proplen % 4)
+				{
+				    case 0:
+					r.r_xbot = propvalue;
+					break;
+				    case 1:
+					r.r_ybot = propvalue;
+					break;
+				    case 2:
+					r.r_xtop = propvalue;
+					break;
+				    case 3:
+					r.r_ytop = propvalue;
+					DBPaintPlane(plane, &r, CIFPaintTable,
+						(PaintUndoInfo *)NULL);
+					break;
+				}
 			    }
 			    else	/* PROPERTY_TYPE_DIMENSION */
 			    {
@@ -2729,6 +2808,59 @@ CmdProperty(
 
 /*
  * ----------------------------------------------------------------------------
+ * Callback function for printing values from a Plane property
+ * ----------------------------------------------------------------------------
+ */
+
+#ifdef MAGIC_WRAPPER 
+int
+printPlanePropFunc(
+    Tile *tile,
+    TileType dinfo,
+    Tcl_Obj *lobj)
+{
+    Rect r;
+    MagWindow *w;
+
+    TiToRect(tile, &r);
+    windCheckOnlyWindow(&w, DBWclientID); 
+
+    Tcl_ListObjAppendElement(magicinterp, lobj,
+		Tcl_NewStringObj(DBWPrintValue(r.r_xbot, w, TRUE), -1));
+    Tcl_ListObjAppendElement(magicinterp, lobj,
+		Tcl_NewStringObj(DBWPrintValue(r.r_ybot, w, FALSE), -1));
+    Tcl_ListObjAppendElement(magicinterp, lobj,
+		Tcl_NewStringObj(DBWPrintValue(r.r_xtop, w, TRUE), -1));
+    Tcl_ListObjAppendElement(magicinterp, lobj,
+		Tcl_NewStringObj(DBWPrintValue(r.r_ytop, w, FALSE), -1));
+    return 0;
+}
+
+#else
+
+int
+printPlanePropFunc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData cdata	/* (unused) */
+{
+    Rect r;
+    MagWindow *w;
+
+    TiToRect(tile, &r)
+    windCheckOnlyWindow(&w, DBWclientID); 
+
+    TxPrintf("%s ", DBWPrintValue(r.r_xbot, w, TRUE); 
+    TxPrintf("%s ", DBWPrintValue(r.r_ybot, w, FALSE); 
+    TxPrintf("%s ", DBWPrintValue(r.r_xtop, w, TRUE); 
+    TxPrintf("%s ", DBWPrintValue(r.r_ytop, w, FALSE); 
+    return 0;
+}
+
+#endif
+
+/*
+ * ----------------------------------------------------------------------------
  * Callback function for printing a single property key:value pair
  * ----------------------------------------------------------------------------
  */
@@ -2766,6 +2898,12 @@ printPropertiesFunc(
 			DBWPrintValue(proprec->prop_value.prop_integer[i],
 			w, ((i % 2) == 0) ? TRUE : FALSE), -1));
 	    break;
+	case PROPERTY_TYPE_PLANE:
+	    DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+			proprec->prop_value.prop_plane,
+			&TiPlaneRect, &CIFSolidBits, printPlanePropFunc,
+			(ClientData)lobj);
+	    break;
 	case PROPERTY_TYPE_DOUBLE:
 	    for (i = 0; i < proprec->prop_len; i++)
     	        Tcl_ListObjAppendElement(magicinterp, lobj,
@@ -2793,6 +2931,13 @@ printPropertiesFunc(
 		TxPrintf("%s ", DBWPrintValue(proprec->prop_value.prop_integer[i],
 			w, ((i % 2) == 0) ? TRUE : FALSE); 
 	    TxPrintf("\n");
+	    break;
+	case PROPERTY_TYPE_PLANE:
+    	    TxPrintf("%s = ", name);
+	    DBSrPaintArea((Tile *)NULL, proprec->prop_value.prop_plane,
+			&TiPlaneRect, &CIFSolidBits, printPlanePropFunc,
+			(ClientData)NULL);
+    	    TxPrintf("\n");
 	    break;
 	case PROPERTY_TYPE_DOUBLE:
 	    TxPrintf("%s = ", name);

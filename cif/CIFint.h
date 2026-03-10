@@ -338,9 +338,8 @@ extern Plane *CIFGenLayer(CIFOp *op, const Rect *area, CellDef *cellDef, CellDef
                           bool hier, ClientData clientdata);
 extern void CIFInitCells(void);
 extern int cifHierCopyFunc(Tile *tile, TileType dinfo, TreeContext *cxp);
-extern int cifHierCopyMaskHints(SearchContext *scx, ClientData clientData);
 extern void CIFLoadStyle(char *stylename);
-extern void CIFCopyMaskHints(SearchContext *scx, CellDef *targetDef);
+extern int CIFCopyMaskHints(SearchContext *scx, CellDef *targetDef);
 
 /* C99 compat */
 extern void CIFCoverageLayer(CellDef *rootDef, Rect *area, char *layer, bool dolist);

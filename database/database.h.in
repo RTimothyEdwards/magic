@@ -719,6 +719,7 @@ typedef struct
 	char  prop_string[8];	/* For PROPERTY_TYPE_STRING */
 	int   prop_integer[2];	/* For PROPERTY_TYPE_INTEGER or _DIMENSION */
 	dlong prop_double[1];	/* For PROPERTY_TYPE_DOUBLE */
+	Plane *prop_plane;	/* For PROPERTY_TYPE_PLANE */
     } prop_value;
 } PropertyRecord;
 
@@ -760,6 +761,7 @@ typedef struct
 #define PROPERTY_TYPE_INTEGER	1	/* Fixed integer property */
 #define PROPERTY_TYPE_DIMENSION	2	/* Integer property that scales with units */
 #define PROPERTY_TYPE_DOUBLE	3	/* Double-long integer (for file positions) */
+#define PROPERTY_TYPE_PLANE	4	/* A tile plane structure */
 
 /* -------------------- Exported procedure headers -------------------- */
 

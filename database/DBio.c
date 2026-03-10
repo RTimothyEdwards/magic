@@ -73,10 +73,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/undo.h"
 #include "utils/malloc.h"
 #include "utils/signals.h"
-
-/* C99 compat */
 #include "dbwind/dbwtech.h"
 #include "cif/cif.h"
+#include "cif/CIFint.h"
 #include "lef/lef.h"
 #include "commands/commands.h"
 #include "graphics/graphics.h"
@@ -2492,10 +2491,24 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 	 * (2) "integer"	(a fixed integer or list of integers)
 	 * (3) "dimension"	(an integer that scales with internal units)
 	 * (4) "double"		(a fixed double-wide integer or list thereof)
+	 * (5) "plane"		(a tile plane structure)
 	 */
 
 	switch (option)
 	{
+	    case PROPERTY_TYPE_PLANE:
+		/* Treat this like "string" but make sure property is a
+		 * mask hint.  There is currently no method to specify
+		 * a plane property other than to write out the bounding
+		 * box coordinates of all the tiles in a list.
+		 */
+		if (strncmp(propertyname, "MASKHINTS_", 10))
+		{
+		    TxError("Plane type specified for property \"%s\" but "
+				"property is not a mask hint!\n", propertyname);
+		    break;
+		}
+		/* Else drop through */
 	    case PROPERTY_TYPE_STRING:
 		/* Go ahead and process the vendor GDS property */
 		if (!strcmp(propertyname, "GDS_FILE"))
@@ -2565,68 +2578,54 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		else if (!strncmp(propertyname, "MASKHINTS_", 10))
 		{
 		    pptr = pvalueptr;
+		    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+		    proprec->prop_type = PROPERTY_TYPE_PLANE;
+		    proprec->prop_len = 0;
 
-		    /* Do one pass through the string to count the number of
-		     * values and make sure they all parse as integers.
+		    proprec->prop_value.prop_plane = DBNewPlane((ClientData)TT_SPACE);
+
+		    /* Parse the string and convert sets of four values
+		     * to coordinates and paint into the plane.
 		     */
 		    numvals = 0;
 		    while (*pptr != '\0')
 		    {
-			while (isspace(*pptr) && (*pptr != '\0')) pptr++;
-			if (!isspace(*pptr))
-			{
-			    char *endptr;
-			    long result;
-
-			    /* Check that the value is an integer */
-			    result = strtol(pptr, &endptr, 0);
-			    if (endptr == pptr)
-			    {
-				/* Unable to parse correctly.  Save as a string value */
-				proplen = strlen(pvalueptr);
-				proprec = (PropertyRecord *)mallocMagic(
-					sizeof(PropertyRecord) - 7 + proplen);
-				proprec->prop_type = PROPERTY_TYPE_STRING;
-				proprec->prop_len = proplen;
-				strcpy(proprec->prop_value.prop_string, pvalueptr);
-				(void) DBPropPut(cellDef, propertyname, proprec);
-				break;
-			    }
-			    while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
-			    numvals++;
-			}
-		    }
-		    if (numvals % 4 != 0)
-		    {
-			TxError("Cannot read bounding box values in %s property",
-					propertyname);
-			/* This does not need to be a fatal error.  Extra
-			 * values will be unused.
-			 */
-		    }
-
-		    pptr = pvalueptr;
-		    proprec = (PropertyRecord *)mallocMagic(
-				sizeof(PropertyRecord) + ((numvals - 2) * sizeof(int)));
-		    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
-		    proprec->prop_len = numvals;
-
-		    /* Do a second pass through the string to convert the values
-		     * to dimensions and save as an integer array.
-		     */
-		    numvals = 0;
-		    while (*pptr != '\0')
-		    {
+			Rect r;
 			while (isspace(*pptr) && (*pptr != '\0')) pptr++;
 			if (!isspace(*pptr))
 			{
 			    sscanf(pptr, "%d", &ival);
 			    if (scalen > 1) ival *= scalen;
 			    if (scaled > 1) ival /= scaled;
-			    proprec->prop_value.prop_integer[numvals] = ival;
-
+			    switch (numvals)
+			    {
+				case 0:
+				    r.r_xbot = ival;
+				    numvals++;
+				    break;
+				case 1:
+				    r.r_ybot = ival;
+				    numvals++;
+				    break;
+				case 2:
+				    r.r_xtop = ival;
+				    numvals++;
+				    break;
+				case 3:
+				    r.r_ytop = ival;
+				    numvals = 0;
+				    /* Paint this into the plane */
+				    DBPaintPlane(proprec->prop_value.prop_plane,
+						&r, CIFPaintTable,
+						(PaintUndoInfo *)NULL);
+				    break;
+			    }
 			    while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
-			    numvals++;
+			}
+			if (numvals == 0)
+			{
+			    TxError("Mask-hint property number of values is not"
+				" divisible by four.  Truncated.\n");
 			}
 		    }
 		    (void) DBPropPut(cellDef, propertyname, proprec);
@@ -3481,6 +3480,23 @@ DBCellFindScale(cellDef)
     return ggcf;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbFindGCFFunc ---
+ *
+ * Find the greatest common factor between the current GCF and each point
+ * in a tile.
+ *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	May modify the GCF passed as client data to the function.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
 int
 dbFindGCFFunc(tile, dinfo, ggcf)
     Tile *tile;
@@ -3502,6 +3518,24 @@ dbFindGCFFunc(tile, dinfo, ggcf)
 
     return (*ggcf == 1) ? 1 : 0;
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbFindCellGCFFunc ---
+ *
+ * Find the greatest common factor between the current GCF and each point
+ * of a uses bounding box, each component of the use's transform , and 
+ * for arrays, the array pitch.
+ *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	May modify the GCF passed as client data to the function.
+ *
+ * ----------------------------------------------------------------------------
+ */
 
 int
 dbFindCellGCFFunc(cellUse, ggcf)
@@ -3543,6 +3577,23 @@ dbFindCellGCFFunc(cellUse, ggcf)
     return (*ggcf == 1) ? 1 : 0;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbFindPropGCFFunc ---
+ *
+ * Find the greatest common factor between the current GCF and each point
+ * of a dimension property, or each point of each tile in a plane property.
+ *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	May modify the GCF passed as client data to the function.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
 int
 dbFindPropGCFFunc(key, proprec, ggcf)
     char *key;
@@ -3551,19 +3602,27 @@ dbFindPropGCFFunc(key, proprec, ggcf)
 {
     int value, n;
 
-    /* Only PROPERTY_TYPE_DIMENSION properties get handled */
-    if (proprec->prop_type != PROPERTY_TYPE_DIMENSION) return 0;
-
-    for (n = 0; n < proprec->prop_len; n++)
+    if (proprec->prop_type == PROPERTY_TYPE_PLANE)
     {
-	value = proprec->prop_value.prop_integer[n];
-	if (value % (*ggcf) != 0)
-	    *ggcf = FindGCF(value, *ggcf);
+	if (DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+		proprec->prop_value.prop_plane,
+		&TiPlaneRect, &CIFSolidBits, dbFindGCFFunc, (ClientData)ggcf))
+	return (*ggcf == 1) ? 1 : 0;
     }
-
-    return (*ggcf == 1) ? 1 : 0;
+    else if (proprec->prop_type == PROPERTY_TYPE_DIMENSION)
+    {
+	for (n = 0; n < proprec->prop_len; n++)
+	{
+	    value = proprec->prop_value.prop_integer[n];
+	    if (value % (*ggcf) != 0)
+		*ggcf = FindGCF(value, *ggcf);
+	}
+	return (*ggcf == 1) ? 1 : 0;
+    }
+    else
+        /* Only PROPERTY_TYPE_PLANE and PROPERTY_TYPE_DIMENSION get handled */
+	return 0;
 }
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -3572,6 +3631,12 @@ dbFindPropGCFFunc(key, proprec, ggcf)
  *
  *	String comparison of two instance names, for the purpose of sorting
  *	the instances in a .mag file output in a repeatable way.
+ *
+ * Results:
+ *	The string comparison, equivalent to the return value of strcmp().
+ *
+ * Side effects:
+ *	None.
  *
  * ----------------------------------------------------------------------------
  */
@@ -3610,6 +3675,9 @@ struct cellUseList {
  * Return value:
  *	Return 0 to keep the search going.
  *
+ * Side effects:
+ *	Adds to the list of cell uses passed as client data.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -3634,6 +3702,9 @@ dbGetUseFunc(cellUse, useRec)
  *
  * Return value:
  *	Return 0 to keep the search going.
+ *
+ * Side effects:
+ *	Increments the count passed as client data.
  *
  * ----------------------------------------------------------------------------
  */
@@ -3662,6 +3733,12 @@ struct keyValuePair {
  *
  *	String comparison of two property keys, for the purpose of sorting
  *	the properties in a .mag file output in a repeatable way.
+ *
+ * Results:
+ *	The string comparison, equivalent to the result of strcmp().
+ *
+ * Side effects:
+ *	None.
  *
  * ----------------------------------------------------------------------------
  */
@@ -3698,6 +3775,9 @@ struct cellPropList {
  * Return value:
  *	Return 0 to keep the search going.
  *
+ * Side Effects:
+ *	Adds to the list of property records passed as client data.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -3726,6 +3806,9 @@ dbGetPropFunc(key, proprec, propRec)
  *
  * Return value:
  *	Return 0 to keep the search going.
+ *
+ * Side Effects:
+ *	Increments the count passed as client data.
  *
  * ----------------------------------------------------------------------------
  */
@@ -4067,6 +4150,52 @@ ioerror:
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbWritePropPaintFunc --
+ *
+ * Transform tiles in a plane into a set of four coordinate values and output
+ * them to the file.  This turns plane data into a PROP_TYPE_DIMENSION array,
+ * which is not a very efficient form and may be revisited.  For relatively
+ * simple plane data, it suffices.  The property planes are single-bit types.
+ * Note that there is no support for non-Manhattan geometry in the property
+ * plane at this time.
+ *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Writes output to a file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbWritePropPaintFunc(Tile *tile,
+    TileType dinfo,
+    ClientData cdata)
+{
+    pwfrec *pwf = (pwfrec *)cdata;
+    FILE *f = pwf->pwf_file;
+    int reducer = pwf->pwf_reducer;
+    Rect r;
+    char newvalue[20];
+
+    TiToRect(tile, &r);
+
+    snprintf(newvalue, 20, " %d", r.r_xbot / reducer);
+    FPUTSR(f, newvalue);
+    snprintf(newvalue, 20, " %d", r.r_ybot / reducer);
+    FPUTSR(f, newvalue);
+    snprintf(newvalue, 20, " %d", r.r_xtop / reducer);
+    FPUTSR(f, newvalue);
+    snprintf(newvalue, 20, " %d", r.r_ytop / reducer);
+    FPUTSR(f, newvalue);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbWritePropFunc --
  *
  * Filter function used to write out a single cell property.
@@ -4111,6 +4240,12 @@ dbWritePropFunc(key, proprec, cdata)
 	    case PROPERTY_TYPE_INTEGER:
 		FPUTSR(f, "integer ");
 		break;
+	    case PROPERTY_TYPE_PLANE:
+		/* A mask hint is a plane type property;  declare it
+		 * as a dimension, but it's arbitrary anyway since
+		 * the prefix "MASKHINTS_" is detected on read-in and
+		 * the property is parsed as plane data.
+		 */
 	    case PROPERTY_TYPE_DIMENSION:
 		FPUTSR(f, "dimension ");
 		break;
@@ -4142,6 +4277,13 @@ dbWritePropFunc(key, proprec, cdata)
 				/ reducer);
 		FPUTSR(f, newvalue);
 	    }
+	    break;
+	case PROPERTY_TYPE_PLANE:
+	    /* Scan the plane and output each non-space tile as four values */
+	    DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+			proprec->prop_value.prop_plane,
+			&TiPlaneRect, &CIFSolidBits, dbWritePropPaintFunc,
+			(ClientData)cdata);
 	    break;
 	case PROPERTY_TYPE_DOUBLE:
 	    for (i = 0; i < proprec->prop_len; i++)
@@ -4395,6 +4537,12 @@ ioerror:
  *	Callback function used by DBCellWriteCommandFile() to output
  *	commands corresponding to cell layout geometry.
  *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Writes output to a file.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -4460,6 +4608,12 @@ dbWritePaintCommandsFunc(tile, dinfo, cdarg)
  *	Callback function used by DBCellWriteCommandFile() to output
  *	commands corresponding to cell uses in the layout.
  *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Writes output to a file.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -4482,10 +4636,55 @@ dbWriteUseCommandsFunc(cellUse, cdarg)
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbWritePropCommandPaintFunc --
+ *
+ * Transform tiles in a plane into a set of four coordinate values and output
+ * them to the file.  This turns plane data into a PROP_TYPE_DIMENSION array,
+ * which is not a very efficient form and may be revisited.  For relatively
+ * simple plane data, it suffices.  The property planes are single-bit types.
+ * Note that there is no support for non-Manhattan geometry in the property
+ * plane at this time.
+ *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Writes output to a file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbWritePropCommandPaintFunc(Tile *tile,
+    TileType dinfo,
+    FILE *f)
+{
+    Rect r;
+    MagWindow *w;
+
+    TiToRect(tile, &r);
+    windCheckOnlyWindow(&w, DBWclientID);
+    fprintf(f, "%s ", DBWPrintValue(r.r_xbot, w, TRUE));
+    fprintf(f, "%s ", DBWPrintValue(r.r_ybot, w, FALSE));
+    fprintf(f, "%s ", DBWPrintValue(r.r_xtop, w, TRUE));
+    fprintf(f, "%s ", DBWPrintValue(r.r_ytop, w, FALSE));
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbWritePropCommandsFunc ---
  *
  *	Callback function used by DBCellWriteCommandFile() to output
  *	commands corresponding to properties in the layout.
+ *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Writes output to a file.
  *
  * ----------------------------------------------------------------------------
  */
@@ -4540,6 +4739,19 @@ dbWritePropCommandsFunc(key, proprec, cdarg)
 	    fprintf(f, "\n");
 	    break;
 
+	case PROPERTY_TYPE_PLANE:
+	    /* Plane properties are automatically handled as plane data,
+	     * so the property type does not need to be declared.
+	     * Only mask hints can be plane properties.
+	     */
+	    fprintf(f, "property %s ", key);
+	    DBSrPaintArea(PlaneGetHint(proprec->prop_value.prop_plane),
+			proprec->prop_value.prop_plane,
+			&TiPlaneRect, &CIFSolidBits, dbWritePropCommandPaintFunc,
+			(ClientData)f);
+	    fprintf(f, "\n");
+	    break;
+
 	case PROPERTY_TYPE_DOUBLE:
 	    fprintf(f, "property double %s ", key);
 	    for (i = 0; i < proprec->prop_len; i++)
@@ -4572,7 +4784,6 @@ dbWritePropCommandsFunc(key, proprec, cdarg)
  *	cell for APPENDING, then write the new contents to the END of
  *	the file.  If successful, rewind the now-expanded file and
  *	overwrite the beginning of the file, then truncate it.
- *
  *
  * Results:
  *	TRUE if the cell could be written successfully, FALSE otherwise.
