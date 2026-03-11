@@ -2326,7 +2326,7 @@ CmdDoProperty(
 {
     PropertyRecord *proprec;
     char *value;
-    bool propfound;
+    bool propfound, dolist;
     int proptype, proplen, propvalue, i;
     dlong dvalue;
     int locargc = cmd->tx_argc - argstart + 1;
@@ -2344,6 +2344,20 @@ CmdDoProperty(
     static const char * const cmdPropertyType[] = {
 	"string", "integer", "dimension", "double", "plane", "compat", NULL
     };
+
+    /* If the first keyword is "list", then set dolist and increment
+     * the starting argument position.
+     */
+    dolist = FALSE;
+    if (locargc > 1)
+    {
+	if (!strcmp(cmd->tx_argv[argstart], "list"))
+	{
+	    dolist = TRUE;
+	    locargc--;
+	    argstart++;
+	}
+    }
 
     /* If a property type is given, parse it and then strip it from
      * the arguments list.
@@ -2498,9 +2512,9 @@ CmdDoProperty(
 #ifdef MAGIC_WRAPPER
 	    /* If the command was "cellname list property ...", then	*/
 	    /* just return NULL if the property was not found.		*/
-	    if (strcmp(cmd->tx_argv[1], "list"))
+	    if (!dolist)
 #endif
-		TxError("Property name \"%s\" is not defined\n", cmd->tx_argv[1]);
+		TxError("Property name \"%s\" is not defined\n", cmd->tx_argv[argstart]);
 	}
     }
     else if (locargc >= 3)
