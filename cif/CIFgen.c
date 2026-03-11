@@ -5603,7 +5603,7 @@ CIFGenLayer(
 		}
 		break;
 
-	    case CIFOP_LABELED:
+	    case CIFOP_TAGGED:
 		if (hier)
 		{
 		    hstop = TRUE;	/* Stop hierarchical processing */
@@ -5613,8 +5613,8 @@ CIFGenLayer(
 		/*
 		 * Find all relevant labels by text matching and then continue
 		 * like CIFOP_BLOATALL.  CIFOP_BLOATALL uses a BloatData record
-		 * which is not part of CIFOP_LABELED.  Create a BloatData record
-		 * on the fly for each labeled area based on type, and swap it for
+		 * which is not part of CIFOP_TAGGED.  Create a BloatData record
+		 * on the fly for each tagged area based on type, and swap it for
 		 * the text, so that cifBloatAllFunc believes this is actually a
 		 * CIFOP_BLOATALL operation.  Note that we don't actually care
 		 * what layer the label is attached to (lab_type).  We are looking

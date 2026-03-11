@@ -146,7 +146,7 @@ typedef struct cifop
  * CIFOP_BRIDGELIM -	Added 27/07/20---Bridge across catecorner gaps, but with limiting layers
  * CIFOP_MASKHINTS -	Added 12/14/20---Add geometry from cell properties, if any.
  * CIFOP_NOTSQUARE -	Added 2/26/26---Keep only geometry which is not square.
- * CIFOP_LABELED -	Added 3/11/26---Find geometry attached to the given text label
+ * CIFOP_TAGGED -	Added 3/11/26---Find geometry attached to the given text label
  */
 
 #define CIFOP_AND	1
@@ -175,7 +175,7 @@ typedef struct cifop
 #define CIFOP_BRIDGELIM 24
 #define CIFOP_MASKHINTS 25
 #define CIFOP_NOTSQUARE 26
-#define CIFOP_LABELED   27
+#define CIFOP_TAGGED    27
 
 /* Definitions of bit fields used in the value of co_client for CIFOP_INTERACT */
 #define CIFOP_INT_NOT	   0x1		/* Inverted sense (not interacting) */
