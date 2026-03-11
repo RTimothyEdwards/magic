@@ -25,7 +25,7 @@ Attach a "property" (string key and value pair) to the edit cell
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>property</B> [<I>type</I>] [<I>key</I> [<I>value</I>]] <BR>
+      <B>property</B> [<I>list</I>] [<I>type</I>] [<I>key</I> [<I>value</I>]] <BR>
 	or
       <B>property</B> [<B>compat</B>] [<B>true</B>|<B>false</B>] <BR><BR>
       <BLOCKQUOTE>
@@ -64,6 +64,13 @@ Attach a "property" (string key and value pair) to the edit cell
       .mag file.  However, if the user wants to create a property that
       is handled differently than a string (namely, to be a dimensional
       value that scales), then comptability mode should be turned off. <P>
+
+      If the argument <I>list</I> is given as the first argument, and
+      <I>value</I> is not present, then if the property <I>key</I>
+      does not exist, then the command will return a NULL object to the
+      interpreter instead of printing an error message.  This is the
+      "quiet" version of the command preferred for scripts that want to
+      query whether or not a specific property exists.
    </BLOCKQUOTE>
 
    <BLOCKQUOTE>
