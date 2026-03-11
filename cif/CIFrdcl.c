@@ -613,7 +613,7 @@ CIFPaintCurrent(
 	CIFOp *op;
 
 	plane = CIFGenLayer(cifCurReadStyle->crs_layers[i]->crl_ops,
-	    &TiPlaneRect, (CellDef *)NULL, (CellDef *)NULL,
+	    &TiPlaneRect, cifReadCellDef, cifReadCellDef,
 	    cifCurReadPlanes, FALSE, (ClientData)NULL);
 
 	/* Generate a paint/erase table, then paint from the CIF

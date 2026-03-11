@@ -332,7 +332,8 @@ cifNewReadStyle(void)
 		free_magic1_t mm1 = freeMagic1_init();
 		for (op = layer->crl_ops; op != NULL; op = op->co_next)
 		{
-		    if (op->co_opcode == CIFOP_MASKHINTS)
+		    if (op->co_opcode == CIFOP_MASKHINTS ||
+				op->co_opcode == CIFOP_LABELED)
 			freeMagic((char *)op->co_client);
 		    freeMagic1(&mm1, (char *)op);
 		}
@@ -998,6 +999,8 @@ CIFReadTechLine(
 	newOp->co_opcode = CIFOP_NOTSQUARE;
     else if (strcmp(argv[0], "mask-hints") == 0)
 	newOp->co_opcode = CIFOP_MASKHINTS;
+    else if (strcmp(argv[0], "labeled") == 0)
+	newOp->co_opcode = CIFOP_LABELED;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -1027,6 +1030,11 @@ CIFReadTechLine(
         case CIFOP_MASKHINTS:
             if (argc != 2) goto wrongNumArgs;
             newOp->co_client = (ClientData)StrDup((char **)NULL, argv[1]);
+            break;
+        case CIFOP_LABELED:
+            if (argc != 3) goto wrongNumArgs;
+            newOp->co_client = (ClientData)StrDup((char **)NULL, argv[1]);
+	    CIFParseReadLayers(argv[2], &newOp->co_cifMask, TRUE);
             break;
     }
 

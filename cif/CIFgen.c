@@ -25,6 +25,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include <stdlib.h>             /* for abs() */
 #include <math.h>		/* for ceil() and sqrt() */
 #include <ctype.h>
+#include <string.h>		/* for strcmp() */
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -5136,12 +5137,13 @@ CIFGenLayer(
     CIFSquaresInfo csi;
     SearchContext scx;
     TileType ttype;
-    char *netname;
+    char *netname, *text;
+    Label *label;
     BloatStruct bls;
     BridgeStruct brs;
     BridgeLimStruct brlims;
     BridgeData *bridge;
-    BloatData *bloats;
+    BloatData *bloats, locbloat;
     bool hstop = FALSE;
     PropertyRecord *proprec;
     char *propvalue;
@@ -5599,6 +5601,105 @@ CIFGenLayer(
 		    DBCellClearDef(Select2Def);
 		    UndoEnable();
 		}
+		break;
+
+	    case CIFOP_LABELED:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
+
+		/*
+		 * Find all relevant labels by text matching and then continue
+		 * like CIFOP_BLOATALL.  CIFOP_BLOATALL uses a BloatData record
+		 * which is not part of CIFOP_LABELED.  Create a BloatData record
+		 * on the fly for each labeled area based on type, and swap it for
+		 * the text, so that cifBloatAllFunc believes this is actually a
+		 * CIFOP_BLOATALL operation.  Note that we don't actually care
+		 * what layer the label is attached to (lab_type).  We are looking
+		 * for labels whose lab_rect values overlap the types that are given
+		 * in the rule.
+		 */
+
+		cifPlane = curPlane;
+		bls.op = op;
+		bls.def = cellDef;
+		bls.temps = temps;
+
+		text = (char *)op->co_client;
+
+	        bloats = &locbloat;
+		if (!TTMaskIsZero(&op->co_cifMask))
+		{
+		    bloats->bl_plane = -1;
+		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++)
+		    {
+			if (TTMaskHasType(&op->co_cifMask, ttype))
+		    	    bloats->bl_distance[ttype] = 1;
+			else
+		    	    bloats->bl_distance[ttype] = 0;
+		    }
+		}
+		else if (!TTMaskIsZero(&op->co_paintMask))
+		{
+		    int plane, pmask;
+		    pmask = DBTechTypesToPlanes(&op->co_paintMask);
+		    for (plane = PL_TECHDEPBASE; plane < DBNumPlanes; plane++)
+			if (PlaneMaskHasPlane(pmask, plane))
+			    break;
+		    bloats->bl_plane = plane;
+		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++)
+		    {
+			if (TTMaskHasType(&op->co_paintMask, ttype))
+		    	    bloats->bl_distance[ttype] = 1;
+			else
+		    	    bloats->bl_distance[ttype] = 0;
+		    }
+		}
+
+		/* Replace the client data with the bloat record */
+		op->co_client = (ClientData)bloats;
+
+	        if (bloats->bl_plane < 0)
+	        {
+		   /* bl_plane == -1 indicates bloating into a CIF templayer,	*/
+		   /* so the only connecting type should be CIF_SOLIDTYPE.	*/
+		   TTMaskSetOnlyType(&bls.connect, CIF_SOLIDTYPE);
+	        }
+	        else
+	        {
+		    int i;
+		    TTMaskZero(&bls.connect);
+		    for (i = 0; i < TT_MAXTYPES; i++)
+			if (bloats->bl_distance[i] != 0)
+			  TTMaskSetType(&bls.connect, i);
+	        }
+
+		for (label = cellDef->cd_labels; label; label = label->lab_next)
+		    if (!strcmp(label->lab_text, text))
+			cifSrTiles(op, &label->lab_rect, cellDef, temps,
+				cifBloatAllFunc, (ClientData)&bls);
+
+	        /* Reset marked tiles */
+
+	        if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
+	        {
+		    bls.temps = temps;
+		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, bls.temps++)
+			if (bloats->bl_distance[ttype] > 0)
+			    (void) DBSrPaintArea((Tile *)NULL, *bls.temps, &TiPlaneRect,
+				    &CIFSolidBits, cifProcessResetFunc,
+				    (ClientData)NULL);
+	        }
+	        else
+		    DBSrPaintArea((Tile *)NULL, cellDef->cd_planes[bloats->bl_plane],
+			    &TiPlaneRect, &bls.connect, cifProcessResetFunc,
+			    (ClientData)NULL);
+
+		/* Replace the client data */
+		op->co_client = (ClientData)text;
+
 		break;
 
 	    case CIFOP_BOUNDARY:

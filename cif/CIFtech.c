@@ -1107,6 +1107,8 @@ CIFTechLine(
 	newOp->co_opcode = CIFOP_BBOX;
     else if (strcmp(argv[0], "net") == 0)
 	newOp->co_opcode = CIFOP_NET;
+    else if (strcmp(argv[0], "labeled") == 0)
+	newOp->co_opcode = CIFOP_LABELED;
     else if (strcmp(argv[0], "maxrect") == 0)
 	newOp->co_opcode = CIFOP_MAXRECT;
     else if (strcmp(argv[0], "boundary") == 0)
@@ -1357,6 +1359,7 @@ bloatCheck:
 	    bloatDone: break;
 
 	case CIFOP_NET:
+	case CIFOP_LABELED:
 	    if (argc != 3) goto wrongNumArgs;
 	    newOp->co_client = (ClientData)StrDup((char **)NULL, argv[1]);
 	    cifParseLayers(argv[2], CIFCurStyle, &newOp->co_paintMask,
@@ -1671,12 +1674,12 @@ cifComputeRadii(
 
     for (op = layer->cl_ops; op != NULL; op = op->co_next)
     {
-	/* BBOX, NET, and MASKHINTS operators should never be used	*/
-	/* hierarchically so ignore any grow/shrink operators that	*/
+	/* BBOX, NET, LABELED, and MASKHINTS operators should never be	*/
+	/* used	hierarchically so ignore any grow/shrink operators that	*/
 	/* come after them.						*/
 
 	if (op->co_opcode == CIFOP_BBOX || op->co_opcode == CIFOP_NET ||
-		    op->co_opcode == CIFOP_MASKHINTS)
+		    op->co_opcode == CIFOP_LABELED || op->co_opcode == CIFOP_MASKHINTS)
 	    break;
 
 	/* If CIF layers are used, switch to the max of current
@@ -1988,8 +1991,8 @@ CIFTechFinal(void)
 		/* Presence of op->co_opcode in CIFOP_OR indicates a copy */
 		/* of the SquaresData pointer from a following operator.  */
 		/* CIFOP_BBOX and CIFOP_MAXRECT uses the co_client field  */
-		/* as a flag field, while CIFOP_NET and CIFOP_MASKHINTS	  */
-		/* uses it for a string.				  */
+		/* as a flag field, while CIFOP_NET, CIFOP_MASKHINTS, and */
+		/* CIFOP_LABELED use it for a string.			  */
 		else
 		{
 		    switch (op->co_opcode)
@@ -2001,6 +2004,7 @@ CIFTechFinal(void)
 			case CIFOP_MAXRECT:
 			case CIFOP_MANHATTAN:
 			case CIFOP_NET:
+			case CIFOP_LABELED:
 			    break;
 			case CIFOP_BRIDGELIM:
 			case CIFOP_BRIDGE:
@@ -2536,6 +2540,7 @@ CIFTechOutputScale(
 			case CIFOP_MAXRECT:
 			case CIFOP_MANHATTAN:
 			case CIFOP_NET:
+			case CIFOP_LABELED:
 			case CIFOP_INTERACT:
 			    break;
 			case CIFOP_BRIDGELIM:
@@ -2651,8 +2656,8 @@ CIFTechOutputScale(
 		    default:
 			/* op->co_opcode in CIFOP_OR is a pointer copy,	*/
 			/* in CIFOP_BBOX and CIFOP_MAXRECT is a	flag,	*/
-			/* and in CIFOP_NET and CIFOP_MASKHINTS is a	*/
-			/* string.					*/
+			/* and in CIFOP_NET, CIFOP_MASKHINTS, and	*/
+			/* CIFOP_LABELED is a string.			*/
 			break;
 		}
 	    }
