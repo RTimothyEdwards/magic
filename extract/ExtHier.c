@@ -354,8 +354,8 @@ extHierConnections(ha, cumFlat, oneFlat)
 	if (!(lab->lab_flags & LABEL_STICKY)) continue;
 
 	r = lab->lab_rect;
+	if (!GEO_TOUCH(&r, &ha->ha_subArea)) continue;
 	GEOCLIP(&r, &ha->ha_subArea);
-	if (GEO_RECTNULL(&r)) continue;
 
 	cumDef = cumFlat->et_use->cu_def;
 	connected = &DBConnectTbl[lab->lab_type];

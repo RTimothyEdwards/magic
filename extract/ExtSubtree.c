@@ -251,6 +251,17 @@ extSubtree(parentUse, reg, f)
 			if (result == 0) {
 			    /* If result == FALSE then ha.ha_interArea is invalid. */
 			    ha.ha_interArea = rlab;
+			    /* Ensure that the interaction area is not zero */
+			    if (ha.ha_interArea.r_xtop - ha.ha_interArea.r_xbot == 0)
+			    {
+				ha.ha_interArea.r_xtop++;
+				ha.ha_interArea.r_xbot--;
+			    }
+			    if (ha.ha_interArea.r_ytop - ha.ha_interArea.r_ybot == 0)
+			    {
+				ha.ha_interArea.r_ytop++;
+				ha.ha_interArea.r_ybot--;
+			    }
 			    result = 1;
 			}
 			else
@@ -779,6 +790,7 @@ extSubtreeFunc(scx, ha)
      */
     ha->ha_subArea = use->cu_bbox;
     GEOCLIP(&ha->ha_subArea, &ha->ha_interArea);
+
     hy.hy_area = &ha->ha_subArea;
     hy.hy_target = oneFlat->et_use;
     hy.hy_prefix = TRUE;
