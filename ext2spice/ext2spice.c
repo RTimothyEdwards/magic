@@ -3140,6 +3140,7 @@ spcdevVisit(
 
 	    if (!has_model)
 	    {
+		fprintf(esSpiceF, " ");
 		esSIvalue(esSpiceF, 1.0E-15 * (double)sdM * (double)dev->dev_cap);
 		spcWriteParams(dev, hierName, scale, l, w, sdM, FALSE);
 	    }
@@ -3186,6 +3187,7 @@ spcdevVisit(
 
 	    if (!has_model)
 	    {
+		fprintf(esSpiceF, " ");
 		esSIvalue(esSpiceF, 1.0E-15 * (double)sdM * (double)dev->dev_cap);
 		spcWriteParams(dev, hierName, scale, l, w, sdM, FALSE);
 	    }
