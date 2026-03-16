@@ -789,8 +789,8 @@ calmaElementSref(
     char *filename)
 {
     int nbytes, rtype, cols, rows, nref, n, i, savescale;
-    int xlo, ylo, xhi, yhi, xsep, ysep;
-    bool madeinst = FALSE;
+    int xlo, ylo, xhi, yhi, xsep, ysep, angle;
+    bool madeinst = FALSE, rotated = FALSE;
     char *sname = NULL;
     bool isArray = FALSE;
     bool dolookahead = FALSE;
@@ -990,6 +990,14 @@ calmaElementSref(
 	refarray[2].p_x = refarray[2].p_y = 0;
     }
 
+    /* If the array is given an angle, then the meaning of rows and
+     * columns needs to be swapped for the purpose of ignoring
+     * X or Y values in the case of a 1-row or 1-column entry.
+     */
+    angle = GeoTransAngle(&trans, 0);
+    if ((angle == 90) || (angle == 270) || (angle == -90) || (angle == -270))
+	rotated = TRUE;
+
     /* If this is a cell reference, then we scale to magic coordinates
      * and place the cell in the magic database.  However, if this is
      * a cell to be flattened a la "gds flatten", then we keep the GDS
@@ -1000,6 +1008,7 @@ calmaElementSref(
      * is problematic, and probably incorrect.
      */
 
+  
     for (n = 0; n < nref; n++)
     {
 	savescale = calmaReadScale1;
@@ -1011,17 +1020,17 @@ calmaElementSref(
 	 * them as needed.
 	 */
 
-	if ((n > 0) && (rows == 1))
+	if ((n > 0) && ((!rotated && (rows == 1)) || (rotated && (cols == 1))))
 	{
 	    calmaReadX(&refarray[n], 1);
 	    calmaSkipBytes(4);
-	    refarray[n].p_y = 0;
+	    refarray[n].p_y = refarray[0].p_y;
 	}
-	else if ((n > 0) && (cols == 1))
+	else if ((n > 0) && ((!rotated && (cols == 1)) || (rotated && (rows == 1))))
 	{
 	    calmaSkipBytes(4);
 	    calmaReadY(&refarray[n], 1);
-	    refarray[n].p_x = 0;
+	    refarray[n].p_x = refarray[0].p_x;
 	}
 	else
 	    calmaReadPoint(&refarray[n], 1);
