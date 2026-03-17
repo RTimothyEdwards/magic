@@ -1178,17 +1178,7 @@ proc magic::add_entry {pname ptext parameters} {
 proc magic::add_check_callbacks {gencell_type library} {
     set wlist [winfo children .params.body.area.edits]
     foreach w $wlist {
-        if {[regexp {\.params\.body\.area\.edits\.(.+)_ent} $w valid pname]} {
-	    # Add callback on enter or focus out
-	    bind $w <Return> \
-			"magic::update_dialog {} $pname $gencell_type $library"
-	    bind $w <FocusOut> \
-			"magic::update_dialog {} $pname $gencell_type $library"
-	}
-        if {[regexp {\.params\.body\.area\.edits\.(.+)_sel} $w valid pname]} {
-	    magic::add_dependency \{\} $gencell_type $library $pname
-	}
-        if {[regexp {\.params\.body\.area\.edits\.(.+)_chk} $w valid pname]} {
+	if {[regexp {\.params\.body\.area\.edits\.(.+)_.+} $w valid pname]} {
 	    magic::add_dependency \{\} $gencell_type $library $pname
 	}
     }
@@ -1207,6 +1197,11 @@ proc magic::add_check_callbacks {gencell_type library} {
 # dictionary.
 #
 # Also handle dependencies on checkboxes and selection lists
+#
+# If dependency callbacks exist, then chain them together.
+# A final default dependency will be added to all entries
+# to run the "check" procedure for the device.  Dependencies
+# that are more targeted get run first.
 #----------------------------------------------------------
 
 proc magic::add_dependency {callback gencell_type library args} {
@@ -1221,21 +1216,28 @@ proc magic::add_dependency {callback gencell_type library args} {
     foreach pname $args {
         if {[lsearch $clist .params.body.area.edits.${pname}_ent] >= 0} {
 	    # Add callback on enter or focus out
-	    bind .params.body.area.edits.${pname}_ent <Return> \
-			"magic::update_dialog $callback $pname $gencell_type $library"
-	    bind .params.body.area.edits.${pname}_ent <FocusOut> \
-			"magic::update_dialog $callback $pname $gencell_type $library"
+	    set oldbind [bind .params.body.area.edits.${pname}_ent <Return>]
+	    set newbind "magic::update_dialog $callback $pname $gencell_type $library"
+	    if {$oldbind != {}} {set newbind "$oldbind ; $newbind"}
+	    bind .params.body.area.edits.${pname}_ent <Return> $newbind
+	    set oldbind [bind .params.body.area.edits.${pname}_ent <FocusOut>]
+	    set newbind "magic::update_dialog $callback $pname $gencell_type $library"
+	    if {$oldbind != {}} {set newbind "$oldbind ; $newbind"}
+	    bind .params.body.area.edits.${pname}_ent <FocusOut> $newbind
 	} elseif {[lsearch $clist .params.body.area.edits.${pname}_chk] >= 0} {
 	    # Add callback on checkbox change state
-	    .params.body.area.edits.${pname}_chk configure -command \
-			"magic::update_dialog $callback $pname $gencell_type $library"
+	    set oldcmd [.params.body.area.edits.${pname}_chk cget -command]
+	    set newcmd "magic::update_dialog $callback $pname $gencell_type $library"
+	    if {$oldcmd != {}} {set newcmd "$oldcmd ; $newcmd"}
+	    .params.body.area.edits.${pname}_chk configure -command $newcmd
 	} elseif {[lsearch $clist .params.body.area.edits.${pname}_sel] >= 0} {
 	    set smenu .params.body.area.edits.${pname}_sel.menu
 	    set sitems [${smenu} index end]
 	    for {set idx 0} {$idx <= $sitems} {incr idx} {
-		set curcommand [${smenu} entrycget $idx -command]
-		${smenu} entryconfigure $idx -command "$curcommand ; \
-		magic::update_dialog $callback $pname $gencell_type $library"
+		set oldcmd [${smenu} entrycget $idx -command]
+		set newcmd "magic::update_dialog $callback $pname $gencell_type $library"
+		if {$oldcmd != {}} {set newcmd "$oldcmd ; $newcmd"}
+		${smenu} entryconfigure $idx -command $newcmd
 	    }
 	}
     }
