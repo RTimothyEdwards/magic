@@ -12,6 +12,8 @@
 # Added spice-to-layout procedure
 # March 4, 2026
 # Changed to make use of new "units" command
+# March 26, 2026
+# Added behavior to handle ideal capacitor and resistor devices
 #--------------------------------------------------------------
 # Sets up the environment for a toolkit.  The toolkit must
 # supply a namespace that is the "library name".  For each
@@ -281,8 +283,12 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	set paramlist {}
 
 	# NOTE:  This routine deals with subcircuit calls and devices
-	# with models.  It needs to determine when a device is instantiated
-	# without a model, and ignore such devices.
+	# with models.  There are two exceptions, for toolkits which
+	# wish to implement a way to generate unmodeled capacitors or
+	# resistors based on value;  for example, metal interdigitated
+	# capacitors.  For those exceptions, the device value is recast
+	# as a parameter called "value", and the device is given a model
+	# "capacitor" or "resistor", respectively.
 
 	# Parse SPICE line into pins, device name, and parameters.  Make
 	# sure parameters incorporate quoted expressions as {} or ''.
@@ -325,6 +331,20 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	set instname [lindex $pinlist 0]
 	set devtype [lindex $pinlist end]
 	set pinlist [lrange $pinlist 0 end-1]
+
+	# Ideal device check:  "devtype" will start with a digit.
+	# The instname will begin with "c" or "r".
+
+	if {[regexp {^([0-9\.]+.*)} $devtype pval]} {
+	    set comptype [string tolower [string range $instname 0 0]]
+	    if {$comptype == "c"} {
+		lappend paramlist [list value $pval]
+		set devtype capacitor
+	    } elseif {$comptype == "r"} {
+		lappend paramlist [list value $pval]
+		set devtype resistor
+	    }
+	}
 
 	set mult 1
 	foreach param $paramlist {
