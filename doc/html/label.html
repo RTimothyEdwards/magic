@@ -87,6 +87,50 @@ Place a label in the layout
       to another layer. <P>
    </BLOCKQUOTE>
 
+   <BLOCKQUOTE>
+      <B>Attribute labels:</B> <P>
+      A handful of labels are referred to as "attribute" labels.  These
+      label types are placed on devices and affect how the device is
+      extracted. <P>
+
+      A label that is placed inside a device (e.g., a MOSFET gate) which
+      ends with the character "<B>^</B>" is a <I>gate attribute</I>.  A
+      gate attribute in the form of "<I>name</I><B>=</B><I>value</I><B>^</B>"
+      specifies an extra parameter to be passed to the device in addition
+      to the standard parameters calculated for that device.  This is used
+      to capture parameters which cannot easily be inferred from the layout.
+      For example, an RF device model might be distinguished from a non-RF
+      device model by a parameter such as <B>rfmode=1</B>.  Whether or not
+      a device is intended for RF use is not easily guessed from the layout,
+      and so "tagging" the gate with the parameter allows the correct model
+      parameters to be used for the device. <P>
+
+      A gate attribute that is not in the form of a parameter will be used
+      as the device's instance index in the netlist;  e.g.,  a label of
+      "<B>1^</B>" on a MOSFET gate extracted as a MOSFET device would be an
+      entry "<B>M1</B>" in the netlist.  This can be used to better track
+      device indexes between a schematic and layout. <P>
+
+      A label that is placed on the <I>edge</I> a device, specificlly  a
+      MOSFET gate, and which ends with the character "<B>$</B>", is a
+      <I>terminal attribute</I>.  The only terminal attributes recognized
+      by magic are <B>S$</B> and <B>D$</B>, which specify which side of the
+      gate is to be considered the source and which is to be considered the
+      drain.  Generally, MOSFET devices are symmetric, and their use in a
+      simulation does not depend on which side is in the position of the
+      "source" and which is in the position of the "drain".  To the extent
+      that it matters, the terminal attributes can be used to ensure that
+      the source and drain connections appear in the netlist in their
+      intended orientation. <P>
+
+      Labels ending with "<B>@</B>" are <I>node attributes</I>.  There is
+      currently no functional application for node attributes.  When one
+      is applied, it will appear in the output netlist in a SPICE comment
+      line indicating the node and attribute.  This could be used, say,
+      by a post-processing script, but as it is in a comment line, it has
+      no impact on simulation or LVS.
+   </BLOCKQUOTE>
+
 <H3>Implementation Notes:</H3>
    <BLOCKQUOTE>
       <B>label</B> is implemented as a built-in command in <B>magic</B>.
