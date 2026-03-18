@@ -362,6 +362,27 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	    }
 	}
 
+	# Check if devtype has routines by looking for ${devtype}_defaults.
+	# If not found, do a case-insensitive check against all devices
+	# before deciding that devtype is a subcircuit and not a device.
+	# If found by case-insensitive check, then change the device name
+	# to the one used in the library.
+
+	if {$library != ""} {
+	    set alldevices [namespace eval ::${library} {info procs}]
+	} else {
+	    set alldevices [namespace eval ::${PDKNAMESPACE} {info procs}]
+	}
+	set devdefault [lsearch $alldevices ${devtype}_defaults]
+	if {$devdefault == -1} {
+	    set devdefault [lsearch -nocase $alldevices ${devtype}_defaults]
+	    if {$devdefault != -1} {
+		set devprocname [lindex $alldevices $devdefault]
+		set devproclist [split $devprocname "_"]
+		set devtype [lindex $devproclist 0]
+	    }
+	}
+
         # devtype is assumed to be in library.  If not, it will attempt to
 	# use 'getcell' on devtype.  Note that this code depends on the
 	# PDK setting varible PDKNAMESPACE.
