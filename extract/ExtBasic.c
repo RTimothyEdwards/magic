@@ -1835,6 +1835,8 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
     ParamList *chkParam;
     HashEntry *he;
     ResValue resvalue;
+    LabRegion *node;	/* Node connected to gate terminal */
+    LabelList *ll;	/* Gate's label list */
 
     for (chkParam = devptr->exts_deviceParams; chkParam
 		!= NULL; chkParam = chkParam->pl_next)
@@ -1964,6 +1966,34 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
 	    default:
 		fprintf(outFile, " %c=", chkParam->pl_param[0]);
 		break;
+	}
+    }
+
+    /* If there are device attribute labels (labels attached to the device
+     * type ending with "^") with "=" in them, then treat them as extra
+     * parameters.  Output each one and remove the gate attribute property
+     * from the label.
+     */
+
+    node = (LabRegion *)ExtGetRegion(reg->treg_tile, reg->treg_dinfo);
+    for (ll = node->lreg_labels; ll; ll = ll->ll_next)
+    {
+	if (ll->ll_attr == LL_GATEATTR)
+	{
+	    char cs, *ct, *cp = ll->ll_label->lab_text;
+	    if (strchr(cp, '=') != NULL)
+	    {
+		/* Since this is an attribute label, it has a special character
+		 * at the end, which needs to be stripped off while printing
+		 * and then put back again.
+		 */
+		ct = ll->ll_label->lab_text + strlen(ll->ll_label->lab_text) - 1;
+		cs = *ct;
+		*ct = '\0';
+		fprintf(outFile, " %s", ll->ll_label->lab_text);
+		ll->ll_attr = LL_NOATTR;
+		*ct = cs;
+	    }
 	}
     }
 }
