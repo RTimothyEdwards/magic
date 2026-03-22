@@ -36,7 +36,7 @@ typedef struct drccookie
     TileTypeBitMask   drcc_mask;	/* Legal types on RHS */
     TileTypeBitMask   drcc_corner;	/* Types that trigger corner check */
     unsigned short    drcc_flags;	/* Miscellaneous flags, see below. */
-    char    	      drcc_exception;	/* Index to list of exceptions */
+    signed char       drcc_exception;	/* Index to list of exceptions */
     int		      drcc_edgeplane;	/* Plane of edge */
     int		      drcc_plane;	/* Index of plane on which to check
 					 * legal types. */

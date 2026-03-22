@@ -770,7 +770,7 @@ drcTile (tile, dinfo, arg)
 		    PropertyRecord *proprec;
 		    bool propfound, isinside = FALSE;
 		    char *name;
-		    char idx = cptr->drcc_exception;
+		    signed char idx = cptr->drcc_exception;
 		    if (idx < 0) idx = -idx - 1;
 		    name = DRCCurStyle->DRCExceptionList[idx];
 
@@ -1216,7 +1216,7 @@ drcTile (tile, dinfo, arg)
 		    PropertyRecord *proprec;
 		    bool propfound, isinside = FALSE;
 		    char *name;
-		    char idx = cptr->drcc_exception;
+		    signed char idx = cptr->drcc_exception;
 		    if (idx < 0) idx = -idx - 1;
 		    name = DRCCurStyle->DRCExceptionList[idx];
 

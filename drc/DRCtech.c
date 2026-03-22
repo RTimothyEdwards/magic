@@ -76,7 +76,7 @@ static int DRCtag = 0;
  * while reading the DRC tech file section.
  */
 
-static char drcCurException = (char)DRC_EXCEPTION_NONE;
+static signed char drcCurException = (char)DRC_EXCEPTION_NONE;
 
 /*
  * Forward declarations.
