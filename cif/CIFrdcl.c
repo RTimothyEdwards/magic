@@ -1786,8 +1786,8 @@ CIFReadCellCleanup(
     }
 
     /* Do geometrical processing on the top-level cell. */
+    if (filetype == FILE_CIF) CIFPaintCurrent(filetype);
 
-    CIFPaintCurrent(FILE_CIF);
     DBAdjustLabels(EditCellUse->cu_def, &TiPlaneRect);
     DBReComputeBbox(EditCellUse->cu_def);
     DBWAreaChanged(EditCellUse->cu_def, &EditCellUse->cu_def->cd_bbox,
