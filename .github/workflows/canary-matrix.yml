@@ -138,6 +138,8 @@ jobs:
           echo "BUILD_GCC_VERSION=$BUILD_GCC_VERSION" >> $GITHUB_ENV
           echo "BUILD_CLANG_VERSION=$BUILD_CLANG_VERSION" >> $GITHUB_ENV
 
+          sudo apt-get update
+
           if [ -n "$BUILD_GCC_VERSION" ]
           then
             GCCV=$BUILD_GCC_VERSION
