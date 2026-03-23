@@ -614,6 +614,7 @@ termtop:
 
 termdone:
 	/* (continue) */
+	(void)0; /* older compilers need a statement after the label to prevent a compile error */
     }
     
     /* Clean up---Put the ClientData entries in the tiles back to
