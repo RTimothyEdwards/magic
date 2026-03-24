@@ -36,7 +36,7 @@ typedef struct drccookie
     TileTypeBitMask   drcc_mask;	/* Legal types on RHS */
     TileTypeBitMask   drcc_corner;	/* Types that trigger corner check */
     unsigned short    drcc_flags;	/* Miscellaneous flags, see below. */
-    signed char       drcc_exception;	/* Index to list of exceptions */
+    unsigned char     drcc_exception;	/* Index to list of exceptions */
     int		      drcc_edgeplane;	/* Plane of edge */
     int		      drcc_plane;	/* Index of plane on which to check
 					 * legal types. */
@@ -92,8 +92,10 @@ typedef struct drccookie
 #define DRC_UNPROCESSED 		CLIENTDEFAULT
 #define DRC_PROCESSED 			1
 
-/* drcc_exception defaults to -128 (0x80) meaning no exceptions/exemptions */
-#define	DRC_EXCEPTION_NONE (char)0x80
+/* drcc_exception defaults to 255 meaning no exceptions/exemptions */
+#define	DRC_EXCEPTION_NONE ((unsigned char)0xff)
+/* The high bit of the value determines if this is an exception or an exemption.
+#define DRC_EXCEPTION_MASK ((unsigned char)0x80)
 
 /*
  * Background DRC (DRC Idle proc) for Tcl-based Magic

@@ -76,7 +76,7 @@ static int DRCtag = 0;
  * while reading the DRC tech file section.
  */
 
-static signed char drcCurException = (char)DRC_EXCEPTION_NONE;
+static unsigned char drcCurException = DRC_EXCEPTION_NONE;
 
 /*
  * Forward declarations.
@@ -405,7 +405,9 @@ drcWhyCreate(whystring)
  * not already exist.
  *
  * Results:
- *	The index of the exception (which is a signed character).
+ *	The index of the exception (which is an unsigned character containing
+ *	the index in the lower 7 bits and a high bit indicating if the rule
+ *	is an exception (0) or an exemption (1)).
  *
  * Side effects:
  *	Adds to the DRCExceptionList if "name" has not been used before.
@@ -414,7 +416,7 @@ drcWhyCreate(whystring)
  * ----------------------------------------------------------------------------
  */
 
-char
+unsigned char
 drcExceptionCreate(name)
     char *name;
 {
@@ -424,13 +426,14 @@ drcExceptionCreate(name)
     /* NOTE:  DRCExceptionList has "MASKHINTS_" prepended to the names */
     for (i = 0; i < DRCCurStyle->DRCExceptionSize; i++)
 	if (!strcmp(name, DRCCurStyle->DRCExceptionList[i] + 10))
-	    return (char)i;
+	    return (unsigned char)i;
 
-    if (i > 127)
+    /* Note that i cannot be 127 as this is reserved for DRC_EXCEPTION_NONE */
+    if (i > 126)
     {
 	/* I would be shocked if this code ever got executed. */
-	TxError("Error:  Too many rule exceptions!  Limit is 127.\n");
-	return (char)DRC_EXCEPTION_NONE;
+	TxError("Error:  Too many rule exceptions!  Limit is 126.\n");
+	return DRC_EXCEPTION_NONE;
     }
 
     /* Create a new list that is one entry longer than the old list.
@@ -448,7 +451,7 @@ drcExceptionCreate(name)
     if (DRCCurStyle->DRCExceptionList != (char **)NULL)
 	freeMagic(DRCCurStyle->DRCExceptionList);
     DRCCurStyle->DRCExceptionList = newlist;
-    return (char)i;
+    return (unsigned char)i;
 }
     
 /*
@@ -732,7 +735,7 @@ DRCTechStyleInit()
 	    }
 
     drcCifInit();
-    drcCurException = (char)DRC_EXCEPTION_NONE;
+    drcCurException = DRC_EXCEPTION_NONE;
 }
 
 /*
@@ -3726,9 +3729,10 @@ drcRectangle(argc, argv)
  *	Returns 0.
  *
  * Side effects:
- *	Updates drcCurException.  drcCurException is zero or positive for 
- *	exceptions and negative for exemptions.  The index can be
- *	recovered from a negative value by negating it and subtracting 1.
+ *	Updates drcCurException.  drcCurException contains the index in
+ *	the lower 7 bits, and a flag in the upper bit (0 = exception rule,
+ *	1 = exemption rule).  The index can be recovered by masking off
+ *	the upper bit.
  *
  * ----------------------------------------------------------------------------
  */
@@ -3745,7 +3749,7 @@ drcException(argc, argv)
     /* Assume that argc must be 2 because the parser insists upon it */
 
     if (!strcmp(argv[1], "none"))
-	drcCurException = (char)DRC_EXCEPTION_NONE;
+	drcCurException = DRC_EXCEPTION_NONE;
     else
 	drcCurException = drcExceptionCreate(argv[1]);
     return (0);
@@ -3763,9 +3767,9 @@ drcExemption(argc, argv)
     /* Assume that argc must be 2 because the parser insists upon it */
 
     if (!strcmp(argv[1], "none"))
-	drcCurException = (char)DRC_EXCEPTION_NONE;
+	drcCurException = DRC_EXCEPTION_NONE;
     else
-	drcCurException = -(drcExceptionCreate(argv[1])) - 1;
+	drcCurException = drcExceptionCreate(argv[1]) | DRC_EXCEPTION_MASK;
     return (0);
 }
 

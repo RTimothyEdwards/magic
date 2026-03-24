@@ -765,13 +765,12 @@ drcTile (tile, dinfo, arg)
 			cptr = cptr->drcc_next)
 	    {
 		/* Handle rule exceptions and exemptions */
-		if (cptr->drcc_exception != (char)DRC_EXCEPTION_NONE)
+		if (cptr->drcc_exception != DRC_EXCEPTION_NONE)
 		{
 		    PropertyRecord *proprec;
 		    bool propfound, isinside = FALSE;
 		    char *name;
-		    signed char idx = cptr->drcc_exception;
-		    if (idx < 0) idx = -idx - 1;
+		    int idx = cptr->drcc_exception & ~DRC_EXCEPTION_MASK;
 		    name = DRCCurStyle->DRCExceptionList[idx];
 
 		    /* Is there any exception area defined? */
@@ -797,8 +796,10 @@ drcTile (tile, dinfo, arg)
 		     * an exception area.  Exception rules are ignored if
 		     * the edge is outside an exception area.
 		     */
-		    if (!isinside && (cptr->drcc_exception >= 0)) continue;
-		    if (isinside && (cptr->drcc_exception < 0)) continue;
+		    if (!isinside && ((cptr->drcc_exception & DRC_EXCEPTION_MASK) == 0)))
+			continue;
+		    if (isinside && ((cptr->drcc_exception & DRC_EXCEPTION_MASK) == 1)))
+			continue;
 		}
 
 	    	/* DRC_ANGLES_90 and DRC_SPLITTILE rules are handled by	*/
@@ -1211,23 +1212,16 @@ drcTile (tile, dinfo, arg)
 				cptr = cptr->drcc_next)
 	    {
 		/* Handle rule exceptions and exemptions */
-		if (cptr->drcc_exception != (char)DRC_EXCEPTION_NONE)
+		if (cptr->drcc_exception != DRC_EXCEPTION_NONE)
 		{
 		    PropertyRecord *proprec;
 		    bool propfound, isinside = FALSE;
 		    char *name;
-		    signed char idx = cptr->drcc_exception;
-		    if (idx < 0) idx = -idx - 1;
+		    int idx = cptr->drcc_exception & ~DRC_EXCEPTION_MASK;
 		    name = DRCCurStyle->DRCExceptionList[idx];
 
 		    /* Is there any exception area defined? */
 		    proprec = DBPropGet(arg->dCD_celldef, name, &propfound);
-
-		    /* Quickest case:  Rule is an exception but there are no
-		     * exception areas.
-		     */
-		    if ((!propfound) && (cptr->drcc_exception >= 0))
-			continue;
 
 		    /* If an exception area exists, is the error edge inside? */
 		    if (propfound)
@@ -1249,8 +1243,10 @@ drcTile (tile, dinfo, arg)
 		     * an exception area.  Exception rules are ignored if
 		     * the edge is outside an exception area.
 		     */
-		    if (isinside && (cptr->drcc_exception < 0)) continue;
-		    if (!isinside && (cptr->drcc_exception >= 0)) continue;
+		    if (!isinside && ((cptr->drcc_exception & DRC_EXCEPTION_MASK) == 0)))
+			continue;
+		    if (isinside && ((cptr->drcc_exception & DRC_EXCEPTION_MASK) == 1)))
+			continue;
 		}
 
 	    	/* DRC_ANGLES_90 and DRC_SPLITTILE rules are handled by	*/
