@@ -2488,7 +2488,7 @@ CmdDoProperty(
 		    for (i = 0; i < proprec->prop_len; i++)
 			TxPrintf("%s ", DBWPrintValue(
 				proprec->prop_value.prop_integer[i], w,
-				((i % 2) == 0) ? TRUE : FALSE);
+				((i % 2) == 0) ? TRUE : FALSE));
 		
 		    TxPrintf("\n");
 		    break;
@@ -2856,18 +2856,18 @@ int
 printPlanePropFunc(
     Tile *tile,
     TileType dinfo,
-    ClientData cdata	/* (unused) */
+    ClientData cdata)	/* (unused) */
 {
     Rect r;
     MagWindow *w;
 
-    TiToRect(tile, &r)
+    TiToRect(tile, &r);
     windCheckOnlyWindow(&w, DBWclientID); 
 
-    TxPrintf("%s ", DBWPrintValue(r.r_xbot, w, TRUE); 
-    TxPrintf("%s ", DBWPrintValue(r.r_ybot, w, FALSE); 
-    TxPrintf("%s ", DBWPrintValue(r.r_xtop, w, TRUE); 
-    TxPrintf("%s ", DBWPrintValue(r.r_ytop, w, FALSE); 
+    TxPrintf("%s ", DBWPrintValue(r.r_xbot, w, TRUE));
+    TxPrintf("%s ", DBWPrintValue(r.r_ybot, w, FALSE));
+    TxPrintf("%s ", DBWPrintValue(r.r_xtop, w, TRUE));
+    TxPrintf("%s ", DBWPrintValue(r.r_ytop, w, FALSE));
     return 0;
 }
 
@@ -2931,19 +2931,19 @@ printPropertiesFunc(
     switch (proprec->prop_type)
     {
 	case PROPERTY_TYPE_STRING:
-	    TxPrintf("%s = %s\n", name, (const char *)proprec->prop_string);
+	    TxPrintf("%s = %s\n", name, (const char *)proprec->prop_value.prop_string);
 	    break;
 	case PROPERTY_TYPE_INTEGER:
 	    TxPrintf("%s = ", name);
 	    for (i = 0; i < proprec->prop_len; i++)
-		TxPrintf("%d ", proprec->prop_integer[i]);
+		TxPrintf("%d ", proprec->prop_value.prop_integer[i]);
 	    TxPrintf("\n");
 	    break;
 	case PROPERTY_TYPE_DIMENSION:
 	    TxPrintf("%s = ", name);
 	    for (i = 0; i < proprec->prop_len; i++)
 		TxPrintf("%s ", DBWPrintValue(proprec->prop_value.prop_integer[i],
-			w, ((i % 2) == 0) ? TRUE : FALSE); 
+			w, ((i % 2) == 0) ? TRUE : FALSE));
 	    TxPrintf("\n");
 	    break;
 	case PROPERTY_TYPE_PLANE:
@@ -2956,7 +2956,7 @@ printPropertiesFunc(
 	case PROPERTY_TYPE_DOUBLE:
 	    TxPrintf("%s = ", name);
 	    for (i = 0; i < proprec->prop_len; i++)
-		TxPrintf("%"DLONG_PREFIX"d ", proprec->prop_double[i]);
+		TxPrintf("%"DLONG_PREFIX"d ", proprec->prop_value.prop_double[i]);
 	    TxPrintf("\n");
 	    break;
     }
