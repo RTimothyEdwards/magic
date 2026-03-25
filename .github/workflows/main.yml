@@ -10,19 +10,6 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  vezzal:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      - name: Pulling the docker image
-        run: docker pull vezzal/vezzal:v1
-
-      - name: Start the container with the docker image
-        run: docker run -id --name test_magic vezzal/vezzal:v1 bash | exit
-
-      - name: Run the testing on the container and send the mail
-        run: docker exec test_magic /vezzal/test_magic.sh "lankasaicharan123@gmail.com,tim@opencircuitdesign.com" ${{secrets.MAILING_KEY}}
   simple_build_linux:
     runs-on: ubuntu-22.04
     steps:
