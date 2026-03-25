@@ -94,7 +94,7 @@ typedef struct drccookie
 
 /* drcc_exception defaults to 255 meaning no exceptions/exemptions */
 #define	DRC_EXCEPTION_NONE ((unsigned char)0xff)
-/* The high bit of the value determines if this is an exception or an exemption.
+/* The high bit of the value determines if this is an exception or an exemption. */
 #define DRC_EXCEPTION_MASK ((unsigned char)0x80)
 
 /*
