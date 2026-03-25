@@ -32,10 +32,22 @@ jobs:
           cd emsdk
           ./emsdk install latest
           ./emsdk activate latest
+      - name: Emscripten Diagnostic
+        run: |
+          source ./emsdk/emsdk_env.sh
+          echo "===== gcc -dM -E - ====="
+          echo | gcc -dM -E - | sort
+          echo "===== g++ -dM -E - ====="
+          echo | g++ -dM -E - | sort
+          echo "===== emcc -dM -E - ====="
+          echo | emcc -dM -E - | sort
+          echo "===== em++ -dM -E - ====="
+          echo | em++ -dM -E - | sort
       - name: Build
         run: |
           source ./emsdk/emsdk_env.sh
-          emconfigure ./configure --without-cairo --without-opengl --without-x --disable-readline --disable-compression --target=asmjs-unknown-emscripten
+          # The --without and --disable in these build options is due to no WASM library being available for that feature
+          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 -g" emconfigure ./configure --without-cairo --without-opengl --without-x --without-tk --without-tcl --disable-readline --disable-compression --target=asmjs-unknown-emscripten
           echo "===== defs.mak ====="
           cat defs.mak
           echo "===== defs.mak ====="
