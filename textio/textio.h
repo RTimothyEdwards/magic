@@ -25,6 +25,8 @@
 #ifndef _MAGIC__TEXTIO__TEXTIO_H
 #define _MAGIC__TEXTIO__TEXTIO_H
 
+#include <stdarg.h> /* va_list */
+
 #include "utils/magic.h"
 #include "utils/dqueue.h" /* DQueue */
 
