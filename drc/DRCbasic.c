@@ -501,9 +501,22 @@ DRCBasicCheck (celldef, checkRect, clipRect, function, cdata)
 
 #ifdef MAGIC_WRAPPER
 	/* Execute pending Tcl events, so the DRC process doesn't block.    */
+
+	/* WARNING:  This code cannot be enabled until some method is
+	 * worked out to determine if any event resulted in a change
+	 * to the DRC check plane which would invalidate the current
+	 * search.  If so, the search must end immediately and the
+	 * area being checked must be reinstated.  The code was added
+	 * to see how it speeds up the response time of magic when
+	 * some of the DRC rules are compute-intensive.  It speeds up
+	 * performance enough that it is worthwhile to implement the
+	 * method just mentioned.
+	 */
+	#if 0
 	UndoEnable();
 	while (Tcl_DoOneEvent(TCL_DONT_WAIT));
 	UndoDisable();
+	#endif
 #endif
     }
     drcCifCheck(&arg);
