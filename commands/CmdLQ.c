@@ -2681,14 +2681,13 @@ CmdDoProperty(
 			    }
 			}
 			if (proplen > 0)
-			{
 			    proprec = (PropertyRecord *)mallocMagic(
 					sizeof(PropertyRecord) +
 					(proplen - 2) * sizeof(int));
-			    proprec->prop_type = proptype;
-			    proprec->prop_len = proplen;
-			}
 		    }
+		    proprec->prop_type = proptype;
+		    proprec->prop_len = proplen;
+
 		    /* Second pass */
 		    value = cmd->tx_argv[argstart + 1];
 		    for (proplen = 0; proplen < proprec->prop_len; proplen++)

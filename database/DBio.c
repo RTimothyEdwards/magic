@@ -2594,7 +2594,16 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			while (isspace(*pptr) && (*pptr != '\0')) pptr++;
 			if (!isspace(*pptr))
 			{
-			    sscanf(pptr, "%d", &ival);
+			    if (sscanf(pptr, "%d", &ival) != 1)
+			    {
+				TxError("Mask-hint \"%s\" has non-integer values!",
+					pptr);
+				DBFreePaintPlane(proprec->prop_value.prop_plane);
+				TiFreePlane(proprec->prop_value.prop_plane);
+				freeMagic((char *)proprec);
+				proprec = (PropertyRecord *)NULL;
+				break;
+			    }
 			    if (scalen > 1) ival *= scalen;
 			    if (scaled > 1) ival /= scaled;
 			    switch (numvals)
@@ -2622,11 +2631,11 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			    }
 			    while (!isspace(*pptr) && (*pptr != '\0')) pptr++;
 			}
-			if (numvals == 0)
-			{
-			    TxError("Mask-hint property number of values is not"
+		    }
+		    if (numvals != 0)
+		    {
+			TxError("Mask-hint property number of values is not"
 				" divisible by four.  Truncated.\n");
-			}
 		    }
 		    (void) DBPropPut(cellDef, propertyname, proprec);
 		}
