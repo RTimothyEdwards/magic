@@ -71,12 +71,15 @@ Operations on cell definitions.
 	   <DT> <B>rename</B> <I>name newname</I>
 	   <DD> Change the name of the cell definition <I>name</I> to 
 		<I>newname</I>.
-	   <DT> <B>delete</B> <I>name</I>
+	   <DT> <B>delete</B> <I>name</I> [<B>-noprompt</B>]
 	   <DD> Delete the cell definition with name <I>name</I>.  If cell
 		<I>name</I> is a descendent of another cell, the command
 		will be prohibited.  If the cell <I>name</I> is currently
 		the topmost cell in the window, the window will be loaded
-		with default cell "(UNNAMED)".
+		with default cell "(UNNAMED)".  If option <B>-noprompt</B>
+		is specified, then the actions specified above happen
+		immediately.  Otherwise, a dialog box will be raised
+		asking for confirmation to delete the cell.
 	   <DT> <B>dereference</B> <I>name</I>
 	   <DD> Perform a flush of the cell (per the "<B>flush</B>" command),
 		first removing any file path associated with the cell, so

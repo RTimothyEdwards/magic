@@ -15,6 +15,10 @@
 # March 26, 2026
 # Added behavior to handle ideal devices (resistor, capacitor,
 # inductor)
+# April 2, 2026
+# Changed the hash to MurmurHash3, as the existing hash
+# is prone to creating name collisions (rare, but not rare
+# enough).
 #--------------------------------------------------------------
 # Sets up the environment for a toolkit.  The toolkit must
 # supply a namespace that is the "library name".  For each
@@ -205,7 +209,7 @@ proc magic::generate_layout_add {subname subpins complist library} {
 		    select cell $inst
 		    delete
 		}
-		cellname delete $child
+		cellname delete $child -noprompt
 	    }
 	}
     }
@@ -844,11 +848,16 @@ proc magic::gencell_change {instname gencell_type library parameters} {
 	set pdefaults [${library}::${gencell_type}_defaults]
         # Pull user-entered values from dialog
         set parameters [dict merge $pdefaults [magic::gencell_getparams]]
-	set newinstname [.params.title.ient get]
-	if {$newinstname == "(default)"} {set newinstname $instname}
-	if {$newinstname == $instname} {set newinstname $instname}
-	if {[instance list exists $newinstname] != ""} {set newinstname $instname}
     }
+
+    # Attempt to set the new instance name as specified in the dialog.
+    # If the entry is "(default)" or if there is a name collision,
+    # revert the name to the original name.
+
+    set newinstname [.params.title.ient get]
+    if {$newinstname == "(default)"} {set newinstname $instname}
+    if {[instance list exists $newinstname] != ""} {set newinstname $instname}
+
     if {[dict exists $parameters gencell]} {
         # Setting special parameter "gencell" forces the gencell to change type
 	set gencell_type [dict get $parameters gencell]
@@ -865,6 +874,20 @@ proc magic::gencell_change {instname gencell_type library parameters} {
     set old_gname [instance list celldef $instname]
     set gsuffix [magic::get_gencell_hash ${parameters}]
     set gname ${gencell_type}_${gsuffix}
+
+    # Handle instance name changing first.  If no parameters changed, then
+    # we're done.
+    if {$newinstname != $instname} {
+	identify $newinstname
+	# The buttons "Apply" and "Okay" need to be changed for the new
+	# instance name
+	catch {.params.buttons.apply config -command \
+		"magic::gencell_change $newinstname $gencell_type $library {}"}
+	catch {.params.buttons.okay config -command \
+		"magic::gencell_change $newinstname $gencell_type $library {} ;\
+		destroy .params"}
+	set instname $newinstname
+    }
 
     # Guard against instance having been deleted.  Also, if parameters have not
     # changed as evidenced by the cell suffix not changing, then nothing further
@@ -901,30 +924,8 @@ proc magic::gencell_change {instname gencell_type library parameters} {
 	if {$abox != ""} {box values {*}$abox}
 	set newinstname [getcell $gname $orient]
         select cell $newinstname
+	set origname $newinstname
 	expand
-
-	# If the old instance name was not formed from the old cell name,
-	# then keep the old instance name.
-	if {[string first $old_gname $instname] != 0} {
-	    set newinstname $instname
-	}
-
-	if {[cellname list parents $old_gname] == []} {
-	    # If the original cell has no intances left, delete it.  It can
-	    # be regenerated if and when necessary.
-	    cellname delete $old_gname
-	}
-
-    } else {
-        select cell $instname
-	set orient [instance list orientation]
-	set abox [instance list abutment]
-	delete
-
-	# There is no cell of this name, so generate one and instantiate it.
-	if {$abox != ""} {box values {*}$abox}
-	set newinstname [magic::gencell_create $gencell_type $library $parameters $orient]
-	select cell $newinstname
 
 	# If the old instance name was not formed from the old cell name,
 	# then keep the old instance name.
@@ -938,6 +939,47 @@ proc magic::gencell_change {instname gencell_type library parameters} {
 	    catch {.params.buttons.okay config -command \
 			"magic::gencell_change $newinstname $gencell_type $library {} ;\
 			destroy .params"}
+	}
+
+	if {[cellname list parents $old_gname] == []} {
+	    # If the original cell has no intances left, delete it.  It can
+	    # be regenerated if and when necessary.
+	    cellname delete $old_gname -noprompt
+	    select cell $origname
+	}
+
+    } else {
+        select cell $instname
+	set orient [instance list orientation]
+	set abox [instance list abutment]
+	delete
+
+	# There is no cell of this name, so generate one and instantiate it.
+	if {$abox != ""} {box values {*}$abox}
+	set newinstname [magic::gencell_create $gencell_type $library $parameters $orient]
+	select cell $newinstname
+	set origname $newinstname
+
+	# If the old instance name was not formed from the old cell name,
+	# then keep the old instance name.
+	if {[string first $old_gname $instname] != 0} {
+	    set newinstname $instname
+	} else {
+	    # The buttons "Apply" and "Okay" need to be changed for the new
+	    # instance name
+	    catch {.params.buttons.apply config -command \
+			"magic::gencell_change $newinstname $gencell_type $library {}"}
+	    catch {.params.buttons.okay config -command \
+			"magic::gencell_change $newinstname $gencell_type $library {} ;\
+			destroy .params"}
+	}
+
+	# If the old cell is not used anywhere, delete it
+	if {[cellname list parents $old_gname] == []} {
+	    # If the original cell has no intances left, delete it.  It can
+	    # be regenerated if and when necessary.
+	    cellname delete $old_gname -noprompt
+	    select cell $origname
 	}
     }
     identify $newinstname
@@ -1069,38 +1111,47 @@ proc magic::get_gencell_name {gencell_type} {
 #   gives a result that is repeatable for the same set of
 #   parameter values with a very low probability of a collision.
 #
-#   The hash function is similar to elfhash but reduced from 32
-#   to 30 bits so that the result can form a 6-character value
-#   in base32 with all characters being valid for a SPICE subcell
-#   name (e.g., alphanumeric only and case-insensitive).
+#   The hash function is murmur3 but reduced from 32 to 30 bits
+#   so that the result can form a 6-character value in base36
+#   with all characters being valid for a SPICE subcell name
+#   (e.g., alphanumeric only and case-insensitive).  This
+#   reduces the space from ~4 billion unique suffixes to ~1
+#   billion;  however, even a complex mixed-signal chip design
+#   is unlikely to have more than a few hundred unique parameter
+#   sets for any given device.
+#
+#   Code courtesy of ChatGPT, derived from my implementation.
 #----------------------------------------------------------------
 
 proc magic::get_gencell_hash {parameters} {
-    set hash 0
-    # Apply hash
-    dict for {key value} $parameters {
-	foreach s [split $value {}] {
-	    set hash [expr {($hash << 4) + [scan $s %c]}]
-	    set high [expr {$hash & 0x03c0000000}]
-	    set hash [expr {$hash ^ ($high >> 30)}]
-	    set hash [expr {$hash & (~$high)}]
-	}
+    # Canonicalize: sort by key
+    set keys [lsort [dict keys $parameters]]
+
+    # Build input string (values only, but delimited)
+    set input ""
+    foreach k $keys {
+	set value [magic::normalize_value [dict get $parameters $k]]
+        append input "${value};"
     }
-    # Divide hash up into 5 bit values and convert to base32
-    # using letters A-Z less I and O, and digits 2-9.
+
+    # Compute Murmur hash
+    set hash [magic::murmur3_32 $input]
+
+    # Convert to 6-character base32
     set cvals ""
     for {set i 0} {$i < 6} {incr i} {
-	set oval [expr {($hash >> ($i * 5)) & 0x1f}]
+        set oval [expr {($hash >> ($i * 5)) & 0x1f}]
+
         if {$oval < 8} {
-	    set bval [expr {$oval + 50}]
-	} elseif {$oval < 16} {
-	    set bval [expr {$oval + 57}]
-	} elseif {$oval < 21} {
-	    set bval [expr {$oval + 58}]
-	} else {
-	    set bval [expr {$oval + 59}]
-	}
-	append cvals [binary format c* $bval]
+            set bval [expr {$oval + 50}]   ;# '2'-'9'
+        } elseif {$oval < 16} {
+            set bval [expr {$oval + 57}]   ;# 'A'-'H'
+        } elseif {$oval < 21} {
+            set bval [expr {$oval + 58}]   ;# 'J'-'N'
+        } else {
+            set bval [expr {$oval + 59}]   ;# 'P'-'Z'
+        }
+        append cvals [binary format c* $bval]
     }
     return $cvals
 }
@@ -1674,3 +1725,99 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
 }
 
 #-------------------------------------------------------------
+# Implementation of murmur3 hash, 32 bits
+# Code courtesy of ChatGPT.
+#-------------------------------------------------------------
+
+proc magic::murmur3_32 {key {seed 0}} {
+    set length [string length $key]
+
+    set c1 0xcc9e2d51
+    set c2 0x1b873593
+
+    set h1 $seed
+
+    # Body (process 4 bytes at a time)
+    set nblocks [expr {$length / 4}]
+    for {set i 0} {$i < $nblocks} {incr i} {
+        binary scan [string range $key [expr {$i*4}] [expr {$i*4+3}]] i k1
+
+        set k1 [expr {($k1 * $c1) & 0xffffffff}]
+        set k1 [expr {(($k1 << 15) | (($k1 & 0xffffffff) >> 17)) & 0xffffffff}]
+        set k1 [expr {($k1 * $c2) & 0xffffffff}]
+
+        set h1 [expr {$h1 ^ $k1}]
+        set h1 [expr {(($h1 << 13) | (($h1 & 0xffffffff) >> 19)) & 0xffffffff}]
+        set h1 [expr {(($h1 * 5) + 0xe6546b64) & 0xffffffff}]
+    }
+
+    # Tail
+    set k1 0
+    set tail_index [expr {$nblocks * 4}]
+    set tail [string range $key $tail_index end]
+    set remaining [string length $tail]
+
+    if {$remaining >= 3} {
+        binary scan [string index $tail 2] c b
+        set k1 [expr {$k1 ^ (($b & 0xff) << 16)}]
+    }
+    if {$remaining >= 2} {
+        binary scan [string index $tail 1] c b
+        set k1 [expr {$k1 ^ (($b & 0xff) << 8)}]
+    }
+    if {$remaining >= 1} {
+        binary scan [string index $tail 0] c b
+        set k1 [expr {$k1 ^ ($b & 0xff)}]
+        set k1 [expr {($k1 * $c1) & 0xffffffff}]
+        set k1 [expr {(($k1 << 15) | (($k1 & 0xffffffff) >> 17)) & 0xffffffff}]
+        set k1 [expr {($k1 * $c2) & 0xffffffff}]
+        set h1 [expr {$h1 ^ $k1}]
+    }
+
+    # Finalization (fmix)
+    set h1 [expr {$h1 ^ $length}]
+    set h1 [expr {$h1 ^ (($h1 & 0xffffffff) >> 16)}]
+    set h1 [expr {($h1 * 0x85ebca6b) & 0xffffffff}]
+    set h1 [expr {$h1 ^ (($h1 & 0xffffffff) >> 13)}]
+    set h1 [expr {($h1 * 0xc2b2ae35) & 0xffffffff}]
+    set h1 [expr {$h1 ^ (($h1 & 0xffffffff) >> 16)}]
+
+    return $h1
+}
+
+#-------------------------------------------------------------
+# Numerical normalization:  Avoid having different suffixes
+# for cells with the same parameter values due to Tcl handling
+# numerical values as strings, which makes "2", "2.0", and "2e0"
+# all separate values.  If hashed on the verbatim values, then
+# the same device with the same parameters can have many
+# different cell names, even though the layout is exactly the
+# same.  Avoid this by detecting when a parameter value is
+# numeric and enforcing a consistent format (fixed precision,
+# four decimal places).
+#
+# Code courtesy of ChatGPT
+#-------------------------------------------------------------
+
+proc magic::normalize_value {value} {
+    # Detect if value is numeric
+    if {[string is double -strict $value]} {
+        set num [expr {double($value)}]
+
+        # Check if effectively integer
+        if {abs($num - round($num)) < 1e-9} {
+            return [format "%d" [expr {int(round($num))}]]
+        }
+
+        # Otherwise, format to fixed precision (3 decimal places)
+        set str [format "%.3f" $num]
+
+        # Strip trailing zeros
+        regsub {\.?0+$} $str "" str
+
+        return $str
+    }
+
+    # Non-numeric: return as-is
+    return $value
+}
