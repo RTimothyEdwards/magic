@@ -148,6 +148,10 @@ proc magic::make_texthelper { mgrpath } {
 proc magic::analyze_labels {} {
    global typedflt typesticky typeport
 
+   # Ensure units of microns
+   set curunits [units]
+   units microns
+
    # Pick up values from the first entry returned
 
    set tval [lindex [setlabel text] 0]
@@ -157,20 +161,13 @@ proc magic::analyze_labels {} {
    set oval [lindex [setlabel offset] 0]
    set lval [lindex [setlabel layer] 0]
    set kval [lindex [setlabel sticky] 0]
+   set sval [lindex [setlabel size] 0]
    set isport [lindex [port exists] 0]
    if {$isport} {
        set pval [lindex [port index] 0]
    } else {
        set pval -1
    }
-
-   # Rescale internal units to microns
-   set sval [lindex [setlabel size] 0]
-   set sscale [cif scale out]
-   set tmp_pre $::tcl_precision
-   set ::tcl_precision 3
-   set sval [expr $sscale * $sval]
-   set ::tcl_precision $tmp_pre
 
    .texthelper.text.tent delete 0 end
    .texthelper.text.tent insert 0 $tval
@@ -206,6 +203,9 @@ proc magic::analyze_labels {} {
        pack .texthelper.layer.tent -side left -fill x -expand true
        pack .texthelper.layer.btn2 -side left
    }
+
+   # Revert units
+   units {*}$curunits
 }
 
 
@@ -219,6 +219,9 @@ proc magic::change_label {} {
       magic::make_new_label
       return
    }
+
+   set curunits [units]
+   units microns
 
    set ltext [.texthelper.text.tent get]
    set lfont [.texthelper.font.btn cget -text]
@@ -247,13 +250,10 @@ proc magic::change_label {} {
       }
    }
    if {$lsize != ""} {
-      setlabel size ${lsize}um
+      setlabel size $lsize
    }
    if {$loff != ""} {
-      set oldunits [units]
-      units internal
       setlabel offset [join $loff]
-      units $oldunits
    }
    if {$lrot != ""} {
       setlabel rotate $lrot
@@ -274,6 +274,8 @@ proc magic::change_label {} {
          port remove
       }
    }
+  
+   units {*}$curunits
 }
 
 proc magic::make_new_label {} {

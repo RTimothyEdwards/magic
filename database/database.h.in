@@ -651,6 +651,7 @@ typedef struct treeFilter
 #define TF_LABEL_ATTACH_NOT_SE	0x10	/* Same as above, ignore tile SE corner */
 #define TF_LABEL_ATTACH_NOT_SW	0x20	/* Same as above, ignore tile SW corner */
 #define TF_LABEL_ATTACH_CORNER	0x3C	/* Mask of the four types above */
+#define TF_LABEL_REVERSE_SEARCH 0x40	/* Search children before parent */
 
 /* To do:  Make the tpath entries dynamically allocated */
 #define FLATTERMSIZE 4096		/* Used for generating flattened labels */

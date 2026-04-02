@@ -1801,13 +1801,18 @@ cmdLabelSizeFunc(
 
     if (value == NULL)
     {
+	char *labsize;
+	MagWindow *w;
+
+	windCheckOnlyWindow(&w, DBWclientID);
+	labsize = DBWPrintValue(label->lab_size / 8, w, FALSE);
+
 #ifdef MAGIC_WRAPPER
 	lobj = Tcl_GetObjResult(magicinterp);
-	Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewDoubleObj((double)label->lab_size / 8.0));
+	Tcl_ListObjAppendElement(magicinterp, lobj, Tcl_NewStringObj(labsize, -1));
 	Tcl_SetObjResult(magicinterp, lobj);
 #else
-	TxPrintf("%g\n", (double)label->lab_size / 8.0);
+	TxPrintf("%s\n", labsize);
 #endif
     }
     else if (label->lab_size != *value)
@@ -1952,18 +1957,22 @@ cmdLabelOffsetFunc(
 
     if (point == NULL)
     {
+	char *laboffx, *laboffy;
+	MagWindow *w;
+
+	windCheckOnlyWindow(&w, DBWclientID);
+	laboffx = DBWPrintValue(label->lab_offset.p_x / 8, w, TRUE);
+	laboffy = DBWPrintValue(label->lab_offset.p_x / 8, w, FALSE);
+
 #ifdef MAGIC_WRAPPER
 	lobj = Tcl_GetObjResult(magicinterp);
 	pobj = Tcl_NewListObj(0, NULL);
 	Tcl_ListObjAppendElement(magicinterp, lobj, pobj);
-	Tcl_ListObjAppendElement(magicinterp, pobj,
-			Tcl_NewDoubleObj((double)label->lab_offset.p_x / 8.0));
-	Tcl_ListObjAppendElement(magicinterp, pobj,
-			Tcl_NewDoubleObj((double)label->lab_offset.p_y / 8.0));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(laboffx, -1));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewStringObj(laboffy, -1));
 	Tcl_SetObjResult(magicinterp, lobj);
 #else
-	TxPrintf("%g %g\n", (double)(label->lab_offset.p_x) / 8.0,
-		(double)(label->lab_offset.p_y) / 8.0);
+	TxPrintf("%s %s\n", laboffx, laboffy);
 #endif
     }
     else if (!GEO_SAMEPOINT(label->lab_offset, *point))
@@ -2212,9 +2221,13 @@ CmdSetLabel(
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelTextFunc, (locargc == 3) ?
-			(ClientData)cmd->tx_argv[argstart + 1] : (ClientData)NULL);
+		if (locargc == 2)
+		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelTextFunc, (ClientData)NULL);
+		else
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelTextFunc,
+				(ClientData)cmd->tx_argv[argstart + 1]);
 	    }
 	    break;
 
@@ -2280,9 +2293,12 @@ CmdSetLabel(
 		}
 		else if (EditCellUse)
 		{
-		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
-				cmdLabelFontFunc, (locargc == 3) ?
-				(ClientData)&font : (ClientData)NULL);
+		    if (locargc == 2)
+			SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelFontFunc, (ClientData)NULL);
+		    else
+			SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelFontFunc, (ClientData)&font);
 		}
 	    }
 	    break;
@@ -2310,9 +2326,12 @@ CmdSetLabel(
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelJustFunc, (locargc == 3) ?
-			(ClientData)&pos : (ClientData)NULL);
+		if (locargc == 2)
+		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelJustFunc, (ClientData)NULL);
+		else
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelJustFunc, (ClientData)&pos);
 	    }
 	    break;
 
@@ -2341,9 +2360,12 @@ CmdSetLabel(
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelSizeFunc, (locargc == 3) ?
-			(ClientData)&size : (ClientData)NULL);
+		if (locargc == 2)
+		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelSizeFunc, (ClientData)NULL);
+		else
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelSizeFunc, (ClientData)&size);
 	    }
 	    break;
 
@@ -2393,9 +2415,12 @@ CmdSetLabel(
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelOffsetFunc, (locargc != 2) ?
-			(ClientData)&offset : (ClientData)NULL);
+		if (locargc == 2)
+		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelOffsetFunc, (ClientData)NULL);
+		else
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelOffsetFunc, (ClientData)&offset);
 	    }
 	    break;
 
@@ -2459,10 +2484,12 @@ CmdSetLabel(
 		    rect.r_ytop = cmdScaleCoord(w, cmd->tx_argv[argstart + 4],
 				TRUE, FALSE, 1);
 		}
-		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
-				cmdLabelRectFunc,
-				((locargc == 6) || (locargc == 3)) ?
-				(ClientData)&rect : (ClientData)NULL);
+		if ((locargc == 3) || (locargc == 6))
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelRectFunc, (ClientData)&rect);
+		else
+		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelRectFunc, (ClientData)NULL);
 	    }
 	    break;
 
@@ -2488,9 +2515,12 @@ CmdSetLabel(
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelRotateFunc, (locargc == 3) ?
-			(ClientData)&rotate : (ClientData)NULL);
+		if (locargc == 2)
+		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelRotateFunc, (ClientData)NULL);
+		else
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelRotateFunc, (ClientData)&rotate);
 	    }
 	    break;
 
@@ -2522,9 +2552,12 @@ CmdSetLabel(
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelStickyFunc, (locargc == 3) ?
-			(ClientData)&flags : (ClientData)NULL);
+		if (locargc == 2)
+		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelStickyFunc, (ClientData)NULL);
+		else
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelStickyFunc, (ClientData)&flags);
 	    }
 	    break;
 
@@ -2563,9 +2596,12 @@ CmdSetLabel(
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelLayerFunc, (locargc == 3) ?
-			(ClientData)&ttype : (ClientData)NULL);
+		if (locargc == 2)
+		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelLayerFunc, (ClientData)NULL);
+		else
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelLayerFunc, (ClientData)&ttype);
 	    }
 	    break;
 
