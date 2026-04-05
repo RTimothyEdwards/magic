@@ -25,7 +25,8 @@ Unexpand everything inside or touching the cursor box.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>unexpand</B> <BR><BR>
+      <B>unexpand</B> [<B>selection</B>|<B>surround</B>|<B>overlap</B>|<B>all</B>]
+		<BR><BR>
    </BLOCKQUOTE>
 
 <H3>Shortcuts:</H3>
@@ -37,8 +38,23 @@ Unexpand everything inside or touching the cursor box.
    <BLOCKQUOTE>
       The <B>unexpand</B> command unexpands the view of subcells to
       hide the contents of the subcells and show the bounding box
-      outline only.  The <B>unexpand</B> command unexpands all subcells
-      that touch or intersect the cursor box in the layout window. <P>
+      outline only.
+
+      Option <B>overlap</B> unexpands all expanded subcells that
+      overlap with the cursor box in the layout window. <P>
+
+      Option <B>surround</B> unexpands all expanded subcells that
+      are completely surrounded by the cursor box in the layout window. <P>
+
+      Option <B>all</B> unexpands all subcells in the layout window. <P>
+
+      Option <B>selection</B> operates on the current selection, not
+      relative to the cursor box, unexpanding all selected cells. <P>
+
+      With no arguments, the <B>unexpand</B> command behaves like
+      <B>unexpand surround</B>, for backwards-compatible behavior with
+      earlier versions of magic which did not offer the options.
+
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>

@@ -26,7 +26,8 @@ expanded/unexpanded cells in the current selection.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>expand</B> [<B>toggle</B>] <BR><BR>
+      <B>expand</B> [<B>selection</B>|<B>surround</B>|<B>overlap</B>|<B>all</B>]
+		[<B>toggle</B>] <BR><BR>
    </BLOCKQUOTE>
 
 <H3>Shortcuts:</H3>
@@ -38,14 +39,32 @@ expanded/unexpanded cells in the current selection.
 <H3>Summary:</H3>
    <BLOCKQUOTE>
       The <B>expand</B> command expands the view of subcells to
-      display the contents of the subcells.  Without arguments,
-      the <B>expand</B> command expands all unexpanded subcells that
-      touch or intersect the cursor box in the layout window. <P>
+      display the contents of the subcells.
 
-      Option <B>expand toggle</B> operates on the current selection,
-      not relative to the cursor box, and will expand a selected
-      cell that is unexpanded, or unexpand a cell that is already
-      expanded.
+      Option <B>overlap</B> expands all unexpanded subcells that
+      overlap with the cursor box in the layout window. <P>
+
+      Option <B>surround</B> expands all unexpanded subcells that
+      are completely surrounded by the cursor box in the layout window. <P>
+
+      Option <B>all</B> expands all subcells in the layout window. <P>
+
+      Option <B>selection</B> operates on the current selection, not
+      relative to the cursor box, expanding all selected cells. <P>
+
+      Option <B>toggle</B> will expand a selected cell that is
+      unexpanded, or unexpand a cell that is already expanded.
+      <B>toggle</B> may be given as an additional option to any
+      of the other options above; however, the <B>toggle</B> option
+      must be the last option given to the command.<P>
+
+      With no arguments, the <B>expand</B> command behaves like
+      <B>expand overlap</B>, and the <B>expand toggle</B> command
+      with no additonal arguments behaves like
+      <B>expand selection toggle</B>, for backwards-compatible
+      behavior with earlier versions of magic which offered only
+      the <B>toggle</B> option.
+
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
