@@ -39,6 +39,7 @@ struct expandArg
 {
     bool	ea_deref;	/* TRUE if root def dereference flag is set */
     int		ea_xmask;	/* Expand mask. */
+    int		ea_type;	/* Expand, unexpand, or toggle */
     int		(*ea_func)();	/* Function to call for each cell whose
 				 * status is changed.
 				 */
@@ -67,15 +68,22 @@ struct expandArg
  */
 
 void
-DBExpand(cellUse, expandMask, expandFlag)
+DBExpand(cellUse, expandMask, expandType)
     CellUse *cellUse;
     int expandMask;
-    bool expandFlag;
+    int expandType;
 {
     CellDef *def;
-
-    if (DBDescendSubcell(cellUse, expandMask) == expandFlag)
-	return;
+    bool expandFlag, expandTest;
+ 
+    expandTest = DBDescendSubcell(cellUse, expandMask);
+    if ((expandType & DB_EXPAND_MASK) == DB_EXPAND_TOGGLE)
+	expandFlag = expandTest;
+    else
+    {
+	expandFlag = ((expandType & DB_EXPAND_MASK) == DB_EXPAND) ? TRUE : FALSE;
+	if (expandFlag == expandTest) return;
+    }
 
     if (expandFlag)
     {
@@ -130,17 +138,17 @@ DBExpand(cellUse, expandMask, expandFlag)
  */
 
 void
-DBExpandAll(rootUse, rootRect, expandMask, expandFlag, func, cdarg)
+DBExpandAll(rootUse, rootRect, expandMask, expandType, func, cdarg)
     CellUse *rootUse;	/* Root cell use from which search begins */
     Rect *rootRect;	/* Area to be expanded, in root coordinates */
     int expandMask;	/* Window mask in which cell is to be expanded */
-    bool expandFlag;	/* TRUE => expand, FALSE => unexpand */
+    int expandType;	/* DB_EXPAND, DB_UNEXPAND, DB_EXPAND_TOGGLE */
     int (*func)();	/* Function to call for each cell whose expansion
 			 * status is modified.  NULL means don't call anyone.
 			 */
     ClientData cdarg;	/* Argument to pass to func. */
 {
-    int dbExpandFunc(), dbUnexpandFunc();
+    int dbExpandFunc();
     SearchContext scontext;
     struct expandArg arg;
 
@@ -148,29 +156,26 @@ DBExpandAll(rootUse, rootRect, expandMask, expandFlag, func, cdarg)
 	(void) DBCellRead(rootUse->cu_def, TRUE, TRUE, NULL);
 
     /*
-     * Walk through the area and set the expansion state
-     * appropriately.
+     * Walk through the area and set the expansion state appropriately.
      */
 
     arg.ea_xmask = expandMask;
     arg.ea_func = func;
     arg.ea_arg = cdarg;
+    arg.ea_type = expandType;
     arg.ea_deref = (rootUse->cu_def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
 
     scontext.scx_use = rootUse;
     scontext.scx_trans = GeoIdentityTransform;
     scontext.scx_area = *rootRect;
-    if (expandFlag)
-	DBCellSrArea(&scontext, dbExpandFunc, (ClientData) &arg);
-    else
-	DBCellSrArea(&scontext, dbUnexpandFunc, (ClientData) &arg);
+    DBCellSrArea(&scontext, dbExpandFunc, (ClientData) &arg);
 }
 
 /*
  * dbExpandFunc --
  *
  * Filter function called by DBCellSrArea on behalf of DBExpandAll above
- * when cells are being expanded.
+ * when cells are being expanded, unexpanded, or toggled.
  */
 
 int
@@ -184,68 +189,55 @@ dbExpandFunc(scx, arg)
 {
     CellUse *childUse = scx->scx_use;
     int n = DBLambda[1];
+    int expandTest;
+    int expandType = (arg->ea_type & DB_EXPAND_MASK);
+    int expandSurround = (arg->ea_type & DB_EXPAND_SURROUND_MASK);
+    bool surround;
+
+    expandTest = DBDescendSubcell(childUse, arg->ea_xmask);
 
     /*
      * Change the expansion status of this cell if necessary.  Call the
      * client's function if the expansion status has changed.
      */
 
-    if (!DBDescendSubcell(childUse, arg->ea_xmask))
+    if (!expandTest && ((expandType == DB_EXPAND) || (expandType == DB_EXPAND_TOGGLE)))
     {
-	/* If the cell is unavailable, then don't expand it.
-	 */
-	if ((childUse->cu_def->cd_flags & CDAVAILABLE) == 0)
+	surround = (!GEO_SURROUND(&childUse->cu_def->cd_bbox, &scx->scx_area)
+			|| GEO_SURROUND(&scx->scx_area, &childUse->cu_def->cd_bbox));
+	if (surround || (expandSurround == DB_EXPAND_OVERLAP))
 	{
-	    /* If the parent is dereferenced, then the child should be, too */
-	    if (arg->ea_deref) childUse->cu_def->cd_flags |= CDDEREFERENCE;
-	    if(!DBCellRead(childUse->cu_def, TRUE, TRUE, NULL))
+	    /* If the cell is unavailable, then don't expand it.
+	     */
+	    if ((childUse->cu_def->cd_flags & CDAVAILABLE) == 0)
 	    {
-		TxError("Cell %s is unavailable.  It could not be expanded.\n",
-			childUse->cu_def->cd_name);
-		return 2;
+		/* If the parent is dereferenced, then the child should be, too */
+		if (arg->ea_deref) childUse->cu_def->cd_flags |= CDDEREFERENCE;
+		if (!DBCellRead(childUse->cu_def, TRUE, TRUE, NULL))
+		{
+		    TxError("Cell %s is unavailable.  It could not be expanded.\n",
+				childUse->cu_def->cd_name);
+		    return 2;
+		}
+	    }
+
+	    childUse->cu_expandMask |= arg->ea_xmask;
+	    expandTest = TRUE;
+	    if (arg->ea_func != NULL)
+	    {
+		if ((*arg->ea_func)(childUse, arg->ea_arg) != 0) return 1;
 	    }
 	}
-
-	childUse->cu_expandMask |= arg->ea_xmask;
-	if (arg->ea_func != NULL)
-	{
-	    if ((*arg->ea_func)(childUse, arg->ea_arg) != 0) return 1;
-	}
     }
-
-    if (DBCellSrArea(scx, dbExpandFunc, (ClientData) arg))
-	return 1;
-    return 2;
-}
-
-/*
- * dbUnexpandFunc --
- *
- * Filter function called by DBCellSrArea on behalf of DBExpandAll above
- * when cells are being unexpanded.
- */
-
-int
-dbUnexpandFunc(scx, arg)
-    SearchContext *scx;	/* Pointer to search context containing
-					 * child use, search area in coor-
-					 * dinates of the child use, and
-					 * transform back to "root".
-					 */
-    struct expandArg *arg;	/* Client data from caller */
-{
-    CellUse *childUse = scx->scx_use;
-
-    /*
-     * Change the expansion status of this cell if necessary.
-     */
-
-    if (DBDescendSubcell(childUse, arg->ea_xmask))
+    else if (expandTest && ((expandType == DB_UNEXPAND) ||
+			(expandType == DB_EXPAND_TOGGLE)))
     {
-	if (!GEO_SURROUND(&childUse->cu_def->cd_bbox, &scx->scx_area)
-	    || GEO_SURROUND(&scx->scx_area, &childUse->cu_def->cd_bbox))
+	surround = (!GEO_SURROUND(&childUse->cu_def->cd_bbox, &scx->scx_area)
+			|| GEO_SURROUND(&scx->scx_area, &childUse->cu_def->cd_bbox));
+	if (surround || (expandSurround == DB_EXPAND_OVERLAP))
 	{
 	    childUse->cu_expandMask &= ~arg->ea_xmask;
+	    expandTest = FALSE;
 
 	    /* Call the client's function, if there is one. */
 
@@ -256,11 +248,7 @@ dbUnexpandFunc(scx, arg)
 	}
     }
 
-    /* Don't recursively search things that aren't already expanded. */
-
-    else return 2;
-
-    if (DBCellSrArea(scx, dbUnexpandFunc, (ClientData) arg))
+    if (DBCellSrArea(scx, dbExpandFunc, (ClientData) arg))
 	return 1;
     return 2;
 }

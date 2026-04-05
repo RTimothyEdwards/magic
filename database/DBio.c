@@ -4418,7 +4418,7 @@ DBCellWriteCommandFile(cellDef, f)
 	}
 	else
 	{
-	    fprintf(f, "label %s %s %d %d %d %d %s %s\n",
+	    fprintf(f, "label %s %s %d %d %d %d %s %s%s\n",
 			lab->lab_text,
 			DBFontList[lab->lab_font]->mf_name,
 			lab->lab_size >> 3,
@@ -4426,13 +4426,8 @@ DBCellWriteCommandFile(cellDef, f)
 			lab->lab_offset.p_x,
 			lab->lab_offset.p_y,
 			directionNames[lab->lab_just],
+			(lab->lab_flags & LABEL_STICKY) ? "-" : "",
 			DBTypeLongName(lab->lab_type));
-	}
-
-	if (lab->lab_flags & LABEL_STICKY)
-	{
-	    fprintf(f, "select area label\n");
-	    fprintf(f, "setlabel sticky true\n");
 	}
 
 	if (lab->lab_flags & PORT_DIR_MASK)

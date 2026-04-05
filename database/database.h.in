@@ -1062,6 +1062,19 @@ extern unsigned char DBVerbose;	/* If 0, don't print any messages	*/
 #define DB_VERBOSE_WARN	2
 #define DB_VERBOSE_ALL	3
 
+/* ---------- Definitions for expanding/unexpanding cells --------------*/
+
+/* Selection expansion flags */
+#define DB_EXPAND_MASK	 	3	/* 1 = expand, 0 = unexpand, 2 = toggle */
+#define DB_EXPAND_SURROUND_MASK	4	/* 1 = surround, 0 = touch */
+
+/* Selection expansion values */
+#define DB_EXPAND      	   0
+#define DB_UNEXPAND        1
+#define DB_EXPAND_TOGGLE   2
+#define DB_EXPAND_SURROUND 4
+#define DB_EXPAND_OVERLAP  0
+
 /* ------------------ Exported technology variables ------------------- */
 
 /***

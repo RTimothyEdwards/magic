@@ -954,7 +954,7 @@ windXviewCmd(w, cmd)
 
     celluse = (CellUse *) (w->w_surfaceID);
     DBExpandAll(celluse, &(celluse->cu_bbox),
-	((DBWclientRec *)w->w_clientData)->dbw_bitmask, FALSE,
+	((DBWclientRec *)w->w_clientData)->dbw_bitmask, DB_UNEXPAND,
 	ViewUnexpandFunc,
 	(ClientData)(pointertype) (((DBWclientRec *)w->w_clientData)->dbw_bitmask));
 

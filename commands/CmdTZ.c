@@ -702,32 +702,62 @@ CmdTool(
  * Implement the "unexpand" command.
  *
  * Usage:
- *	unexpand
+ *	unexpand [selection|surround|overlap|all]
+ *
+ *	"selection" unexpands (hides) cells in the selection.  All
+ *	other options unexpand cells in the layout.  "all" unexpands
+ *	all cells in the layout.  "surround" unexpannds cells which
+ *	the cursor box surrounds completely, and "overlap" unexpands
+ *	cells which the cursor box overlaps.
+ *
+ *	For backwards compatibility:
+ *	"unexpand" alone implements "unexpand surround".
+ *
+ *	Also see:  CmdExpand
  *
  * Results:
  *	None.
  *
  * Side effects:
- *	Unexpands all cells under the box that don't completely
- *	contain the box.
+ *	Changes the expansion state of cells.
  *
  * ----------------------------------------------------------------------------
  */
+
+#define UNEXPAND_SELECTION	0
+#define UNEXPAND_SURROUND	1
+#define UNEXPAND_OVERLAP	2
+#define UNEXPAND_ALL		3
+#define UNEXPAND_HELP		4
 
 void
 CmdUnexpand(
     MagWindow *w,
     TxCommand *cmd)
 {
-    int windowMask, boxMask;
+    int windowMask, boxMask, option;
+    const char * const *msg;
     Rect rootRect;
+
     int cmdUnexpandFunc(CellUse *use, int windowMask);		/* Forward reference. */
 
-    if (cmd->tx_argc != 1)
+    static const char * const cmdUnexpandOption[] = {
+	"selection	expand cell instances in the selection",
+	"surround	expand cell instances which the cursor box surrounds",
+	"overlap	expand cell instances which the cursor box overlaps",
+	"all		expand all cell instances",
+	NULL
+    };
+
+    if (cmd->tx_argc > 1)
     {
-	TxError("Usage: %s\n", cmd->tx_argv[0]);
-	return;
+	option = Lookup(cmd->tx_argv[1], cmdUnexpandOption);
+	if (option < 0) option = UNEXPAND_HELP;
     }
+    else
+	option = UNEXPAND_SURROUND;
+
+    if (option == UNEXPAND_HELP) goto badusage; 
 
     windCheckOnlyWindow(&w, DBWclientID);
     if (w == (MagWindow *) NULL)
@@ -743,8 +773,42 @@ CmdUnexpand(
 	TxError("The box isn't in the same window as the cursor.\n");
 	return;
     }
-    DBExpandAll(((CellUse *) w->w_surfaceID), &rootRect, windowMask,
-	    FALSE, cmdUnexpandFunc, (ClientData)(pointertype) windowMask);
+
+    switch (option)
+    {
+	case UNEXPAND_SELECTION:
+	    SelectExpand(windowMask, DB_UNEXPAND, (Rect *)NULL, FALSE);
+	    break;
+	case UNEXPAND_OVERLAP:
+	    DBExpandAll(((CellUse *)w->w_surfaceID), &rootRect, windowMask,
+			DB_UNEXPAND | DB_EXPAND_OVERLAP,
+			cmdUnexpandFunc, (ClientData)(pointertype)windowMask);
+	    SelectExpand(windowMask,
+			DB_UNEXPAND | DB_EXPAND_OVERLAP,
+			&rootRect, FALSE);
+	    break;
+	case UNEXPAND_SURROUND:
+	    DBExpandAll(((CellUse *)w->w_surfaceID), &rootRect, windowMask,
+			DB_UNEXPAND | DB_EXPAND_SURROUND,
+			cmdUnexpandFunc, (ClientData)(pointertype)windowMask);
+	    SelectExpand(windowMask,
+			DB_UNEXPAND | DB_EXPAND_SURROUND,
+			&rootRect, TRUE);
+	    break;
+	case UNEXPAND_ALL:
+	    DBExpandAll(((CellUse *)w->w_surfaceID), &TiPlaneRect, windowMask,
+			DB_UNEXPAND | DB_EXPAND_OVERLAP,
+			cmdUnexpandFunc, (ClientData)(pointertype)windowMask);
+	    SelectExpand(windowMask,
+			DB_UNEXPAND | DB_EXPAND_OVERLAP,
+			(Rect *)NULL);
+	    break;
+    }
+    return;
+
+badusage:
+    for (msg = &(cmdUnexpandOption[0]); *msg != NULL; msg++)
+        TxPrintf("    %s\n", *msg);
 }
 
 /* This function is called for each cell whose expansion status changed.

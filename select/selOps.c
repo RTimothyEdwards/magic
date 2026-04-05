@@ -1216,13 +1216,21 @@ SelectTransform(transform)
     SelectAndCopy2(EditRootDef);
 }
 
+/* Client data used by SelectExpand */
+
+typedef struct selExpData {
+    int sed_mask;	/* window mask */
+    int sed_type;	/* DB_EXPAND, etc. */
+    Rect *sed_box;	/* selection box if used, or NULL */
+} SelExpData;
+
 /*
  * ----------------------------------------------------------------------------
  *
  * SelectExpand --
  *
- * 	Expand all of the selected cells that are unexpanded, and
- *	unexpand all of those that are expanded.
+ * 	Expand or unexpand all of the selected cells according to
+ *	expandType.
  *
  * Results:
  *	None.
@@ -1230,58 +1238,166 @@ SelectTransform(transform)
  * Side effects:
  *	The contents of the selected cells will become visible or
  *	invisible on the display in the indicated window(s).
+ *	Both the cell in the layout and the selection are updated
+ *	so that they are synchonized with respect to the state of
+ *	visibility.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-SelectExpand(mask)
+SelectExpand(mask, expandType, rootBox)
     int mask;			/* Bits of this word indicate which
 				 * windows the selected cells will be
 				 * expanded in.
 				 */
+    int expandType;		/* Operation to perform:  Expand,
+				 * unexpand, or expand toggle.
+				 */
+    Rect *rootBox;		/* Area of root box, if selecting by
+				 * cursor box area.
+				 */
 {
-    extern int selExpandFunc();	/* Forward reference. */
+    /* Forward references */
+    extern int selExpandFunc();
 
-    (void) SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
-	    selExpandFunc, INT2CD(mask));
+    SelExpData sed;
+
+    sed.sed_type = expandType;
+    sed.sed_box = rootBox;
+    sed.sed_mask = mask;
+
+    if (rootBox != NULL)
+    {
+	SearchContext scx;
+
+	scx.scx_use = SelectUse;
+	scx.scx_area = *rootBox;
+	scx.scx_trans = GeoIdentityTransform;
+
+	SelEnumCells(FALSE, (bool *) NULL, &scx, selExpandFunc, &sed);
+	return;
+    }
+
+    SelEnumCells(FALSE, (bool *) NULL, (SearchContext *)NULL,
+	    	selExpandFunc, &sed);
 }
 
     /* ARGSUSED */
 int
-selExpandFunc(selUse, use, transform, mask)
+selExpandFunc(selUse, use, transform, sed)
     CellUse *selUse;		/* Use from selection. */
     CellUse *use;		/* Use to expand (in actual layout). */
     Transform *transform;	/* Not used. */
-    int mask;			/* Windows in which to expand. */
+    SelExpData *sed;		/* Information for expansion */
 {
-    /* Don't change expansion status of root cell:  screws up
-     * DBWAreaChanged (need to always have at least top-level
-     * cell be expanded).
-     */
+    int expandType = sed->sed_type;
+    int mask = sed->sed_mask;
+    Rect *rootBox = sed->sed_box;
 
-    if (use->cu_parent == NULL)
+    /* If a rootBox is provided, then we are here trying to sync the
+     * cells in the selection to those in the edit cell.  Need to
+     * follow the policy of expandType:  If DB_EXPAND_SURROUND, then
+     * selUse must be inside the rootBox.  If DB_EXPAND_OVERLAP, then
+     * selUse must ovelap the rootBox.
+     */
+    if (rootBox != NULL)
     {
-	TxError("Can't unexpand root cell of window.\n");
-	return 0;
+	if ((expandType & DB_EXPAND_SURROUND_MASK) == DB_EXPAND_OVERLAP)
+	{
+	    if (!GEO_OVERLAP(rootBox, &selUse->cu_bbox))
+		return 0;
+	}
+	else /* (expandType & DB_EXPAND_SURROUND_MASK) == DB_EXPAND_SURROUND */
+	{
+	    if (!GEO_SURROUND(rootBox, &selUse->cu_bbox))
+		return 0;
+	}
     }
 
-    /* Be sure to modify the expansion bit in the selection as well as
-     * the one in the layout in order to keep them consistent.
+    /* If a rootBox was given, then the expansion is being done in the
+     * edit cell, and the selection is being updated to reflect any
+     * changes there, so only handle the selection.  Otherwise, we
+     * have to sync the corresponding cells in the edit def here.
      */
-
-    if (DBDescendSubcell(use, mask))
+    if ((expandType & DB_EXPAND_MASK) == DB_EXPAND)
     {
-	DBExpand(selUse, mask, FALSE);
-	DBExpand(use, mask, FALSE);
-	DBWAreaChanged(use->cu_parent, &use->cu_bbox, mask,
-	    (TileTypeBitMask *) NULL);
+	/* Be sure to modify the expansion bit in the selection as well as
+	 * the one in the layout in order to keep them consistent.
+	 */
+	DBExpand(selUse, mask, DB_EXPAND);
+	if (!rootBox)
+	{
+	    DBExpand(use, mask, DB_EXPAND);
+	    if (use->cu_parent == NULL)
+		DBWAreaChanged(use->cu_def, &use->cu_bbox, mask, &DBAllButSpaceBits);
+	    else 
+		DBWAreaChanged(use->cu_parent, &use->cu_bbox, mask, &DBAllButSpaceBits);
+	}
     }
-    else
+    else if ((expandType & DB_EXPAND_MASK) == DB_UNEXPAND)
     {
-	DBExpand(selUse, mask, TRUE);
-	DBExpand(use, mask, TRUE);
-	DBWAreaChanged(use->cu_parent, &use->cu_bbox, mask, &DBAllButSpaceBits);
+	/* Don't change expansion status of root cell:  screws up
+	 * DBWAreaChanged (need to always have at least top-level
+	 * cell be expanded).
+	 */
+
+	if ((use->cu_parent == NULL) && !rootBox)
+	{
+	    TxError("Can't unexpand root cell of window.\n");
+	    return 0;
+	}
+
+	if (use->cu_parent != NULL)
+	{
+	    /* Be sure to modify the expansion bit in the selection as well as
+	     * the one in the layout in order to keep them consistent.
+	     */
+	    DBExpand(selUse, mask, DB_UNEXPAND);
+	    if (!rootBox)
+	    {
+		DBExpand(use, mask, DB_UNEXPAND);
+		DBWAreaChanged(use->cu_parent, &use->cu_bbox, mask,
+			(TileTypeBitMask *) NULL);
+	    }
+	}
+    }
+    else	/* (expandType & DB_EXPAND_MASK) == DB_EXPAND_TOGGLE */
+    {
+	/* Don't change expansion status of root cell:  screws up
+	 * DBWAreaChanged (need to always have at least top-level
+	 * cell be expanded).
+	 */
+
+	if (use->cu_parent == NULL)
+	{
+	    if (!rootBox) TxError("Can't unexpand root cell of window.\n");
+	    return 0;
+	}
+
+	/* Be sure to modify the expansion bit in the selection as well as
+	 * the one in the layout in order to keep them consistent.
+	 */
+
+	if (DBDescendSubcell(selUse, mask))
+	{
+	    DBExpand(selUse, mask, DB_UNEXPAND);
+	    if (!rootBox)
+	    {
+		DBExpand(use, mask, DB_UNEXPAND);
+		DBWAreaChanged(use->cu_parent, &use->cu_bbox, mask,
+			(TileTypeBitMask *) NULL);
+	    }
+	}
+	else
+	{
+	    DBExpand(selUse, mask, DB_EXPAND);
+	    if (!rootBox)
+	    {
+		DBExpand(use, mask, DB_EXPAND);
+		DBWAreaChanged(use->cu_parent, &use->cu_bbox, mask, &DBAllButSpaceBits);
+	    }
+	}
     }
     return 0;
 }

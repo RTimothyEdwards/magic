@@ -517,14 +517,14 @@ CmdLoad(
 
 	    DBExpandAll(topuse, &(topuse->cu_bbox),
 			((DBWclientRec *)w->w_clientData)->dbw_bitmask,
-			TRUE, keepGoing, NULL);
+			DB_EXPAND, keepGoing, NULL);
 
 	    DBExpandAll(topuse, &(topuse->cu_bbox),
 			((DBWclientRec *)w->w_clientData)->dbw_bitmask,
-			FALSE, keepGoing, NULL);
+			DB_UNEXPAND, keepGoing, NULL);
 	    DBExpand(topuse,
 			((DBWclientRec *)w->w_clientData)->dbw_bitmask,
-			TRUE);
+			DB_EXPAND);
 
 	    /* We don't want to save and restore DBLambda, because      */
 	    /* loading the file may change their values.  Instead, we   */

@@ -546,12 +546,12 @@ DBWloadWindow(window, name, flags)
 	newEditUse = DBCellNewUse(newEditDef, (char *) NULL);
 	(void) StrDup(&(newEditUse->cu_id), "Topmost cell in the window");
 	DBExpand(newEditUse,
-		((DBWclientRec *)window->w_clientData)->dbw_bitmask, TRUE);
+		((DBWclientRec *)window->w_clientData)->dbw_bitmask, DB_EXPAND);
 
 	if (expand)
 	    DBExpandAll(newEditUse, &(newEditUse->cu_bbox),
 			((DBWclientRec *)window->w_clientData)->dbw_bitmask,
-			FALSE, UnexpandFunc,
+			DB_UNEXPAND, UnexpandFunc,
 			INT2CD(((DBWclientRec *)window->w_clientData)->dbw_bitmask));
 
 	if (newEdit)

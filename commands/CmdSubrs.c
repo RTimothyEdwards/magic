@@ -1239,7 +1239,7 @@ cmdExpandOneLevel(
     extern int cmdExpand1func(CellUse *cu, ClientData bitmask);
 
     /* first, expand this cell use */
-    DBExpand(cu, bitmask, expand);
+    DBExpand(cu, bitmask, expand ? DB_EXPAND : DB_UNEXPAND);
 
     /* now, unexpand its direct children (ONE LEVEL ONLY) */
     if (expand)
@@ -1251,7 +1251,7 @@ cmdExpand1func(
     CellUse *cu,
     ClientData bitmask)
 {
-    DBExpand(cu, (int)CD2INT(bitmask), FALSE);
+    DBExpand(cu, (int)CD2INT(bitmask), DB_UNEXPAND);
     return 0;
 }
 
