@@ -1356,7 +1356,7 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
     }
     if (extDev->subs == extNode)
     {
-	if ((subs = layoutDev->rd_fet_subs) != NULL)
+	if ((layoutDev->rd_nterms >= 4) && ((subs = layoutDev->rd_fet_subs) != NULL))
 	{
 	    if (subs->rn_name != NULL && notdecremented)
 	    {
