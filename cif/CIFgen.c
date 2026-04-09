@@ -5462,9 +5462,12 @@ CIFGenLayer(
 				    (ClientData)NULL);
 	        }
 	        else
+		{
+		    TTMaskSetMask(&bls.connect, &op->co_paintMask);
 		    DBSrPaintArea((Tile *)NULL, cellDef->cd_planes[bloats->bl_plane],
 			    &TiPlaneRect, &bls.connect, cifProcessResetFunc,
 			    (ClientData)NULL);
+		}
 
 		break;
 
