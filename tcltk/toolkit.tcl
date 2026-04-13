@@ -1299,6 +1299,11 @@ proc magic::add_check_callbacks {gencell_type library} {
 # A final default dependency will be added to all entries
 # to run the "check" procedure for the device.  Dependencies
 # that are more targeted get run first.
+#
+# NOTE:  The "check" procedure must be the first in the
+# list, as otherwise, any invalid entry that is corrected
+# by the check callback will have been used to evaluate
+# dependent values.
 #----------------------------------------------------------
 
 proc magic::add_dependency {callback gencell_type library args} {
@@ -1355,12 +1360,12 @@ proc magic::update_dialog {callback pname gencell_type library} {
 	set parameters [dict merge $pdefaults [magic::gencell_getparams]]
     }
 
-    if {$callback != {}} {
-       set parameters [$callback $pname $parameters]
-    }
     if {[catch {set parameters [${library}::${gencell_type}_check $parameters]} \
 		checkerr]} {
 	puts stderr $checkerr
+    }
+    if {$callback != {}} {
+       set parameters [$callback $pname $parameters]
     }
     magic::gencell_setparams $parameters
 }
