@@ -534,8 +534,11 @@ proc magic::enable_tools {} {
    # The user can change these bindings at will by using the
    # "macro" command when the tool is active.
 
+   # NOTE:  Do not name a tool "netlist" because it will get
+   # confused with the "netlist" window.
+
    magic::macro copy wiring
-   magic::macro copy netlist
+   magic::macro copy nettool
    magic::macro copy pick
 
    magic::tool wiring
@@ -549,7 +552,7 @@ proc magic::enable_tools {} {
    macro  Button4 "wire incr width ; wire show"
    macro  Button5 "wire decr width ; wire show"
 
-   magic::tool netlist
+   magic::tool nettool
    macro  Button1          "netlist select"
    macro  Button2          "netlist join"
    macro  Button3          "netlist terminal"
@@ -704,8 +707,8 @@ proc magic::tool {{type next}} {
    if {$type == "next"} {
       switch $Opts(tool) {
 	 box { set type wiring }
-	 wiring { set type netlist }
-	 netlist { set type pick }
+	 wiring { set type nettool }
+	 nettool { set type pick }
 	 pick { set type box }
       }
    }
@@ -761,9 +764,9 @@ proc magic::tool {{type next}} {
 	 set Opts(tool) wiring
 	 cursor 19 	;# sets the cursor
       }
-      netlist {
+      nettool {
 	 puts stdout {Switching to NETLIST tool.}
-	 set Opts(tool) netlist
+	 set Opts(tool) nettool
 	 cursor 18	;# sets the cursor
       }
       pick {

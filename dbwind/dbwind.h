@@ -152,6 +152,7 @@ extern void DBWAddButtonHandler(const char *name, const cb_database_buttonhandle
                                 int cursor, const char *doc);
 extern char *DBWGetButtonHandler();
 extern char *DBWChangeButtonHandler();
+extern int  DBWButtonHandlerIndex();
 extern void DBWPrintButtonDoc();
 extern void DBWBoxHandler();
 

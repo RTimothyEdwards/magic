@@ -2755,6 +2755,56 @@ extOutputDevices(def, transList, outFile)
 			/* get corrected by extComputeEffectiveLW().	*/
 			length = (extTransRec.tr_gatelen - width) / 2;
 		    }
+
+		    if ((n == 1) && (length == 0) && (extTransRec.tr_gatelen == 0))
+		    {
+			/* If a one-terminal device has not recorded any
+			 * gate length, then get W and L from the bounding
+			 * box of the device.  This routine could be much
+			 * better optimized but it is probably not worth
+			 * the effort.  Just reusing the code from above
+			 * for creating extSpecialDevice, a list of device
+			 * tiles.  Note that W and L are not distinguishable
+			 * and hopefully the PDK defines the device by area
+			 * and perimeter.
+			 */
+			LinkedTile *lt;
+			Rect devbbox, ltbox;
+
+			extSpecialDevice = (LinkedTile *)NULL;
+
+			arg.fra_uninit = (ClientData)extTransRec.tr_gatenode;
+			arg.fra_region = (ExtRegion *)reg;
+			arg.fra_each = extSDTileFunc;
+			ExtFindNeighbors(reg->treg_tile, reg->treg_dinfo,
+					arg.fra_pNum, &arg);
+
+			arg.fra_uninit = (ClientData) reg;
+			arg.fra_region = (ExtRegion *) extTransRec.tr_gatenode;
+			arg.fra_each = (int (*)()) NULL;
+			ExtFindNeighbors(reg->treg_tile, reg->treg_dinfo,
+					arg.fra_pNum, &arg);
+
+			lt = extSpecialDevice;
+			if (lt)
+			{
+			    TiToRect(lt->t, &devbbox);
+			    for (; lt; lt = lt->t_next)
+			    {
+				TiToRect(lt->t, &ltbox);
+				GeoInclude(&ltbox, &devbbox);
+			    }
+			    free_magic1_t mm1 = freeMagic1_init();
+			    for (lt = extSpecialDevice; lt; lt = lt->t_next)
+				freeMagic1(&mm1, (char *)lt);
+			    freeMagic1_end(&mm1);
+			}
+			length = devbbox.r_xtop - devbbox.r_xbot;
+			/* Width was likely a perimeter value and will
+			 * be recalculated as the actual device width.
+			 */
+			width = devbbox.r_ytop - devbbox.r_ybot;
+		    }
 		}
 
 		/*------------------------------------------------------*/

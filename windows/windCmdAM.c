@@ -1056,6 +1056,7 @@ windDoMacro(w, cmd, interactive)
     bool do_help = FALSE;
     bool do_reverse = FALSE;
     char *searchterm = NULL;
+    char *clientName = NULL;
     macrodef *cMacro;
     HashTable *clienttable;
     HashEntry *h;
@@ -1073,9 +1074,25 @@ windDoMacro(w, cmd, interactive)
 
     argstart = 1;
     if (cmd->tx_argc == 1)
-	wc = DBWclientID;  /* Added by NP 11/15/04 */
+	wc = DBWclientID;	/* Default client */
     else if (cmd->tx_argc > 1)
+    {
 	wc = WindGetClient(cmd->tx_argv[1], TRUE);
+	if (wc != NULL)
+	{
+	    clientName = cmd->tx_argv[1];
+	    argstart++;
+	}
+	else
+	{
+	    /* Check if argument is a known layout button handler */
+	    if (DBWButtonHandlerIndex(cmd->tx_argv[1]) != -1)
+	    {
+		clientName = cmd->tx_argv[1];
+		argstart++;
+	    }
+	}
+    }
 
     while (cmd->tx_argc > argstart)
     {
@@ -1116,6 +1133,15 @@ windDoMacro(w, cmd, interactive)
 			wc = DBWclientID;
 		}
 		MacroCopy(wc, cmd->tx_argv[argstart]);
+
+		/* If tool name did not previously exist, then add
+		 * it to the list of known tool names, so that it
+		 * can be found later by the "macro" command.
+		 */
+		if (DBWButtonHandlerIndex(cmd->tx_argv[argstart]) == -1)
+		    DBWAddButtonHandler(cmd->tx_argv[argstart],	
+				(const cb_database_buttonhandler_t)NULL,
+				0, (const char *)NULL);
 	    }
 	    return;
 	}
@@ -1147,26 +1173,53 @@ windDoMacro(w, cmd, interactive)
 
 	    if (MacroKey(cmd->tx_argv[argstart], &verbose) == 0)
 		if (MacroKey(cmd->tx_argv[argstart + 1], &verbose) != 0)
-		{
-		    wc = 0;
-		    argstart++;
 		    return;
-		}
 	}
     }
-    else
-	argstart++;
+
+    /* If a clientName wasn't given, but wc is DBWclientID, then get
+     * the clientName from the default button handler.
+     */
+
+    if ((clientName == NULL) && (wc == DBWclientID))
+	clientName = DBWGetButtonHandler();
 
     if (cmd->tx_argc == argstart)
     {
-	if (wc == (WindClient)0)
+	if (clientName == NULL)
+	    h = NULL;
+	else
+	    h = HashLookOnly(&MacroClients, (char *)clientName);
+
+	if (h == NULL)
 	{
-	    TxError("No such client.\n");
+#ifdef MAGIC_WRAPPER
+	    Tcl_Obj *lobj;
+	    lobj = Tcl_NewListObj(0, NULL);
+#endif
+	    TxError("Cannot get macro list from current window.\n");
+#ifndef MAGIC_WRAPPER
+	    TxError("List of known macro clients:\n");
+#endif
+	    /* If clientName was not in MacroClients, then what is? */
+	    HashStartSearch(&hs);
+	    while ((h = HashNext(&MacroClients, &hs)) != NULL)
+	    {
+		char *clientName = h->h_key.h_name;
+#ifdef MAGIC_WRAPPER
+		Tcl_ListObjAppendElement(magicinterp, lobj,
+				Tcl_NewStringObj(clientName, -1));
+#else
+		TxError("%s ", clientName);
+#endif
+	    }
+#ifdef MAGIC_WRAPPER
+	    Tcl_SetObjResult(magicinterp, lobj);
+#else
+	    TxError("\n");
+#endif
 	    return;
 	}
-	h = HashLookOnly(&MacroClients, (char *)wc);
-	if (h == NULL)
-	    return;
 	else
 	{
 	    clienttable = (HashTable *)HashGetValue(h);

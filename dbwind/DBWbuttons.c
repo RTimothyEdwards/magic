@@ -131,8 +131,11 @@ DBWAddButtonHandler(
     for (i = 0; i < MAXBUTTONHANDLERS; i++)
     {
 	if (dbwButtonHandlers[i] != NULL) continue;
-	(void) StrDup(&dbwButtonHandlers[i], name);
-	(void) StrDup(&dbwButtonDoc[i], doc);
+	StrDup(&dbwButtonHandlers[i], name);
+	if (doc != NULL)
+	    StrDup(&dbwButtonDoc[i], doc);
+	else
+	    dbwButtonDoc[i] = (char *)NULL;
 	dbwButtonProcs[i] = proc;
 	dbwButtonCursors[i] = cursor;
 	return;
@@ -276,6 +279,37 @@ DBWGetButtonHandler()
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBWButtonHandlerIndex()
+ *
+ *	Given a string, return the index of the button handler.  If the
+ *	string does not correspond to any button handler name, then
+ *	return -1.
+ *
+ * Results:
+ *	Index of button handler, if it exists;  -1 otherwise.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+DBWButtonHandlerIndex(char *toolName)
+{
+    int i;
+
+    for (i = 0; i < MAXBUTTONHANDLERS; i++)
+    {
+	if (dbwButtonHandlers[i] == NULL) return -1;
+	else if (!strcmp(toolName, dbwButtonHandlers[i])) return i;
+    }
+    return -1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBWPrintButtonDoc --
  *
  * 	This procedure prints out documentation for the current
@@ -294,7 +328,10 @@ DBWGetButtonHandler()
 void
 DBWPrintButtonDoc()
 {
-    TxPrintf("%s", dbwButtonDoc[dbwButtonCurrentIndex]);
+    if (dbwButtonDoc[dbwButtonCurrentIndex])
+	TxPrintf("%s", dbwButtonDoc[dbwButtonCurrentIndex]);
+    else
+	TxPrintf("(no usage information)\n");
 }
 
 
