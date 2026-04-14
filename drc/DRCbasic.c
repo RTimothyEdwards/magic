@@ -524,6 +524,13 @@ DRCBasicCheck (celldef, checkRect, clipRect, function, cdata)
     return (errors);
 }
 
+/* Expect that keeping around 3 MaxRectsData records should be sufficient
+ * to avoid recomputing drcCanonicalMaxwidth() multiple times.  Note that
+ * if a PDK sets up multiple rules on an edge which all require running
+ * drcCanonicalMaxwidth(), then this cache size may need to be revisited.
+ */
+#define MAXRECTSCACHE 3
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -560,6 +567,19 @@ drcTile (tile, dinfo, arg)
     bool firsttile;
     int triggered;
     int cdist, dist, ccdist, result;
+
+    /* Keep up to three MaxRectsData records to avoid doing the	same
+     * expensive computation more than once.
+     *
+     * mrdcache[0] will be used for the tpleft tile, since it will never
+     * be reused.  mrdcache[1] and mrdcache[2] will be used for the tile
+     * itself.  Note that if more than 2 DRCCookie entries for the same
+     * edge require drcCanonicalMaxwidth(), then mrdcache[2] will be
+     * re-used so that at least mrdcache[1] is always a cache hit.
+     */
+
+    static MaxRectsData *mrdcache[MAXRECTSCACHE] = {NULL, NULL, NULL};
+    DRCCookie *cptrcache;
 
     arg->dCD_constraint = &errRect;
 
@@ -701,6 +721,8 @@ drcTile (tile, dinfo, arg)
 	}
 	DRCstatEdges++;
     }
+
+    cptrcache = NULL;
 
     /*
      * Check design rules along a vertical boundary between two tiles.
@@ -857,12 +879,23 @@ drcTile (tile, dinfo, arg)
 
 		    if (cptr->drcc_flags & DRC_REVERSE)
 		    {
-			mrd = drcCanonicalMaxwidth(tpleft, GEO_WEST, arg, cptr);
+			mrd = drcCanonicalMaxwidth(tpleft, GEO_WEST, arg, cptr,
+					&mrdcache[0]);
 			triggered = 0;
 		    }
-		    else if (firsttile)
+		    else
 		    {
-			mrd = drcCanonicalMaxwidth(tile, GEO_EAST, arg, cptr);
+			if (cptrcache == NULL)
+			{
+			    mrd = drcCanonicalMaxwidth(tile, GEO_EAST, arg, cptr,
+					&mrdcache[1]);
+			    cptrcache = cptr;
+			}
+			else if (cptrcache != cptr)
+			    mrd = drcCanonicalMaxwidth(tile, GEO_EAST, arg, cptr,
+					&mrdcache[2]);
+			else
+			    mrd = mrdcache[1];
 			triggered = 0;
 		    }
 		    if (!trigpending || (DRCCurStyle->DRCFlags
@@ -1153,6 +1186,8 @@ drcTile (tile, dinfo, arg)
         }
     }
 
+    cptrcache = NULL;
+
     /*
      * Check design rules along a horizontal boundary between two tiles.
      *
@@ -1299,12 +1334,23 @@ drcTile (tile, dinfo, arg)
 
 		    if (cptr->drcc_flags & DRC_REVERSE)
 		    {
-			mrd = drcCanonicalMaxwidth(tpbot, GEO_SOUTH, arg, cptr);
+			mrd = drcCanonicalMaxwidth(tpbot, GEO_SOUTH, arg, cptr,
+					&mrdcache[0]);
 			triggered = 0;
 		    }
-		    else if (firsttile)
+		    else
 		    {
-			mrd = drcCanonicalMaxwidth(tile, GEO_NORTH, arg, cptr);
+			if (cptrcache == NULL)
+			{
+			    mrd = drcCanonicalMaxwidth(tile, GEO_NORTH, arg, cptr,
+					&mrdcache[1]);
+			    cptrcache = cptr;
+			}
+			else if (cptrcache != cptr)
+			    mrd = drcCanonicalMaxwidth(tile, GEO_NORTH, arg, cptr,
+					&mrdcache[2]);
+			else
+			    mrd = mrdcache[1];
 			triggered = 0;
 		    }
 		    if (!trigpending || (DRCCurStyle->DRCFlags

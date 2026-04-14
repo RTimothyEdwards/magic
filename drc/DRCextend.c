@@ -510,16 +510,17 @@ MaxRectsExclude(
  */
 
 MaxRectsData *
-drcCanonicalMaxwidth(starttile, dir, arg, cptr)
+drcCanonicalMaxwidth(starttile, dir, arg, cptr, mrdptr)
     Tile	*starttile;
     int		dir;			/* direction of rule */
     struct	drcClientData	*arg;
     DRCCookie	*cptr;
+    MaxRectsData **mrdptr;
 {
     int		    s, edgelimit;
     Tile	    *tile,*tp;
     TileTypeBitMask wrongtypes;
-    static MaxRectsData *mrd = (MaxRectsData *)NULL;
+    MaxRectsData    *mrd = *mrdptr;
     Rect	    *boundrect, boundorig;
 
     /* Generate an initial array size of 8 for rlist and swap. */
@@ -529,6 +530,7 @@ drcCanonicalMaxwidth(starttile, dir, arg, cptr)
 	mrd->rlist = (Rect *)mallocMagic(8 * sizeof(Rect));
 	mrd->swap = (Rect *)mallocMagic(8 * sizeof(Rect));
 	mrd->listdepth = 8;
+	*mrdptr = mrd;
     }
     if (starttile == NULL) return mrd;
 
