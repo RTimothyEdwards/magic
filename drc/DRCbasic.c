@@ -768,7 +768,6 @@ drcTile (tile, dinfo, arg)
 	int edgeX = LEFT(tile);
 
 	firsttile = TRUE;
-	mrd = NULL;
         for (tpleft = BL(tile); BOTTOM(tpleft) < top; tpleft = RT(tpleft))
         {
 	    /* Get the tile types to the left and right of the edge */
@@ -858,6 +857,7 @@ drcTile (tile, dinfo, arg)
 		}
 
 		DRCstatRules++;
+		if (!triggered) mrd = NULL;
 
 		if (cptr->drcc_flags & DRC_AREA)
 		{
@@ -895,7 +895,7 @@ drcTile (tile, dinfo, arg)
 			    mrd = drcCanonicalMaxwidth(tile, GEO_EAST, arg, cptr,
 					&mrdcache[2]);
 			else
-			    mrd = mrdcache[1];
+			    mrd = (mrdcache[1]->entries == 0) ? NULL : mrdcache[1];
 			triggered = 0;
 		    }
 		    if (!trigpending || (DRCCurStyle->DRCFlags
@@ -1227,7 +1227,6 @@ drcTile (tile, dinfo, arg)
 
 	/* Go right across bottom of tile */
 	firsttile = TRUE;
-	mrd = NULL;
         for (tpbot = LB(tile); LEFT(tpbot) < right; tpbot = TR(tpbot))
         {
 	    /* Get the tile types to the top and bottom of the edge */
@@ -1318,6 +1317,7 @@ drcTile (tile, dinfo, arg)
 		}
 
 		DRCstatRules++;
+		if (!triggered) mrd = NULL;
 
 		/* top to bottom */
 
@@ -1350,7 +1350,7 @@ drcTile (tile, dinfo, arg)
 			    mrd = drcCanonicalMaxwidth(tile, GEO_NORTH, arg, cptr,
 					&mrdcache[2]);
 			else
-			    mrd = mrdcache[1];
+			    mrd = (mrdcache[1]->entries == 0) ? NULL : mrdcache[1];
 			triggered = 0;
 		    }
 		    if (!trigpending || (DRCCurStyle->DRCFlags
