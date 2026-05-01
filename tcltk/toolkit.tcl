@@ -525,11 +525,25 @@ proc magic::netlist_to_layout {netfile library} {
    # Pre-generate placeholders for all subcircuits.
    set curtop [cellname list self]
 
+   array set existing_cells {}
    foreach subckt $allsubs {
-	# Diagnostic output
-        puts stdout "Pre-generating subcircuit $subckt placeholder"
-	load $subckt -silent
+        if {$subckt == $curtop || $subckt == $topname} {
+            set existing_cells($subckt) "false"
+            load $subckt -silent
+            continue
+        }
+
+        if {[catch {load $subckt -fail -silent}] == 0} {
+            puts stdout "Subcircuit $subckt successfully loaded."
+            set existing_cells($subckt) "true"
+        } else {
+            puts stdout "Subcircuit $subckt not found. Will generate."
+            set existing_cells($subckt) "false"
+            # Now we load it normally to create the placeholder for the generator
+            load $subckt -silent
+        }
    }
+
    load $curtop
 
    # Parse the file and process all lines
@@ -561,7 +575,14 @@ proc magic::netlist_to_layout {netfile library} {
       } else {
 	 if {[regexp -nocase {^[ \t]*\.ends} $line]} {
 	    set insub false
-	    magic::generate_layout_add $subname $subpins $complist $library
+
+        if {[info exists existing_cells($subname)] && $existing_cells($subname) == "false"} {
+            puts stdout "Cell $subname is empty. Generating initial layout..."
+            magic::generate_layout_add $subname $subpins $complist $library
+        } else {
+            puts stdout "Cell $subname already contains layout. Skipping generation."
+        }
+
 	    set subname ""
 	    set subpins ""
 	    set complist {}
