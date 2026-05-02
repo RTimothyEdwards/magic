@@ -728,7 +728,9 @@ proc magic::toolupdate {win {yesno "yes"} {layerlist ""}} {
    # Don't do anything if toolbar is not present
    if { $Winopts(${topname},toolbar) == 0 } { return }
 
-   if {$layerlist == ""} {
+   # To ensure backwards compatibility, we check if the 
+   # layer is called none, so avoid naming a layer none.
+   if {$layerlist == "" || $layerlist == "none"} {
 	set layerlist $yesno
 	set yesno "yes"
    }
