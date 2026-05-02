@@ -706,7 +706,7 @@ proc magic::cursorview {win} {
    *bypass logcommands resume
 }
 
-proc magic::toolupdate {win {yesno "yes"} {layerlist "none"}} {
+proc magic::toolupdate {win {yesno "yes"} {layerlist ""}} {
    global Winopts
 
    if {[magic::display] == "NULL"} {return}
@@ -728,7 +728,7 @@ proc magic::toolupdate {win {yesno "yes"} {layerlist "none"}} {
    # Don't do anything if toolbar is not present
    if { $Winopts(${topname},toolbar) == 0 } { return }
 
-   if {$layerlist == "none"} {
+   if {$layerlist == ""} {
 	set layerlist $yesno
 	set yesno "yes"
    }
