@@ -536,6 +536,12 @@ proc magic::netlist_to_layout {netfile library} {
         if {[catch {load $subckt -fail -silent}] == 0} {
             puts stdout "Subcircuit $subckt successfully loaded."
             set existing_cells($subckt) "true"
+
+			# Make sure to load all cells into memory to avoid 
+			# corruption when saving all files (files get loaded
+			# without taking the scale into account)
+			select top cell
+            expand
         } else {
             puts stdout "Subcircuit $subckt not found. Will generate."
             set existing_cells($subckt) "false"
