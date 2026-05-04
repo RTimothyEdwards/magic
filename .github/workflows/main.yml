@@ -1,19 +1,21 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
 on:
   push:
   pull_request:
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# actions/upload-artifact@v5 still runs on Node.js 20. Force Node 24 to
+# silence the deprecation warning until upload-artifact ships a Node-24
+# release. Drop this once upgraded.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   simple_build_linux:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Get Dependencies
         run: |
           sudo apt-get install -y tcl-dev tk-dev libcairo-dev
@@ -24,14 +26,24 @@ jobs:
           make -j$(nproc)
   simple_build_wasm:
     runs-on: ubuntu-22.04
+    env:
+      # --- emsdk version switch ---------------------------------------------
+      # Pinned: post-build.sh patches depend on the exact text output of this
+      # Emscripten version. Bump intentionally and re-verify the patches.
+      # To test against the latest emsdk, comment the pinned line and
+      # uncomment the "latest" line below.
+      EMSDK_VERSION: '3.1.56'
+      # EMSDK_VERSION: 'latest'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Get Dependencies
         run: |
           git clone https://github.com/emscripten-core/emsdk.git
           cd emsdk
-          ./emsdk install latest
-          ./emsdk activate latest
+          ./emsdk install "$EMSDK_VERSION"
+          ./emsdk activate "$EMSDK_VERSION"
+      # Dump native + emscripten preprocessor defines. Useful for diagnosing
+      # WASM-build differences after an emsdk bump.
       - name: Emscripten Diagnostic
         run: |
           source ./emsdk/emsdk_env.sh
@@ -46,15 +58,36 @@ jobs:
       - name: Build
         run: |
           source ./emsdk/emsdk_env.sh
-          # The --without and --disable in these build options is due to no WASM library being available for that feature
-          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 -g" emconfigure ./configure --without-cairo --without-opengl --without-x --without-tk --without-tcl --disable-readline --disable-compression --target=asmjs-unknown-emscripten
+          # --without/--disable flags: no WASM library available for these features
+          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 -g" emconfigure ./configure \
+            --without-cairo --without-opengl --without-x --without-tk --without-tcl \
+            --disable-readline --disable-compression \
+            --host=asmjs-unknown-emscripten \
+            --target=asmjs-unknown-emscripten
+          # Append WASM linker flags and activate the WASM link target
+          cat toolchains/emscripten/defs.mak >> defs.mak
+          # Echo the merged defs.mak so CI logs show the exact build config
           echo "===== defs.mak ====="
           cat defs.mak
           echo "===== defs.mak ====="
-          emmake make
-      - name: archive wasm bundle
-        uses: actions/upload-artifact@v4
+          # Build in order: techs must exist before mains (--embed-file embeds them)
+          emmake make depend
+          emmake make -j$(nproc) modules libs
+          emmake make techs
+          emmake make mains
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
         with:
-          name: magic-wasm-bundle
-          path: |
-            ${{ github.workspace }}/magic/magic.wasm
+          node-version: '22'
+      - name: Run example tests
+        run: |
+          cp magic/magic.js  npm/
+          cp magic/magic.wasm npm/
+          cd npm && npm run test
+      - name: Pack npm package
+        run: ./npm/pack.sh
+      - name: Upload npm package
+        uses: actions/upload-artifact@v5
+        with:
+          name: magic-vlsi-wasm-npm
+          path: ${{ github.workspace }}/npm/*.tgz

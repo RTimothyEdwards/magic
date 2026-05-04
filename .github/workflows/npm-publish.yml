@@ -1,0 +1,95 @@
+name: Publish npm package
+
+# Publishes magic-vlsi-wasm to npm.
+# Triggered automatically on version tags (v*); can also be run manually.
+# Requires an NPM_TOKEN repository secret for publishing.
+#
+# WASM is architecture-independent — built once on x86-64, usable everywhere.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: pack only, do not publish'
+        type: boolean
+        default: true
+
+# actions/upload-artifact@v5 still runs on Node.js 20. Force Node 24 to
+# silence the deprecation warning until upload-artifact ships a Node-24
+# release. Drop this once upgraded.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install emsdk
+        env:
+          # --- emsdk version switch -----------------------------------------
+          # Pinned: must match .github/workflows/main.yml. See post-build.sh.
+          # To test against the latest emsdk, comment the pinned line and
+          # uncomment the "latest" line below.
+          EMSDK_VERSION: '3.1.56'
+          # EMSDK_VERSION: 'latest'
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install "$EMSDK_VERSION"
+          ./emsdk activate "$EMSDK_VERSION"
+
+      - name: Build WASM
+        run: |
+          source ./emsdk/emsdk_env.sh
+          # --without/--disable flags: no WASM library available for these features
+          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1" emconfigure ./configure \
+            --without-cairo --without-opengl --without-x --without-tk --without-tcl \
+            --disable-readline --disable-compression \
+            --host=asmjs-unknown-emscripten \
+            --target=asmjs-unknown-emscripten
+          # Append WASM linker flags and activate the WASM link target
+          cat toolchains/emscripten/defs.mak >> defs.mak
+          # Build in order: techs must exist before mains (--embed-file embeds them)
+          emmake make depend
+          emmake make -j$(nproc) modules libs
+          emmake make techs
+          emmake make mains
+
+      - name: Copy WASM artifacts into npm/
+        run: |
+          cp magic/magic.js  npm/
+          cp magic/magic.wasm npm/
+
+      - name: Set package version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          cd npm
+          npm version "$VERSION" --no-git-tag-version
+
+      - name: Pack
+        run: ./npm/pack.sh
+
+      - name: Upload tarball as artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: magic-wasm-npm-package
+          path: npm/*.tgz
+
+      - name: Publish to npm
+        if: startsWith(github.ref, 'refs/tags/v') && github.event.inputs.dry_run != 'true'
+        run: cd npm && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

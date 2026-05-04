@@ -1,0 +1,36 @@
+{
+  "name": "magic-vlsi-wasm",
+  "version": "8.3.637",
+  "description": "Magic VLSI Layout Tool — headless WebAssembly build",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "types": "./index.d.ts"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "magic.js",
+    "magic.wasm",
+    "examples/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "example":  "node examples/extract.js",
+    "test":     "node examples/all.js",
+    "test:gds": "node examples/gds.js",
+    "test:drc": "node examples/drc.js",
+    "test:cif": "node examples/cif.js"
+  },
+
+  "keywords": ["magic", "vlsi", "eda", "wasm", "webassembly", "layout"],
+  "license": "HPND",
+  "engines": {
+    "node": ">=18"
+  }
+}

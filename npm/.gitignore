@@ -1,0 +1,6 @@
+magic.js
+magic.wasm
+*.tgz
+node_modules/
+package-lock.json
+examples/output/
