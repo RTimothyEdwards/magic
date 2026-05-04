@@ -149,6 +149,9 @@ extern void CmdAutoExtToSpice();
 #else
 extern void CmdExtToSpice();
 #endif
+#else  /* !MAGIC_WRAPPER */
+extern void CmdExtToSim();
+extern void CmdExtToSpice();
 #endif
 
 /*
@@ -568,8 +571,26 @@ DBWInitCommands()
 	"ext2spice [args]	convert extracted file(s) to a SPICE format file;"
 	" type\n\t\t\t\"ext2spice help\" for information on options",
 	CmdExtToSpice, FALSE);
-#endif	/* EXT2SPICE_AUTO */
-#endif  /* MAGIC_WRAPPER */
+#endif /* EXT2SPICE_AUTO */
+#else  /* !MAGIC_WRAPPER */
+    /* In non-Tcl builds (e.g. WASM), register the C implementations directly */
+    WindAddCommand(DBWclientID,
+	"exttosim [args]	convert extracted file(s) to a sim format file;"
+	" type\n\t\t\t\"exttosim help\" for information on options",
+	CmdExtToSim, FALSE);
+    WindAddCommand(DBWclientID,
+	"ext2sim [args]	convert extracted file(s) to a sim format file;"
+	" type\n\t\t\t\"ext2sim help\" for information on options",
+	CmdExtToSim, FALSE);
+    WindAddCommand(DBWclientID,
+	"exttospice [args]	convert extracted file(s) to a SPICE format file;"
+	" type\n\t\t\t\"exttospice help\" for information on options",
+	CmdExtToSpice, FALSE);
+    WindAddCommand(DBWclientID,
+	"ext2spice [args]	convert extracted file(s) to a SPICE format file;"
+	" type\n\t\t\t\"ext2spice help\" for information on options",
+	CmdExtToSpice, FALSE);
+#endif /* MAGIC_WRAPPER */
 
 
 #ifdef USE_READLINE

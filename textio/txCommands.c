@@ -1751,6 +1751,47 @@ done:
     DQFree(&inputCommands);
 }
 
+int
+TxDispatchString(
+    const char *str,
+    bool quiet)
+{
+    int result = 0;
+    DQueue inputCommands;
+
+    DQInit(&inputCommands, 4);
+    TxParseString_internal(str, &inputCommands, (TxInputEvent *) NULL);
+
+    while (!DQIsEmpty(&inputCommands))
+    {
+	TxCommand *cmd;
+
+	cmd = (TxCommand *) DQPopFront(&inputCommands);
+
+	if (txHaveCurrentPoint)
+	{
+	    cmd->tx_p = txCurrentPoint;
+	    cmd->tx_wid = txCurrentWindowID;
+	    txHaveCurrentPoint = FALSE;
+	}
+
+	result = WindSendCommand((MagWindow *) NULL, cmd, quiet);
+	TxFreeCommand(cmd);
+	TxCommandNumber++;
+
+	if (result != 0)
+	    break;
+    }
+
+    WindUpdate();
+
+    while (!DQIsEmpty(&inputCommands))
+	TxFreeCommand((TxCommand *) DQPopFront(&inputCommands));
+    DQFree(&inputCommands);
+
+    return result;
+}
+
 #endif	/* !MAGIC_WRAPPER */
 
 /*

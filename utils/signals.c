@@ -72,7 +72,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif
 
 /* specially imported */
-extern bool DBWriteBackup();
+/* DBWriteBackup declared in database/database.h */
 
 /* macs support BSD4.2 signals, so turn off the SYSV flag for this module */
 #ifdef __APPLE__
@@ -123,6 +123,10 @@ static int sigNumDisables = 0;
 void
 SigSetTimer(int secs)
 {
+#ifdef __EMSCRIPTEN__
+    (void)secs;
+    return;
+#else
     struct itimerval subsecond;	/* one-quarter second interval */
 
     /*
@@ -139,6 +143,7 @@ SigSetTimer(int secs)
     subsecond.it_value.tv_usec = (secs == 0) ? 250000 : 0;
 
     setitimer(ITIMER_REAL, &subsecond, NULL);
+#endif
 }
 
 /*---------------------------*/
@@ -148,6 +153,9 @@ SigSetTimer(int secs)
 void
 SigRemoveTimer()
 {
+#ifdef __EMSCRIPTEN__
+    return;
+#else
     struct itimerval zero;	/* zero time to stop the timer */
 
     /* fprintf(stderr, "Timer stop\n"); fflush(stderr); */
@@ -158,6 +166,7 @@ SigRemoveTimer()
     zero.it_interval.tv_usec = 0;
 
     setitimer(ITIMER_REAL, &zero, NULL);
+#endif
 }
 
 sigRetVal
@@ -256,11 +265,16 @@ bool
 SigCheckProcess(pid)
     int pid;
 {
+#ifdef __EMSCRIPTEN__
+    (void)pid;
+    return FALSE;
+#else
     int result;
     result = kill((pid_t)pid, SIGCONT);
 
     if (result == 0) return TRUE;
     else return FALSE;
+#endif
 }
 
 /*---------------------------------------------------------
@@ -334,6 +348,11 @@ SigWatchFile(filenum, filename)
 				 * calls (such as windows: /dev/winXX).
 				 */
 {
+#ifdef __EMSCRIPTEN__
+    (void)filenum;
+    (void)filename;
+    return;
+#else
     int flags;
     bool iswindow;
 
@@ -383,6 +402,7 @@ SigWatchFile(filenum, filename)
 # endif
 #endif
     }
+#endif
 }
 
 
@@ -409,6 +429,11 @@ SigUnWatchFile(filenum, filename)
 				 * calls (such as windows: /dev/winXX).
 				 */
 {
+#ifdef __EMSCRIPTEN__
+    (void)filenum;
+    (void)filename;
+    return;
+#else
     int flags;
 
     flags = fcntl(filenum, F_GETFL, 0);
@@ -428,6 +453,7 @@ SigUnWatchFile(filenum, filename)
     if (ioctl(filenum, FIOASYNC, &flags) == -1)
 	perror("(Magic) SigWatchFile3");
 # endif
+#endif
 #endif
 }
 
@@ -475,7 +501,7 @@ sigOnInterrupt(int signo)
 sigRetVal
 sigOnTerm(int signo)
 {
-    DBWriteBackup(NULL);
+    DBWriteBackup(NULL, FALSE, FALSE);
     exit (1);
 }
 
@@ -614,6 +640,13 @@ void
 SigInit(batchmode)
     int batchmode;
 {
+#ifdef __EMSCRIPTEN__
+    SigInterruptOnSigIO = (batchmode) ? -1 : 0;
+    SigInterruptPending = FALSE;
+    SigIOReady = FALSE;
+    SigGotSigWinch = FALSE;
+    return;
+#else
     /* fprintf(stderr, "Establishing signal handlers.\n"); fflush(stderr); */
 
     if (batchmode)
@@ -668,6 +701,7 @@ SigInit(batchmode)
 
 #if !defined(SYSV) && !defined(CYGWIN) && !defined(EMSCRIPTEN)
     sigsetmask(0);
+#endif
 #endif
 }
 

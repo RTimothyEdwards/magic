@@ -795,6 +795,10 @@ WindUpdate()
     SigSetTimer(0);
 #endif
 
+    /* For headless/no-display mode: skip if display is suspended */
+    if (GrDisplayStatus == DISPLAY_SUSPEND)
+	return;
+
     TTMaskSetOnlyType(&windTileMask, TT_ERROR_P);
 
     /* Make a scan through each of the windows, in order from top
