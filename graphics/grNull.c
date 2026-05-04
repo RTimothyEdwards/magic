@@ -62,6 +62,74 @@ nullDoNothing()
 }
 
 /*
+ * Typed no-op stubs for WASM call_indirect type compatibility.
+ * WASM enforces exact type signatures at indirect call sites; assigning
+ * a 0-arg nullDoNothing to a pointer called with arguments causes a
+ * "null function or function signature mismatch" trap.  These stubs
+ * have the correct arity so the WASM type check passes.
+ */
+
+/* 1-argument stub (int or pointer) */
+static void
+nullDoNothingI(int a)
+{
+    (void) a;
+}
+
+/* 2-argument stub */
+static void
+nullDoNothingII(int a, int b)
+{
+    (void) a; (void) b;
+}
+
+/* 4-argument stub */
+static void
+nullDoNothingIIII(int a, int b, int c, int d)
+{
+    (void) a; (void) b; (void) c; (void) d;
+}
+
+/* 7-argument stub (for grFontTextPtr) */
+static void
+nullDoNothingIIIIIII(int a, int b, int c, int d, int e, int f, int g)
+{
+    (void) a; (void) b; (void) c; (void) d; (void) e; (void) f; (void) g;
+}
+
+/* bool-returning stubs — return FALSE so callers treat backing store / window
+ * creation as unavailable, which is correct for the headless null driver. */
+static bool
+nullReturnFalseI(int a)
+{
+    (void) a;
+    return FALSE;
+}
+
+static bool
+nullReturnFalseII(int a, int b)
+{
+    (void) a; (void) b;
+    return FALSE;
+}
+
+/* 3-argument bool-returning stub (for grDrawGridPtr) */
+static bool
+nullReturnFalseIII(int a, int b, int c)
+{
+    (void) a; (void) b; (void) c;
+    return FALSE;
+}
+
+/* 1-argument int-returning stub (for GrWindowIdPtr) */
+static int
+nullReturnZeroI(int a)
+{
+    (void) a;
+    return 0;
+}
+
+/*
  *---------------------------------------------------------
  *
  * nullReturnFalse --
@@ -246,8 +314,10 @@ nullSetDisplay(dispType, outFileName, mouseFileName)
 {
     TxPrintf("Using NULL graphics device.\n");
 
+#ifndef __EMSCRIPTEN__
     TxAdd1InputDevice(fileno(stdin), nullStdin, (ClientData) NULL);
     if (TxStdinIsatty) SigWatchFile(fileno(stdin), "stdin");
+#endif
 
     /* Set up the procedure values in the indirection table. */
 
@@ -259,25 +329,49 @@ nullSetDisplay(dispType, outFileName, mouseFileName)
 
     GrEnableTabletPtr = nullDoNothing;
     GrDisableTabletPtr = nullDoNothing;
-    GrSetCursorPtr = nullDoNothing;
+    GrSetCursorPtr = (void (*)()) nullDoNothingI;
     GrTextSizePtr = NullTextSize;
-    GrDrawGlyphPtr = nullDoNothing;
+    GrDrawGlyphPtr = (void (*)()) nullDoNothingII;
     GrBitBltPtr = NullBitBlt;
     GrReadPixelPtr = nullReturnZero;
     GrFlushPtr = nullDoNothing;
 
+    /* Window management — null driver has no real windows; return FALSE so
+     * callers know the operation wasn't performed. */
+    GrCreateWindowPtr     = NULL; /* headless: skip OS window creation, WindCreate stays OK */
+    GrDeleteWindowPtr     = (void (*)()) nullDoNothingI;
+    GrConfigureWindowPtr  = (void (*)()) nullDoNothingI;
+    GrOverWindowPtr       = (void (*)()) nullDoNothingI;
+    GrUnderWindowPtr      = (void (*)()) nullDoNothingI;
+    GrDamagedPtr          = nullDoNothing;
+    GrUpdateIconPtr       = (void (*)()) nullDoNothingII;
+    GrEventPendingPtr     = (bool (*)()) nullReturnFalse;
+    GrWindowIdPtr         = (int  (*)()) nullReturnZeroI;
+    GrWindowNamePtr       = NULL;   /* protected by callers */
+    GrGetCursorPosPtr     = (bool (*)()) nullReturnFalseII;
+    GrGetCursorRootPosPtr = (bool (*)()) nullReturnFalseII;
+
+    /* Backing store — not available in headless mode */
+    GrGetBackingStorePtr    = (bool (*)()) nullReturnFalseII;
+    GrScrollBackingStorePtr = (bool (*)()) nullReturnFalseII;
+    GrPutBackingStorePtr    = (void (*)()) nullDoNothingII;
+    GrFreeBackingStorePtr   = (void (*)()) nullDoNothingI;
+    GrCreateBackingStorePtr = (void (*)()) nullDoNothingI;
+
     /* local indirections */
-    grSetSPatternPtr = nullDoNothing;
-    grPutTextPtr = nullDoNothing;
-    grFontTextPtr = nullDoNothing;
-    grDefineCursorPtr = nullDoNothing;
-    grDrawGridPtr = nullReturnFalse;
-    grDrawLinePtr = nullDoNothing;
-    grSetWMandCPtr = nullDoNothing;
-    grFillRectPtr = nullDoNothing;
-    grSetStipplePtr = nullDoNothing;
-    grSetLineStylePtr = nullDoNothing;
-    grSetCharSizePtr = nullDoNothing;
+    grSetSPatternPtr  = (void (*)()) nullDoNothingII;
+    grPutTextPtr      = (void (*)()) nullDoNothingIIII;
+    grFontTextPtr     = (void (*)()) nullDoNothingIIIIIII;
+    grDefineCursorPtr = (void (*)()) nullDoNothingI;
+    grFreeCursorPtr   = (void (*)()) nullDoNothingI;
+    grDrawGridPtr     = (bool (*)()) nullReturnFalseIII;
+    grDrawLinePtr     = (void (*)()) nullDoNothingIIII;
+    grSetWMandCPtr    = (void (*)()) nullDoNothingII;
+    grFillRectPtr     = (void (*)()) nullDoNothingI;
+    grFillPolygonPtr  = (void (*)()) nullDoNothingII;
+    grSetStipplePtr   = (void (*)()) nullDoNothingI;
+    grSetLineStylePtr = (void (*)()) nullDoNothingI;
+    grSetCharSizePtr  = (void (*)()) nullDoNothingI;
 
     GrScreenRect.r_xtop = 511;
     GrScreenRect.r_ytop = 483;
