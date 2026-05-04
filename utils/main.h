@@ -94,6 +94,7 @@ extern Transform RootToEditTransform;
 
 extern void MainExit(int) ATTR_NORETURN;	/* a way of exiting that cleans up after itself */
 extern void magicMain();
+extern int magicMainInit(int argc, char *argv[]);
 
 /* C99 compat */
 extern int  mainInitBeforeArgs();

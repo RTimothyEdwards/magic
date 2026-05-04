@@ -1,19 +1,33 @@
+# Autoconf / configure outputs
 defs.mak
-*/Depend
+!toolchains/emscripten/defs.mak
 config.cache
 config.log
 scripts/config.log
 scripts/config.status
 scripts/defs.mak
-.*.swp
-*.o
-*.so
-*~
-scmos/cif_template/objs/*
-database/database.h
 install.log
-magic/proto.magicrc
 make.log
+reconfigure.sh
+
+# Compiled objects / libraries
+*.o
+*.a
+*.so
+*/Depend
+database/database.h
+
+# Editor / OS cruft
+.*.swp
+.*.swo
+*~
+.DS_Store
+.vscode/
+.idea/
+
+# Magic runtime-generated files
+magic/proto.magicrc
+scmos/cif_template/objs/*
 scmos/gdsquery.tech
 scmos/minimum.tech
 scmos/scmos-sub.tech
@@ -21,14 +35,28 @@ scmos/scmos-tm.tech
 scmos/scmos.tech
 scmos/scmosWR.tech
 scmos/nmos.tech
+
+# Native build artifacts
+magic/magic
+magic/tclmagic.dylib
 tcltk/magic.sh
 tcltk/magic.tcl
 tcltk/magicdnull
 tcltk/magicexec
 tcltk/ext2spice.sh
 tcltk/ext2sim.sh
-magic/tclmagic.dylib
 tcltk/magicdnull.dSYM/
 tcltk/magicexec.dSYM/
-reconfigure.sh
 pfx/
+
+# WASM build artifacts
+magic/magic.js
+magic/magic.js.symbols
+magic/magic.symbols
+magic/magic.wasm
+net2ir/net2ir
+net2ir/net2ir.js
+net2ir/net2ir.wasm
+
+# Generated test output
+npm/examples/output/

@@ -4,9 +4,13 @@
 
 MODULE   = magic
 MAGICDIR = ..
-SRCS     = magicTop.c
 
 include ${MAGICDIR}/defs.mak
+
+SRCS     = magicTop.c
+ifeq (${MAKE_WASM},1)
+SRCS    += magicWasm.c
+endif
 
 EXTRA_LIBS = ${MAGICDIR}/bplane/libbplane.o \
 	    ${MAGICDIR}/cmwind/libcmwind.o \
@@ -37,7 +41,18 @@ LIBS   += ${GR_LIBS} ${READLINE_LIBS} -lm ${LD_EXTRA_LIBS} \
 		${OA_LIBS} ${ZLIB_FLAG} ${TOP_EXTRA_LIBS}
 CLEANS += tclmagic${SHDLIB_EXT} libtclmagic${SHDLIB_EXT}.a proto.magicrc
 
+ifeq (${MAKE_WASM},1)
+magic: magic.js
+magic.js: lib${MODULE}.o ${EXTRA_LIBS}
+	@echo --- building main magic WASM
+	${RM} magic.js magic.wasm
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS}
+endif
+
 main: magic proto.magicrc
+ifeq (${MAKE_WASM},1)
+	@bash ${MAGICDIR}/toolchains/emscripten/post-build.sh magic.js magic.wasm
+endif
 
 tcl-main: tclmagic${SHDLIB_EXT} proto.magicrc
 
