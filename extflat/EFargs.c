@@ -367,7 +367,7 @@ efLoadSearchPath(path)
     PaVisitFiles(DOT_MAGIC_PATH, ".magicrc", pv);
     PaVisitFree(pv);
     if (*path == NULL)
-	*path = ".";
+	StrDup(path, ".");
 }
 
 int

@@ -640,8 +640,7 @@ SimAddLabels(
 	pos = SimPutLabel(rootuse, &selectBox, GEO_CENTER,
 		current->tl_simLabel, TT_SPACE);
 	DBReComputeBbox(rootuse);
-	DBWLabelChanged(rootuse, current->tl_simLabel, &selectBox,
-	    pos, DBW_ALLWINDOWS);
+	DBWAreaChanged(rootuse, &selectBox, DBW_ALLWINDOWS, &DBAllButSpaceBits);
     }
 }
 

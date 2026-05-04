@@ -316,7 +316,7 @@ void
 WindTranslate(origx, origy)
     int origx, origy;
 {
-    extern void DBMovePoint();
+    extern bool DBMovePoint();
     MagWindow *w2;
     Rect newArea;
 

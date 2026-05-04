@@ -159,7 +159,7 @@ rtrFollowName(name, firstInNet, area)
 {
     if ( firstInNet )
     {
-	RtrMilestonePrint("#");
+	RtrMilestonePrint();
 	(void) DBSrLabelLoc(EditCellUse, name, rtrFollowLocFunc, (ClientData) area);
     }
     return 0;
