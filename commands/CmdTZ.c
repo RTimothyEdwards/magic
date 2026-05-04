@@ -777,7 +777,7 @@ CmdUnexpand(
     switch (option)
     {
 	case UNEXPAND_SELECTION:
-	    SelectExpand(windowMask, DB_UNEXPAND, (Rect *)NULL, FALSE);
+	    SelectExpand(windowMask, DB_UNEXPAND, (Rect *)NULL);
 	    break;
 	case UNEXPAND_OVERLAP:
 	    DBExpandAll(((CellUse *)w->w_surfaceID), &rootRect, windowMask,
@@ -785,7 +785,7 @@ CmdUnexpand(
 			cmdUnexpandFunc, (ClientData)(pointertype)windowMask);
 	    SelectExpand(windowMask,
 			DB_UNEXPAND | DB_EXPAND_OVERLAP,
-			&rootRect, FALSE);
+			&rootRect);
 	    break;
 	case UNEXPAND_SURROUND:
 	    DBExpandAll(((CellUse *)w->w_surfaceID), &rootRect, windowMask,
@@ -793,7 +793,7 @@ CmdUnexpand(
 			cmdUnexpandFunc, (ClientData)(pointertype)windowMask);
 	    SelectExpand(windowMask,
 			DB_UNEXPAND | DB_EXPAND_SURROUND,
-			&rootRect, TRUE);
+			&rootRect);
 	    break;
 	case UNEXPAND_ALL:
 	    DBExpandAll(((CellUse *)w->w_surfaceID), &TiPlaneRect, windowMask,

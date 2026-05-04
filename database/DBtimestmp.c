@@ -239,8 +239,9 @@ DBUpdateStamps(def)
 }
 
 int
-dbStampFunc(cellDef)
+dbStampFunc(cellDef, cdata)
     CellDef *cellDef;
+    ClientData cdata;
 {
     CellUse *cu;
     CellDef *cd;

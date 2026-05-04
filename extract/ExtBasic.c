@@ -147,13 +147,13 @@ NodeRegion *temp_subsnode = NULL;	/* Last subsnode found */
 /* Forward declarations */
 void extOutputNodes();
 int extTransTileFunc();
-int extTransPerimFunc();
+int extTransPerimFunc(Boundary *, ClientData);
 int extTransFindSubs();
 int extTransFindId();
 void extTermAPFunc();
 
-int extAnnularTileFunc();
-int extResistorTileFunc();
+int extAnnularTileFunc(Tile *, TileType, int, FindRegion *);
+int extResistorTileFunc(Tile *, TileType, int, FindRegion *);
 int extSpecialPerimFunc();
 
 void extFindDuplicateLabels();
@@ -2186,10 +2186,11 @@ extDevFindParamMatch(devptr, length, width)
  * ----------------------------------------------------------------------------
  */
 int
-extSDTileFunc(tile, dinfo, pNum)
+extSDTileFunc(tile, dinfo, pNum, arg)
     Tile *tile;
     TileType dinfo;	/* (unused) */
     int pNum;
+    FindRegion *arg;
 {
     LinkedTile *newdevtile;
 
@@ -3948,8 +3949,9 @@ extTermAPFunc(tile, dinfo,  eapd)
  */
 
 int
-extTransPerimFunc(bp)
+extTransPerimFunc(bp, cdata)
     Boundary *bp;
+    ClientData cdata;
 {
     TileType tinside, toutside, dinfo;
     Tile *tile;
@@ -4226,10 +4228,11 @@ extTransPerimFunc(bp)
  */
 
 int
-extAnnularTileFunc(tile, dinfo, pNum)
+extAnnularTileFunc(tile, dinfo, pNum, arg)
     Tile *tile;
     TileType dinfo;
     int pNum;
+    FindRegion *arg;
 {
     TileTypeBitMask mask;
     TileType loctype;
@@ -4276,10 +4279,11 @@ extAnnularTileFunc(tile, dinfo, pNum)
  */
 
 int
-extResistorTileFunc(tile, dinfo, pNum)
+extResistorTileFunc(tile, dinfo, pNum, arg)
     Tile *tile;
     TileType dinfo;
     int pNum;
+    FindRegion *arg;
 {
     TileTypeBitMask mask;
     TileType loctype;

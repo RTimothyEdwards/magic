@@ -1629,7 +1629,8 @@ spcnodeHierVisit(
     HierContext *hc,
     EFNode *node,
     int res,
-    double cap)
+    double cap,
+    ClientData cdata)
 {
     HierName *hierName;
     bool isConnected = FALSE;

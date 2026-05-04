@@ -868,7 +868,9 @@ dbwelemGetTransform(use, transform, cdarg)
 }
 
 int
-dbwElementAlways1()
+dbwElementAlways1(w, clientData)
+    MagWindow *w;		/* Unused. */
+    ClientData clientData;	/* Unused. */
 {
     return 1;
 }
