@@ -96,7 +96,7 @@ typedef struct {
 } calmaOutputStruct;
 
     /* Forward declarations */
-extern int calmaWriteInitFunc(CellDef *def);
+extern int calmaWriteInitFunc(CellDef *def, ClientData cdata);
 extern int calmaWritePaintFunc(Tile *tile, TileType dinfo, calmaOutputStruct *cos);
 extern int calmaMergePaintFunc(Tile *tile, TileType dinfo, calmaOutputStruct *cos);
 extern int calmaWriteUseFunc(CellUse *use, FILE *f);
@@ -824,7 +824,8 @@ done:
 
 int
 calmaWriteInitFunc(
-    CellDef *def)
+    CellDef *def,
+    ClientData cdata)
 {
     def->cd_client = (ClientData) 0;
     return (0);
