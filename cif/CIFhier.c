@@ -284,7 +284,7 @@ cifFlatMaskHints(
 	oldproprec = (PropertyRecord *)DBPropGet(mhd->mh_def, name, &propfound);
 	if (propfound)
 	{
-	    ASSERT(oldproprec->prop_value.prop_type == PROPERTY_TYPE_PLANE, 
+	    ASSERT(oldproprec->prop_type == PROPERTY_TYPE_PLANE,
 			"cifFlatMaskHints");
 	    plane = oldproprec->prop_value.prop_plane;
 	}
