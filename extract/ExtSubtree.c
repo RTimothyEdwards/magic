@@ -174,8 +174,10 @@ extSubtree(parentUse, reg, f)
     int cuts, totcuts;
     float pdone, plast;
     SearchContext scx;
+    int savedDisplayStatus;
 
     /* Use the display timer to force a 5-second progress check */
+    savedDisplayStatus = GrDisplayStatus;
     GrDisplayStatus = DISPLAY_IN_PROGRESS;
     SigSetTimer(5);		    /* Print at 5-second intervals */
 
@@ -348,7 +350,7 @@ done:
     /* Output connections and node adjustments */
     extOutputConns(&ha.ha_connHash, f);
     HashKill(&ha.ha_connHash);
-    GrDisplayStatus = DISPLAY_IDLE;
+    GrDisplayStatus = savedDisplayStatus;
     SigRemoveTimer();
 
     /* Clear the CU_SUB_EXTRACTED flag from all children instances */
