@@ -251,6 +251,7 @@ extern void WindOutToIn();
 extern void WindInToOut();
 extern void WindSetWindowAreas(MagWindow *);
 extern void windFixSurfaceArea();
+typedef struct TX_CMD_S TxCommand;	/* Forward declaration; defined in textio/txcommands.h */
 extern int WindExecute(MagWindow *, WindClient, TxCommand *);
 extern void WindAddCommand(WindClient, char *, void (*)(), bool);
 extern int WindReplaceCommand();
