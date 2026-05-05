@@ -241,7 +241,7 @@ extern WindClient WindGetClient();
 extern WindClient WindNextClient();
 extern WindClient WindAddClient(char *, bool (*)(), bool (*)(), void (*)(),
 				void (*)(), void (*)(), bool (*)(),
-				void (*)(), void (*)());
+				void (*)(), GrGlyph *);
 extern char *WindGetClientName();
 extern void WindInit();
 extern void WindUpdate();
@@ -265,7 +265,7 @@ extern MagWindow *WindSearchData();
 
 /* procs for moving the surface inside of a window (changing the view) */
 extern void WindZoom();
-extern void WindMove(MagWindow *, Rect *);
+extern void WindMove(MagWindow *, const Rect *);
 extern void WindView();
 extern void WindScroll();
 
@@ -280,7 +280,7 @@ extern void WindFullScreen();
 /* procs to transform into and out of screen coordinates */
 
 extern void WindScreenToSurface();
-extern void WindSurfaceToScreen(MagWindow *, Rect *, Rect *);
+extern void WindSurfaceToScreen(MagWindow *, const Rect *, Rect *);
 extern void WindPointToSurface();
 extern void WindPointToScreen();
 extern void WindSurfaceToScreenNoClip(MagWindow *, Rect *, Rect *);

@@ -56,7 +56,7 @@ extern bool GrHaveLock();
 extern void GrClipTo();
 extern void GrClipBox(Rect *, int);
 extern void GrClipLine();
-extern bool GrPutText(char *, int, Point *, int, int, bool, Rect *, Rect *);
+extern bool GrPutText(const char *, int, Point *, int, int, bool, Rect *, Rect *);
 extern void GrFillPolygon();
 extern void (*GrDrawGlyphPtr)();
 extern void (*GrBitBltPtr)();

@@ -409,11 +409,12 @@ CMWloadWindow(
 void
 CMWinit(void)
 {
-    CMWclientID = WindAddClient("color", CMWcreate, CMWdelete,
-			CMWredisplay, CMWcommand,
-			(void(*)()) NULL,
-			CMWCheckWritten,
-			CMWreposition,
+    CMWclientID = WindAddClient("color",
+			(bool (*)())CMWcreate, (bool (*)())CMWdelete,
+			(void (*)())CMWredisplay, (void (*)())CMWcommand,
+			(void (*)()) NULL,
+			(bool (*)())CMWCheckWritten,
+			(void (*)())CMWreposition,
 			(GrGlyph *) NULL);
     CMWundoInit();
 
@@ -421,16 +422,16 @@ CMWinit(void)
 
     WindAddCommand(CMWclientID,
 	"pushbutton button	invoke a button press in the color window",
-	 cmwPushbutton, FALSE);
+	 (void (*)())cmwPushbutton, FALSE);
     WindAddCommand(CMWclientID,
        "color [color-#]	        specify color to edit, or print current intensities",
-	cmwColor, FALSE);
+	(void (*)())cmwColor, FALSE);
     WindAddCommand(CMWclientID,
        "load [techStyle displayStyle monitorType]\n\
                         load new color map techStyle.displayStyle.monitorType",
-	cmwLoad, FALSE);
+	(void (*)())cmwLoad, FALSE);
     WindAddCommand(CMWclientID,
        "save [techStyle displayStyle monitorType]\n\
                         save color map to techStyle.displayStyle.monitorType",
-	cmwSave, FALSE);
+	(void (*)())cmwSave, FALSE);
 }
