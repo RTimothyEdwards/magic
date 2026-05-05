@@ -36,6 +36,7 @@
 #define SUBPIXEL		(1 << SUBPIXELBITS)
 #define HSUBPIXEL		(1 << (SUBPIXELBITS - 1))
 
+typedef struct GR_GLY2 GrGlyph;	/* Forward declaration for WindAddClient */
 typedef ClientData WindClient;	/* A unique ID of a client of the
 				 * window package.  The value 'NULL' is
 				 * indicates an invalid value.
