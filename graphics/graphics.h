@@ -50,13 +50,13 @@ extern int (*GrTextSizePtr)();
  *    You must call GrLock() before using these, and
  *    call GrUnlock() afterwards.
  */
-extern void (*GrLockPtr)();
-extern void (*GrUnlockPtr)();
+extern void (*GrLockPtr)(MagWindow *, bool);
+extern void (*GrUnlockPtr)(MagWindow *);
 extern bool GrHaveLock();
 extern void GrClipTo();
-extern void GrClipBox();
+extern void GrClipBox(Rect *, int);
 extern void GrClipLine();
-extern bool GrPutText();
+extern bool GrPutText(char *, int, Point *, int, int, bool, Rect *, Rect *);
 extern void GrFillPolygon();
 extern void (*GrDrawGlyphPtr)();
 extern void (*GrBitBltPtr)();
@@ -84,7 +84,7 @@ extern bool GrDrawGlyphNum();
 
 /* external color map routines */
 extern bool GrReadCMap(), GrSaveCMap();
-extern bool GrGetColor(), GrPutColor();
+extern bool GrGetColor(int, int *, int *, int *), GrPutColor(int, int, int, int);
 extern int  GrNameToColor();
 extern void GrPutManyColors();
 extern void (*GrSetCMapPtr)();

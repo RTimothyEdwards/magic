@@ -239,17 +239,19 @@ typedef struct WIND_S1 {
 extern MagWindow *WindCreate();
 extern WindClient WindGetClient();
 extern WindClient WindNextClient();
-extern WindClient WindAddClient();
+extern WindClient WindAddClient(char *, bool (*)(), bool (*)(), void (*)(),
+				void (*)(), void (*)(), bool (*)(),
+				void (*)(), void (*)());
 extern char *WindGetClientName();
 extern void WindInit();
 extern void WindUpdate();
 extern void WindDrawBorder();
 extern void WindOutToIn();
 extern void WindInToOut();
-extern void WindSetWindowAreas();
+extern void WindSetWindowAreas(MagWindow *);
 extern void windFixSurfaceArea();
 extern int WindExecute();
-extern void WindAddCommand();
+extern void WindAddCommand(WindClient, char *, void (*)(), bool);
 extern int WindReplaceCommand();
 extern const char * const *WindGetCommandTable();
 extern int windCheckOnlyWindow(MagWindow **, WindClient);
@@ -263,7 +265,7 @@ extern MagWindow *WindSearchData();
 
 /* procs for moving the surface inside of a window (changing the view) */
 extern void WindZoom();
-extern void WindMove();
+extern void WindMove(MagWindow *, Rect *);
 extern void WindView();
 extern void WindScroll();
 
@@ -278,14 +280,14 @@ extern void WindFullScreen();
 /* procs to transform into and out of screen coordinates */
 
 extern void WindScreenToSurface();
-extern void WindSurfaceToScreen();
+extern void WindSurfaceToScreen(MagWindow *, Rect *, Rect *);
 extern void WindPointToSurface();
 extern void WindPointToScreen();
-extern void WindSurfaceToScreenNoClip();
+extern void WindSurfaceToScreenNoClip(MagWindow *, Rect *, Rect *);
 
 /* procs to change things or inform the window manager about changes */
-extern void WindCaption();
-extern void WindAreaChanged();
+extern void WindCaption(MagWindow *, char *);
+extern void WindAreaChanged(MagWindow *, Rect *);
 extern void WindIconChanged();
 extern bool WindLoad();
 extern void WindSeparateRedisplay();
