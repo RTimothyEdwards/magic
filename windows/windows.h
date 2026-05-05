@@ -251,7 +251,7 @@ extern void WindOutToIn();
 extern void WindInToOut();
 extern void WindSetWindowAreas(MagWindow *);
 extern void windFixSurfaceArea();
-extern int WindExecute();
+extern int WindExecute(MagWindow *, WindClient, TxCommand *);
 extern void WindAddCommand(WindClient, char *, void (*)(), bool);
 extern int WindReplaceCommand();
 extern const char * const *WindGetCommandTable();
@@ -259,7 +259,7 @@ extern int windCheckOnlyWindow(MagWindow **, WindClient);
 
 
 /* searching procs */
-extern int WindSearch();
+extern int WindSearch(WindClient, ClientData, Rect *, int (*)(), ClientData);
 extern MagWindow *WindSearchWid();
 extern MagWindow *WindSearchData();
 
@@ -282,7 +282,7 @@ extern void WindFullScreen();
 
 extern void WindScreenToSurface();
 extern void WindSurfaceToScreen(MagWindow *, const Rect *, Rect *);
-extern void WindPointToSurface();
+extern void WindPointToSurface(MagWindow *, Point *, Point *, Rect *);
 extern void WindPointToScreen();
 extern void WindSurfaceToScreenNoClip(MagWindow *, Rect *, Rect *);
 

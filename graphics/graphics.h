@@ -60,7 +60,7 @@ extern bool GrPutText(const char *, int, Point *, int, int, bool, Rect *, Rect *
 extern void GrFillPolygon();
 extern void (*GrDrawGlyphPtr)();
 extern void (*GrBitBltPtr)();
-extern int  (*GrReadPixelPtr)();
+extern int  (*GrReadPixelPtr)(MagWindow *, int, int);
 extern void (*GrFlushPtr)();
 
 /* Tablet routines */
@@ -83,7 +83,8 @@ extern bool GrDrawGlyphNum();
 #define GrFastBox(x)	GrDrawFastBox(x, 0)
 
 /* external color map routines */
-extern bool GrReadCMap(), GrSaveCMap();
+extern bool GrReadCMap(char *, char *, char *, char *, char *);
+extern bool GrSaveCMap(char *, char *, char *, char *, char *);
 extern bool GrGetColor(int, int *, int *, int *), GrPutColor(int, int, int, int);
 extern int  GrNameToColor();
 extern void GrPutManyColors();
