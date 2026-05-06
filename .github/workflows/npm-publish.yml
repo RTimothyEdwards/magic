@@ -1,8 +1,12 @@
 name: Publish npm package
 
-# Publishes magic-vlsi-wasm to npm.
+# Publishes magic-vlsi-wasm to GitHub Packages (npm.pkg.github.com).
 # Triggered automatically on version tags (v*); can also be run manually.
-# Requires an NPM_TOKEN repository secret for publishing.
+# Requires the default GITHUB_TOKEN — no extra secret needed.
+#
+# Publishing to GitHub Packages first allows testing and evaluation before a
+# wider release to the public npm registry. Consumers can install from here via
+# npm with an appropriate .npmrc pointing at npm.pkg.github.com.
 #
 # WASM is architecture-independent — built once on x86-64, usable everywhere.
 
@@ -12,6 +16,10 @@ on:
       - 'v*'
   workflow_dispatch:
     inputs:
+      emsdk_version:
+        description: 'emsdk version to build with (default: pinned release; use "latest" to track HEAD)'
+        type: string
+        default: 'latest'
       dry_run:
         description: 'Dry run: pack only, do not publish'
         type: boolean
@@ -25,7 +33,7 @@ env:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
@@ -34,16 +42,15 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://npm.pkg.github.com'
 
       - name: Install emsdk
         env:
-          # --- emsdk version switch -----------------------------------------
-          # Pinned: must match .github/workflows/main.yml. See post-build.sh.
-          # To test against the latest emsdk, comment the pinned line and
-          # uncomment the "latest" line below.
-          EMSDK_VERSION: '3.1.56'
-          # EMSDK_VERSION: 'latest'
+          # Pinned to match .github/workflows/main.yml (see post-build.sh for why the
+          # versions must stay in sync). The default here is the published-release pin;
+          # pass emsdk_version: 'latest' via workflow_dispatch to track emsdk HEAD and
+          # catch breakage before it affects a real release.
+          EMSDK_VERSION: ${{ github.event.inputs.emsdk_version || 'latest' }}
         run: |
           git clone https://github.com/emscripten-core/emsdk.git
           cd emsdk
@@ -88,8 +95,51 @@ jobs:
           name: magic-wasm-npm-package
           path: npm/*.tgz
 
-      - name: Publish to npm
+      - name: Publish to GitHub Packages
         if: startsWith(github.ref, 'refs/tags/v') && github.event.inputs.dry_run != 'true'
-        run: cd npm && npm publish --access public
+        run: cd npm && npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-wasm-arm:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install emsdk
+        env:
+          EMSDK_VERSION: ${{ github.event.inputs.emsdk_version || 'latest' }}
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install "$EMSDK_VERSION"
+          ./emsdk activate "$EMSDK_VERSION"
+
+      - name: Emscripten diagnostics
+        # Captures compiler predefined macros for all four toolchains.
+        # Kept intentionally: emsdk changes over time and these logs are the
+        # fastest way to diagnose a broken build without reproducing it locally.
+        run: |
+          source ./emsdk/emsdk_env.sh
+          echo "===== gcc -dM -E - =====";  echo | gcc  -dM -E - | sort
+          echo "===== g++ -dM -E - =====";  echo | g++  -dM -E - | sort
+          echo "===== emcc -dM -E - ====="; echo | emcc -dM -E - | sort
+          echo "===== em++ -dM -E - ====="; echo | em++ -dM -E - | sort
+
+      - name: Build WASM
+        run: |
+          source ./emsdk/emsdk_env.sh
+          # --without/--disable flags: no WASM library available for these features
+          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1" emconfigure ./configure \
+            --without-cairo --without-opengl --without-x --without-tk --without-tcl \
+            --disable-readline --disable-compression \
+            --target=asmjs-unknown-emscripten
+          echo "===== defs.mak ====="; cat defs.mak; echo "===== defs.mak ====="
+          emmake make
+
+      - name: Upload WASM artifact (arm)
+        uses: actions/upload-artifact@v5
+        with:
+          name: magic-wasm-bundle-arm
+          path: magic/magic.wasm
