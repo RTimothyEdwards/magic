@@ -6,8 +6,8 @@ import { dirname, resolve, basename } from 'node:path';
 
 export const EXAMPLES_DIR = dirname(fileURLToPath(import.meta.url));
 export const wasmBinary   = readFileSync(resolve(EXAMPLES_DIR, '../magic.wasm'));
-export const DEFAULT_TECH = resolve(EXAMPLES_DIR, 'siliwiz.tech');
-export const DEFAULT_MAG  = resolve(EXAMPLES_DIR, 'siliwiz.mag');
+export const DEFAULT_TECH = 'scmos';
+export const DEFAULT_MAG  = resolve(EXAMPLES_DIR, 'min.mag');
 export const DEFAULT_OUT  = resolve(EXAMPLES_DIR, 'output');
 
 export { basename };
@@ -55,12 +55,12 @@ export async function createMagic({ onPrint, onPrintErr } = {}) {
   return { magic, lines };
 }
 
-// Loads tech + mag into VFS using standard paths.
-export function loadCell(FS, techFile, magFile) {
-  const tech = basename(techFile, '.tech');
-  const cell = basename(magFile,  '.mag');
-  vfsWrite(FS, `/magic/sys/current/${tech}.tech`, techFile);
-  vfsWrite(FS, `/work/${cell}.mag`,                magFile);
+// Loads a layout into the VFS. `tech` is the name of a technology that is
+// either built into the WASM binary (e.g. 'scmos', 'minimum', 'nmos') or has
+// already been written to /magic/sys/current/<tech>.tech by the caller.
+export function loadCell(FS, tech, magFile) {
+  const cell = basename(magFile, '.mag');
+  vfsWrite(FS, `/work/${cell}.mag`, magFile);
   return { tech, cell };
 }
 

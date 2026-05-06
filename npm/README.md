@@ -22,11 +22,12 @@ import createMagic from 'magic-vlsi-wasm';
 
 const { runCommand, FS } = await createMagic();
 
-// Write a layout into Magic's virtual filesystem
+// Drop a layout into Magic's virtual filesystem
+FS.mkdirTree('/work');
 FS.writeFile('/work/inv.mag', layoutBytes);
 
-// Run Magic commands
-runCommand('tech load minimum');
+// Run Magic commands — scmos is built into the WASM binary, no tech file needed
+runCommand('tech load scmos');
 runCommand('load /work/inv');
 runCommand('gds write /work/inv');
 
@@ -35,8 +36,9 @@ const gdsBytes = FS.readFile('/work/inv.gds');
 ```
 
 The `scmos` technology family (`scmos`, `minimum`, `nmos`, ...) is embedded in
-the WASM binary and available out of the box. Custom tech files can be written
-into the VFS at `/magic/sys/current/<name>.tech`.
+the WASM binary and available out of the box — those names work without
+writing any tech file. To use a custom technology, write its `.tech` file into
+the VFS at `/magic/sys/current/<name>.tech` before calling `tech load <name>`.
 
 ## API
 
@@ -57,12 +59,33 @@ The returned `MagicInstance` exposes:
 | Method                    | Description |
 |---------------------------|-------------|
 | `runCommand(cmd: string)` | Dispatch a single Magic command. Returns 0 on success. |
-| `sourceFile(path: string)` | Execute a script from the virtual filesystem. |
+| `sourceFile(path: string)` | Execute a script from the virtual filesystem. Returns 0 on success, -1 if the file could not be opened. |
 | `init()`                  | Force initialization. Idempotent — `runCommand` and `sourceFile` call it for you. |
 | `update()`                | Drive a display-update cycle. No-op in this headless build. |
 | `FS`                      | Emscripten virtual filesystem. See the [Emscripten docs](https://emscripten.org/docs/api_reference/Filesystem-API.html). |
 
 Full TypeScript types ship in [`index.d.ts`](index.d.ts).
+
+### Low-level access
+
+`createMagic()` is a thin convenience wrapper over the underlying Emscripten
+module. If you need direct access — for example to call `cwrap` yourself or
+to drive `magic_wasm_init` manually — import the module factory directly:
+
+```js
+import createMagicModule from 'magic-vlsi-wasm/magic.js';
+
+const module = await createMagicModule({ wasmBinary, print, printErr });
+module._magic_wasm_init();
+const run = module.cwrap('magic_wasm_run_command', 'number', ['string']);
+run('tech load scmos');
+```
+
+The bundled examples use this lower-level path together with a small helper
+class ([`examples/helpers.js`](examples/helpers.js)) that adds a
+`runScript(text)` convenience method — it splits a multi-line Tcl block,
+strips comments, and dispatches each line via `runCommand`. Useful when you
+have a script as a string rather than as a file in the VFS.
 
 ## Examples
 
@@ -80,13 +103,17 @@ Or, when developing inside this repo:
 
 ```bash
 npm test           # full suite (extract, gds, drc, cif)
+npm run example    # extract.js — RC extraction + SPICE netlist
 npm run test:gds   # GDS write only
 npm run test:drc   # DRC check only
 npm run test:cif   # CIF write only
 ```
 
-Each example is self-contained and reads `examples/siliwiz.{mag,tech}` by
-default. See [`examples/`](examples/) for the source.
+Each example loads the bundled [`min.mag`](examples/min.mag) (a small NPN
+transistor cell from Magic's own scmos test suite) under the built-in `scmos`
+technology — no external tech file required. See [`examples/`](examples/) for
+the source; [`example.js`](examples/example.js) is the simplest entry point
+(GDS → CIF conversion in ~40 lines).
 
 ## Build from source
 
@@ -117,11 +144,10 @@ checkout (Magic pins emsdk `3.1.56` — see the comment in `npm/build.sh`).
 
 [HPND](LICENSE) — Copyright (C) 1985, 1990 Regents of the University of California.
 
-### Bundled test technology
+### Bundled test layout
 
-The example layout (`examples/siliwiz.mag`) and technology file
-(`examples/siliwiz.tech`) are derived from the
-[SiliWiz](https://github.com/wokwi/siliwiz) educational silicon design
-tool. They are bundled here only as a runnable smoke test for the WASM
-build. The technology file is © R. Timothy Edwards, Open Circuit Design,
-2023, marked by the author as containing no proprietary information.
+The example layout [`examples/min.mag`](examples/min.mag) is taken from
+Magic's own scmos test suite ([`scmos/examples/bipolar/min.mag`](../scmos/examples/bipolar/min.mag))
+and is included here as a runnable smoke test for the WASM build. The `scmos`
+technology it targets is compiled into the WASM binary, so no external tech
+file is shipped.

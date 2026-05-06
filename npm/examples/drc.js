@@ -1,20 +1,20 @@
 // drc.js — Run design rule checking and report violations.
 //
-// Usage:  node examples/drc.js [magFile [techFile]]
+// Usage:  node examples/drc.js [magFile [tech]]
 import { createMagic, loadCell, loadScript,
          DEFAULT_TECH, DEFAULT_MAG } from './helpers.js';
 import { fileURLToPath } from 'node:url';
 
-export async function run({ magFile = DEFAULT_MAG, techFile = DEFAULT_TECH } = {}) {
+export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH } = {}) {
   const output = [];
   const { magic } = await createMagic({
     onPrint:    msg => { output.push(msg); console.log('[magic]', msg); },
     onPrintErr: msg => { output.push(msg); console.error('[magic]', msg); },
   });
   const { FS } = magic;
-  const { tech, cell } = loadCell(FS, techFile, magFile);
+  const { tech: techName, cell } = loadCell(FS, tech, magFile);
 
-  magic.runScript(loadScript('drc.tcl', tech, cell));
+  magic.runScript(loadScript('drc.tcl', techName, cell));
 
   // Magic prints "Total DRC errors found: N" at the end of drc listall.
   const summary = output.find(l => /Total DRC errors/i.test(l));

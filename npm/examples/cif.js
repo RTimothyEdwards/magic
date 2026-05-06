@@ -1,18 +1,18 @@
 // cif.js — Export layout to CIF (Caltech Intermediate Form).
 //
-// Usage:  node examples/cif.js [magFile [techFile [outputDir]]]
+// Usage:  node examples/cif.js [magFile [tech [outputDir]]]
 import { createMagic, vfsRead, loadCell, loadScript,
          DEFAULT_TECH, DEFAULT_MAG, DEFAULT_OUT } from './helpers.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
-export async function run({ magFile = DEFAULT_MAG, techFile = DEFAULT_TECH, outputDir = DEFAULT_OUT } = {}) {
+export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH, outputDir = DEFAULT_OUT } = {}) {
   const { magic } = await createMagic();
   const { FS } = magic;
-  const { tech, cell } = loadCell(FS, techFile, magFile);
+  const { tech: techName, cell } = loadCell(FS, tech, magFile);
 
-  magic.runScript(loadScript('cif.tcl', tech, cell));
+  magic.runScript(loadScript('cif.tcl', techName, cell));
 
   mkdirSync(outputDir, { recursive: true });
   const data = vfsRead(FS, `/work/${cell}.cif`);
