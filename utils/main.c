@@ -161,6 +161,8 @@ global char *MainMouseFile = NULL;
 global char *MainDisplayType = NULL;
 global char *MainMonType = NULL;
 
+static bool MagicIsInitialized = FALSE;
+
 
 /* Copyright notice for the binary file. */
 global char *MainCopyright = "\n--- MAGIC: Copyright (C) 1985, 1990 "
@@ -1286,12 +1288,28 @@ magicMain(argc, argv)
 {
     int rstatus;
 
-    if ((rstatus = mainInitBeforeArgs(argc, argv)) != 0) MainExit(rstatus);
-    if ((rstatus = mainDoArgs(argc, argv)) != 0) MainExit(rstatus);
-    if ((rstatus = mainInitAfterArgs()) != 0) MainExit(rstatus);
-    if ((rstatus = mainInitFinal()) != 0) MainExit(rstatus);
+    if ((rstatus = magicMainInit(argc, argv)) != 0) MainExit(rstatus);
     TxDispatch( (FILE *) NULL);
     mainFinished();
+}
+
+int
+magicMainInit(argc, argv)
+    int argc;
+    char *argv[];
+{
+    int rstatus;
+
+    if (MagicIsInitialized)
+	return 0;
+
+    if ((rstatus = mainInitBeforeArgs(argc, argv)) != 0) return rstatus;
+    if ((rstatus = mainDoArgs(argc, argv)) != 0) return rstatus;
+    if ((rstatus = mainInitAfterArgs()) != 0) return rstatus;
+    if ((rstatus = mainInitFinal()) != 0) return rstatus;
+
+    MagicIsInitialized = TRUE;
+    return 0;
 }
 
 

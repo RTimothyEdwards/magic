@@ -1,0 +1,33 @@
+magic
+tech scmos
+timestamp 783737348
+<< nwell >>
+rect 5 3 46 27
+<< metal1 >>
+rect 9 0 13 13
+rect 22 0 26 13
+rect 33 0 37 13
+<< collector >>
+rect 8 17 14 18
+rect 8 13 9 17
+rect 13 13 14 17
+rect 8 12 14 13
+<< pbase >>
+rect 18 17 40 21
+rect 18 13 22 17
+rect 26 13 33 17
+rect 37 13 40 17
+rect 18 9 40 13
+<< collectorcontact >>
+rect 9 13 13 17
+<< emittercontact >>
+rect 22 13 26 17
+<< pbasecontact >>
+rect 33 13 37 17
+<< labels >>
+rlabel space 0 17 0 17 3 without
+rlabel space 0 13 0 13 3 guardring
+rlabel metal1 35 1 35 1 5 base
+rlabel metal1 24 1 24 1 5 emitter
+rlabel metal1 11 1 11 1 5 collector
+<< end >>

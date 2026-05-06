@@ -1,0 +1,138 @@
+name: CI-wasm
+
+# Builds the Magic WebAssembly target on every push and pull request.
+# On version tags (v*), additionally publishes magic-vlsi-wasm to GitHub
+# Packages (npm.pkg.github.com).
+#
+# The primary goal of this workflow is to always build a WASM version and
+# verify it against the example test suite. Publishing to a package repo is
+# an optional, tag-gated extension of the same pipeline.
+#
+# Publishing to GitHub Packages first allows testing and evaluation before a
+# wider release to the public npm registry. Consumers can install from there
+# via npm with an appropriate .npmrc pointing at npm.pkg.github.com.
+#
+# WASM is architecture-independent — built once on x86-64, usable everywhere.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      emsdk_version:
+        description: 'emsdk version to build with (default: latest; pin a version number to bisect)'
+        type: string
+        default: 'latest'
+      dry_run:
+        description: 'Dry run: pack only, do not publish even on tag pushes'
+        type: boolean
+        default: true
+
+# actions/upload-artifact@v5 still runs on Node.js 20. Force Node 24 to
+# silence the deprecation warning until upload-artifact ships a Node-24
+# release. Drop this once upgraded.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Install emsdk
+        env:
+          # Defaults to latest so CI tracks emsdk HEAD and catches breakage early.
+          # Override via workflow_dispatch to pin a specific version when needed
+          # (e.g. to bisect a regression or verify a post-build.sh patch still applies).
+          EMSDK_VERSION: ${{ github.event.inputs.emsdk_version || 'latest' }}
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install "$EMSDK_VERSION"
+          ./emsdk activate "$EMSDK_VERSION"
+
+      # Dump native + emscripten preprocessor defines. Useful for diagnosing
+      # WASM-build differences after an emsdk bump.
+      - name: Emscripten Diagnostic
+        run: |
+          source ./emsdk/emsdk_env.sh
+          echo "===== gcc -dM -E - =====";  echo | gcc  -dM -E - | sort
+          echo "===== g++ -dM -E - =====";  echo | g++  -dM -E - | sort
+          echo "===== emcc -dM -E - ====="; echo | emcc -dM -E - | sort
+          echo "===== em++ -dM -E - ====="; echo | em++ -dM -E - | sort
+
+      - name: Build WASM
+        run: |
+          source ./emsdk/emsdk_env.sh
+          # --without/--disable flags: no WASM library available for these features
+          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1" emconfigure ./configure \
+            --without-cairo --without-opengl --without-x --without-tk --without-tcl \
+            --disable-readline --disable-compression \
+            --host=asmjs-unknown-emscripten \
+            --target=asmjs-unknown-emscripten
+          # Append WASM linker flags and activate the WASM link target
+          cat toolchains/emscripten/defs.mak >> defs.mak
+          # Echo the merged defs.mak so CI logs show the exact build config
+          echo "===== defs.mak ====="; cat defs.mak; echo "===== defs.mak ====="
+          # Build in order: techs must exist before mains (--embed-file embeds them)
+          emmake make depend
+          emmake make -j$(nproc) modules libs
+          emmake make techs
+          emmake make mains
+
+      - name: Copy WASM artifacts into npm/
+        run: |
+          cp magic/magic.js  npm/
+          cp magic/magic.wasm npm/
+
+      - name: Run example tests
+        run: cd npm && npm run test
+
+      # Dump generated text outputs (.ext, .spice, .cif, …) into the CI log
+      # so a regression in extraction / netlisting / cifoutput is visible
+      # without having to download artifacts. The .gds output is binary —
+      # skip it and just record its size.
+      - name: Display example outputs
+        run: |
+          shopt -s nullglob
+          for f in npm/examples/output/*; do
+            name=$(basename "$f")
+            case "$f" in
+              *.gds) echo "===== $name (binary, $(wc -c < "$f") bytes — skipped) =====" ;;
+              *)     echo "===== $name ====="; cat "$f" ;;
+            esac
+          done
+
+      - name: Set package version
+        run: |
+          base=$(cat VERSION)                              # e.g. 8.3.637
+          date=$(git show -s --format=%cs | tr -d '-')    # e.g. 20260414
+          hash=$(git show -s --format=%h)                 # e.g. d157eea
+          # npm requires semver; use pre-release syntax as the closest equivalent
+          # to the AppImage form 8.3.637~20260414~d157eea
+          VERSION="${base}-${date}.${hash}"
+          cd npm
+          npm version "$VERSION" --no-git-tag-version
+
+      - name: Pack
+        run: ./npm/pack.sh
+
+      - name: Upload tarball as artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: magic-vlsi-wasm-npm
+          path: npm/*.tgz
+
+      - name: Publish to GitHub Packages
+        if: startsWith(github.ref, 'refs/tags/v') && github.event.inputs.dry_run != 'true'
+        run: cd npm && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

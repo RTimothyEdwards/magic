@@ -217,10 +217,11 @@ CMWdelete(
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 void
 CMWreposition(
     MagWindow *window,
-    Rect *newScreenArea,
+    Rect *newScreenArea,	/* UNUSED */
     bool final)
 {
     if (final)

@@ -307,6 +307,12 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
     if (inname == NULL)
 #ifdef MAGIC_WRAPPER
 	return NULL;
+#elif defined(EMSCRIPTEN)
+    {
+	/* Headless WASM: signal error via err_result, no goto usage path */
+	if (err_result != NULL) *err_result = TRUE;
+	return NULL;
+    }
 #else
 	goto usage;
 #endif
@@ -367,7 +373,7 @@ efLoadSearchPath(path)
     PaVisitFiles(DOT_MAGIC_PATH, ".magicrc", pv);
     PaVisitFree(pv);
     if (*path == NULL)
-	*path = ".";
+	StrDup(path, ".");
 }
 
 int

@@ -357,9 +357,11 @@ DBWHLRedrawPrepWindow(MagWindow *window, Rect *area)
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 int
-DBWHLRedrawWind(window)
+DBWHLRedrawWind(window, clientData)
     MagWindow *window;		/* Window in which to redraw highlights. */
+    ClientData clientData;	/* UNUSED */
 {
     int i;
     DBWclientRec *crec;

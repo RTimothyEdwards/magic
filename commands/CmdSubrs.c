@@ -1019,7 +1019,7 @@ CmdSetWindCaption(
 				 * edit cell was selected.
 				 */
 {
-    int cmdWindSet(MagWindow *window);
+    int cmdWindSet(MagWindow *window, ClientData clientData);	/* UNUSED */
 
     newEditDef = (newEditUse) ? newEditUse->cu_def : NULL;
     newRootDef = rootDef;
@@ -1053,9 +1053,11 @@ CmdSetWindCaption(
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 int
 cmdWindSet(
-    MagWindow *window)
+    MagWindow *window,
+    ClientData clientData)	/* UNUSED */
 {
     char caption[200];
     CellDef *wDef;

@@ -112,7 +112,7 @@ bool CalmaUnique = FALSE;		/* If TRUE, then if a cell exists in
 extern bool CalmaDoLibrary;		/* Also used by GDS write */
 
 extern void calmaUnexpected(int wanted, int got);
-extern int calmaWriteInitFunc(CellDef *def);
+extern int calmaWriteInitFunc(CellDef *def, ClientData cdata);	/* UNUSED */
 
 /*
  * Scaling.

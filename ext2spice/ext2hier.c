@@ -1563,12 +1563,14 @@ spcsubHierVisit(
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 int
 spcnodeHierVisit(
     HierContext *hc,
     EFNode *node,
     int res,
-    double cap)
+    double cap,
+    ClientData cdata)	/* UNUSED */
 {
     HierName *hierName;
     bool isConnected = FALSE;

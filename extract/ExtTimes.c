@@ -288,9 +288,11 @@ ExtTimes(rootUse, f)
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 int
-extTimesInitFunc(use)
+extTimesInitFunc(use, cdata)
     CellUse *use;
+    ClientData cdata;	/* UNUSED */
 {
     CellDef *def = use->cu_def;
     struct cellStats *cs;

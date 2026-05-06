@@ -284,7 +284,7 @@ cifFlatMaskHints(
 	oldproprec = (PropertyRecord *)DBPropGet(mhd->mh_def, name, &propfound);
 	if (propfound)
 	{
-	    ASSERT(oldproprec->prop_value.prop_type == PROPERTY_TYPE_PLANE, 
+	    ASSERT(oldproprec->prop_type == PROPERTY_TYPE_PLANE,
 			"cifFlatMaskHints");
 	    plane = oldproprec->prop_value.prop_plane;
 	}
@@ -735,8 +735,10 @@ CIFGenSubcells(
 
     /* This routine can take a long time, so use the display
      * timer to force a 5-second progress check (like is done
-     * with extract)
+     * with extract).  Save and restore GrDisplayStatus so that
+     * a headless (DISPLAY_SUSPEND) build isn't left in DISPLAY_IDLE.
      */
+    unsigned char savedDisplayStatus = GrDisplayStatus;
     GrDisplayStatus = DISPLAY_IN_PROGRESS;
     SigSetTimer(5);			/* Print at 5-second intervals */
     cuts = 0;
@@ -861,7 +863,7 @@ CIFGenSubcells(
 
     CIFHierTileOps += CIFTileOps - oldTileOps;
 
-    GrDisplayStatus = DISPLAY_IDLE;
+    GrDisplayStatus = savedDisplayStatus;
     SigRemoveTimer();
 
     UndoEnable();

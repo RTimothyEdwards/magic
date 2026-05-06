@@ -238,9 +238,11 @@ DBUpdateStamps(def)
     }
 }
 
+/*ARGSUSED*/
 int
-dbStampFunc(cellDef)
+dbStampFunc(cellDef, cdata)
     CellDef *cellDef;
+    ClientData cdata;	/* UNUSED */
 {
     CellUse *cu;
     CellDef *cd;

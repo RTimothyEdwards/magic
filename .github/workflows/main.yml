@@ -1,19 +1,15 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
 on:
   push:
   pull_request:
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   simple_build_linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Get Dependencies
         run: |
           sudo apt-get install -y tcl-dev tk-dev libcairo-dev
@@ -22,39 +18,3 @@ jobs:
           ./configure
           make database/database.h
           make -j$(nproc)
-  simple_build_wasm:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Get Dependencies
-        run: |
-          git clone https://github.com/emscripten-core/emsdk.git
-          cd emsdk
-          ./emsdk install latest
-          ./emsdk activate latest
-      - name: Emscripten Diagnostic
-        run: |
-          source ./emsdk/emsdk_env.sh
-          echo "===== gcc -dM -E - ====="
-          echo | gcc -dM -E - | sort
-          echo "===== g++ -dM -E - ====="
-          echo | g++ -dM -E - | sort
-          echo "===== emcc -dM -E - ====="
-          echo | emcc -dM -E - | sort
-          echo "===== em++ -dM -E - ====="
-          echo | em++ -dM -E - | sort
-      - name: Build
-        run: |
-          source ./emsdk/emsdk_env.sh
-          # The --without and --disable in these build options is due to no WASM library being available for that feature
-          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 -g" emconfigure ./configure --without-cairo --without-opengl --without-x --without-tk --without-tcl --disable-readline --disable-compression --target=asmjs-unknown-emscripten
-          echo "===== defs.mak ====="
-          cat defs.mak
-          echo "===== defs.mak ====="
-          emmake make
-      - name: archive wasm bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: magic-wasm-bundle
-          path: |
-            ${{ github.workspace }}/magic/magic.wasm

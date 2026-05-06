@@ -44,7 +44,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "textio/textio.h"
 
     /* Forward declarations */
-extern int cifWriteInitFunc(CellDef *def);
+extern int cifWriteInitFunc(CellDef *def, ClientData cdata);	/* UNUSED */
 extern int cifWriteMarkFunc(CellUse *use);
 extern int cifWritePaintFunc(Tile *tile, TileType dinfo, FILE *f);
 extern int cifWriteLabelFunc(Tile *tile, TileType dinfo, FILE *f);
@@ -204,9 +204,11 @@ CIFWrite(
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 int
 cifWriteInitFunc(
-    CellDef *def)
+    CellDef *def,
+    ClientData cdata)	/* UNUSED */
 {
     def->cd_client = (ClientData) 0;
     return (0);

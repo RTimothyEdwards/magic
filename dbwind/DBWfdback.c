@@ -531,8 +531,11 @@ dbwfbGetTransform(use, transform, cdarg)
  * cell.
  */
 
+/*ARGSUSED*/
 int
-dbwfbWindFunc()
+dbwfbWindFunc(w, clientData)
+    MagWindow *w;		/* UNUSED */
+    ClientData clientData;	/* UNUSED */
 {
     return 1;
 }

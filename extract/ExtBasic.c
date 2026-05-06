@@ -147,13 +147,13 @@ NodeRegion *temp_subsnode = NULL;	/* Last subsnode found */
 /* Forward declarations */
 void extOutputNodes();
 int extTransTileFunc();
-int extTransPerimFunc();
+int extTransPerimFunc(Boundary *, ClientData);	/* UNUSED */
 int extTransFindSubs();
 int extTransFindId();
 void extTermAPFunc();
 
-int extAnnularTileFunc();
-int extResistorTileFunc();
+int extAnnularTileFunc(Tile *, TileType, int, FindRegion *);	/* UNUSED */
+int extResistorTileFunc(Tile *, TileType, int, FindRegion *);	/* UNUSED */
 int extSpecialPerimFunc();
 
 void extFindDuplicateLabels();
@@ -2185,11 +2185,13 @@ extDevFindParamMatch(devptr, length, width)
  *
  * ----------------------------------------------------------------------------
  */
+/*ARGSUSED*/
 int
-extSDTileFunc(tile, dinfo, pNum)
+extSDTileFunc(tile, dinfo, pNum, arg)
     Tile *tile;
-    TileType dinfo;	/* (unused) */
+    TileType dinfo;	/* UNUSED */
     int pNum;
+    FindRegion *arg;	/* UNUSED */
 {
     LinkedTile *newdevtile;
 
@@ -3947,9 +3949,11 @@ extTermAPFunc(tile, dinfo,  eapd)
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 int
-extTransPerimFunc(bp)
+extTransPerimFunc(bp, cdata)
     Boundary *bp;
+    ClientData cdata;	/* UNUSED */
 {
     TileType tinside, toutside, dinfo;
     Tile *tile;
@@ -4225,11 +4229,13 @@ extTransPerimFunc(bp)
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 int
-extAnnularTileFunc(tile, dinfo, pNum)
+extAnnularTileFunc(tile, dinfo, pNum, arg)
     Tile *tile;
     TileType dinfo;
     int pNum;
+    FindRegion *arg;	/* UNUSED */
 {
     TileTypeBitMask mask;
     TileType loctype;
@@ -4275,11 +4281,13 @@ extAnnularTileFunc(tile, dinfo, pNum)
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
 int
-extResistorTileFunc(tile, dinfo, pNum)
+extResistorTileFunc(tile, dinfo, pNum, arg)
     Tile *tile;
     TileType dinfo;
     int pNum;
+    FindRegion *arg;	/* UNUSED */
 {
     TileTypeBitMask mask;
     TileType loctype;
