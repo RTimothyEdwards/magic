@@ -12,8 +12,7 @@ name: CI-wasm
 # wider release to the public npm registry. Consumers can install from there
 # via npm with an appropriate .npmrc pointing at npm.pkg.github.com.
 #
-# WASM is architecture-independent — built on x86-64 and ARM64 in parallel
-# to verify the toolchain works on both, and to compare outputs.
+# WASM is architecture-independent — built once on x86-64, usable everywhere.
 
 on:
   push:
@@ -137,46 +136,3 @@ jobs:
         run: cd npm && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-wasm-arm:
-    runs-on: ubuntu-24.04-arm
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Install emsdk
-        env:
-          EMSDK_VERSION: ${{ github.event.inputs.emsdk_version || 'latest' }}
-        run: |
-          git clone https://github.com/emscripten-core/emsdk.git
-          cd emsdk
-          ./emsdk install "$EMSDK_VERSION"
-          ./emsdk activate "$EMSDK_VERSION"
-
-      # Captures compiler predefined macros for all four toolchains.
-      # Kept intentionally: emsdk changes over time and these logs are the
-      # fastest way to diagnose a broken build without reproducing it locally.
-      - name: Emscripten Diagnostic
-        run: |
-          source ./emsdk/emsdk_env.sh
-          echo "===== gcc -dM -E - =====";  echo | gcc  -dM -E - | sort
-          echo "===== g++ -dM -E - =====";  echo | g++  -dM -E - | sort
-          echo "===== emcc -dM -E - ====="; echo | emcc -dM -E - | sort
-          echo "===== em++ -dM -E - ====="; echo | em++ -dM -E - | sort
-
-      - name: Build WASM
-        run: |
-          source ./emsdk/emsdk_env.sh
-          # --without/--disable flags: no WASM library available for these features
-          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1" emconfigure ./configure \
-            --without-cairo --without-opengl --without-x --without-tk --without-tcl \
-            --disable-readline --disable-compression \
-            --target=asmjs-unknown-emscripten
-          echo "===== defs.mak ====="; cat defs.mak; echo "===== defs.mak ====="
-          emmake make
-
-      - name: Upload WASM artifact (arm)
-        uses: actions/upload-artifact@v5
-        with:
-          name: magic-wasm-bundle-arm
-          path: magic/magic.wasm
