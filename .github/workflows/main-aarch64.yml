@@ -1,7 +1,4 @@
-# CI for native ARM64 Linux build.
-# WASM is not built here — WebAssembly bytecode is architecture-independent,
-# so the single x86-64 WASM artifact produced by the CI workflow is identical
-# to what an ARM build would produce. See .github/workflows/main.yml.
+# CI for native ARM64 Linux build and ARM WASM build.
 
 name: CI-aarch64
 
@@ -9,6 +6,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      emsdk_version:
+        description: 'Emscripten SDK version (e.g. latest, 3.1.56)'
+        required: false
+        default: 'latest'
 
 jobs:
   simple_build_linux_arm:
@@ -24,3 +26,41 @@ jobs:
           ./configure
           make database/database.h
           make -j$(nproc)
+
+  simple_build_wasm_arm:
+    runs-on: ubuntu-24.04-arm
+    env:
+      EMSDK_VERSION: ${{ github.event.inputs.emsdk_version || 'latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Dependencies
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install $EMSDK_VERSION
+          ./emsdk activate $EMSDK_VERSION
+      - name: Emscripten Diagnostic
+        run: |
+          source ./emsdk/emsdk_env.sh
+          echo "===== gcc -dM -E - ====="
+          echo | gcc -dM -E - | sort
+          echo "===== g++ -dM -E - ====="
+          echo | g++ -dM -E - | sort
+          echo "===== emcc -dM -E - ====="
+          echo | emcc -dM -E - | sort
+          echo "===== em++ -dM -E - ====="
+          echo | em++ -dM -E - | sort
+      - name: Build
+        run: |
+          source ./emsdk/emsdk_env.sh
+          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 -g" emconfigure ./configure --without-cairo --without-opengl --without-x --without-tk --without-tcl --disable-readline --disable-compression --target=asmjs-unknown-emscripten
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
+          emmake make
+      - name: Archive WASM bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: magic-wasm-bundle-arm
+          path: |
+            ${{ github.workspace }}/magic/magic.wasm
