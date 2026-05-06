@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      emsdk_version:
+        description: 'emsdk version to build with (default: latest; use a version number to pin)'
+        type: string
+        default: 'latest'
 
 # actions/upload-artifact@v5 still runs on Node.js 20. Force Node 24 to
 # silence the deprecation warning until upload-artifact ships a Node-24
@@ -13,7 +18,7 @@ env:
 
 jobs:
   simple_build_linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - name: Get Dependencies
@@ -25,15 +30,12 @@ jobs:
           make database/database.h
           make -j$(nproc)
   simple_build_wasm:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
-      # --- emsdk version switch ---------------------------------------------
-      # Pinned: post-build.sh patches depend on the exact text output of this
-      # Emscripten version. Bump intentionally and re-verify the patches.
-      # To test against the latest emsdk, comment the pinned line and
-      # uncomment the "latest" line below.
-      EMSDK_VERSION: '3.1.56'
-      # EMSDK_VERSION: 'latest'
+      # Defaults to latest so CI tracks emsdk HEAD and catches breakage early.
+      # Override via workflow_dispatch to pin a specific version when needed
+      # (e.g. to bisect a regression or verify a post-build.sh patch still applies).
+      EMSDK_VERSION: ${{ github.event.inputs.emsdk_version || 'latest' }}
     steps:
       - uses: actions/checkout@v5
       - name: Get Dependencies
