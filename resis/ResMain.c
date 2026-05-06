@@ -1054,11 +1054,24 @@ ResExtractNet(node, resisdata, cellname)
 
     /* Copy Paint */
 
-    scx.scx_area.r_ll.p_x = node->location.p_x - 2;
-    scx.scx_area.r_ll.p_y = node->location.p_y - 2;
-    scx.scx_area.r_ur.p_x = node->location.p_x + 2;
-    scx.scx_area.r_ur.p_y = node->location.p_y + 2;
-    startpoint = node->location;
+    /* If the node location is INFINITY, then use the rs_bbox */
+
+    if ((node->location.p_x == INFINITY) || (node->location.p_y == INFINITY))
+    {
+	scx.scx_area.r_ll.p_x = node->rs_bbox.r_xbot;
+	scx.scx_area.r_ll.p_y = node->rs_bbox.r_ybot;
+	scx.scx_area.r_ur.p_x = node->rs_bbox.r_xtop;
+	scx.scx_area.r_ur.p_y = node->rs_bbox.r_ytop;
+	startpoint = node->drivepoint;
+    }
+    else
+    {
+	scx.scx_area.r_ll.p_x = node->location.p_x - 2;
+	scx.scx_area.r_ll.p_y = node->location.p_y - 2;
+	scx.scx_area.r_ur.p_x = node->location.p_x + 2;
+	scx.scx_area.r_ur.p_y = node->location.p_y + 2;
+	startpoint = node->location;
+    }
 
     /* Because node->type might come from a label with a sticky type
      * that does not correspond exactly to the layer underneath, include
