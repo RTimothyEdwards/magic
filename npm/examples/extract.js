@@ -1,18 +1,18 @@
 // extract.js — RC extraction example (extract → extresist → ext2spice).
 //
-// Usage:  node examples/extract.js [magFile [techFile [outputDir]]]
+// Usage:  node examples/extract.js [magFile [tech [outputDir]]]
 import { createMagic, vfsWrite, vfsRead, loadCell, loadScript,
          DEFAULT_TECH, DEFAULT_MAG, DEFAULT_OUT } from './helpers.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
-export async function run({ magFile = DEFAULT_MAG, techFile = DEFAULT_TECH, outputDir = DEFAULT_OUT } = {}) {
+export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH, outputDir = DEFAULT_OUT } = {}) {
   const { magic } = await createMagic();
   const { FS } = magic;
-  const { tech, cell } = loadCell(FS, techFile, magFile);
+  const { tech: techName, cell } = loadCell(FS, tech, magFile);
 
-  magic.runScript(loadScript('extract.tcl', tech, cell));
+  magic.runScript(loadScript('extract.tcl', techName, cell));
 
   mkdirSync(outputDir, { recursive: true });
 
