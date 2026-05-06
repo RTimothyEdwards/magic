@@ -96,7 +96,7 @@ extern int calmaPaintLayerNumber;
 extern int calmaPaintLayerType;
 
     /* External functions from CalmaWrite.c */
-extern int calmaWriteInitFunc(CellDef *def, ClientData cdata);
+extern int calmaWriteInitFunc(CellDef *def, ClientData cdata);	/* UNUSED */
 
 /* Structure used by calmaWritePaintFuncZ() and others */
 

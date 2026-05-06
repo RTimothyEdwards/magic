@@ -85,7 +85,7 @@ typedef struct _linkedDef {
 Stack *extDefStack;
 
     /* Forward declarations */
-int extDefInitFunc(CellDef *, ClientData);
+int extDefInitFunc(CellDef *, ClientData);	/* UNUSED */
 void extDefPush();
 void extDefIncremental();
 void extParents();
@@ -395,10 +395,11 @@ ExtAll(rootUse)
  * cell defs, in preparation for extracting a subtree
  * rooted at a particular def.
  */
+/*ARGSUSED*/
 int
 extDefInitFunc(def, cdata)
     CellDef *def;
-    ClientData cdata;
+    ClientData cdata;	/* UNUSED */
 {
     def->cd_client = (ClientData) 0;
     return (0);
