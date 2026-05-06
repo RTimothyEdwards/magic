@@ -1,6 +1,6 @@
 {
   "name": "magic-vlsi-wasm",
-  "version": "8.3.637",
+  "version": "0.0.0-dev",
   "description": "Magic VLSI Layout Tool — headless WebAssembly build",
   "type": "module",
   "main": "index.js",
