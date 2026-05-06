@@ -79,10 +79,14 @@ jobs:
           cp magic/magic.js  npm/
           cp magic/magic.wasm npm/
 
-      - name: Set package version from tag
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Set package version
         run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
+          base=$(cat VERSION)                              # e.g. 8.3.637
+          date=$(git show -s --format=%cs | tr -d '-')    # e.g. 20260414
+          hash=$(git show -s --format=%h)                 # e.g. d157eea
+          # npm requires semver; use pre-release syntax as the closest equivalent
+          # to the AppImage form 8.3.637~20260414~d157eea
+          VERSION="${base}-${date}.${hash}"
           cd npm
           npm version "$VERSION" --no-git-tag-version
 
