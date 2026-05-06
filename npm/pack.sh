@@ -12,8 +12,7 @@
 #
 # Used by:
 #   - npm/build.sh --pack  (local build)
-#   - .github/workflows/main.yml        (CI artifact upload)
-#   - .github/workflows/npm-publish.yml (tag-triggered publish)
+#   - .github/workflows/main-wasm.yml  (CI build + tag-triggered publish)
 
 set -euo pipefail
 
