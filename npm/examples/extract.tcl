@@ -18,7 +18,8 @@ extract all
 
 # extresist requires a valid box cursor; span the full layout to be safe
 select top cell
-extresist all
+#extresist all
+extract do resistance
 ext2spice format ngspice
 ext2spice extresist on
 ext2spice cthresh 0
