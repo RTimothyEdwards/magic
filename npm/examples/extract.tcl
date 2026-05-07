@@ -22,6 +22,5 @@ extresist all
 ext2spice format ngspice
 ext2spice extresist on
 ext2spice cthresh 0
-ext2spice rthresh 0
 
 ext2spice /work/__CELL__
