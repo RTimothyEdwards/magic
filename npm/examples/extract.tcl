@@ -13,15 +13,13 @@ tech load __TECH__
 load /work/__CELL__
 
 # Write all intermediate files to /work/ so ext2spice can find __CELL__.res.ext
+extract do resistance
 extract path /work
 extract all
 
 # extresist requires a valid box cursor; span the full layout to be safe
 select top cell
-#extresist all
-extract do resistance
 ext2spice format ngspice
 ext2spice extresist on
 ext2spice cthresh 0
-
 ext2spice /work/__CELL__
