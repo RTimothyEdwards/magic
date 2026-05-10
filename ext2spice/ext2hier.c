@@ -844,6 +844,8 @@ spcdevHierVisit(
 	    case DEV_DSUBCKT:
 	    case DEV_MSUBCKT:
 		fprintf(esSpiceF, "%d", esSbckNum++);
+		if ((dev->dev_class == DEV_RSUBCKT) && esDoResistorTee)
+		    fprintf(esSpiceF, "A");
 		break;
 	    default:
 		fprintf(esSpiceF, "%d", esDevNum++);
@@ -920,16 +922,27 @@ spcdevHierVisit(
 	    else if (dev->dev_class != DEV_MSUBCKT)
 	    {
 		if (dev->dev_nterm > 1)
-		    spcdevOutNode(hc->hc_hierName, source->dterm_node->efnode_name->efnn_hier,
+		    spcdevOutNode(hc->hc_hierName,
+				source->dterm_node->efnode_name->efnn_hier,
 				"subckt", esSpiceF);
-		if (dev->dev_nterm > 2)
-		    spcdevOutNode(hc->hc_hierName, drain->dterm_node->efnode_name->efnn_hier,
+	        if ((dev->dev_class == DEV_RSUBCKT) && esDoResistorTee)
+		{
+		    /* Handle resistor "tee" model */
+		    spcdevOutNode(hc->hc_hierName,
+				gate->dterm_node->efnode_name->efnn_hier,
+				"subckt", esSpiceF);
+		    l /= 2;	/* Halve the resistor length for each side */
+		}
+		else if (dev->dev_nterm > 2)
+		    spcdevOutNode(hc->hc_hierName,
+				drain->dterm_node->efnode_name->efnn_hier,
 				"subckt", esSpiceF);
 	    }
 	    else    /* class DEV_MSUBCKT */
 	    {
 		if (dev->dev_nterm > 2)
-		    spcdevOutNode(hc->hc_hierName, source->dterm_node->efnode_name->efnn_hier,
+		    spcdevOutNode(hc->hc_hierName,
+				source->dterm_node->efnode_name->efnn_hier,
 				"subckt", esSpiceF);
 	    }
 	    /* The following only applies to DEV_SUBCKT and DEV_VERILOGA, which	*/
@@ -967,6 +980,54 @@ spcdevHierVisit(
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM, FALSE);
 	    if (sdM != 1.0)
 		fprintf(esSpiceF, " M=%g", sdM);
+
+	    if ((dev->dev_class == DEV_RSUBCKT) && esDoResistorTee)
+	    {
+		/* Repeat everything above for the second half of the "tee" resistor */
+		fprintf(esSpiceF, "\n%c%dB", devchar, esSbckNum - 1);
+
+		spcdevOutNode(hc->hc_hierName,
+			gate->dterm_node->efnode_name->efnn_hier,
+			"subckt", esSpiceF);
+		spcdevOutNode(hc->hc_hierName,
+			drain->dterm_node->efnode_name->efnn_hier,
+			"subckt", esSpiceF);
+
+		/* Get the device parameters now, and check if the substrate is	*/
+		/* passed as a parameter rather than as a node.			*/
+
+		plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
+		for (pptr = plist; pptr != NULL; pptr = pptr->parm_next)
+		    if (pptr->parm_type[0] == 's')
+			break;
+
+		if ((pptr == NULL) && subnode)
+		{
+		    EFNode *dnode;
+
+		    fprintf(esSpiceF, " ");
+		    subnodeFlat = spcdevSubstrate(hc->hc_hierName,
+				subnode->efnode_name->efnn_hier,
+				dev->dev_type, esSpiceF);
+
+		    /* If a tee resistor subcircuit has a substrate pin, then the
+		     * parasitic capacitance to substrate should be assumed to be
+		     * part of the resistor subcircuit model, and so the parasitic
+		     * to substrate on the "gate" node should be forced to zero.
+		     */
+		    dnode = GetHierNode(hc, gate->dterm_node->efnode_name->efnn_hier);
+		    dnode->efnode_cap = 0;
+		}
+		/* Support for CDL format */
+		if (esFormat == CDL) fprintf(esSpiceF, " /");
+		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+
+		/* Write all requested parameters to the subcircuit call.	*/
+		sdM = getCurDevMult();
+		spcHierWriteParams(hc, dev, scale, l, w, sdM, FALSE);
+		if (sdM != 1.0)
+		    fprintf(esSpiceF, " M=%g", sdM);
+	    }
 	    break;
 
 	case DEV_RES:
