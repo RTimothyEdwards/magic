@@ -2901,13 +2901,17 @@ spcdevVisit(
 	    case DEV_VOLT:
 		fprintf(esSpiceF, "%d", esVoltNum++);
 		break;
+	    case DEV_RSUBCKT:
 	    case DEV_SUBCKT:
 	    case DEV_VERILOGA:
-	    case DEV_RSUBCKT:
 	    case DEV_CSUBCKT:
 	    case DEV_DSUBCKT:
 	    case DEV_MSUBCKT:
 		fprintf(esSpiceF, "%d", esSbckNum++);
+		if ((dev->dev_class == DEV_RSUBCKT) && esDoResistorTee)
+		    /* For resistor tee networks, use, e.g.,	*/
+		    /* "X1A" and "X1B", for clarity		*/
+		    fprintf(esSpiceF, "A");
 		break;
 	    default:
 		fprintf(esSpiceF, "%d", esDevNum++);
@@ -2982,7 +2986,15 @@ spcdevVisit(
 		if (dev->dev_nterm > 1)
 		    spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
 				name, esSpiceF);
-		if (dev->dev_nterm > 2)
+		if ((dev->dev_class == DEV_RSUBCKT) && esDoResistorTee)
+		{
+		    l /= 2;	/* Halve the resistor.  Note that this may introduce
+				 * error if l is an odd value.
+				 */
+		    spcdevOutNode(hierName, gate->dterm_node->efnode_name->efnn_hier,
+				name, esSpiceF);
+		}
+		else if (dev->dev_nterm > 2)
 		    spcdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier,
 				name, esSpiceF);
 	    }
@@ -3029,6 +3041,53 @@ spcdevVisit(
 	    spcWriteParams(dev, hierName, scale, l, w, sdM, FALSE);
 	    if (sdM != 1.0)
 		fprintf(esSpiceF, " M=%g", sdM);
+	    break;
+
+	    if (dev->dev_class == DEV_RSUBCKT && esDoResistorTee)
+	    {
+		/* Write the second half of the "Tee" resistor when
+		 * the resistor is type DEV_RSUBCKT and not DEV_RES.
+		 */
+		fprintf(esSpiceF, "\n%c%dB", devchar, esSbckNum - 1);
+
+		spcdevOutNode(hierName, gate->dterm_node->efnode_name->efnn_hier,
+			name, esSpiceF);
+		spcdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier,
+			name, esSpiceF);
+
+		/* Get the device parameters now, and check if the substrate is	*/
+		/* passed as a parameter rather than as a node.			*/
+
+		plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
+		for (pptr = plist; pptr != NULL; pptr = pptr->parm_next)
+		    if (pptr->parm_type[0] == 's')
+			break;
+
+		if ((pptr == NULL) && subnode)
+		{
+		    fprintf(esSpiceF, " ");
+		    subnodeFlat = spcdevSubstrate(hierName,
+				subnode->efnode_name->efnn_hier,
+				dev->dev_type, esSpiceF);
+
+		    /* There is a substrate pin on the resistor subcircuit, so assume
+		     * that the substrate cap is part of the subcircuit model, and
+		     * zero it.
+		     */
+                    gate->dterm_node->efnode_cap = 0;
+		}
+
+		/* CDL format support:  Output a slash followed by a space. */
+		if (esFormat == CDL) fprintf(esSpiceF, " /");
+		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+
+		/* Write all requested parameters to the subcircuit call.	*/
+
+		sdM = getCurDevMult();
+		spcWriteParams(dev, hierName, scale, l, w, sdM, FALSE);
+		if (sdM != 1.0)
+		    fprintf(esSpiceF, " M=%g", sdM);
+	    }
 	    break;
 
 	case DEV_RES:
