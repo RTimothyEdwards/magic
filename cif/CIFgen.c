@@ -4117,7 +4117,7 @@ cifSrTiles(
  *	one or more times for the planes being used in processing
  *	where the CIF search should be conducted over "area" scaled
  *	to CIF units, rather than the entire plane.  Currently used 
- *	only for operator CIFOP_INTERACT.
+ *	only for operators CIFOP_INTERACT and CIFOP_TAGGED.
  *
  * Results:
  *	Returns the value returned by the function.
@@ -5681,7 +5681,7 @@ CIFGenLayer(
 
 		for (label = cellDef->cd_labels; label; label = label->lab_next)
 		    if (!strcmp(label->lab_text, text))
-			cifSrTiles(op, &label->lab_rect, cellDef, temps,
+			cifSrTiles2(op, &label->lab_rect, cellDef, temps,
 				cifBloatAllFunc, (ClientData)&bls);
 
 	        /* Reset marked tiles */
