@@ -71,10 +71,10 @@ extern const char * const extDevTable[];
 #define	EXT_DORESISTANCE	0x008	/* Extract lumped resistance */
 #define	EXT_DOLENGTH		0x010	/* Extract pathlengths */
 #define	EXT_DOFRINGEHALO	0x020	/* Distributed fringe capacitance */
-#define	EXT_DOALL		0x03f	/* ALL OF THE ABOVE */
+#define EXT_DOUNIQUE		0x100	/* Force unique nodes during extraction */
+#define	EXT_DOALL		0x13f	/* ALL OF THE ABOVE */
 #define	EXT_DOLABELCHECK	0x040	/* Check for connections by label */
 #define EXT_DOALIASES		0x080	/* Output all node aliases */
-#define EXT_DOUNIQUE		0x100	/* Force unique nodes during extraction */
 #define EXT_DOEXTRESIST		0x200	/* Do full R-C extraction */
 
 extern int ExtOptions;		/* Bitmask of above */
