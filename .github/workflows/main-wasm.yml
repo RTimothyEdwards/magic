@@ -1,16 +1,11 @@
 name: CI-wasm
 
 # Builds the Magic WebAssembly target on every push and pull request.
-# On version tags (v*), additionally publishes magic-vlsi-wasm to GitHub
-# Packages (npm.pkg.github.com).
-#
-# The primary goal of this workflow is to always build a WASM version and
-# verify it against the example test suite. Publishing to a package repo is
-# an optional, tag-gated extension of the same pipeline.
-#
-# Publishing to GitHub Packages first allows testing and evaluation before a
-# wider release to the public npm registry. Consumers can install from there
-# via npm with an appropriate .npmrc pointing at npm.pkg.github.com.
+# When the VERSION file changes on the default branch, the package is
+# additionally published to GitHub Packages (npm.pkg.github.com) as
+# @<owner>/magic-vlsi-wasm — no manual tag or token required.
+# Tim Edwards updates VERSION to trigger a new release; the scope resolves
+# automatically to the repo owner, so forks publish under their own namespace.
 #
 # WASM is architecture-independent — built once on x86-64, usable everywhere.
 
@@ -34,12 +29,18 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-wasm:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
 
       - name: Set up Node.js
         uses: actions/setup-node@v5
@@ -111,15 +112,20 @@ jobs:
             esac
           done
 
-      - name: Set package version
+      - name: Set package version and scope
         run: |
           base=$(cat VERSION)                              # e.g. 8.3.637
           date=$(git show -s --format=%cs | tr -d '-')    # e.g. 20260414
           hash=$(git show -s --format=%h)                 # e.g. d157eea
-          # npm requires semver; use pre-release syntax as the closest equivalent
-          # to the AppImage form 8.3.637~20260414~d157eea
           VERSION="${base}-${date}.${hash}"
+          # Scope the package to the repo owner so it lands in the right
+          # GitHub Packages namespace regardless of who hosts the repo.
+          # e.g. @rtimothyedwards/magic-vlsi-wasm on Tim's repo,
+          #      @intubun/magic-vlsi-wasm on a fork.
+          SCOPED_NAME="@${{ github.repository_owner }}/magic-vlsi-wasm"
           cd npm
+          npm pkg set name="$SCOPED_NAME"
+          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
           npm version "$VERSION" --no-git-tag-version
 
       - name: Pack
@@ -131,8 +137,18 @@ jobs:
           name: magic-vlsi-wasm-npm
           path: npm/*.tgz
 
+      - name: Check if VERSION changed
+        id: version_changed
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name == 'push'
+        run: |
+          if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q '^VERSION$'; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to GitHub Packages
-        if: startsWith(github.ref, 'refs/tags/v') && github.event.inputs.dry_run != 'true'
+        if: steps.version_changed.outputs.changed == 'true' && github.event.inputs.dry_run != 'true'
         run: cd npm && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
