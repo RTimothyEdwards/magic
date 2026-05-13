@@ -635,9 +635,17 @@ cmdSelectArea(
 	int i;
 	for (i = 0; i < DBNumUserLayers; i++)
 	{
-	    if((TTMaskHasType(&mask, i)) && !(TTMaskHasType(&crec->dbw_visibleLayers, i)))
+	    if ((TTMaskHasType(&mask, i)) &&
+			!(TTMaskHasType(&crec->dbw_visibleLayers, i)))
 		TTMaskClearType(&mask, i);
 	}
+
+	/* Remove L_CELL and L_LABEL if crec->dbw_flags indicates that
+	 * they are not visible in the layout window.
+	 */
+
+	if (!(crec->dbw_flags & DBW_SEELABELS)) TTMaskClearType(&mask, L_LABEL);
+	if (!(crec->dbw_flags & DBW_SEECELLS)) TTMaskClearType(&mask, L_CELL);
     }
     SelectArea(&scx, &mask, crec->dbw_bitmask, globmatch);
 }
@@ -1027,7 +1035,7 @@ CmdSelect(
 
 	/*--------------------------------------------------------------------
 	 * Select everything under the box, perhaps looking only at
-	 * particular layers, but only if its visible.
+	 * particular layers, but only if it's visible.
 	 *--------------------------------------------------------------------
 	 */
 

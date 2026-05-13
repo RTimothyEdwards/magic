@@ -471,12 +471,11 @@ SelectArea(scx, types, xMask, globmatch)
     if (TTMaskHasType(types, L_LABEL))
     {
 	if (globmatch != NULL)
-	    DBCellCopyGlobLabels(scx, &DBAllTypeBits, xMask, SelectUse, &labelArea,
+	    DBCellCopyGlobLabels(scx, types, xMask, SelectUse, &labelArea,
 		    globmatch);
 	else
-	    DBCellCopyAllLabels(scx, &DBAllTypeBits, xMask, SelectUse, &labelArea);
+	    DBCellCopyAllLabels(scx, types, xMask, SelectUse, &labelArea);
     }
-    else (void) DBCellCopyAllLabels(scx, types, xMask, SelectUse, &labelArea);
 
     /* Select cell uses. */
 

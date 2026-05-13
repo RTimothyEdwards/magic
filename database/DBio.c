@@ -2016,8 +2016,8 @@ badTransform:
 	if ((cellDef->cd_file != NULL) && (cellDef->cd_file[0] == '/'))
 	{
 	    char *homedir = getenv("HOME");
-	    if (strncmp(cellDef->cd_file, homedir, strlen(homedir)) ||
-			*(cellDef->cd_file + strlen(homedir)) != '/')
+	    if (homedir && (strncmp(cellDef->cd_file, homedir, strlen(homedir)) ||
+			*(cellDef->cd_file + strlen(homedir)) != '/'))
 	    {
 		char *homeroot = strrchr(homedir, '/');
 		int rootlen = (int)(homeroot - homedir) + 1;
@@ -2060,9 +2060,10 @@ badTransform:
 		if (*pathptr == '~')
 		{
 		    char *homedir = getenv("HOME");
-		    if (!strncmp(subCellDef->cd_file, homedir, strlen(homedir))
-			    && (!strcmp(subCellDef->cd_file + strlen(homedir),
-			    pathptr + 1)))
+		    if (homedir && (!strncmp(subCellDef->cd_file, homedir,
+				strlen(homedir)) &&
+				(!strcmp(subCellDef->cd_file + strlen(homedir),
+				pathptr + 1))))
 			pathOK = TRUE;
 		}
 		else if (!strcmp(cwddir, pathptr)) pathOK = TRUE;
@@ -2254,9 +2255,9 @@ badTransform:
 			/* Check if the path is the same as the current directory */
 
 			char *homedir = getenv("HOME");
-			if (!strncmp(cwddir, homedir, strlen(homedir))
+			if (homedir && (!strncmp(cwddir, homedir, strlen(homedir))
 				&& (!strcmp(cwddir + strlen(homedir),
-				pathptr + 1)))
+				pathptr + 1))))
 			    pathOK = TRUE;
 		    }
 		    else if (!strcmp(cwddir, pathptr)) pathOK = TRUE;
