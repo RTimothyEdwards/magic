@@ -76,7 +76,7 @@ ArgStr(
     argptr++;
     if (*argptr != '\0')
     {
-	while (isspace(*argptr))
+	while (isspace(*argptr) && (*argptr != '\0'))
 	    argptr++;
 
 	return argptr;
