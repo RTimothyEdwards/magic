@@ -21,6 +21,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <ctype.h>
 
 #include "utils/magic.h"
 #include "utils/utils.h"
@@ -34,12 +35,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * ArgStr --
  *
  * Process a single argument that is supposed to have a string value.
- * A string argument can appear in two ways:
+ * A string argument can appear in three ways:
  *
  *	-avalue		(a single element of argv)
  *	-a value	(two elements of argv)
+ *	"-a value"	(a single element of argv, space-separated)
  *
- * Both are recognized.
+ * All three forms are recognized.
  *
  * Results:
  *	Returns a pointer to the value, or NULL if there wasn't one.
@@ -56,15 +58,29 @@ char *
 ArgStr(
     int *pargc,
     char ***pargv,
-    const char *argType)/* For error messages: what the following string is
-			 * supposed to be interpreted as.
-			 */
+    const char *argType)	/* For error messages: what the following
+				 * string is supposed to be interpreted as.
+				 */
 {
     char **argv = *pargv;
     char *result;
+    char *argptr;
 
-    if (argv[0][2])
-	return (&argv[0][2]);
+    argptr = argv[0];
+    argptr++;
+    if (*argptr == '\0')
+    {
+	TxError("Bad argument %s\n", argv[0]);
+	return NULL;
+    }
+    argptr++;
+    if (*argptr != '\0')
+    {
+	while (isspace(*argptr))
+	    argptr++;
+
+	return argptr;
+    }
 
     if ((*pargc)-- > 0)
     {
@@ -74,5 +90,5 @@ ArgStr(
     }
 
     TxError("-%c requires a following %s\n", argv[0][1], argType);
-    return (NULL);
+    return NULL;
 }
