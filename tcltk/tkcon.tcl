@@ -249,6 +249,9 @@ proc ::tkcon::Init {} {
 	if {![info exists PRIV(histfile)]} {
 	    set PRIV(histfile)	[file join $env($envHome) $histfile]
 	}
+    } else {
+        set PRIV(rcfile) ""
+        set PRIV(histfile) ""
     }
 
     ## Handle command line arguments before sourcing resource file to
