@@ -830,7 +830,7 @@ drcTile (tile, dinfo, arg)
 		     * an exception area.  Exception rules are ignored if
 		     * the edge is outside an exception area.
 		     */
-		    if (!isinside && (!(cptr->drcc_exception & DRC_EXCEPTION_MASK) == 0))
+		    if (!isinside && ((cptr->drcc_exception & DRC_EXCEPTION_MASK) == 0))
 			continue;
 		    if (isinside && ((cptr->drcc_exception & DRC_EXCEPTION_MASK) != 0))
 			continue;

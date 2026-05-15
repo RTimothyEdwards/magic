@@ -413,6 +413,17 @@ ResParallelCheck(resptr)
     int		status = UNTOUCHED;
     resElement	*rcell1, *rcell2;
 
+#if 0
+    /* XXX WIP XXX Diagnostic! */
+    /* This double loop needs to be replaced with something more efficient,
+     * or else long arrays of contact cuts can take an unexpectedly long time
+     * to process.
+     */
+    int rcount = 0;
+    for (rcell1 = resptr->rn_re; rcell1->re_nextEl != NULL; rcell1 = rcell1->re_nextEl)
+	rcount++;
+    TxPrintf("ResParallelCheck():  Resistor list length = %d\n", rcount);
+#endif
 
     for (rcell1 = resptr->rn_re; rcell1->re_nextEl != NULL;
 		    rcell1 = rcell1->re_nextEl)
