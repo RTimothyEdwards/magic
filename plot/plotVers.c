@@ -1218,7 +1218,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 
     /* Compute the name of the file to use for output, and open it. */
 
-    sprintf(fileName, "%s/magicPlotXXXXXX", PlotTempDirectory);
+    snprintf(fileName, sizeof(fileName), "%s/magicPlotXXXXXX", PlotTempDirectory);
     result = mkstemp(fileName);
     if (result == -1)
     {
@@ -1474,7 +1474,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 
     TxPrintf("\n");
     fclose(file);
-    sprintf(command, PlotVersCommand, PlotVersPrinter, fileName);
+    snprintf(command, sizeof(command), PlotVersCommand, PlotVersPrinter, fileName);
     if (system(command) != 0)
     {
 	TxError("Couldn't execute spooler command to print \"%s\"\n",
