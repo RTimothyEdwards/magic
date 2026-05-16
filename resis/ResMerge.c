@@ -26,7 +26,6 @@ extern void ResEliminateResistor();
 extern void ResCleanNode();
 extern void ResFixBreakPoint();
 
-
 /*
  *-------------------------------------------------------------------------
  *
@@ -406,24 +405,70 @@ ResSeriesCheck(resptr)
 int
 ResParallelCheck(resptr)
     resNode	*resptr;
-
 {
-    resResistor	*r1,*r2;
-    resNode	*resptr2,*resptr3;
+    resResistor	*r1, *r2;
+    resNode	*resptr2, *resptr3;
     int		status = UNTOUCHED;
     resElement	*rcell1, *rcell2;
 
-#if 0
-    /* XXX WIP XXX Diagnostic! */
-    /* This double loop needs to be replaced with something more efficient,
-     * or else long arrays of contact cuts can take an unexpectedly long time
-     * to process.
-     */
     int rcount = 0;
-    for (rcell1 = resptr->rn_re; rcell1->re_nextEl != NULL; rcell1 = rcell1->re_nextEl)
+
+    /* When the number of resistors gets to be large enough, it is more efficient to
+     * sort the resistor list and then do a single pass to see if any two consecutive
+     * items in the sorted list can be merged, than to do a double loop through the
+     * resistor list at ~O(N^2).
+     */
+    
+    for (rcell1 = resptr->rn_re; rcell1 != NULL; rcell1 = rcell1->re_nextEl)
+    {
 	rcount++;
-    TxPrintf("ResParallelCheck():  Resistor list length = %d\n", rcount);
-#endif
+	if (rcount >= 10) break;
+    }
+
+    if (rcount >= 10)
+    {
+	HashTable	NodeResTable;
+	HashEntry	*he;
+
+	/* Hash the connections */
+	HashInit(&NodeResTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
+	
+	for (rcell2 = resptr->rn_re; rcell2 != NULL; rcell2 = rcell2->re_nextEl)
+	{
+	    /* One connection is always resptr;  find the other one */
+	    resptr3 = rcell2->re_thisEl->rr_connection1;
+	    if (resptr3 == resptr) resptr3 = rcell2->re_thisEl->rr_connection2;
+	    
+	    he = HashFind(&NodeResTable, (char *)resptr3);
+	    if ((rcell1 = (resElement*)HashGetValue(he)))
+	    {
+		r1 = rcell1->re_thisEl;
+		r2 = rcell2->re_thisEl;
+
+		if (TTMaskHasType(ResNoMergeMask+r1->rr_tt, r2->rr_tt)) continue;
+
+		ResFixParallel(r1, r2);
+	        status = PARALLEL;
+		resptr2 = NULL;
+		if (resptr3->rn_status & RES_TRUE)
+		{
+		    resptr2 = resptr3;
+		    resptr2->rn_status &= ~RES_TRUE;
+		}
+		ResDoneWithNode(resptr);
+		if (resptr2 != NULL) ResDoneWithNode(resptr2);
+		break;
+	    }
+	    else
+		HashSetValue(he, (char *)rcell2);
+	}
+	HashKill(&NodeResTable);
+	return status;
+    }
+
+    /* This does the same thing as above, but for a small number of resistors
+     * per node, it avoids the overhead of creating and destroying hash tables.
+     */
 
     for (rcell1 = resptr->rn_re; rcell1->re_nextEl != NULL;
 		    rcell1 = rcell1->re_nextEl)
@@ -458,6 +503,7 @@ ResParallelCheck(resptr)
 	}
 	if (status == PARALLEL) break;
     }
+
     return status;
 }
 
@@ -484,6 +530,179 @@ ResTriangleCheck(resptr)
     float	r1, r2, r3, denom;
     resNode	*n1, *n2, *n3;
     resElement	*rcell1, *rcell2, *rcell3, *element;
+    int		rcount = 0;
+
+    /* When the size of the linked list of resistors is long, it is faster to
+     * hash the neighboring connections and then find the first entry in the
+     * neighbor's node list that is another neighbor.
+     */
+    for (rcell1 = resptr->rn_re; rcell1 != NULL; rcell1 = rcell1->re_nextEl)
+    {
+	rcount++;
+	if (rcount >= 10) break;
+    }
+
+    if (rcount >= 10)
+    {
+	HashTable	NodeResTable;
+	HashEntry	*he, *he2;
+	HashSearch	hs;
+
+	/* Hash the neighboring connections */
+	HashInit(&NodeResTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
+
+	for (rcell2 = resptr->rn_re; rcell2 != NULL; rcell2 = rcell2->re_nextEl)
+	{
+	    rr2 = rcell2->re_thisEl;
+
+	    /* One connection is always resptr;  find the other one */
+	    n2 = rr2->rr_connection1;
+	    if (n2 == resptr) n2 = rr2->rr_connection2;
+
+	    he = HashFind(&NodeResTable, (char *)n2);
+	    if (!(rcell1 = (resElement *)HashGetValue(he)))
+		HashSetValue(he, (char *)rcell2);
+	}
+
+	HashStartSearch(&hs);
+	while ((he = HashNext(&NodeResTable, &hs)))
+	{
+	    /* Get each node that neighbors resptr */
+	    n1 = (resNode *)he->h_key.h_ptr;
+	    rcell1 = (resElement *)HashGetValue(he);
+	    rr1 = rcell1->re_thisEl;
+
+	    /* Check the list of resistors of neighbor n1 for any resistor whose
+	     * other end is also a neighbor of resptr.
+	     */
+	    for (rcell3 = n1->rn_re; rcell3 != NULL; rcell3 = rcell3->re_nextEl)
+	    {
+		rr3 = rcell3->re_thisEl;
+
+		/* Resistor can't be merged */
+		if (TTMaskHasType(ResNoMergeMask + rr1->rr_tt, rr3->rr_tt))
+		    continue;
+
+		/* One connection is always n1;  find the other one */
+		n2 = rr3->rr_connection1;
+		if (n2 == n1) n2 = rr3->rr_connection2;
+
+		he2 = HashLookOnly(&NodeResTable, (char *)n2);
+		if (he2)
+		{
+		    /* Found a triangle */
+		    rcell2 = (resElement *)HashGetValue(he2);
+		    rr2 = rcell2->re_thisEl;
+
+		    /* . . . But it can't be merged */
+		    if (TTMaskHasType(ResNoMergeMask + rr1->rr_tt, rr2->rr_tt))
+			continue;
+		    if (TTMaskHasType(ResNoMergeMask + rr2->rr_tt, rr3->rr_tt))
+			continue;
+
+		    status = TRIANGLE;
+		    if ((denom = rr1->rr_value + rr2->rr_value + rr3->rr_value) != 0.0)
+		    {
+			denom = 1.0  /denom;
+			/* calculate new values for resistors */
+			r1 = (((float)rr1->rr_value) * ((float)rr2->rr_value)) * denom;
+			r2 = (((float)rr2->rr_value) * ((float)rr3->rr_value)) * denom;
+			r3 = (((float)rr1->rr_value) * ((float)rr3->rr_value)) * denom;
+
+			rr1->rr_value = r1 + 0.5;
+			rr2->rr_value = r2 + 0.5;
+			rr3->rr_value = r3 + 0.5;
+			ASSERT(rr1->rr_value >= 0, "Triangle");
+			ASSERT(rr2->rr_value >= 0, "Triangle");
+			ASSERT(rr3->rr_value >= 0, "Triangle");
+		    }
+		    else
+		    {
+			rr1->rr_value = 0;
+			rr2->rr_value = 0;
+			rr3->rr_value = 0;
+		    }
+		    n3 = (resNode *)mallocMagic((unsigned)(sizeof(resNode)));
+
+		    /* Where should the new node be put?  It    */
+		    /* is arbitrarily assigned to the location	*/
+		    /* occupied by the first node.		*/
+
+		    InitializeResNode(n3, resptr->rn_loc.p_x, resptr->rn_loc.p_y, TRIANGLE);
+		    n3->rn_status = RES_FINISHED | RES_TRUE | RES_MARKED;
+
+		    n3->rn_less = NULL;
+		    n3->rn_more = ResNodeList;
+		    ResNodeList->rn_less = n3;
+		    ResNodeList = n3;
+		    if (resptr == rr1->rr_connection1)
+		    {
+			ResDeleteResPointer(rr1->rr_connection2, rr1);
+			rr1->rr_connection2 = n3;
+		    }
+		    else
+		    {
+			ResDeleteResPointer(rr1->rr_connection1, rr1);
+			rr1->rr_connection1 = n3;
+		    }
+		    if (n2 == rr2->rr_connection1)
+		    {
+			ResDeleteResPointer(rr2->rr_connection2, rr2);
+			rr2->rr_connection2 = n3;
+		    }
+		    else
+		    {
+			ResDeleteResPointer(rr2->rr_connection1, rr2);
+			rr2->rr_connection1 = n3;
+		    }
+		    if (n1 == rr3->rr_connection1)
+		    {
+			ResDeleteResPointer(rr3->rr_connection2, rr3);
+			rr3->rr_connection2 = n3;
+		    }
+		    else
+		    {
+			ResDeleteResPointer(rr3->rr_connection1, rr3);
+			rr3->rr_connection1 = n3;
+		    }
+		    element = (resElement *)mallocMagic((unsigned)(sizeof(resElement)));
+		    element->re_nextEl = NULL;
+		    element->re_thisEl = rr1;
+		    n3->rn_re = element;
+		    element = (resElement *)mallocMagic((unsigned)(sizeof(resElement)));
+		    element->re_nextEl = n3->rn_re;
+		    element->re_thisEl = rr2;
+		    n3->rn_re = element;
+		    element = (resElement *)mallocMagic((unsigned)(sizeof(resElement)));
+		    element->re_nextEl = n3->rn_re;
+		    element->re_thisEl = rr3;
+		    n3->rn_re = element;
+		    if ((n1->rn_status & RES_TRUE) == RES_TRUE)
+			n1->rn_status &= ~RES_TRUE;
+		    else
+			n1 = NULL;
+
+		    if ((n2->rn_status & RES_TRUE) == RES_TRUE)
+			n2->rn_status &= ~RES_TRUE;
+		    else
+		 	n2 = NULL;
+
+		    ResDoneWithNode(resptr);
+		    if (n1 != NULL) ResDoneWithNode(n1);
+		    if (n2 != NULL) ResDoneWithNode(n2);
+		    break;
+		}
+	    }
+	    if (status == TRIANGLE) break;
+	}
+	
+	HashKill(&NodeResTable);
+	return status;
+    }
+
+    /* This does the same thing as above, but for a small number of resistors
+     * per node, avoiding the overhead of creating and destroying hash tables.
+     */
 
     for (rcell1 = resptr->rn_re; rcell1->re_nextEl != NULL;
 		rcell1 = rcell1->re_nextEl)
