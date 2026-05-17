@@ -26,17 +26,19 @@ StipplePattern begin
  /FontMatrix [1 0 0 1 0 0] def
  /FontBBox [0 0 1 1] def
  /Encoding 256 array def
- /PattName (P0) def
- /tmpStr 1 string def
+ /PattName (P000) def
+ /tmpStr 3 string def
  /NoPatt {<00>} def
  0 1 255 { Encoding exch /NoPatt put } for
  /BuildChar {
    1 0 0 0 1 1 setcachedevice exch begin Encoding exch get load
    64 64 true [64 0 0 64 0 0] 5 -1 roll imagemask end } def
 end  
-/dp { StipplePattern begin dup 30 tmpStr cvrs PattName exch 1 exch
-   putinterval PattName cvn dup Encoding exch 4 -1 roll exch put exch
-   store end } def
+/dp { StipplePattern begin 
+   dup 10 tmpStr cvrs /num exch def 
+   PattName 1 num putinterval 
+   PattName 0 num length 1 add getinterval cvn 
+   dup Encoding exch 4 -1 roll exch put exch store end } def
 /sf { findfont exch scalefont setfont } bind def
 /sp { patterns setfont 2 setlinewidth } def
 /lb { gsave translate 0 0 moveto /just exch def gsave dup true charpath
@@ -68,4 +70,3 @@ end
    x y moveto w y lineto w h lineto x h lineto closepath clip bx } def
 /tb {1 sub 3 1 roll gsave newpath moveto {lineto} repeat closepath clip pathbbox
    /h exch def /w exch def /y exch def /x exch def bx } def
-
