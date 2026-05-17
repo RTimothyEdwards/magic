@@ -1,11 +1,14 @@
 // Shared utilities for Magic WASM examples.
-import createMagicModule from '../magic.js';
+//
+// These examples drive the non-TCL variant (legacy magic command parser).
+// For Tcl-eval semantics, see examples/smoke-tcl.mjs.
+import createMagicModule from '../notcl/magic.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, basename } from 'node:path';
 
 export const EXAMPLES_DIR = dirname(fileURLToPath(import.meta.url));
-export const wasmBinary   = readFileSync(resolve(EXAMPLES_DIR, '../magic.wasm'));
+export const wasmBinary   = readFileSync(resolve(EXAMPLES_DIR, '../notcl/magic.wasm'));
 export const DEFAULT_TECH = 'scmos';
 export const DEFAULT_MAG  = resolve(EXAMPLES_DIR, 'min.mag');
 export const DEFAULT_OUT  = resolve(EXAMPLES_DIR, 'output');

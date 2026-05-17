@@ -59,8 +59,14 @@ main(int argc, char *argv[])
  * here, nor its format.  It is updated by the Makefile in this directory.
  *
  * The version string originates at the top of scripts/config.
+ *
+ * Under MAGIC_WRAPPER (Tcl-embedded builds), tclmagic.c owns these globals;
+ * defining them here as well would produce duplicate-symbol errors when both
+ * objects end up in the same binary (as in the WASM build).
  */
 
+#ifndef MAGIC_WRAPPER
 char *MagicVersion = MAGIC_VERSION;
 char *MagicRevision = MAGIC_REVISION;
 char *MagicCompileTime = MAGIC_BUILDDATE;
+#endif

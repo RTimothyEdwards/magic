@@ -1,5 +1,13 @@
+# Variant build outputs (regenerable via npm/build.sh).
+tcl/magic.js
+tcl/magic.wasm
+notcl/magic.js
+notcl/magic.wasm
+
+# Pre-restructure artifacts (just in case anyone still has them locally).
 magic.js
 magic.wasm
+
 *.tgz
 node_modules/
 package-lock.json

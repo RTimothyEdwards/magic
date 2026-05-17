@@ -12,7 +12,9 @@
 #ifdef MAGIC_WRAPPER
 
 #include <tcl.h>
+#ifndef MAGIC_NO_TK
 #include <tk.h>
+#endif
 
 /* Externally-defined global variables */
 

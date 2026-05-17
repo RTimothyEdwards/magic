@@ -2,9 +2,13 @@
 # Build Magic WASM and copy artifacts into this npm/ directory.
 #
 # Usage:
-#   npm/build.sh [--release] [--test] [--pack]
+#   npm/build.sh [--variant=<tcl|notcl|both>] [--release] [--test] [--pack]
 #
-#   --release   Omit debug symbols (-g).
+#   --variant=tcl    Build only the TCL-embedded variant       → npm/tcl/
+#   --variant=notcl  Build only the plain (no Tcl/Tk) variant  → npm/notcl/
+#   --variant=both   Build both (default)
+#
+#   --release   Omit debug symbols (-g) and build with -O2.
 #   --test      Run `npm run test` after copying artifacts.
 #   --pack      Run `npm pack` after copying artifacts (and tests, if given).
 #
@@ -17,20 +21,33 @@
 #   EMSDK_DIR   Path to an activated emsdk checkout.
 #               If set, emsdk_env.sh is sourced from there.
 #               If unset, emcc must already be on PATH (e.g. sourced externally).
+#   TCL_REPO    Override the path to the intubun/tcl checkout (default:
+#               ../tcl relative to this magic checkout). Used by the TCL
+#               variant only.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+# The TCL variant builds against a sibling clone of intubun/tcl (pristine —
+# magic never modifies it). The build itself happens inside magic under
+# build-tcl-wasm/, so the TCL source tree stays clean.
+TCL_REPO="${TCL_REPO:-$(dirname "$REPO_ROOT")/tcl}"
+TCL_BUILD_DIR="${TCL_BUILD_DIR:-$REPO_ROOT/build-tcl-wasm}"
+TCL_WASM_PREFIX="$TCL_BUILD_DIR/install"
 
 OPT_RELEASE=0
 OPT_TEST=0
 OPT_PACK=0
+OPT_VARIANT=both
 for arg in "$@"; do
   case "$arg" in
-    --release) OPT_RELEASE=1 ;;
-    --test)    OPT_TEST=1    ;;
-    --pack)    OPT_PACK=1    ;;
+    --release)        OPT_RELEASE=1 ;;
+    --test)           OPT_TEST=1    ;;
+    --pack)           OPT_PACK=1    ;;
+    --variant=tcl)    OPT_VARIANT=tcl   ;;
+    --variant=notcl)  OPT_VARIANT=notcl ;;
+    --variant=both)   OPT_VARIANT=both  ;;
     *) echo "Unknown option: $arg" >&2; exit 1 ;;
   esac
 done
@@ -76,50 +93,120 @@ sed_strip_cr() {
   sed 's/\r//' "$file" > "$tmp" && cat "$tmp" > "$file" && rm "$tmp"
 }
 
-# --- clean -------------------------------------------------------------------
-cd "$REPO_ROOT"
-
-# Only distclean if there's something to clean. A stale `|| true` here would
-# hide real failures (e.g. broken toolchain) on a fresh checkout.
-if [ -f defs.mak ]; then
-  emmake make distclean || true
-fi
-rm -f defs.mak database/database.h
-
-# --- configure ---------------------------------------------------------------
-
-# Strip Windows CRLF line endings (no-op on Linux-native files).
-sed_strip_cr configure
-find scripts/ -type f -print0 | while IFS= read -r -d '' f; do sed_strip_cr "$f"; done
-
 if [ $OPT_RELEASE -eq 1 ]; then
   EXTRA_CFLAGS=" -O2"
 else
   EXTRA_CFLAGS=" -g"
 fi
 
-CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1${EXTRA_CFLAGS}" \
-  emconfigure ./configure \
-    --without-cairo --without-opengl --without-x --without-tk --without-tcl \
-    --disable-readline --disable-compression \
-    --host=asmjs-unknown-emscripten \
-    --target=asmjs-unknown-emscripten
+# --- TCL fork: locate, pin, prebuild (TCL variant only) ---------------------
+# Reads npm/tcl.ref to get the upstream URL + commit SHA. If the TCL source
+# tree does not exist yet, clone it (with autocrlf=false to keep configure
+# parseable on Windows hosts). If it does exist, just check out the pinned
+# ref — no auto-fetch, so releases stay reproducible.
+#
+# The TCL source tree is treated as read-only. The actual WASM build runs in
+# $TCL_BUILD_DIR (inside magic), driven by
+# toolchains/emscripten/build-tcl-wasm.sh.
+ensure_tcl_built() {
+  local TCL_REF_FILE="$SCRIPT_DIR/tcl.ref"
+  if [ -f "$TCL_REF_FILE" ]; then
+    # shellcheck source=/dev/null
+    . "$TCL_REF_FILE"
+  fi
+  : "${TCL_REPO_URL:=https://github.com/intubun/tcl.git}"
+  : "${TCL_REF:=main}"
 
-cat toolchains/emscripten/defs.mak >> defs.mak
+  if [ ! -d "$TCL_REPO/.git" ]; then
+    echo "=== cloning $TCL_REPO_URL into $TCL_REPO ==="
+    git -c core.autocrlf=false clone "$TCL_REPO_URL" "$TCL_REPO"
+  fi
 
-# --- build -------------------------------------------------------------------
-emmake make depend
-emmake make -j"$(ncpu)" modules libs
-emmake make techs
-emmake make mains
+  ( cd "$TCL_REPO"
+    current_sha=$(git rev-parse HEAD 2>/dev/null || echo "")
+    if [ "$current_sha" != "$TCL_REF" ]; then
+      git fetch --quiet origin
+      git checkout --quiet --detach "$TCL_REF"
+    fi
+    echo "Using TCL at $(git rev-parse HEAD) ($TCL_REPO_URL)"
+  )
 
-# --- copy artifacts ----------------------------------------------------------
-cp magic/magic.js   "$SCRIPT_DIR/"
-cp magic/magic.wasm "$SCRIPT_DIR/"
-echo "Copied magic.js and magic.wasm to npm/"
+  # Build TCL for WASM if it hasn't been built yet. The presence of
+  # tclConfig.sh in the install prefix is the canonical "TCL is built" marker.
+  if [ ! -f "$TCL_WASM_PREFIX/lib/tclConfig.sh" ]; then
+    echo "=== building TCL for WASM into $TCL_BUILD_DIR (one-time) ==="
+    bash "$REPO_ROOT/toolchains/emscripten/build-tcl-wasm.sh" \
+      --src="$TCL_REPO" --out="$TCL_BUILD_DIR"
+  fi
+}
+
+# --- build a single variant --------------------------------------------------
+# Each variant gets a fresh configure run because the two configurations
+# select different code paths (MAGIC_WRAPPER on/off, MAGIC_NO_TK, link flags),
+# so the object cache from one variant is not compatible with the other.
+build_variant() {
+  local variant=$1
+  local out_dir="$SCRIPT_DIR/$variant"
+
+  echo
+  echo "==============================================================="
+  echo "=== building variant: $variant"
+  echo "==============================================================="
+
+  cd "$REPO_ROOT"
+
+  # Full clean — distclean removes the generated defs.mak and module objects.
+  if [ -f defs.mak ]; then
+    emmake make distclean || true
+  fi
+  rm -f defs.mak database/database.h
+
+  # Strip Windows CRLF line endings (no-op on Linux-native files).
+  sed_strip_cr configure
+  find scripts/ -type f -print0 | while IFS= read -r -d '' f; do sed_strip_cr "$f"; done
+
+  if [ "$variant" = "tcl" ]; then
+    ensure_tcl_built
+    CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1${EXTRA_CFLAGS}" \
+      emconfigure ./configure \
+        --without-cairo --without-opengl --without-x --without-tk \
+        --with-tcl="$TCL_WASM_PREFIX/lib" \
+        --with-tclincls="$TCL_WASM_PREFIX/include" \
+        --with-tcllibs="$TCL_WASM_PREFIX/lib" \
+        --disable-readline --disable-compression \
+        --host=asmjs-unknown-emscripten \
+        --target=asmjs-unknown-emscripten
+  else
+    CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1${EXTRA_CFLAGS}" \
+      emconfigure ./configure \
+        --without-cairo --without-opengl --without-x \
+        --without-tk --without-tcl \
+        --disable-readline --disable-compression \
+        --host=asmjs-unknown-emscripten \
+        --target=asmjs-unknown-emscripten
+  fi
+
+  cat toolchains/emscripten/defs.mak >> defs.mak
+
+  emmake make depend
+  emmake make -j"$(ncpu)" modules libs
+  emmake make techs
+  emmake make mains
+
+  mkdir -p "$out_dir"
+  cp magic/magic.js   "$out_dir/"
+  cp magic/magic.wasm "$out_dir/"
+  echo "Copied magic.js + magic.wasm into npm/$variant/"
+}
+
+case "$OPT_VARIANT" in
+  tcl|notcl) build_variant "$OPT_VARIANT" ;;
+  both)      build_variant notcl
+             build_variant tcl ;;
+esac
 
 # --- optional test -----------------------------------------------------------
-# Runs the same smoke test that CI runs (see .github/workflows/main.yml).
+# Runs the same smoke test that CI runs (see .github/workflows/main-wasm.yml).
 if [ $OPT_TEST -eq 1 ]; then
   cd "$SCRIPT_DIR"
   npm run test

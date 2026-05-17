@@ -54,6 +54,7 @@ magic/magic.js
 magic/magic.js.symbols
 magic/magic.symbols
 magic/magic.wasm
+build-tcl-wasm/
 net2ir/net2ir
 net2ir/net2ir.js
 net2ir/net2ir.wasm

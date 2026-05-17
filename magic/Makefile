@@ -42,11 +42,25 @@ LIBS   += ${GR_LIBS} ${READLINE_LIBS} -lm ${LD_EXTRA_LIBS} \
 CLEANS += tclmagic${SHDLIB_EXT} libtclmagic${SHDLIB_EXT}.a proto.magicrc
 
 ifeq (${MAKE_WASM},1)
-magic: magic.js
+# magicWasm.c bootstraps the embedded Tcl interp by calling Tcl_CreateInterp /
+# Tcl_Init before tclStubsPtr is initialised. With -DUSE_TCL_STUBS those calls
+# expand to (*tclStubsPtr->...)() and dereference a NULL stubs pointer; so
+# this one file must be compiled with DFLAGS_NOSTUB (= DFLAGS without
+# -DUSE_TCL_STUBS). All other files keep using stubs.
+magicWasm.o: magicWasm.c
+	@echo --- compiling magic/magicWasm.o '(no Tcl stubs)'
+	${RM} magicWasm.o
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} -c magicWasm.c
+
+# Pull in BOTH the main TCL archive (LIB_SPECS_NOSTUB → -ltcl9.x) and the
+# stub bootstrap archive (-L${TCL_LIB_DIR} -ltclstub). Magic's source uses
+# USE_TCL_STUBS macros, so tclStubsPtr (defined in libtclstub.a) and
+# Tcl_InitStubs must be present in the same binary as the actual TCL
+# implementation from libtcl9.x.a.
 magic.js: lib${MODULE}.o ${EXTRA_LIBS}
 	@echo --- building main magic WASM
 	${RM} magic.js magic.wasm
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS}
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS} ${LIB_SPECS_NOSTUB} -L${TCL_LIB_DIR} -ltclstub
 endif
 
 main: magic proto.magicrc
@@ -93,3 +107,14 @@ $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro: magicps.pro
 	${CP} magicps.pro $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
 
 include ${MAGICDIR}/rules.mak
+
+ifeq (${MAKE_WASM},1)
+# rules.mak defines `${MODULE}` (= `magic`) with a recipe that links a native
+# executable without the TCL libraries. For the WASM build the real artifact
+# is `magic.js` (+ `magic.wasm`), so override the target to be a phony alias
+# that just rebuilds magic.js. Must come after the include so make uses this
+# recipe instead of rules.mak's.
+.PHONY: magic
+magic: magic.js
+	@:
+endif
