@@ -1,13 +1,16 @@
 name: CI-wasm
 
-# Builds the Magic WebAssembly target on every push and pull request.
-# When the VERSION file changes on the default branch, the package is
-# additionally published to GitHub Packages (npm.pkg.github.com) as
-# @<owner>/magic-vlsi-wasm — no manual tag or token required.
-# Tim Edwards updates VERSION to trigger a new release; the scope resolves
-# automatically to the repo owner, so forks publish under their own namespace.
+# Builds the Magic WebAssembly target (both the non-TCL and TCL variants)
+# on every push and pull request as a CI check. **Publishing** only happens
+# when a release tag of the form v<x.y.z>... is pushed — that gate is the
+# manual release trigger:
 #
-# WASM is architecture-independent — built once on x86-64, usable everywhere.
+#   # bump magic/VERSION and/or npm/tcl.ref, commit, push to default branch
+#   git tag v8.3.638
+#   git push origin v8.3.638
+#
+# The tag name (minus the leading "v") becomes the published npm version.
+# Forks publish under their own namespace via the @<owner>/ scope.
 
 on:
   push:
@@ -70,32 +73,32 @@ jobs:
           echo "===== emcc -dM -E - ====="; echo | emcc -dM -E - | sort
           echo "===== em++ -dM -E - ====="; echo | em++ -dM -E - | sort
 
-      - name: Build WASM
+      # Clone intubun/tcl into a sibling directory at the pinned ref from
+      # npm/tcl.ref. npm/build.sh would do this on its own, but doing it as
+      # an explicit step makes the resolved SHA visible at the top of the
+      # job log and keeps the build step's output focused on the C build.
+      # The TCL source tree is treated as read-only — the actual WASM build
+      # runs inside magic (toolchains/emscripten/build-tcl-wasm.sh).
+      - name: Pin and clone intubun/tcl
+        run: |
+          . npm/tcl.ref
+          : "${TCL_REPO_URL:=https://github.com/intubun/tcl.git}"
+          : "${TCL_REF:=main}"
+          echo "Pinned TCL: $TCL_REF ($TCL_REPO_URL)"
+          # autocrlf=false: ubuntu-latest is already LF, but make it explicit.
+          git -c core.autocrlf=false clone "$TCL_REPO_URL" ../tcl
+          ( cd ../tcl && git checkout --detach "$TCL_REF" )
+
+      - name: Build WASM — both variants (tcl + notcl)
         run: |
           source ./emsdk/emsdk_env.sh
-          # --without/--disable flags: no WASM library available for these features
-          CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1" emconfigure ./configure \
-            --without-cairo --without-opengl --without-x --without-tk --without-tcl \
-            --disable-readline --disable-compression \
-            --host=asmjs-unknown-emscripten \
-            --target=asmjs-unknown-emscripten
-          # Append WASM linker flags and activate the WASM link target
-          cat toolchains/emscripten/defs.mak >> defs.mak
-          # Echo the merged defs.mak so CI logs show the exact build config
-          echo "===== defs.mak ====="; cat defs.mak; echo "===== defs.mak ====="
-          # Build in order: techs must exist before mains (--embed-file embeds them)
-          emmake make depend
-          emmake make -j$(nproc) modules libs
-          emmake make techs
-          emmake make mains
+          bash npm/build.sh --variant=both
 
-      - name: Copy WASM artifacts into npm/
-        run: |
-          cp magic/magic.js  npm/
-          cp magic/magic.wasm npm/
+      - name: Run example tests (non-TCL variant)
+        run: cd npm && npm test
 
-      - name: Run example tests
-        run: cd npm && npm run test
+      - name: Run smoke test (TCL variant)
+        run: cd npm && npm run test:tcl
 
       # Dump generated text outputs (.ext, .spice, .cif, …) into the CI log
       # so a regression in extraction / netlisting / cifoutput is visible
@@ -112,21 +115,40 @@ jobs:
             esac
           done
 
-      - name: Set package version and scope
+      # The release gate. We publish a new npm version only when a tag of the
+      # shape v<x.y.z>... is pushed. The tag name (minus the leading "v") is
+      # taken as the npm version verbatim — so `v8.3.638` → npm 8.3.638.
+      - name: Determine release version (tag-driven only)
+        id: release
         run: |
-          base=$(cat VERSION)                              # e.g. 8.3.637
-          date=$(git show -s --format=%cs | tr -d '-')    # e.g. 20260414
-          hash=$(git show -s --format=%h)                 # e.g. d157eea
-          VERSION="${base}-${date}.${hash}"
+          if [ "${{ github.event_name }}" = "push" ] && \
+             echo "${{ github.ref }}" | grep -Eq '^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+'; then
+            tag="${GITHUB_REF#refs/tags/}"
+            echo "publish=true"            >> "$GITHUB_OUTPUT"
+            echo "version=${tag#v}"        >> "$GITHUB_OUTPUT"
+            echo "Tag release: $tag → npm version ${tag#v}"
+          else
+            # For non-tag CI runs, use a dev-suffixed version so the packed
+            # tarball is still consumable for local inspection / artifact upload.
+            base=$(cat VERSION)
+            date=$(git show -s --format=%cs | tr -d '-')
+            hash=$(git show -s --format=%h)
+            echo "publish=false"                       >> "$GITHUB_OUTPUT"
+            echo "version=${base}-${date}.${hash}"     >> "$GITHUB_OUTPUT"
+            echo "Non-tag build: will not publish."
+          fi
+
+      - name: Set package version and scope
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
           # Scope the package to the repo owner so it lands in the right
           # GitHub Packages namespace regardless of who hosts the repo.
-          # e.g. @rtimothyedwards/magic-vlsi-wasm on Tim's repo,
-          #      @intubun/magic-vlsi-wasm on a fork.
           SCOPED_NAME="@${{ github.repository_owner }}/magic-vlsi-wasm"
           cd npm
           npm pkg set name="$SCOPED_NAME"
           npm pkg set publishConfig.registry="https://npm.pkg.github.com"
-          npm version "$VERSION" --no-git-tag-version
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
 
       - name: Pack
         run: ./npm/pack.sh
@@ -137,24 +159,8 @@ jobs:
           name: magic-vlsi-wasm-npm
           path: npm/*.tgz
 
-      - name: Check if VERSION changed
-        id: version_changed
-        if: github.event_name == 'push'
-        run: |
-          if echo "${{ github.ref }}" | grep -q '^refs/tags/'; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/heads/${{ github.event.repository.default_branch }}" ]; then
-            if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q '^VERSION$'; then
-              echo "changed=true" >> $GITHUB_OUTPUT
-            else
-              echo "changed=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Publish to GitHub Packages
-        if: steps.version_changed.outputs.changed == 'true' && github.event.inputs.dry_run != 'true'
+        if: steps.release.outputs.publish == 'true' && github.event.inputs.dry_run != 'true'
         run: cd npm && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

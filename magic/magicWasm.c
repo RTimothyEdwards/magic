@@ -8,6 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef MAGIC_WRAPPER
+#include "tcltk/tclmagic.h"
+#endif
+
 #include "utils/main.h"
 #include "utils/magic.h"
 #include "utils/paths.h"
@@ -38,6 +42,13 @@ magicWasmEnsureCadRoot(void)
     return 0;
 }
 
+#ifdef MAGIC_WRAPPER
+/* Forward decl — Tclmagic_Init installs all magic Tcl commands and calls
+ * Tcl_InitStubs(), which sets tclStubsPtr.  Without this, any Tcl_X macro
+ * dereferences a NULL stubs pointer at runtime (crashes the wasm). */
+extern int Tclmagic_Init(Tcl_Interp *interp);
+#endif
+
 EMSCRIPTEN_KEEPALIVE int
 magic_wasm_init(void)
 {
@@ -52,6 +63,40 @@ magic_wasm_init(void)
 
     if (magicWasmEnsureCadRoot() != 0)
 	return -1;
+
+#ifdef MAGIC_WRAPPER
+    /* In wrapper mode, magic's code (and our PaExpand path expansion) reaches
+     * for `magicinterp` to resolve $env vars via Tcl_GetVar.  In the normal
+     * Linux flow Tclmagic_Init() is called by tclsh after dlopen(); here we
+     * embed the interp directly, so we have to bootstrap it before
+     * magicMainInit() runs anything that might touch Tcl.
+     *
+     * Note: we deliberately avoid TxError here — in MAGIC_WRAPPER mode
+     * TxError flushes via Tcl_EvalEx through tclStubsPtr, which only becomes
+     * non-NULL after Tclmagic_Init -> Tcl_InitStubs.  So early errors go
+     * straight to stderr. */
+    if (magicinterp == NULL)
+    {
+	Tcl_Interp *interp = Tcl_CreateInterp();
+	if (interp == NULL)
+	{
+	    fprintf(stderr, "magic_wasm_init: Tcl_CreateInterp returned NULL\n");
+	    return -1;
+	}
+	/* Tcl_Init loads /init.tcl from the Tcl library directory; in our
+	 * embedded VFS that script isn't shipped, so failure here is expected
+	 * and non-fatal — the interpreter itself is still usable for embedded
+	 * evaluation, which is all we need. */
+	(void)Tcl_Init(interp);
+	consoleinterp = interp;
+	if (Tclmagic_Init(interp) != TCL_OK)
+	{
+	    fprintf(stderr, "magic_wasm_init: Tclmagic_Init failed: %s\n",
+		Tcl_GetStringResult(interp));
+	    return -1;
+	}
+    }
+#endif
 
     return magicMainInit(5, argv);
 }
@@ -75,7 +120,15 @@ magic_wasm_run_command(const char *command)
     TxSetPoint(GrScreenRect.r_xtop / 2, GrScreenRect.r_ytop / 2,
 	    WIND_UNKNOWN_WINDOW);
 
+#ifdef MAGIC_WRAPPER
+    /* In wrapper mode the command is Tcl. Evaluate it via the magic interp;
+     * the magic backend is reachable through ::magic:: ensemble commands. */
+    if (magicinterp == NULL)
+	return -1;
+    return Tcl_EvalEx(magicinterp, command, -1, 0);
+#else
     return TxDispatchString(command, FALSE);
+#endif
 }
 
 EMSCRIPTEN_KEEPALIVE int

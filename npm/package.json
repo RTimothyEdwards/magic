@@ -1,34 +1,38 @@
 {
   "name": "magic-vlsi-wasm",
   "version": "0.0.0-dev",
-  "description": "Magic VLSI Layout Tool — headless WebAssembly build",
+  "description": "Magic VLSI Layout Tool — headless WebAssembly build (TCL + non-TCL variants)",
   "type": "module",
   "main": "index.js",
   "types": "index.d.ts",
   "exports": {
-    ".": {
-      "import": "./index.js",
-      "types": "./index.d.ts"
-    }
+    ".":       { "import": "./index.js", "types": "./index.d.ts" },
+    "./tcl":   { "import": "./tcl.js",   "types": "./index.d.ts" },
+    "./notcl": { "import": "./notcl.js", "types": "./index.d.ts" }
   },
   "files": [
     "index.js",
     "index.d.ts",
-    "magic.js",
-    "magic.wasm",
+    "tcl.js",
+    "notcl.js",
+    "tcl/magic.js",
+    "tcl/magic.wasm",
+    "notcl/magic.js",
+    "notcl/magic.wasm",
     "examples/",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "example":  "node examples/extract.js",
-    "test":     "node examples/all.js",
-    "test:gds": "node examples/gds.js",
-    "test:drc": "node examples/drc.js",
-    "test:cif": "node examples/cif.js"
+    "example":   "node examples/extract.js",
+    "test":      "node examples/all.js",
+    "test:tcl":  "node examples/smoke-tcl.mjs",
+    "test:gds":  "node examples/gds.js",
+    "test:drc":  "node examples/drc.js",
+    "test:cif":  "node examples/cif.js"
   },
 
-  "keywords": ["magic", "vlsi", "eda", "wasm", "webassembly", "layout"],
+  "keywords": ["magic", "vlsi", "eda", "wasm", "webassembly", "layout", "tcl"],
   "license": "HPND",
   "engines": {
     "node": ">=18"

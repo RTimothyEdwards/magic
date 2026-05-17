@@ -41,6 +41,16 @@ BIN_FILES = \
 
 tcl-main: magicexec magicdnull magic.tcl magic.sh ext2spice.sh ext2sim.sh
 
+# In the WASM build the tcltk module ships only as libtcltk.o; there is no
+# wish-like launcher binary, no magic.sh, etc. `make mains` iterates over
+# PROGRAMS which now includes tcltk (because --with-tcl is on), so define a
+# no-op `main` to keep that loop happy. The native build still uses tcl-main
+# via `make all` → tcllibrary.
+ifeq (${MAKE_WASM},1)
+main:
+	@:
+endif
+
 install-tcl: magicexec magicdnull ${BIN_FILES} ${TCL_FILES}
 	${RM} $(DESTDIR)${INSTALL_TCLDIR}/magicexec
 	${CP} magicexec $(DESTDIR)${INSTALL_TCLDIR}/magicexec

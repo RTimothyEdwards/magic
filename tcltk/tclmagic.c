@@ -178,8 +178,10 @@ TagCallback(interp, tkpath, argc, argv)
 			windCheckOnlyWindow(&w, DBWclientID);
 			if (w != NULL && !(w->w_flags & WIND_OFFSCREEN))
 			{
+#ifndef MAGIC_NO_TK
 			    Tk_Window tkwind = (Tk_Window) w->w_grdata;
 			    if (tkwind != NULL) tkpath = Tk_PathName(tkwind);
+#endif
 			}
 		    }
 		    if (tkpath == NULL)
@@ -742,8 +744,10 @@ _magic_initialize(ClientData clientData,
     /* (See graphics/grTkCommon.c)				*/
     /* (Unless "-dnull" option has been given)			*/
 
+#ifndef MAGIC_NO_TK
     if (strcmp(MainDisplayType, "NULL"))
 	RegisterTkCommands(interp);
+#endif
 
     /* Set up the console so that its menu option File->Exit	*/
     /* calls magic's exit routine first.  This should not be	*/

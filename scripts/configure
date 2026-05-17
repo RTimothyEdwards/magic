@@ -6276,6 +6276,7 @@ magic_with_tk_libraries=""
 
 usingOGL=1
 usingTcl=1
+usingTk=1
 usingOA=0
 usingCairo=1
 usingPython3=1
@@ -7254,10 +7255,12 @@ if test "${with_tcl+set}" = set; then :
   magic_with_tcl=$withval
   if test "$withval" = "no" -o "$withval" = "NO"; then
     usingTcl=
+    usingTk=
   elif test $usingScheme ; then
     echo Attempt to enable both Tcl and Scheme interpreters.
     echo Disabling Tcl, and using Scheme instead.
     usingTcl=
+    usingTk=
   fi
 
 fi
@@ -7268,6 +7271,9 @@ fi
 # Check whether --with-tk was given.
 if test "${with_tk+set}" = set; then :
   withval=$with_tk; magic_with_tk=$withval
+  if test "$withval" = "no" -o "$withval" = "NO"; then
+    usingTk=
+  fi
 fi
 
 
@@ -7397,7 +7403,7 @@ fi
 # Find the Tk build configuration file "tkConfig.sh"
 # -----------------------------------------------------------------------
 
-if test $usingTcl ; then
+if test $usingTk ; then
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tkConfig.sh" >&5
 $as_echo_n "checking for tkConfig.sh... " >&6; }
@@ -7477,8 +7483,8 @@ $as_echo "${tk_config_sh}" >&6; }
 
   if test "x$tk_config_sh" = "x" ; then
     echo "can't find Tk configuration script \"tkConfig.sh\""
-    echo "Reverting to non-Tcl compilation"
-    usingTcl=
+    echo "Reverting to non-Tk compilation"
+    usingTk=
   fi
 fi
 
@@ -7488,7 +7494,9 @@ fi
 
 if test $usingTcl ; then
   . $tcl_config_sh
-  . $tk_config_sh
+  if test $usingTk ; then
+    . $tk_config_sh
+  fi
 
   # Should probably trust the config file contents, but this configure
   # file checks the Tcl and Tk include and lib directories.  Since
@@ -7504,21 +7512,24 @@ if test $usingTcl ; then
 
   tmpstr=${TCL_LIB_SPEC#*-L}
   TCL_LIB_DIR=${tmpstr% -l*}
-  tmpstr=${TK_LIB_SPEC#*-L}
-  TK_LIB_DIR=${tmpstr% -l*}
   TCL_INC_DIR=${TCL_INCLUDE_SPEC#*-I}
-  TK_INC_DIR=${TK_INCLUDE_SPEC#*-I}
+  if test $usingTk ; then
+    tmpstr=${TK_LIB_SPEC#*-L}
+    TK_LIB_DIR=${tmpstr% -l*}
+    TK_INC_DIR=${TK_INCLUDE_SPEC#*-I}
 
-  if test "$TCL_VERSION" = "7.6" -a "$TK_VERSION" = "4.2" ; then
-    :
-  elif test "$TCL_VERSION" = "7.5" -a "$TK_VERSION" = "4.1" ; then
-    :
-  elif test "$TCL_VERSION" = "$TK_VERSION" ; then
-    :
-  else
-    echo "Mismatched Tcl/Tk versions ($TCL_VERSION != $TK_VERSION)"
-    echo "Reverting to non-Tcl compile"
-    usingTcl=
+    if test "$TCL_VERSION" = "7.6" -a "$TK_VERSION" = "4.2" ; then
+      :
+    elif test "$TCL_VERSION" = "7.5" -a "$TK_VERSION" = "4.1" ; then
+      :
+    elif test "$TCL_VERSION" = "$TK_VERSION" ; then
+      :
+    else
+      echo "Mismatched Tcl/Tk versions ($TCL_VERSION != $TK_VERSION)"
+      echo "Reverting to non-Tcl compile"
+      usingTcl=
+      usingTk=
+    fi
   fi
 fi
 
@@ -7551,14 +7562,14 @@ if test $usingTcl ; then
   fi
 fi
 
-if test $usingTcl ; then
+if test $usingTk ; then
   if test "x${magic_with_tk_includes}" != "x" ; then
     if test -r "${magic_with_tk_includes}/tk.h" ; then
       TK_INC_DIR=${magic_with_tk_includes}
     else
       echo "Can't find tk.h in \"${magic_with_tk_includes}\""
-      echo "Reverting to non-Tcl compile"
-      usingTcl=
+      echo "Reverting to non-Tk compile"
+      usingTk=
     fi
   else
     for dir in \
@@ -7575,8 +7586,8 @@ if test $usingTcl ; then
     done
     if test "x${TK_INC_DIR}" = "x" ; then
       echo "Can't find tk.h header file"
-      echo "Reverting to non-Tcl compile"
-      usingTcl=
+      echo "Reverting to non-Tk compile"
+      usingTk=
     fi
   fi
 fi
@@ -7599,14 +7610,14 @@ if test $usingTcl ; then
   if test "x${TCL_LIB_SPEC}" = "x" ; then
      TCL_LIB_SPEC="-l${TCL_LIB_NAME}"
   fi
-  if test "x${TK_LIB_SPEC}" = "x" ; then
+  if test $usingTk -a "x${TK_LIB_SPEC}" = "x" ; then
      TK_LIB_SPEC="-l${TK_LIB_NAME}"
   fi
 
 # Find the version of "wish" that corresponds to TCL_EXEC_PREFIX
 # We really ought to run "ldd" to confirm that the linked libraries match.
 
-  if test "x${magic_with_wish_binary}" = "x" ; then
+  if test $usingTk -a "x${magic_with_wish_binary}" = "x" ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wish executable" >&5
 $as_echo_n "checking for wish executable... " >&6; }
     for dir in \
@@ -7638,7 +7649,7 @@ $as_echo "no" >&6; }
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${WISH_EXE}" >&5
 $as_echo "${WISH_EXE}" >&6; }
     fi
-  else
+  elif test $usingTk ; then
     WISH_EXE=${magic_with_wish_binary}
   fi
 
@@ -7731,7 +7742,7 @@ $as_echo "${TCLSH_EXE}" >&6; }
   fi
 fi
 
-if test $usingTcl ; then
+if test $usingTk ; then
   if test "x${magic_with_tk_libraries}" != "x" ; then
     for libname in \
      "${magic_with_tk_libraries}/${TCL_LIB_FILE}" \
@@ -7746,8 +7757,8 @@ if test $usingTcl ; then
     done
     if test "x${TK_LIB_DIR}" = "x" ; then
       echo "Can't find tk library in \"${magic_with_tk_libraries}\""
-      echo "Reverting to non-Tcl compile"
-      usingTcl=
+      echo "Reverting to non-Tk compile"
+      usingTk=
     fi
   else
     for libname in \
@@ -7762,8 +7773,8 @@ if test $usingTcl ; then
     done
     if test "x${TK_LIB_DIR}" = "x" ; then
       echo "Can't find tk library"
-      echo "Reverting to non-Tcl compile"
-      usingTcl=
+      echo "Reverting to non-Tk compile"
+      usingTk=
     fi
   fi
 fi
@@ -8638,7 +8649,12 @@ if test $usingTcl ; then
 
   extra_libs="$extra_libs \${MAGICDIR}/tcltk/libtcltk.o"
   extra_defs="$extra_defs -DTCL_DIR=\\\"\${TCLDIR}\\\""
-  stub_defs="$stub_defs -DUSE_TCL_STUBS -DUSE_TK_STUBS"
+  if test $usingTk ; then
+    stub_defs="$stub_defs -DUSE_TCL_STUBS -DUSE_TK_STUBS"
+  else
+    stub_defs="$stub_defs -DUSE_TCL_STUBS -DMAGIC_NO_TK"
+    extra_defs="$extra_defs -DMAGIC_NO_TK"
+  fi
 elif test $usingScheme ; then
   modules="$modules lisp"
   unused="$unused tcltk"
@@ -8681,7 +8697,9 @@ if test $usingTcl ; then
       gr_libs="$gr_libs -lX11"
     fi
   fi
-  gr_srcs="$gr_srcs \${TKCOMMON_SRCS}"
+  if test $usingTk ; then
+    gr_srcs="$gr_srcs \${TKCOMMON_SRCS}"
+  fi
 else
   if test $usingX11 ; then
     gr_dflags="$gr_dflags -DX11 -DXLIB"
@@ -8791,23 +8809,25 @@ if test $usingTcl ; then
 
 # -----------------------------------------------------------------------
 #
-# Tk libraries and header files
+# Tk libraries and header files (skipped under --without-tk)
 #
 # -----------------------------------------------------------------------
-  if test "${TK_INC_DIR}" != "/usr/include" ; then
-    INC_SPECS="${INC_SPECS} -I${TK_INC_DIR}"
-  fi
-  if test "${TK_LIB_DIR}" = "/usr/lib" -o \
-        "${TK_LIB_DIR}" = "/usr/lib64" ; then
-    LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} ${TK_LIB_SPEC}"
-    LIB_SPECS="${LIB_SPECS} ${TK_STUB_LIB_SPEC}"
-  else
-    LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} -L${TK_LIB_DIR} ${TK_LIB_SPEC}"
-    LIB_SPECS="${LIB_SPECS} -L${TK_LIB_DIR} ${TK_STUB_LIB_SPEC}"
-    if test "x${loader_run_path}" = "x" ; then
-      loader_run_path="${TK_LIB_DIR}"
+  if test $usingTk ; then
+    if test "${TK_INC_DIR}" != "/usr/include" ; then
+      INC_SPECS="${INC_SPECS} -I${TK_INC_DIR}"
+    fi
+    if test "${TK_LIB_DIR}" = "/usr/lib" -o \
+          "${TK_LIB_DIR}" = "/usr/lib64" ; then
+      LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} ${TK_LIB_SPEC}"
+      LIB_SPECS="${LIB_SPECS} ${TK_STUB_LIB_SPEC}"
     else
-      loader_run_path="${TK_LIB_DIR}:${loader_run_path}"
+      LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} -L${TK_LIB_DIR} ${TK_LIB_SPEC}"
+      LIB_SPECS="${LIB_SPECS} -L${TK_LIB_DIR} ${TK_STUB_LIB_SPEC}"
+      if test "x${loader_run_path}" = "x" ; then
+        loader_run_path="${TK_LIB_DIR}"
+      else
+        loader_run_path="${TK_LIB_DIR}:${loader_run_path}"
+      fi
     fi
   fi
 
