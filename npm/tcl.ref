@@ -12,5 +12,5 @@
 # fetch a target ref from intubun/tcl and open a PR that just rewrites this
 # file — you review and merge.
 
-TCL_REPO_URL=https://github.com/intubun/tcl.git
+TCL_REPO_URL=https://github.com/tcltk/tcl.git
 TCL_REF=84b23291b0dd811d642abef4ec7a55473c3eccb3
