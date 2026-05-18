@@ -79,10 +79,10 @@ jobs:
       # job log and keeps the build step's output focused on the C build.
       # The TCL source tree is treated as read-only — the actual WASM build
       # runs inside magic (toolchains/emscripten/build-tcl-wasm.sh).
-      - name: Pin and clone intubun/tcl
+      - name: Pin and clone tcltk/tcl
         run: |
           . npm/tcl.ref
-          : "${TCL_REPO_URL:=https://github.com/intubun/tcl.git}"
+          : "${TCL_REPO_URL:=https://github.com/tcltk/tcl.git}"
           : "${TCL_REF:=main}"
           echo "Pinned TCL: $TCL_REF ($TCL_REPO_URL)"
           # autocrlf=false: ubuntu-latest is already LF, but make it explicit.
