@@ -525,7 +525,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
         (devedge & TOPEDGE) == devedge 	||
         (devedge & BOTTOMEDGE) == devedge)
     {
-	ResSortBreaks(&info->breakList,TRUE);
+	ResSortBreaks(&info->breakList, TRUE);
         p2 = NULL;
         for (p1 = info->breakList; p1 != NULL; p1 = p1->br_next)
         {
@@ -919,7 +919,178 @@ ResDoContacts(contact, nodes, resList)
 /*
  *-------------------------------------------------------------------------
  *
+ * BreakCompare --
+ *
+ *	Helper routine for MergeSortBreaks() (below).  Simple
+ *	comparison of the breakpoint position.  Comparison is
+ *	done for the X position if "xsort" is TRUE, and the Y
+ *	position if "xsort" is FALSE.
+ *
+ * Return value:
+ *	Return -1 if the (x or y) position of a is less than the
+ *	(x or y) position of b;  return +1 if the position of a is
+ *	greater than the position of b;  and return 0 if they have
+ *	equal positions.
+ *
+ * Side effect:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+BreakCompare(
+    Breakpoint *a,
+    Breakpoint *b,
+    int xsort)
+{
+    if (xsort == TRUE)
+    {
+	if (a->br_loc.p_x < b->br_loc.p_x) return -1;
+	if (a->br_loc.p_x > b->br_loc.p_x) return 1;
+    }
+    else
+    {
+	if (a->br_loc.p_y < b->br_loc.p_y) return -1;
+	if (a->br_loc.p_y > b->br_loc.p_y) return 1;
+    }
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * MergeSorted --
+ *
+ *	Helper routine for MergeSortBreaks() (below).  Merge sort
+ *	merging routine.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+Breakpoint *
+MergeSorted(
+    Breakpoint *a,
+    Breakpoint *b,
+    int xsort)
+{
+    Breakpoint head;
+    Breakpoint *tail = &head;
+
+    head.br_next = NULL;
+
+    while (a != NULL && b != NULL)
+    {
+	if (BreakCompare(a, b, xsort) <= 0)
+	{
+	    tail->br_next = a;
+	    a = a->br_next;
+	}
+	else
+	{
+	    tail->br_next = b;
+	    b = b->br_next;
+	}
+	tail = tail->br_next;
+    }
+    tail->br_next = (a != NULL) ? a : b;
+
+    return head.br_next;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * SplitList --
+ *
+ *	Helper routine for MergeSortBreaks() (below).  Merge sort
+ *	splitting routine.
+ *
+ * Results:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+SplitList(
+    Breakpoint *source,
+    Breakpoint **front,
+    Breakpoint **back)
+{
+    Breakpoint *slow;
+    Breakpoint *fast;
+
+    if (source == NULL || source->br_next == NULL)
+    {
+	*front = source;
+	*back = NULL;
+	return;
+    }
+
+    slow = source;
+    fast = source->br_next;
+
+    while (fast != NULL)
+    {
+	fast = fast->br_next;
+
+	if (fast != NULL)
+	{
+	    slow = slow->br_next;
+	    fast = fast->br_next;
+	}
+    }
+
+    *front = source;
+    *back = slow->br_next;
+    slow->br_next = NULL;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * MergeSortBreaks --
+ *
+ *	See "ResSortBreaks" below.  Alternative to bubble sort for long
+ *	linked lists.
+ *
+ * Results:
+ *	Pointer to a sorted breakpoint list.
+ *
+ * Side effects:
+ *	The breakpoints are sorted.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+Breakpoint *
+MergeSortBreaks(Breakpoint *list, int xsort)
+{
+    Breakpoint *a, *b;
+
+    if (list == NULL || list->br_next == NULL)
+	return list;
+
+    SplitList(list, &a, &b);
+
+    a = MergeSortBreaks(a, xsort);
+    b = MergeSortBreaks(b, xsort);
+
+    return MergeSorted(a, b, xsort);
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResSortBreaks --
+ *
+ *	Sort breakpoints, either in the X direction (if "xsort" is TRUE)
+ *	or in the Y direction (if "xsort" is FALSE).  For short lists
+ *	(< 16 elements), a simple bubble sort is used.  For larger lists,
+ *	a merge sort is used.  Most resistor networks are short, but
+ *	power/ground networks can be huge and cause a performance
+ *	bottleneck. 
  *
  * Results:
  *	None
@@ -934,6 +1105,19 @@ ResSortBreaks(masterlist, xsort)
 {
     Breakpoint	*p1, *p2, *p3, *p4;
     bool	changed;
+    int		count = 0;
+
+    for (p1 = *masterlist; p1; p1 = p1->br_next)
+    {
+	count++;
+	if (count > 16)
+	{
+	    *masterlist = MergeSortBreaks(*masterlist, xsort);
+	    return;
+	}
+    }
+
+    /* Simple bubble sort */
 
     changed = TRUE;
     while (changed == TRUE)

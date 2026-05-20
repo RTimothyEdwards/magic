@@ -148,29 +148,32 @@ void
 ResDissolveContacts(contacts)
     ResContactPoint *contacts;
 {
-    TileType t, oldtype;
+    TileType t, oldtype, lasttype = TT_SPACE;
     Tile *tp;
     TileTypeBitMask residues;
 
     for (; contacts != (ResContactPoint *)NULL; contacts = contacts->cp_nextcontact)
     {
-        oldtype=contacts->cp_type;
+        oldtype = contacts->cp_type;
 
 #ifdef PARANOID
 	if (oldtype == TT_SPACE)
 	    TxError("Error in Contact Dissolving for %s \n",ResCurrentNode);
 #endif
-	DBFullResidueMask(oldtype, &residues);
+	if (oldtype != lasttype)
+	{
+	    lasttype = oldtype;
+	    DBFullResidueMask(oldtype, &residues);
+	}
 
 	DBErase(ResUse->cu_def, &(contacts->cp_rect), oldtype);
 	for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	    if (TTMaskHasType(&residues, t))
 		DBPaint(ResUse->cu_def, &(contacts->cp_rect), t);
 
+#ifdef PARANOID
 	tp = PlaneGetHint(ResDef->cd_planes[DBPlane(contacts->cp_type)]);
 	GOTOPOINT(tp, &(contacts->cp_rect.r_ll));
-
-#ifdef PARANOID
 	if (TiGetTypeExact(tp) == contacts->cp_type)
 	    TxError("Error in Contact Preprocess Routines\n");
 #endif
@@ -378,13 +381,14 @@ ResAddBreakpointFunc(tile, dinfo, node)
  *
  *  ResFindNewContactTiles --
  *
+ * Dissolving contacts eliminated the tiles that contacts->nextcontact
+ * pointed to.  This procedure finds the tile now under center and sets
+ * that tile's ti_client field to point to the contact.  The old value
+ * of clientdata is set to nextTilecontact.
  *
  *  Results:  none
  *
- *  Side Effects:  dissolving contacts eliminated the tiles that
- *  contacts->nextcontact pointed to. This procedure finds the tile now under
- *  center and sets that tile's ti_client field to point to the contact.  The
- *  old value of clientdata is set to nextTilecontact.
+ *  Side Effects:  modifies information in the contact records.
  *
  *----------------------------------------------------------------------------
  */
@@ -396,27 +400,37 @@ ResFindNewContactTiles(contacts)
     int pNum;
     Tile *tile;
     TileTypeBitMask mask;
+    TileType lastType = TT_SPACE;
 
     for (; contacts != (ResContactPoint *) NULL; contacts = contacts->cp_nextcontact)
     {
-	DBFullResidueMask(contacts->cp_type, &mask);
-
-	/* Watch for types that connect to the substrate plane or well;	*/
-	/* e.g., psubstratepdiff connects to nwell but not through a	*/
-	/* contact.							*/
-
-	if (ExtCurStyle->exts_globSubstratePlane != -1)
+	/* Avoid re-running the following code for the same contact type */
+	if (contacts->cp_type != lastType)
 	{
-	    TileTypeBitMask cMask;
-	    TTMaskAndMask3(&cMask, &DBConnectTbl[contacts->cp_type],
-		&DBPlaneTypes[ExtCurStyle->exts_globSubstratePlane]);
+	    lastType = contacts->cp_type;
+	    DBFullResidueMask(contacts->cp_type, &mask);
 
-	    if (!TTMaskIsZero(&cMask))
-		TTMaskSetMask(&mask, &cMask);
+	    /* Watch for types that connect to the substrate plane or well;	*/
+	    /* e.g., psubstratepdiff connects to nwell but not through a	*/
+	    /* contact.								*/
+
+	    if (ExtCurStyle->exts_globSubstratePlane != -1)
+	    {
+		TileTypeBitMask cMask;
+		TTMaskAndMask3(&cMask, &DBConnectTbl[contacts->cp_type],
+			&DBPlaneTypes[ExtCurStyle->exts_globSubstratePlane]);
+
+		if (!TTMaskIsZero(&cMask))
+		    TTMaskSetMask(&mask, &cMask);
+	    }
 	}
 	
      	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	{
+	    if (!DBTypeOnPlane(contacts->cp_type, pNum) &&
+			(pNum != ExtCurStyle->exts_globSubstratePlane))
+		continue;
+
 	    tile = PlaneGetHint(ResDef->cd_planes[pNum]);
 	    GOTOPOINT(tile, &(contacts->cp_center));
 #ifdef PARANOID
@@ -476,10 +490,11 @@ ResFindNewContactTiles(contacts)
 /*
  *--------------------------------------------------------------------------
  *
- * ResProcessTiles--Calls ResEachTile with processed tiles belonging to
- *		nodes in ResNodeQueue.  When all the tiles corresponding
- *		to a node have been processed, the node is moved to
- *		ResNodeList.
+ * ResProcessTiles --
+ *
+ * Calls ResEachTile with processed tiles belonging to nodes in ResNodeQueue.
+ * When all the tiles corresponding to a node have been processed, the node
+ * is moved to ResNodeList.
  *
  *  Results:  Return 1 if any error occurred, 0 otherwise.
  *

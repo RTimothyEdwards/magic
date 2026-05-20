@@ -12,6 +12,7 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/resis/ResSimple.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
 #endif  /* not lint */
 #include <stdio.h>
+#include <stdlib.h>	/* for qsort() */
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
@@ -404,6 +405,29 @@ ResMoveDevices(node1, node2)
 /*
  *-------------------------------------------------------------------------
  *
+ * qrescompare ---
+ *
+ * Sort routine for qsort() to be used by ResScrunchNet().  Sorts in
+ * order of the resistor value, smallest to largest.
+ *-------------------------------------------------------------------------
+ */
+
+int
+qrescompare(const void *one, const void *two)
+{
+    int cval;
+
+    resResistor *r1 = *((resResistor **)one);
+    resResistor *r2 = *((resResistor **)two);
+
+    if (r1->rr_value < r2->rr_value) return -1;
+    else if (r1->rr_value == r2->rr_value) return 0;
+    else return 1;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResScrunchNet-- Last ditch net simplification. Used to break deadlocks
  *	in ResSimplifyNet.  Resistors are sorted by value. The smallest
  *	resistor is combined with its smallest neighbor, and ResSimplifyNet
@@ -424,29 +448,82 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
     float	tolerance;
 
 {
-    resResistor *locallist = NULL, *current, *working;
+    resResistor *current, *working;
     resNode	*node1, *node2;
     resElement  *rcell1;
-    int	c1, c2;
+    int	c1, c2, count = 0;
 
-    /* Sort resistors by size */
-    current = *reslist;
-    while (current != NULL)
+    /* Method used to sort resistors by size depends on list length */
+    for (current = *reslist; current; current = current->rr_nextResistor)
     {
-	working = current;
-	current = current->rr_nextResistor;
-	if (working == *reslist)
-	    *reslist = current;
-	else
-	    working->rr_lastResistor->rr_nextResistor = current;
+	count++;
+	if (count >= 10) break;
+    }
+	
+    /* Sort resistors by size */
 
-	if (current != NULL)
-	    current->rr_lastResistor = working->rr_lastResistor;
+    if (count >= 10)
+    {
+	int i;
+	resResistor **resSortList;
 
-	ResAddResistorToList(working, &locallist);
+	/* For long lists, sort using qsort() */
+	/* NOTE:  It might be better to use the same merge sort used for
+	 * MergeSortBreaks() in ResMakeRes.c, as it does not incur the
+	 * overhead of allocating memory and populating the array.
+	 */
+	count = 0;
+	for (current = *reslist; current; current = current->rr_nextResistor)
+	    count++;
+
+	resSortList = (resResistor **)mallocMagic(count * sizeof(resResistor *));
+
+	count = 0;
+	for (current = *reslist; current; current = current->rr_nextResistor)
+	{
+	    resSortList[count] = current;
+	    count++;
+	}
+
+	/* Sort the list */
+
+	qsort(resSortList, count, sizeof(resResistor *), qrescompare);
+
+	/* Regenerate links on sorted list */
+	for (i = 0; i < count; i++)
+	{
+	    current = resSortList[i];
+	    current->rr_nextResistor = (i == count - 1) ? NULL : resSortList[i + 1];
+	    current->rr_lastResistor = (i == 0) ? NULL : resSortList[i - 1];
+	}
+	*reslist = resSortList[0];
+	
+	freeMagic(resSortList);
+    }
+    else
+    {
+	/* Original method:  Walk the linked list and re-sort by size. */
+
+	resResistor *locallist = NULL;
+
+	current = *reslist;
+	while (current != NULL)
+	{
+	    working = current;
+	    current = current->rr_nextResistor;
+	    if (working == *reslist)
+		*reslist = current;
+	    else
+		working->rr_lastResistor->rr_nextResistor = current;
+
+	    if (current != NULL)
+		current->rr_lastResistor = working->rr_lastResistor;
+
+	    ResAddResistorToList(working, &locallist);
+	}
+	*reslist = locallist;
     }
 
-    *reslist = locallist;
     while (*reslist != NULL && (*reslist)->rr_value < tolerance)
     {
 	current = *reslist;
@@ -501,8 +578,8 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 	    }
 	}
 	/*
-	 * If the current resistor isn't a deadend, add its  value and
-	 * area to that of the next smallest one.  If it is a deadend,
+	 * If the current resistor isn't a dead end, add its value and
+	 * area to that of the next smallest one.  If it is a dead end,
 	 * simply add its area to its node.
 	 */
 	if (c1 != 0 && c2 != 0)
@@ -567,7 +644,7 @@ ResAddResistorToList(resistor, locallist)
     resResistor	*resistor, **locallist;
 
 {
-    resResistor *local,*last=NULL;
+    resResistor *local, *last = NULL;
 
     for (local = *locallist; local != NULL; local = local->rr_nextResistor)
     {
