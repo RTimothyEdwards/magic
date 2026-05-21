@@ -104,6 +104,16 @@ if [ ! -f Makefile ]; then
       --prefix="$OUT/install"
 fi
 
+# emconfigure writes tclConfig.sh into the build dir. If it is missing, the
+# $(. tclConfig.sh) assignments below silently produce empty strings (bash does
+# not propagate errors from command-substitution assignments through set -e),
+# so we catch the missing file here before the cryptic "no rule to make target
+# ''" error from emmake.
+if [ ! -f "$OUT/tclConfig.sh" ]; then
+  echo "Error: $OUT/tclConfig.sh not found — emconfigure may have failed." >&2
+  exit 1
+fi
+
 # --- build ------------------------------------------------------------------
 # HOST_CC/AR/RANLIB must be native — TCL's Makefile builds a `minizip` tool
 # that runs on the host to produce the embedded zipfs resource. Without this
