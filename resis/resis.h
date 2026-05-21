@@ -543,7 +543,7 @@ extern void			ResCheckExtNodes();
 extern void			ResSortByGate();
 extern void			ResFixDevName();
 extern void			ResWriteLumpFile();
-extern void			ResSortBreaks();
+extern int			ResSortBreaks();
 extern Plane			*extResPrepSubstrate();
 
 /* C99 compat */
