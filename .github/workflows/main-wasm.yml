@@ -107,12 +107,16 @@ jobs:
       - name: Display example outputs
         run: |
           shopt -s nullglob
-          for f in npm/examples/output/*; do
-            name=$(basename "$f")
-            case "$f" in
-              *.gds) echo "===== $name (binary, $(wc -c < "$f") bytes — skipped) =====" ;;
-              *)     echo "===== $name ====="; cat "$f" ;;
-            esac
+          for dir in npm/examples/output npm/examples/output-tcl; do
+            [ -d "$dir" ] || continue
+            echo "======== $dir ========"
+            for f in "$dir"/*; do
+              name=$(basename "$f")
+              case "$f" in
+                *.gds) echo "===== $name (binary, $(wc -c < "$f") bytes — skipped) =====" ;;
+                *)     echo "===== $name ====="; cat "$f" ;;
+              esac
+            done
           done
 
       # The release gate. We publish a new npm version only when a tag of the
