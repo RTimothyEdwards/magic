@@ -680,7 +680,7 @@ TclmagicRegisterCommands(Tcl_Interp *interp)
 	commandTable = WindGetCommandTable(client);
 	for (n = 0; commandTable[n] != NULL; n++)
 	{
-	    sscanf(commandTable[n], "%s ", kwptr);
+	    sscanf(commandTable[n], "%92s", kwptr);
 	    Tcl_CreateCommand(interp, keyword, (Tcl_CmdProc *)_tcl_dispatch,
 			(ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 	}
