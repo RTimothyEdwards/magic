@@ -157,9 +157,6 @@ magic_wasm_source_file(const char *path)
     if ((path == NULL) || (*path == '\0'))
 	return -1;
 
-    TxSetPoint(GrScreenRect.r_xtop / 2, GrScreenRect.r_ytop / 2,
-	    WIND_UNKNOWN_WINDOW);
-
 #ifdef MAGIC_WRAPPER
     /* In wrapper mode the file contains Tcl; evaluate it through the
      * Tcl interpreter so that magic:: commands are dispatched via
@@ -176,6 +173,12 @@ magic_wasm_source_file(const char *path)
 	    TxError("Unable to open command file \"%s\".\n", path);
 	    return -1;
 	}
+	/* Set the current point to the center of the screen so that
+	 * WindSendCommand routes all commands from the file to the layout
+	 * window client.  Without this, commands arrive with point (0,0)
+	 * and end up in the border/windClient context where most are unknown. */
+	TxSetPoint(GrScreenRect.r_xtop / 2, GrScreenRect.r_ytop / 2,
+		WIND_UNKNOWN_WINDOW);
 	TxDispatch(f);
 	fclose(f);
 	return 0;

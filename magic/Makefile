@@ -52,15 +52,18 @@ magicWasm.o: magicWasm.c
 	${RM} magicWasm.o
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} -c magicWasm.c
 
-# Pull in BOTH the main TCL archive (LIB_SPECS_NOSTUB → -ltcl9.x) and the
-# stub bootstrap archive (-L${TCL_LIB_DIR} -ltclstub). Magic's source uses
-# USE_TCL_STUBS macros, so tclStubsPtr (defined in libtclstub.a) and
-# Tcl_InitStubs must be present in the same binary as the actual TCL
-# implementation from libtcl9.x.a.
 magic.js: lib${MODULE}.o ${EXTRA_LIBS}
 	@echo --- building main magic WASM
 	${RM} magic.js magic.wasm
+ifneq (${TCL_LIB_DIR},)
+# TCL variant: pull in the main TCL archive (LIB_SPECS_NOSTUB → -ltcl9.x) and
+# the stub-bootstrap archive (-ltclstub). Both are required: magic's objects
+# use USE_TCL_STUBS macros (resolved by tclStubsPtr from libtclstub.a), and
+# tclStubsPtr itself must point into the real TCL implementation (libtcl9.x.a).
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS} ${LIB_SPECS_NOSTUB} -L${TCL_LIB_DIR} -ltclstub
+else
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS}
+endif
 endif
 
 main: magic proto.magicrc

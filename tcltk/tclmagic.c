@@ -656,7 +656,6 @@ process_rlimit_startup_check(void)
 #endif /* HAVE_GETRLIMIT */
 }
 
-/*------------------------------------------------------*/
 /*--------------------------------------------------------------*/
 /* Register magic:: commands with the Tcl interpreter.		*/
 /* Called after Magic's C subsystems are fully			*/
