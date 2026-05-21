@@ -657,6 +657,37 @@ process_rlimit_startup_check(void)
 }
 
 /*------------------------------------------------------*/
+/* Register magic:: commands with the Tcl interpreter.  */
+/* Called after Magic's C subsystems are fully		*/
+/* initialized (i.e. after magicMainInit returns 0)	*/
+/* so that WindNextClient / WindGetCommandTable return  */
+/* populated tables.					*/
+/*------------------------------------------------------*/
+
+void
+TclmagicRegisterCommands(Tcl_Interp *interp)
+{
+    WindClient client;
+    int n;
+    char keyword[100];
+    char *kwptr = keyword + 7;
+    const char * const *commandTable;
+
+    sprintf(keyword, "magic::");
+    client = (WindClient)NULL;
+    while ((client = WindNextClient(client)) != NULL)
+    {
+	commandTable = WindGetCommandTable(client);
+	for (n = 0; commandTable[n] != NULL; n++)
+	{
+	    sscanf(commandTable[n], "%s ", kwptr);
+	    Tcl_CreateCommand(interp, keyword, (Tcl_CmdProc *)_tcl_dispatch,
+			(ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+	}
+    }
+}
+
+/*------------------------------------------------------*/
 /* Main startup procedure				*/
 /*------------------------------------------------------*/
 
