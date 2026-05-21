@@ -1,7 +1,7 @@
 magic::tech load __TECH__
 
 proc make_rect {name width height} {
-    magic::cellname create $name
+    magic::load $name
     magic::box 0 0 $width $height
     magic::paint m1
     magic::save /work/$name
