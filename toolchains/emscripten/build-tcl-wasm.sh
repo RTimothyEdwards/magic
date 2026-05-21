@@ -16,7 +16,7 @@
 #
 # Requirements: an activated emsdk (emcc/emconfigure/emmake on PATH), a host
 # gcc (used to build TCL's minizip helper, which runs natively), make, and a
-# git checkout of intubun/tcl pointed to by --src.
+# git checkout of tcltk/tcl pointed to by --src.
 #
 # Note on line endings: if the TCL source tree was cloned on Windows with
 # git's core.autocrlf=true, unix/configure may have CRLF line endings and
