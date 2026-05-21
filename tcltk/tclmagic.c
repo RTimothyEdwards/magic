@@ -657,12 +657,13 @@ process_rlimit_startup_check(void)
 }
 
 /*------------------------------------------------------*/
-/* Register magic:: commands with the Tcl interpreter.  */
-/* Called after Magic's C subsystems are fully		*/
-/* initialized (i.e. after magicMainInit returns 0)	*/
-/* so that WindNextClient / WindGetCommandTable return  */
-/* populated tables.					*/
-/*------------------------------------------------------*/
+/*--------------------------------------------------------------*/
+/* Register magic:: commands with the Tcl interpreter.		*/
+/* Called after Magic's C subsystems are fully			*/
+/* initialized (i.e. after magicMainInit returns 0)		*/
+/* so that WindNextClient / WindGetCommandTable return		*/
+/* populated tables.						*/
+/*--------------------------------------------------------------*/
 
 void
 TclmagicRegisterCommands(Tcl_Interp *interp)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build intubun/tcl as a static WASM library for linking into magic.wasm.
+# Build tcltk/tcl as a static WASM library for linking into magic.wasm.
 #
 # This script does NOT modify the TCL source tree — the build is fully
 # out-of-source. configure is invoked from the build directory inside magic,
@@ -53,7 +53,7 @@ fi
 # not a cryptic `set: pipefail: invalid option name` from bash.
 if head -1 "$TCL_SRC/unix/configure" | grep -q $'\r'; then
   echo "Error: $TCL_SRC/unix/configure has CRLF line endings." >&2
-  echo "       Reclone intubun/tcl with: git -c core.autocrlf=false clone …" >&2
+  echo "       Reclone tcltk/tcl with: git -c core.autocrlf=false clone …" >&2
   exit 1
 fi
 

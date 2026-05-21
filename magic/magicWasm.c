@@ -43,9 +43,12 @@ magicWasmEnsureCadRoot(void)
 }
 
 #ifdef MAGIC_WRAPPER
-/* Forward decl — Tclmagic_Init installs all magic Tcl commands and calls
- * Tcl_InitStubs(), which sets tclStubsPtr.  Without this, any Tcl_X macro
- * dereferences a NULL stubs pointer at runtime (crashes the wasm). */
+/* Forward decl — Tclmagic_Init bootstraps the Tcl interpreter (registers
+ * the magic::initialize command and calls Tcl_InitStubs(), which sets
+ * tclStubsPtr).  Without this, any Tcl_X macro dereferences a NULL stubs
+ * pointer at runtime (crashes the wasm).  The actual magic:: commands
+ * (magic::load, magic::gds, etc.) are registered separately by
+ * TclmagicRegisterCommands() after magicMainInit() populates the clients. */
 extern int Tclmagic_Init(Tcl_Interp *interp);
 #endif
 

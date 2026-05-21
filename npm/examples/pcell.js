@@ -14,7 +14,7 @@ export async function run({ tech = DEFAULT_TECH, outputDir = DEFAULT_OUT } = {})
   const { FS } = magic;
 
   FS.mkdirTree('/work');
-  magic.runTcl(loadScript('pcell-magic.tcl', tech, ''));
+  magic.runTcl(loadScript('pcell.tcl', tech, ''));
 
   mkdirSync(outputDir, { recursive: true });
 
