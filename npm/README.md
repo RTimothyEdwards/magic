@@ -7,15 +7,42 @@ WebAssembly as a headless library. Runs in Node.js, browsers, and Web Workers
 Use it to programmatically read and write `.mag`, `.gds`, `.cif`, `.ext`, and
 SPICE netlists; run DRC; extract parasitics — anywhere JavaScript runs.
 
+The package ships two variants:
+
+| Variant | Entry point | Description |
+|---------|-------------|-------------|
+| **notcl** (default) | `magic-vlsi-wasm` | Standalone — no Tcl interpreter. Commands are plain Magic command strings. |
+| **tcl** | `magic-vlsi-wasm/tcl` | Embeds a full Tcl 9 interpreter. Commands are evaluated as Tcl; Magic commands are available as the `::magic::` ensemble. |
+
 ## Install
 
+The package is published to GitHub Packages. Add the following to your
+project's `.npmrc` so npm knows where to find it:
+
+```
+@rtimothyedwards:registry=https://npm.pkg.github.com
+```
+
+Then install:
+
 ```bash
-npm install magic-vlsi-wasm
+npm install @rtimothyedwards/magic-vlsi-wasm
+```
+
+If the package is private or you hit a 401, authenticate with a GitHub
+[personal access token](https://github.com/settings/tokens) that has the
+`read:packages` scope:
+
+```
+//npm.pkg.github.com/:_authToken=YOUR_TOKEN
+@rtimothyedwards:registry=https://npm.pkg.github.com
 ```
 
 Requires Node.js 18 or newer.
 
 ## Quick start
+
+### Default variant (no Tcl)
 
 ```js
 import createMagic from 'magic-vlsi-wasm';
@@ -33,6 +60,23 @@ runCommand('gds write /work/inv');
 
 // Read the result back out
 const gdsBytes = FS.readFile('/work/inv.gds');
+```
+
+### TCL variant
+
+```js
+import createMagic from 'magic-vlsi-wasm/tcl';
+
+const { runCommand, FS } = await createMagic();
+
+// Pure Tcl works directly
+runCommand('set x 42');
+runCommand('puts $tcl_version');
+
+// Magic commands are available as the ::magic:: ensemble
+runCommand('magic::tech load scmos');
+runCommand('magic::load /work/inv');
+runCommand('magic::gds write /work/inv');
 ```
 
 The `scmos` technology family (`scmos`, `minimum`, `nmos`, ...) is embedded in
@@ -122,14 +166,35 @@ If you want to rebuild the WASM module yourself, see
 The short version:
 
 ```bash
-bash npm/build.sh           # debug build, copies magic.js + magic.wasm into npm/
-bash npm/build.sh --release # optimized
-bash npm/build.sh --test    # build + run tests
-bash npm/build.sh --pack    # build + produce magic-vlsi-wasm-<version>.tgz
+bash npm/build.sh                    # both variants, debug build
+bash npm/build.sh --variant=notcl    # default variant only (faster)
+bash npm/build.sh --variant=tcl      # TCL variant only
+bash npm/build.sh --release          # optimized (-O2, no debug symbols)
+bash npm/build.sh --test             # build + run tests
+bash npm/build.sh --pack             # build + produce magic-vlsi-wasm-<version>.tgz
 ```
 
 You will need an activated [emsdk](https://emscripten.org/docs/getting_started/downloads.html)
-checkout (Magic pins emsdk `3.1.56` — see the comment in `npm/build.sh`).
+on your PATH. If you pass `EMSDK_DIR=/path/to/emsdk`, `build.sh` sources
+`emsdk_env.sh` for you.
+
+### TCL variant: cloning the TCL source tree
+
+The TCL variant links against a static WASM build of
+[tcltk/tcl](https://github.com/tcltk/tcl), pinned to a specific commit in
+[`npm/tcl.ref`](tcl.ref). `build.sh` clones the source tree automatically
+into a `../tcl` sibling directory on the first run:
+
+```bash
+# Override the default clone location
+TCL_REPO=/path/to/existing/tcl bash npm/build.sh --variant=tcl
+```
+
+### Updating the pinned TCL version
+
+Edit [`npm/tcl.ref`](tcl.ref) and set `TCL_REF` to the desired commit SHA or
+tag, then commit and push. CI will rebuild and republish automatically on the
+next version tag.
 
 ## Limitations
 
