@@ -21,7 +21,7 @@
 #   EMSDK_DIR   Path to an activated emsdk checkout.
 #               If set, emsdk_env.sh is sourced from there.
 #               If unset, emcc must already be on PATH (e.g. sourced externally).
-#   TCL_REPO    Override the path to the intubun/tcl checkout (default:
+#   TCL_REPO    Override the path to the tcltk/tcl checkout (default:
 #               ../tcl relative to this magic checkout). Used by the TCL
 #               variant only.
 
@@ -29,7 +29,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-# The TCL variant builds against a sibling clone of intubun/tcl (pristine —
+# The TCL variant builds against a sibling clone of tcltk/tcl (pristine —
 # magic never modifies it). The build itself happens inside magic under
 # build-tcl-wasm/, so the TCL source tree stays clean.
 TCL_REPO="${TCL_REPO:-$(dirname "$REPO_ROOT")/tcl}"
@@ -114,7 +114,7 @@ ensure_tcl_built() {
     # shellcheck source=/dev/null
     . "$TCL_REF_FILE"
   fi
-  : "${TCL_REPO_URL:=https://github.com/intubun/tcl.git}"
+  : "${TCL_REPO_URL:=https://github.com/tcltk/tcl.git}"
   : "${TCL_REF:=main}"
 
   if [ ! -d "$TCL_REPO/.git" ]; then
@@ -210,6 +210,7 @@ esac
 if [ $OPT_TEST -eq 1 ]; then
   cd "$SCRIPT_DIR"
   npm run test
+  npm run test:tcl
 fi
 
 # --- optional pack -----------------------------------------------------------

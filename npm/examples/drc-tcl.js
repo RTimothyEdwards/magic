@@ -12,7 +12,7 @@ export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH } = {}) {
   const { FS } = magic;
   const { tech: techName, cell } = loadCell(FS, tech, magFile);
 
-  magic.runScript(loadScript('drc-magic.tcl', techName, cell));
+  magic.runScript(loadScript('drc-tcl.tcl', techName, cell));
 
   const summary = output.find(l => /Total DRC errors/i.test(l));
   const match   = summary?.match(/(\d+)/);

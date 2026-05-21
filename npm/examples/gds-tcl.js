@@ -10,7 +10,7 @@ export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH, outputDi
   const { FS } = magic;
   const { tech: techName, cell } = loadCell(FS, tech, magFile);
 
-  magic.runScript(loadScript('gds-magic.tcl', techName, cell));
+  magic.runScript(loadScript('gds-tcl.tcl', techName, cell));
 
   mkdirSync(outputDir, { recursive: true });
   const data = vfsRead(FS, `/work/${cell}.gds`);

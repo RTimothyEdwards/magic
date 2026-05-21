@@ -73,7 +73,7 @@ jobs:
           echo "===== emcc -dM -E - ====="; echo | emcc -dM -E - | sort
           echo "===== em++ -dM -E - ====="; echo | em++ -dM -E - | sort
 
-      # Clone intubun/tcl into a sibling directory at the pinned ref from
+      # Clone tcltk/tcl into a sibling directory at the pinned ref from
       # npm/tcl.ref. npm/build.sh would do this on its own, but doing it as
       # an explicit step makes the resolved SHA visible at the top of the
       # job log and keeps the build step's output focused on the C build.
