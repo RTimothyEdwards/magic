@@ -32,5 +32,7 @@ extern void MakeWindowCommand();
 
 extern const char *Tclmagic_InitStubsVersion;
 
+extern void TclmagicRegisterCommands(Tcl_Interp *interp);
+
 #endif	/* MAGIC_WRAPPER */
 #endif /* _MAGIC__TCLTK__TCLMAGIC_H */

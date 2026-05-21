@@ -98,7 +98,18 @@ magic_wasm_init(void)
     }
 #endif
 
-    return magicMainInit(5, argv);
+    {
+	static int commandsRegistered = FALSE;
+	int rc = magicMainInit(5, argv);
+#ifdef MAGIC_WRAPPER
+	if (rc == 0 && !commandsRegistered)
+	{
+	    TclmagicRegisterCommands(magicinterp);
+	    commandsRegistered = TRUE;
+	}
+#endif
+	return rc;
+    }
 }
 
 EMSCRIPTEN_KEEPALIVE int
@@ -134,7 +145,6 @@ magic_wasm_run_command(const char *command)
 EMSCRIPTEN_KEEPALIVE int
 magic_wasm_source_file(const char *path)
 {
-    FILE *f;
     int status;
 
     status = magic_wasm_init();
@@ -144,27 +154,30 @@ magic_wasm_source_file(const char *path)
     if ((path == NULL) || (*path == '\0'))
 	return -1;
 
-    f = PaOpen((char *)path, "r", (char *)NULL, ".", (char *)NULL,
-	    (char **)NULL);
-    if (f == NULL)
-    {
-	TxError("Unable to open command file \"%s\".\n", path);
-	return -1;
-    }
-
-    /* Set the current point to the centre of the screen so that
-     * WindSendCommand routes all commands from the file to the layout
-     * window client, just as magic_wasm_run_command does for single
-     * commands.  Without this, commands arrive with point (0,0) and
-     * end up in the border/windClient context where most commands are
-     * unknown.
-     */
     TxSetPoint(GrScreenRect.r_xtop / 2, GrScreenRect.r_ytop / 2,
 	    WIND_UNKNOWN_WINDOW);
 
-    TxDispatch(f);
-    fclose(f);
-    return 0;
+#ifdef MAGIC_WRAPPER
+    /* In wrapper mode the file contains Tcl; evaluate it through the
+     * Tcl interpreter so that magic:: commands are dispatched via
+     * _tcl_dispatch just like magic_wasm_run_command does for strings. */
+    if (magicinterp == NULL)
+	return -1;
+    return Tcl_EvalFile(magicinterp, path);
+#else
+    {
+	FILE *f = PaOpen((char *)path, "r", (char *)NULL, ".", (char *)NULL,
+		(char **)NULL);
+	if (f == NULL)
+	{
+	    TxError("Unable to open command file \"%s\".\n", path);
+	    return -1;
+	}
+	TxDispatch(f);
+	fclose(f);
+	return 0;
+    }
+#endif
 }
 
 EMSCRIPTEN_KEEPALIVE void
