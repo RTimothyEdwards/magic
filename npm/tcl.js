@@ -1,7 +1,7 @@
 // TCL-enabled entry point: import from "magic-vlsi-wasm/tcl".
 //
 // In this variant magic.wasm embeds a full Tcl 9 interpreter (from
-// intubun/tcl, pinned via magic/npm/tcl.ref) and `runCommand(str)` calls
+// tcltk/tcl, pinned via magic/npm/tcl.ref) and `runCommand(str)` calls
 // Tcl_EvalEx(magicinterp, str, ...).  Pure Tcl works:
 //
 //     await magic.runCommand('set x 42');
