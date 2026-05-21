@@ -97,7 +97,7 @@ jobs:
       - name: Run example tests (non-TCL variant)
         run: cd npm && npm test
 
-      - name: Run smoke test (TCL variant)
+      - name: Run full test suite (TCL variant)
         run: cd npm && npm run test:tcl
 
       # Dump generated text outputs (.ext, .spice, .cif, …) into the CI log

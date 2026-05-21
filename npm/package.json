@@ -26,7 +26,7 @@
   "scripts": {
     "example":   "node examples/extract.js",
     "test":      "node examples/all.js",
-    "test:tcl":  "node examples/smoke-tcl.mjs",
+    "test:tcl":  "node examples/all-tcl.js",
     "test:gds":  "node examples/gds.js",
     "test:drc":  "node examples/drc.js",
     "test:cif":  "node examples/cif.js"
