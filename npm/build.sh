@@ -94,26 +94,20 @@ sed_strip_cr() {
 }
 
 if [ $OPT_RELEASE -eq 1 ]; then
-  EXTRA_CFLAGS=" -O2"
+  EXTRA_CFLAGS="-O2"
 else
-  EXTRA_CFLAGS=" -g"
+  EXTRA_CFLAGS="-g"
 fi
 
-# --- TCL fork: locate, pin, prebuild (TCL variant only) ---------------------
-# Reads npm/tcl.ref to get the upstream URL + commit SHA. If the TCL source
-# tree does not exist yet, clone it (with autocrlf=false to keep configure
-# parseable on Windows hosts). If it does exist, just check out the pinned
-# ref — no auto-fetch, so releases stay reproducible.
+# --- TCL fork: locate and prebuild (TCL variant only) -----------------------
+# Uses TCL_REPO_URL and TCL_REF from the environment (both have defaults).
+# If the TCL source tree does not exist yet, clones it. If it does exist,
+# checks out the requested ref — no auto-fetch, so builds are reproducible.
 #
 # The TCL source tree is treated as read-only. The actual WASM build runs in
 # $TCL_BUILD_DIR (inside magic), driven by
 # toolchains/emscripten/build-tcl-wasm.sh.
 ensure_tcl_built() {
-  local TCL_REF_FILE="$SCRIPT_DIR/tcl.ref"
-  if [ -f "$TCL_REF_FILE" ]; then
-    # shellcheck source=/dev/null
-    . "$TCL_REF_FILE"
-  fi
   : "${TCL_REPO_URL:=https://github.com/tcltk/tcl.git}"
   : "${TCL_REF:=main}"
 
@@ -167,7 +161,7 @@ build_variant() {
 
   if [ "$variant" = "tcl" ]; then
     ensure_tcl_built
-    CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1${EXTRA_CFLAGS}" \
+    CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 ${EXTRA_CFLAGS}" \
       emconfigure ./configure \
         --without-cairo --without-opengl --without-x --without-tk \
         --with-tcl="$TCL_WASM_PREFIX/lib" \
@@ -177,7 +171,7 @@ build_variant() {
         --host=asmjs-unknown-emscripten \
         --target=asmjs-unknown-emscripten
   else
-    CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1${EXTRA_CFLAGS}" \
+    CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 ${EXTRA_CFLAGS}" \
       emconfigure ./configure \
         --without-cairo --without-opengl --without-x \
         --without-tk --without-tcl \
