@@ -5,7 +5,7 @@ name: CI-wasm
 # when a release tag of the form v<x.y.z>... is pushed — that gate is the
 # manual release trigger:
 #
-#   # bump magic/VERSION and/or npm/tcl.ref, commit, push to default branch
+#   # bump magic/VERSION, commit, push to default branch
 #   git tag v8.3.638
 #   git push origin v8.3.638
 #
@@ -21,6 +21,14 @@ on:
         description: 'emsdk version to build with (default: latest; pin a version number to bisect)'
         type: string
         default: 'latest'
+      tcl_ref:
+        description: 'TCL ref to build against (default: auto-resolve latest stable tag). Use a tag like core-9-0-3, a branch, or a commit SHA to bisect a regression.'
+        type: string
+        default: ''
+      tcl_repo_url:
+        description: 'TCL repository URL (default: https://github.com/tcltk/tcl.git)'
+        type: string
+        default: ''
       dry_run:
         description: 'Dry run: pack only, do not publish even on tag pushes'
         type: boolean
@@ -73,23 +81,56 @@ jobs:
           echo "===== emcc -dM -E - ====="; echo | emcc -dM -E - | sort
           echo "===== em++ -dM -E - ====="; echo | em++ -dM -E - | sort
 
-      # Clone tcltk/tcl into a sibling directory at the pinned ref from
-      # npm/tcl.ref. npm/build.sh would do this on its own, but doing it as
-      # an explicit step makes the resolved SHA visible at the top of the
-      # job log and keeps the build step's output focused on the C build.
-      # The TCL source tree is treated as read-only — the actual WASM build
-      # runs inside magic (toolchains/emscripten/build-tcl-wasm.sh).
-      - name: Pin and clone tcltk/tcl
+      # Determine which TCL ref to build against.
+      # Priority: workflow_dispatch input > auto-resolved latest stable tag.
+      # TCL stable releases follow the core-<major>-<even_minor>-<patch>
+      # naming convention; core-9-0-x is the current stable series.
+      # Falls back to main only if no release tags are found at all.
+      - name: Resolve TCL ref
+        id: resolve-tcl
+        env:
+          TCL_REPO_URL: ${{ github.event.inputs.tcl_repo_url || 'https://github.com/tcltk/tcl.git' }}
+          TCL_REF_INPUT: ${{ github.event.inputs.tcl_ref || '' }}
         run: |
-          . npm/tcl.ref
-          : "${TCL_REPO_URL:=https://github.com/tcltk/tcl.git}"
-          : "${TCL_REF:=main}"
-          echo "Pinned TCL: $TCL_REF ($TCL_REPO_URL)"
+          if [ -n "$TCL_REF_INPUT" ]; then
+            TCL_REF="$TCL_REF_INPUT"
+            echo "Using workflow_dispatch TCL_REF: $TCL_REF"
+          else
+            TCL_REF=$(git ls-remote --tags --sort=-version:refname "$TCL_REPO_URL" \
+                        'refs/tags/core-9-0-*' \
+                      | grep -v '\^{}' \
+                      | head -1 \
+                      | awk '{print $2}' \
+                      | sed 's|refs/tags/||')
+            if [ -z "$TCL_REF" ]; then
+              TCL_REF=main
+              echo "Warning: no stable core-9-0-x tag found, falling back to main"
+            else
+              echo "Auto-resolved latest stable TCL tag: $TCL_REF"
+            fi
+          fi
+          echo "tcl_ref=$TCL_REF"           >> "$GITHUB_OUTPUT"
+          echo "tcl_repo_url=$TCL_REPO_URL" >> "$GITHUB_OUTPUT"
+
+      # Clone tcltk/tcl into a sibling directory at the resolved ref.
+      # Done as an explicit step so the exact commit is visible in the job
+      # log. The source tree is read-only — the WASM build runs inside magic.
+      - name: Clone tcltk/tcl
+        env:
+          TCL_REPO_URL: ${{ steps.resolve-tcl.outputs.tcl_repo_url }}
+          TCL_REF:      ${{ steps.resolve-tcl.outputs.tcl_ref }}
+        run: |
           # autocrlf=false: ubuntu-latest is already LF, but make it explicit.
           git -c core.autocrlf=false clone "$TCL_REPO_URL" ../tcl
-          ( cd ../tcl && git checkout --detach "$TCL_REF" )
+          cd ../tcl
+          git checkout --detach "$TCL_REF"
+          echo "=== TCL commit ==="
+          git log -n1 --format="commit %H%nauthor  %an <%ae>%ndate    %ci%nref     %D%n%n    %s"
 
       - name: Build WASM — both variants (tcl + notcl)
+        env:
+          TCL_REF:      ${{ steps.resolve-tcl.outputs.tcl_ref }}
+          TCL_REPO_URL: ${{ steps.resolve-tcl.outputs.tcl_repo_url }}
         run: |
           source ./emsdk/emsdk_env.sh
           bash npm/build.sh --variant=both
@@ -132,13 +173,16 @@ jobs:
             echo "version=${tag#v}"        >> "$GITHUB_OUTPUT"
             echo "Tag release: $tag → npm version ${tag#v}"
           else
-            # For non-tag CI runs, use a dev-suffixed version so the packed
-            # tarball is still consumable for local inspection / artifact upload.
+            # For non-tag CI runs, embed date + git hash as build metadata
+            # (semver +METADATA) so the snapshot sorts as 8.3.799+date.gitHASH.
+            # Build metadata is ignored by npm for version comparison — the
+            # snapshot is treated as equivalent to 8.3.799 for range matching,
+            # which is correct: it is that release built from a specific commit.
             base=$(cat VERSION)
             date=$(git show -s --format=%cs | tr -d '-')
             hash=$(git show -s --format=%h)
-            echo "publish=false"                       >> "$GITHUB_OUTPUT"
-            echo "version=${base}-${date}.${hash}"     >> "$GITHUB_OUTPUT"
+            echo "publish=false"                          >> "$GITHUB_OUTPUT"
+            echo "version=${base}+${date}.git${hash}"  >> "$GITHUB_OUTPUT"
             echo "Non-tag build: will not publish."
           fi
 
@@ -168,3 +212,37 @@ jobs:
         run: cd npm && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Write a Markdown summary visible next to the artifacts on the Actions
+      # page. Captures the exact versions used so a future regression can be
+      # bisected without scrolling through raw logs.
+      - name: Build summary
+        if: always()
+        env:
+          TCL_REF:      ${{ steps.resolve-tcl.outputs.tcl_ref }}
+          TCL_REPO_URL: ${{ steps.resolve-tcl.outputs.tcl_repo_url }}
+        run: |
+          source ./emsdk/emsdk_env.sh 2>/dev/null || true
+          EMCC_VER=$(emcc --version 2>/dev/null | head -1 || echo "unavailable")
+          GCC_VER=$(gcc  --version 2>/dev/null | head -1 || echo "unavailable")
+          NODE_VER=$(node --version 2>/dev/null || echo "unavailable")
+          MAGIC_VER=$(cat VERSION 2>/dev/null || echo "unavailable")
+          if [ -d ../tcl/.git ]; then
+            TCL_SHA=$(cd ../tcl && git rev-parse HEAD)
+            TCL_DATE=$(cd ../tcl && git log -1 --format="%ci")
+            TCL_SUBJECT=$(cd ../tcl && git log -1 --format="%s")
+          else
+            TCL_SHA="(not cloned)"; TCL_DATE=""; TCL_SUBJECT=""
+          fi
+          printf '## Build info\n\n'                                   >> "$GITHUB_STEP_SUMMARY"
+          printf '| Component | Details |\n'                          >> "$GITHUB_STEP_SUMMARY"
+          printf '|-----------|----------|\n'                         >> "$GITHUB_STEP_SUMMARY"
+          printf '| Magic | `%s` |\n'       "$MAGIC_VER"             >> "$GITHUB_STEP_SUMMARY"
+          printf '| Emscripten | %s |\n'    "$EMCC_VER"              >> "$GITHUB_STEP_SUMMARY"
+          printf '| GCC | %s |\n'           "$GCC_VER"               >> "$GITHUB_STEP_SUMMARY"
+          printf '| Node.js | %s |\n'       "$NODE_VER"              >> "$GITHUB_STEP_SUMMARY"
+          printf '| TCL repo | %s |\n'      "$TCL_REPO_URL"          >> "$GITHUB_STEP_SUMMARY"
+          printf '| TCL ref | `%s` |\n'     "$TCL_REF"               >> "$GITHUB_STEP_SUMMARY"
+          printf '| TCL commit | `%s` |\n'  "$TCL_SHA"               >> "$GITHUB_STEP_SUMMARY"
+          printf '| TCL date | %s |\n'      "$TCL_DATE"              >> "$GITHUB_STEP_SUMMARY"
+          printf '| TCL subject | %s |\n'   "$TCL_SUBJECT"           >> "$GITHUB_STEP_SUMMARY"
