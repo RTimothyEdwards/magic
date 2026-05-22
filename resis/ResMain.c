@@ -148,33 +148,49 @@ void
 ResDissolveContacts(contacts)
     ResContactPoint *contacts;
 {
-    TileType t, oldtype, lasttype = TT_SPACE;
+    TileType t, conttype;
     Tile *tp;
-    TileTypeBitMask residues;
+    TileType residue[NP][NT];
+    int pNum;
+
+    bzero((char *)residue, NP * NT * sizeof(TileType));
 
     for (; contacts != (ResContactPoint *)NULL; contacts = contacts->cp_nextcontact)
     {
-        oldtype = contacts->cp_type;
+        conttype = contacts->cp_type;
 
 #ifdef PARANOID
-	if (oldtype == TT_SPACE)
+	if (conttype == TT_SPACE)
 	    TxError("Error in Contact Dissolving for %s \n",ResCurrentNode);
 #endif
-	if (oldtype != lasttype)
+
+	/* Fill in details of the residue types for each contact type.
+	 * This is done only once per contact type.  This could be refined
+	 * further by temporarily changing the paint table directly or
+	 * creating a separate paint table which erases contact cuts and
+	 * replaces them with the residues.
+	 */
+
+	if (residue[DBPlane(conttype)][conttype] == TT_SPACE)
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		residue[pNum][conttype] = DBPlaneToResidue(conttype, pNum);
+
+	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	{
-	    lasttype = oldtype;
-	    DBFullResidueMask(oldtype, &residues);
+	    if (DBTypeOnPlane(conttype, pNum))
+	    {
+		DBPaintPlane(ResUse->cu_def->cd_planes[pNum], &(contacts->cp_rect), 
+			DBStdEraseTbl(conttype, pNum), (PaintUndoInfo *)NULL);
+		DBPaintPlane(ResUse->cu_def->cd_planes[pNum], &(contacts->cp_rect), 
+			DBStdPaintTbl(residue[pNum][conttype], pNum),
+			(PaintUndoInfo *)NULL);
+	    }
 	}
 
-	DBErase(ResUse->cu_def, &(contacts->cp_rect), oldtype);
-	for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
-	    if (TTMaskHasType(&residues, t))
-		DBPaint(ResUse->cu_def, &(contacts->cp_rect), t);
-
 #ifdef PARANOID
-	tp = PlaneGetHint(ResDef->cd_planes[DBPlane(contacts->cp_type)]);
+	tp = PlaneGetHint(ResDef->cd_planes[DBPlane(conttype)]);
 	GOTOPOINT(tp, &(contacts->cp_rect.r_ll));
-	if (TiGetTypeExact(tp) == contacts->cp_type)
+	if (TiGetTypeExact(tp) == conttype)
 	    TxError("Error in Contact Preprocess Routines\n");
 #endif
     }
