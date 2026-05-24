@@ -35,10 +35,10 @@ proc magic::libcallback {command} {
 
    switch $command {
       load {$winname load $celldef}
-      place {$winname getcell $celldef}
+      place {$winname getcell $celldef child 0 0}
       pick {
 	magic::tool pick
-	$winname getcell $celldef
+	$winname getcell $celldef child 0 0
 	magic::startselect $winname pick
       }
    }
