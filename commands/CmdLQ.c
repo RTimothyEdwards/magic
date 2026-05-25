@@ -2324,7 +2324,7 @@ CmdDoProperty(
     TxCommand *cmd,
     int argstart)
 {
-    PropertyRecord *proprec;
+    PropertyRecord *proprec = NULL;
     char *value;
     bool propfound, dolist;
     int proptype, proplen, propvalue, i;
@@ -2662,31 +2662,31 @@ CmdDoProperty(
 		     * the valid number of arguments, then again to parse the
 		     * values, once the property record has been allocated
 		     */
-		    if (proptype == PROPERTY_TYPE_PLANE)
+		    value = cmd->tx_argv[argstart + 1];
+		    for (proplen = 0; *value != '\0'; )
 		    {
-		        proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
-			plane = DBNewPlane((ClientData)TT_SPACE);
-			proprec->prop_value.prop_plane = plane;
-		    }
-		    else
-		    {
-			value = cmd->tx_argv[argstart + 1];
-			for (proplen = 0; *value != '\0'; )
+			if (isspace(*value) && (*value != '\0')) value++;
+			if (!isspace(*value))
 			{
-			    if (isspace(*value) && (*value != '\0')) value++;
-			    if (!isspace(*value))
-			    {
-				proplen++;
-				while (!isspace(*value) && (*value != '\0')) value++;
-			    }
+			    proplen++;
+			    while (!isspace(*value) && (*value != '\0')) value++;
 			}
-			if (proplen > 0)
+		    }
+		    if (proplen > 0)
+		    {
+			if (proptype == PROPERTY_TYPE_PLANE)
+			{
+			    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+			    plane = DBNewPlane((ClientData)TT_SPACE);
+			    proprec->prop_value.prop_plane = plane;
+			} else {
 			    proprec = (PropertyRecord *)mallocMagic(
 					sizeof(PropertyRecord) +
 					(proplen - 2) * sizeof(int));
+			}
+			proprec->prop_type = proptype;
+			proprec->prop_len = proplen;
 		    }
-		    proprec->prop_type = proptype;
-		    proprec->prop_len = proplen;
 
 		    /* Second pass */
 		    value = cmd->tx_argv[argstart + 1];
