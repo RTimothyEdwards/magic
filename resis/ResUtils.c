@@ -733,6 +733,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 
 	tile = PlaneGetHint(Def->cd_planes[pNum]);
 	GOTOPOINT(tile, &(TileList->area.r_ll));
+	PlaneSetHint(Def->cd_planes[pNum], tile);
 
 	tt = TiGetType(tile);
 	tstruct = (resInfo *) TiGetClientPTR(tile);

@@ -449,6 +449,7 @@ ResFindNewContactTiles(contacts)
 
 	    tile = PlaneGetHint(ResDef->cd_planes[pNum]);
 	    GOTOPOINT(tile, &(contacts->cp_center));
+	    PlaneSetHint(ResDef->cd_planes[pNum], tile);
 #ifdef PARANOID
 	    if (tile == (Tile *) NULL)
 	    {
@@ -1412,6 +1413,7 @@ FindStartTile(resisdata, SourcePoint)
     {
 	tile = PlaneGetHint(ResUse->cu_def->cd_planes[pnum]);
 	GOTOPOINT(tile, &workingPoint);
+	PlaneSetHint(ResUse->cu_def->cd_planes[pnum], tile);
 	SourcePoint->p_x = workingPoint.p_x;
 	SourcePoint->p_y = workingPoint.p_y;
 
@@ -1445,6 +1447,7 @@ FindStartTile(resisdata, SourcePoint)
 
     tile = PlaneGetHint(ResUse->cu_def->cd_planes[pnum]);
     GOTOPOINT(tile, &workingPoint);
+    PlaneSetHint(ResUse->cu_def->cd_planes[pnum], tile);
 
     if (IsSplit(tile))
     {
@@ -1796,6 +1799,7 @@ ResGetDevice(pt, type)
 
     tile = PlaneGetHint(ResUse->cu_def->cd_planes[pnum]);
     GOTOPOINT(tile, &workingPoint);
+    PlaneSetHint(ResUse->cu_def->cd_planes[pnum], tile);
 
     const ClientData ticlient = TiGetClient(tile);
     if (IsSplit(tile))
