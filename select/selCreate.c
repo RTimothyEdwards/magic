@@ -834,6 +834,8 @@ chunkdone:
 	if (DBIsContact(type))
 	    TTMaskSetOnlyType(&typeMask, type);
 
+	/* Allow labels to be selected as part of the chunk */
+	TTMaskSetType(&typeMask, L_LABEL);
 	SelectArea(&newscx, &typeMask, xMask, NULL);
       }
 
