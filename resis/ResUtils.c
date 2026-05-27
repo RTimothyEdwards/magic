@@ -231,7 +231,8 @@ ResAddPlumbing(tile, dinfo, arg)
 
    	    resDev = (resDevice *)mallocMagic((unsigned)(sizeof(resDevice)));
 	    resDev->rd_nterms = nterms;
-	    resDev->rd_terminals = (resNode **) mallocMagic(nterms * sizeof(resNode *));
+
+	    resDev->rd_terminals = (resNode **)mallocMagic(nterms * sizeof(resNode *));
 	    for (i = 0; i != nterms; i++)
 	    	resDev->rd_terminals[i] = (resNode *) NULL;
 

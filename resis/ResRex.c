@@ -1356,7 +1356,7 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
     }
     if (extDev->subs == extNode)
     {
-	if ((layoutDev->rd_nterms >= 4) && ((subs = layoutDev->rd_fet_subs) != NULL))
+	if ((subs = layoutDev->rd_fet_subs) != NULL)
 	{
 	    if (subs->rn_name != NULL && notdecremented)
 	    {
@@ -1422,7 +1422,7 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 		extNode->status |= DONTKILL;
 	    }
 	}
-	else
+	else if (layoutDev->rd_nterms > 3)
 	{
 	    if ((source = layoutDev->rd_fet_source) != NULL)
 	    {
@@ -1469,7 +1469,7 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 	    }
 	}
     }
-    else if (extDev->drain == extNode)
+    else if ((extDev->drain == extNode) && (layoutDev->rd_nterms > 3))
     {
 	/* Check for devices with only one terminal.  If it was cast as source,	*/
 	/* then swap it with the drain so that the code below handles it	*/

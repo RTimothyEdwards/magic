@@ -51,16 +51,24 @@ typedef struct resistor
 #define  rr_connection1 	rr_node[0]
 #define  rr_connection2		rr_node[1]
 
-/* Definitions for old FET-style MOSFET devices */
+/* Definitions for old FET-style MOSFET devices.  Actual devices may have
+ * any number of terminals.  "GATE" is the identifying type;  "SUBS" is
+ * the substrate/well connection (if it exists), and the other terminals
+ * make up the remaining entries.  Memory will be allocated for the
+ * substrate whether or not one is defined for the device.  If the device
+ * does not define a substrate connection, then this entry will remain
+ * NULL.
+ */
+
 #define RT_GATE		0
-#define RT_SOURCE	1
-#define RT_DRAIN	2
-#define RT_SUBS		3
+#define RT_SUBS		1
+#define RT_SOURCE	2
+#define RT_DRAIN	3
 
 #define rd_fet_gate	rd_terminals[RT_GATE]
+#define rd_fet_subs	rd_terminals[RT_SUBS]
 #define rd_fet_source	rd_terminals[RT_SOURCE]
 #define rd_fet_drain	rd_terminals[RT_DRAIN]
-#define rd_fet_subs	rd_terminals[RT_SUBS]
 
 typedef struct device
 {

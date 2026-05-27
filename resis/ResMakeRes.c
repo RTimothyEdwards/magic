@@ -76,10 +76,9 @@ ResCalcTileResistance(tile, info, pendingList, doneList)
 	if (x < MinX) MinX = x;
 	if (y > MaxY) MaxY = y;
 	if (y < MinY) MinY = y;
+
 	if (p1->br_this->rn_why == RES_NODE_DEVICE)
-	{
 	    device = TRUE;
-	}
     }
 
     /* Finally, produce resistors for partition. Keep track of	*/
@@ -248,7 +247,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    }
 	    else
 	    {
-		p3  = p2->br_next;
+		p3 = p2->br_next;
 		while (p3 != NULL)
 		{
 		    if (p3->br_this == currNode)
@@ -413,32 +412,32 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	{
 	    if (p2->br_this == p1->br_this)
 	    {
-		 currNode = NULL;
-		 p1->br_next = p2->br_next;
-		 freeMagic((char *)p2);
-		 p2 = p1;
+		currNode = NULL;
+		p1->br_next = p2->br_next;
+		freeMagic((char *)p2);
+		p2 = p1;
 	    }
 	    else if (p2->br_this == resCurrentNode)
 	    {
-		 currNode = p1->br_this;
-	    	 ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
-		 freeMagic((char *)p1);
-		 merged = TRUE;
+		currNode = p1->br_this;
+	    	ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
+		freeMagic((char *)p1);
+		merged = TRUE;
 	    }
 	    else if (p1->br_this == resCurrentNode)
 	    {
-		 currNode = p2->br_this;
-		 p1->br_next = p2->br_next;
-	    	 ResMergeNodes(p1->br_this, p2->br_this, pendingList, doneList);
-		 merged = TRUE;
-		 freeMagic((char *)p2);
-		 p2 = p1;
+		currNode = p2->br_this;
+		p1->br_next = p2->br_next;
+	    	ResMergeNodes(p1->br_this, p2->br_this, pendingList, doneList);
+		merged = TRUE;
+		freeMagic((char *)p2);
+		p2 = p1;
 	    }
 	    else
 	    {
-		 currNode = p1->br_this;
-	    	 ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
-		 freeMagic((char *)p1);
+		currNode = p1->br_this;
+	    	ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
+		freeMagic((char *)p1);
 	    }
 
 	    /*
@@ -559,7 +558,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
      *	breakpoint, then return.
      */
 
-    if   (info->breakList->br_next == NULL)
+    if (info->breakList->br_next == NULL)
     {
      	freeMagic((char *)info->breakList);
 	info->breakList = NULL;
