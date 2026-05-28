@@ -687,7 +687,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 		}
 		else
 		{
-		    deltay=0;
+		    deltay = 0;
 		}
 	    }
 	    else
@@ -701,15 +701,15 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	    {
 	       	if (p2->br_crect->r_ll.p_y > p1->br_loc.p_y)
 		{
-		    deltay = MIN(deltay,p2->br_crect->r_ll.p_y - p1->br_loc.p_y);
+		    deltay = MIN(deltay, p2->br_crect->r_ll.p_y - p1->br_loc.p_y);
 		}
 	       	else if (p2->br_crect->r_ur.p_y < p1->br_loc.p_y)
 		{
-		    deltay = MIN(deltay,p1->br_loc.p_y - p2->br_crect->r_ur.p_y);
+		    deltay = MIN(deltay, p1->br_loc.p_y - p2->br_crect->r_ur.p_y);
 		}
 		else
 		{
-		    deltay=0;
+		    deltay = 0;
 		}
 	    }
 	    else
@@ -887,7 +887,7 @@ ResDoContacts(contact, nodes, resList)
 	    Tile *tile = contact->cp_tile[tilenum];
 
 	    contact->cp_cnode[tilenum] = resptr;
-	    NEWBREAK(resptr, tile, contact->cp_center.p_x,
+	    ResNewBreak(resptr, tile, contact->cp_center.p_x,
 			contact->cp_center.p_y, &contact->cp_rect);
         }
     }
@@ -936,7 +936,7 @@ ResDoContacts(contact, nodes, resList)
 	    ccell->ce_thisc = contact;
 
 	    contact->cp_cnode[tilenum] = resptr;
-	    NEWBREAK(resptr, tile, contact->cp_center.p_x,
+	    ResNewBreak(resptr, tile, contact->cp_center.p_x,
 			contact->cp_center.p_y, &contact->cp_rect);
 
 	    /* Add resistors here */

@@ -210,7 +210,7 @@ ResFixParallel(elimResis, newResis)
  * ResSeriesCheck -- for nodes with no devices, sees if a series
  *	or loop combination is possible.
  *
- * Results: returns SINGLE,LOOP,or SERIES if succesful.
+ * Results: returns SINGLE, LOOP, or SERIES if succesful.
  *
  * Side Effects: may delete some nodes and resistors.
  *

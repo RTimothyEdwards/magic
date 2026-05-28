@@ -128,11 +128,11 @@ ResPrintDeviceList(fp, list)
 	{
 	    if (list->rd_terminals[i] == NULL) continue;
 	    if (fp == stdout)
-		TxPrintf("%c (%d,%d) ",termtype[i],
+		TxPrintf("%c (%d,%d) ", termtype[i],
 	       		list->rd_terminals[i]->rn_loc.p_x,
 			list->rd_terminals[i]->rn_loc.p_y);
 	    else
-		fprintf(fp, "%c (%d,%d) ",termtype[i],
+		fprintf(fp, "%c (%d,%d) ", termtype[i],
 	       		list->rd_terminals[i]->rn_loc.p_x,
 			list->rd_terminals[i]->rn_loc.p_y);
 

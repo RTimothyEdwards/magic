@@ -1110,7 +1110,7 @@ ExtSortTerminals(tran, ll)
     do
     {
 	changed = 0;
-	for( nsd = 0; nsd < tran->tr_nterm-1; nsd++ )
+	for (nsd = 0; nsd < tran->tr_nterm-1; nsd++)
 	{
 	    p1 = &(tran->tr_termpos[nsd]);
 	    p2 = &(tran->tr_termpos[nsd+1]);
@@ -1155,14 +1155,17 @@ ExtSortTerminals(tran, ll)
             *  but S,D attributes are not that common so it should not matter
             * that much -- Stefanos 5/96 */
 
-            for ( lp = ll ; lp ; lp = lp->ll_next )
-		if ( lp->ll_attr == nsd ) lp->ll_attr = LL_SORTATTR ;
-		else if ( lp->ll_attr == nsd+1 ) lp->ll_attr = nsd ;
-            for ( lp = ll ; lp ; lp = lp->ll_next )
-		 if ( lp->ll_attr == LL_SORTATTR ) lp->ll_attr = nsd+1;
+            for (lp = ll; lp; lp = lp->ll_next)
+		if (lp->ll_attr == nsd)
+		    lp->ll_attr = LL_SORTATTR;
+		else if (lp->ll_attr == nsd + 1)
+		    lp->ll_attr = nsd;
+            for (lp = ll; lp; lp = lp->ll_next)
+		if (lp->ll_attr == LL_SORTATTR)
+		    lp->ll_attr = nsd + 1;
 	}
      }
-     while( changed );
+     while (changed);
 }
 
 /*

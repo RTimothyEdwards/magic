@@ -1621,9 +1621,125 @@ efConnectionFreeLinkedList(Connection *conn)
 /*
  * ----------------------------------------------------------------------------
  *
+ * efConnPointFreeLinkedList --
+ *
+ * Release memory for linked-list of ConnectionPoint* based on internal
+ *  list at ConnectionPoint->conn_next.  'connpt' argument must be non-NULL.
+ *
+ * Results:
+ *	Deallocates linked-list of ConnectionPoint* starting at 'connpt'
+ *
+ * Side effects:
+ *	Deallocates one or more connection point record(s).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+efConnPointFreeLinkedList(ConnectionPoint *connpt)
+{
+    while (connpt)
+    {
+	ConnectionPoint *next = connpt->conn_next;
+	if (connpt->conn_name != NULL)
+	    freeMagic(connpt->conn_name);
+	freeMagic(connpt);
+	connpt = next;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * efBuildConnect --
  *
  * Process a "connect" line from a .ext file.
+ * Creates a record of the area and type of the connection.  Since the
+ * extraction at the point of finding connections no longer knows what
+ * net in the celldef (if any) is part of the connection, only the
+ * location and type is preserved, and the cell being connected has to
+ * be recovered by a search on the celldef's layout.  These records are
+ * used only by "extresist".
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Allocates a new connection port record for extresist, and prepends
+ *	it to the list for def.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+efBuildConnect(def, llx, lly, urx, ury, layerName, upnodeName, downnodeName)
+    Def *def;
+    int llx, lly, urx, ury;
+    char *layerName;
+    char *upnodeName;
+    char *downnodeName;
+{
+    int tnew;
+    ConnectionPoint *connpt;
+    HashEntry *he;
+    Use *subuse;
+    char *hierptr, *qptr, *useid;
+
+    /* Can't do anything without a node name to connect to */
+    if (!strcmp(downnodeName, "\"None\"")) return;
+
+    /* "downnodeName" should be hierarchical;  stop at the first hierarchical
+     * divider and use the prefix to find the use being connected to.
+     * NOTE:  This will require dealing with connections that are more than
+     * one hierarchical level deep (to be done).
+     */
+    useid = downnodeName;
+    if (*useid == '"') useid++;
+    hierptr = strchr(useid, '/');
+    if (hierptr != NULL) *hierptr = '\0';
+    qptr = strrchr(useid, '"');
+    if (qptr != NULL) *qptr = '\0';
+
+    if (layerName)
+	tnew = efBuildAddStr(EFLayerNames, &EFLayerNumNames, MAXTYPES, layerName);
+    else
+	tnew = 0;
+
+    connpt = (ConnectionPoint *)mallocMagic(sizeof(ConnectionPoint));
+
+    he = HashFind(&def->def_uses, useid);
+    subuse = (Use *)HashGetValue(he);
+    connpt->conn_use = subuse;
+
+    connpt->conn_r.r_xbot = llx;
+    connpt->conn_r.r_ybot = lly;
+    connpt->conn_r.r_xtop = urx;
+    connpt->conn_r.r_ytop = ury;
+    connpt->conn_type = tnew;
+    if (!strcmp(upnodeName, "\"None\""))
+	connpt->conn_name = (char *)NULL;
+    else
+    {
+	if (*upnodeName == '"') upnodeName++;
+	connpt->conn_name = StrDup((char **)NULL, upnodeName);
+	if ((qptr = strrchr(connpt->conn_name, '"')) != NULL) *qptr = '\0';
+    }
+
+    /* To do:  Add "downnodeName" to the ConnectionPoint structure.  This
+     * may not be necessary, as it is only being used by "extresist" which
+     * is not using the extflat parser.
+     */ 
+
+    connpt->conn_next = def->def_connpts;
+    def->def_connpts = connpt;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * efBuildMerge --
+ *
+ * Process a "merge" line from a .ext file.
  * Creates a connection record for the names 'nodeName1' and
  * 'nodeName2'.
  *
@@ -1638,7 +1754,7 @@ efConnectionFreeLinkedList(Connection *conn)
  */
 
 void
-efBuildConnect(def, nodeName1, nodeName2, deltaC, av, ac)
+efBuildMerge(def, nodeName1, nodeName2, deltaC, av, ac)
     Def *def;		/* Def to which this connection is to be added */
     char *nodeName1;	/* Name of first node in connection */
     char *nodeName2;	/* Name of other node in connection */

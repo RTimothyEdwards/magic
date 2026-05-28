@@ -145,6 +145,8 @@ typedef struct conn
 #define conn_res	conn_value.conn_val_res
 #define conn_cap	conn_value.conn_val_cap
 
+typedef struct connpoint ConnectionPoint;
+
 /* -------------------------- Defs and uses --------------------------- */
 
 /* A Def exists for each .ext file */
@@ -162,6 +164,7 @@ typedef struct def
 	/* The following are all NULL-terminated lists */
 
     Connection	*def_conns;	/* Hierarchical connections/adjustments */
+    ConnectionPoint *def_connpts; /* Position of hierarchical connections */
     Connection	*def_caps;	/* Two-terminal capacitors */
     Connection	*def_resistors;	/* Two-terminal resistors */
     Kill	*def_kills;	/* Used to modify hierarchical structure
@@ -205,6 +208,17 @@ typedef struct use
 #define	use_ysep use_array.ar_ysep
 
 #define	IsArray(u)  ((u)->use_xlo!=(u)->use_xhi || (u)->use_ylo!=(u)->use_yhi)
+
+/* Connection point structure (used by "extresist") */
+
+typedef struct connpoint
+{
+    Use		*conn_use;		/* Use being connected to */
+    Rect	conn_r;			/* Area, edge, or point of connection */
+    int		conn_type;		/* A tile type at the connection */
+    char	*conn_name;		/* Top level name of node, or NULL */
+    struct connpoint *conn_next;	/* Next connection point in list */
+} ConnectionPoint;
 
 /* -------------------------------------------------------------------- */
 
@@ -307,7 +321,9 @@ extern void CapHashSetValue();
 extern DevParam *efGetDeviceParams();
 extern void efBuildNode();
 extern void efConnectionFreeLinkedList(Connection *conn);
+extern void efConnPointFreeLinkedList(ConnectionPoint *conn);
 extern void efBuildConnect();
+extern void efBuildMerge();
 extern void efBuildResistor();
 extern void efBuildCap();
 extern HierContext *EFFlatBuildOneLevel();

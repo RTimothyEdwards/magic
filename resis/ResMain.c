@@ -40,8 +40,7 @@ resNode			*resCurrentNode;
 int			ResTileCount = 0;	/* Number of tiles rn_status */
 extern ExtRegion 	*ResFirst();
 extern Tile		*FindStartTile();
-extern int		ResEachTile();
-TileTypeBitMask		ResSDTypesBitMask;
+TileTypeBitMask		ResTermTypesBitMask;
 TileTypeBitMask		ResSubTypesBitMask;
 
 extern HashTable	ResNodeTable;
@@ -100,7 +99,7 @@ ResInitializeConn()
  *
  *  ResGetReCell --
  *
- * 	This procedure makes sure that ResUse,ResDef
+ * 	This procedure makes sure that ResUse, ResDef
  *	have been properly initialized to refer to a cell definition
  *	named "__RESIS__".
  *
@@ -161,7 +160,7 @@ ResDissolveContacts(contacts)
 
 #ifdef PARANOID
 	if (conttype == TT_SPACE)
-	    TxError("Error in Contact Dissolving for %s \n",ResCurrentNode);
+	    TxError("Error in Contact Dissolving for %s \n", ResCurrentNode);
 #endif
 
 	/* Fill in details of the residue types for each contact type.
@@ -196,22 +195,38 @@ ResDissolveContacts(contacts)
     }
 }
 
+/* Structure used by ResMakeDriverSinkPorts() to pass information to
+ * ResAddPortFunc().  Contains a reference to a node, so that the
+ * link between the tile and the node can be maintained, and the
+ * driver or sink, which has the information about the position and
+ * tile type of the connection.
+ */
+
+typedef struct driversinkdata {
+    ResExtNode	*dsd_node;
+    ResConnect  *dsd_connect;
+} DriverSinkData;
+
 /*
  *---------------------------------------------------------------------------
  *
- *  ResMakePortBreakpoints --
+ *  ResMakeDriverSinkPorts --
  *
- *  Search for nodes which are ports, and force them to be breakpoints
- *  in the "resInfo" field of their respective tiles in ResUse.  This
- *  ensures that connected nodes that stretch between two ports will
- *  not be assumed to be "hanging" nodes.
+ *  Search through the list of node drivers and sinks (connections up
+ *  and down in the hierarchy), and make sure this information is
+ *  copied to the resInfo record of the tile(s) found at the connection.
  *
- *  Do the same thing for labels.
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Adds information to the resInfo clientData of tiles in def.
  *
  *----------------------------------------------------------------------------
  */
+
 void
-ResMakePortBreakpoints(def)
+ResMakeDriverSinkPorts(def)
     CellDef *def;
 {
     Plane	*plane;
@@ -220,21 +235,66 @@ ResMakePortBreakpoints(def)
     HashSearch  hs;
     HashEntry   *entry;
     ResExtNode  *node;
-    int ResAddBreakpointFunc();	/* Forward Declaration */
+    ResConnect  *rdriver, *rsink;
+    DriverSinkData dsd;
+    int ResAddPortFunc();	/* Forward Declaration */
 
     HashStartSearch(&hs);
     while((entry = HashNext(&ResNodeTable, &hs)) != NULL)
     {
 	node = (ResExtNode *)HashGetValue(entry);
-	if (node->status & PORTNODE)
+
+	for (rdriver = node->drivepoints; rdriver; rdriver = rdriver->rc_next)
 	{
-	    if (node->rs_ttype <= 0)
+	    if (rdriver->rc_type <= 0)
 	    {
 		TxError("Warning:  Label \"%s\" is unconnected.\n", node->name);
 		continue;
 	    }
 
-	    rect  = &(node->rs_bbox);
+	    rect = &(rdriver->rc_rect);
+
+	    /* If label is on a contact, the contact has been dissolved. */
+	    /* Assume that the uppermost residue is the port.  This may	 */
+	    /* not necessarily be the case.  Could do a boundary scan on */
+	    /* each residue plane to see which side of the contact is	 */
+	    /* the internal connection in the def. . .			 */
+
+	    if (DBIsContact(rdriver->rc_type))
+	    {
+		TileType type;
+
+		DBFullResidueMask(rdriver->rc_type, &mask);
+		for (type = DBNumUserLayers - 1; type >= TT_TECHDEPBASE; type--)
+		    if (TTMaskHasType(&mask, type))
+		    {
+			plane = def->cd_planes[DBPlane(type)];
+			break;
+		    }
+	    }
+	    else
+	    {
+		TTMaskSetOnlyType(&mask, rdriver->rc_type);
+		plane = def->cd_planes[DBPlane(rdriver->rc_type)];
+	    }
+
+	    dsd.dsd_connect = rdriver;
+	    dsd.dsd_node = node;
+	    (void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
+			ResAddPortFunc, (ClientData)&dsd);
+	}
+
+	/* Process sink points in the same way */
+
+	for (rsink = node->sinkpoints; rsink; rsink = rsink->rc_next)
+	{
+	    if (rsink->rc_type <= 0)
+	    {
+		TxError("Warning:  Label \"%s\" is unconnected.\n", node->name);
+		continue;
+	    }
+
+	    rect = &(rsink->rc_rect);
 
 	    /* Beware of zero-area ports */
 	    if (rect->r_xbot == rect->r_xtop)
@@ -254,11 +314,11 @@ ResMakePortBreakpoints(def)
 	    /* each residue plane to see which side of the contact is	 */
 	    /* the internal connection in the def. . .			 */
 
-	    if (DBIsContact(node->rs_ttype))
+	    if (DBIsContact(rsink->rc_type))
 	    {
 		TileType type;
 
-		DBFullResidueMask(node->rs_ttype, &mask);
+		DBFullResidueMask(rsink->rc_type, &mask);
 		for (type = DBNumUserLayers - 1; type >= TT_TECHDEPBASE; type--)
 		    if (TTMaskHasType(&mask, type))
 		    {
@@ -268,40 +328,122 @@ ResMakePortBreakpoints(def)
 	    }
 	    else
 	    {
-		TTMaskSetOnlyType(&mask, node->rs_ttype);
-		plane = def->cd_planes[DBPlane(node->rs_ttype)];
+		TTMaskSetOnlyType(&mask, rsink->rc_type);
+		plane = def->cd_planes[DBPlane(rsink->rc_type)];
 	    }
 
+	    dsd.dsd_connect = rsink;
+	    dsd.dsd_node = node;
 	    (void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
-			ResAddBreakpointFunc, (ClientData)node);
+			ResAddPortFunc, (ClientData)&dsd);
 	}
     }
 }
 
 /*
- *---------------------------------------------------------------------------
+ *----------------------------------------------------------------------------
  *
- *  ResMakeLabelBreakpoints --
+ * ResAddPortFunc --
  *
- *  Search for labels that are part of a node, and force them to be
- *  breakpoints in the "resInfo" field of their respective tiles in
- *  ResUse.  This ensures (among other things) that pins of a top level
- *  cell will be retained and become the endpoint of a net.
+ *	Add a portList entry to the "resInfo" structure of the tile.  The
+ *	portList entry keeps a record of the area of overlap or abutment
+ *	of the port, as well as a pointer to the resNode.
+ *
+ * Results:
+ *	Always returns 0;
+ *
+ * Side effects:
+ *	Adds information to a tile's "resInfo" clientData.
  *
  *----------------------------------------------------------------------------
  */
+
+int
+ResAddPortFunc(tile, dinfo, dsd)
+    Tile *tile;
+    TileType dinfo;		/* (unused) */
+    DriverSinkData *dsd;	/* Data for driver or sink */
+{
+    resPort *rp;
+    resInfo *pX;
+    Rect rect;
+    ResConnect *connect;
+    ResExtNode *node;
+
+    if (TiGetClient(tile) == CLIENTDEFAULT)
+	return 0;
+
+    /* To simplify processing, if a split tile does not have TT_SPACE
+     * on either side, then only the left side is processed.
+     */
+    if (IsSplit(tile))
+	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
+	    if (dinfo & TT_SIDE)
+		return 0;
+
+    node = dsd->dsd_node;
+    connect = dsd->dsd_connect;
+
+    TiToRect(tile, &rect);
+
+    pX = (resInfo *)TiGetClient(tile);
+
+    rp = (resPort *) mallocMagic((unsigned)(sizeof(resPort)));
+    rp->rp_nextPort = pX->portList;
+    rp->rp_bbox = connect->rc_rect;
+    rp->rp_loc = connect->rc_rect.r_ll;
+    rp->rp_connect = connect;
+    rp->rp_nodename = node->name;
+    pX->portList = rp;
+
+    return 0;
+}
+
+/* Structure used by ResMakeLabelPorts() to pass information to
+ * ResAddPortFunc().  Contains a reference to a node, so that the
+ * link between the tile and the node can be maintained, and the
+ * label, which has the information about the position and tile
+ * type of the label.
+ */
+
+typedef struct reslabeldata {
+    ResExtNode	*rld_node;
+    Label	*rld_label;
+    ResConnect  *rld_connect;
+} ResLabelData;
+
+/*
+ *---------------------------------------------------------------------------
+ *
+ * ResMakeLabelPorts --
+ *
+ *  Search for labels that are part of a node, and add them to the
+ *  portList linked list in the "resInfo" field of their respective tiles
+ *  in ResUse.  This ensures (among other things) that pins of a top level
+ *  cell will be retained and become the endpoint of a net.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Adds information to the resInfo clientData of tiles in def.
+ *
+ *----------------------------------------------------------------------------
+ */
+
 void
-ResMakeLabelBreakpoints(def, resisdata)
+ResMakeLabelPorts(def, resisdata)
     CellDef 	*def;
     ResisData   *resisdata;
 {
     Plane	*plane;
-    Rect	*rect;
     TileTypeBitMask mask;
     HashEntry   *entry;
     ResExtNode  *node;
+    ResConnect  *rdriver, *newsink;
     Label	*slab;
-    int ResAddBreakpointFunc();	/* Forward Declaration */
+    ResLabelData rld;
+    int ResAddLabelFunc();	/* Forward Declaration */
 
     for (slab = def->cd_labels; slab != NULL; slab = slab->lab_next)
     {
@@ -312,20 +454,26 @@ ResMakeLabelBreakpoints(def, resisdata)
 	entry = HashFind(&ResNodeTable, slab->lab_text);
 	node = ResExtInitNode(entry);
 
-	/* If the drivepoint position changes and the drivepoint is	*/
-	/* in the "resisdata" record, then make sure the tile type	*/
-	/* in "resisdata" gets changed to match.			*/
+	/* If there is an existing drivepoint at this location,	*/
+	/* then ignore it.					*/
 
-	if (resisdata->rg_devloc == &node->drivepoint)
+	for (rdriver = node->drivepoints; rdriver; rdriver = rdriver->rc_next)
+	{
+	    if (GEO_TOUCH(&slab->lab_rect, &rdriver->rc_rect))
+		break;
+	}
+	if (rdriver != NULL) break;
+
+	/* Add a new sinkpoint to the node where the label is */
+	newsink = (ResConnect *)mallocMagic(sizeof(ResConnect));
+	newsink->rc_next = node->sinkpoints;
+	node->sinkpoints = newsink;
+
+	if (GEO_ENCLOSE(resisdata->rg_devloc, &slab->lab_rect))
 	    resisdata->rg_ttype = slab->lab_type;
 
-        node->drivepoint = slab->lab_rect.r_ll;
-        node->rs_bbox = slab->lab_rect;
-        node->location = slab->lab_rect.r_ll;
-        node->rs_ttype = slab->lab_type;
-        node->type = slab->lab_type;
-
-	rect = &(node->rs_bbox);
+        newsink->rc_rect = slab->lab_rect;
+        newsink->rc_type = slab->lab_type;
 
 	/* If label is on a contact, the contact has been dissolved.	*/
 	/* Assume that the uppermost residue is the port.  This may	*/
@@ -351,29 +499,44 @@ ResMakeLabelBreakpoints(def, resisdata)
 		plane = def->cd_planes[DBPlane(slab->lab_type)];
 	}
 
-	(void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
-			ResAddBreakpointFunc, (ClientData)node);
-
+	rld.rld_node = node;
+	rld.rld_label = slab;
+	rld.rld_connect = newsink;
+	(void) DBSrPaintArea((Tile *) NULL, plane, &newsink->rc_rect, &mask,
+			ResAddLabelFunc, (ClientData)&rld);
     }
 }
 
 /*
  *----------------------------------------------------------------------------
  *
- * ResAddBreakpointFunc --
+ * ResAddLabelFunc --
  *
- *	Add a breakpoint to the "resInfo" structure of the tile
+ *	Add a portList entry to the "resInfo" structure of the tile.  The
+ *	portList entry keeps a record of the area of overlap or abutment
+ *	of the port, as well as a pointer to the resNode.
+ *
+ * Results:
+ *	Always returns 0;
+ *
+ * Side effects:
+ *	Adds information to a tile's "resInfo" clientData.
  *
  *----------------------------------------------------------------------------
  */
 
 int
-ResAddBreakpointFunc(tile, dinfo, node)
-   Tile *tile;
-   TileType dinfo;		/* (unused) */
-   ResExtNode *node;
+ResAddLabelFunc(tile, dinfo, rld)
+    Tile *tile;
+    TileType dinfo;		/* (unused) */
+    ResLabelData *rld;		/* Label and node data */
 {
-    resInfo *info;
+    resPort *rp;
+    resInfo *pX;
+    Rect rect;
+    Label *label;
+    ResExtNode *node;
+    ResConnect *connect;
 
     if (TiGetClient(tile) == CLIENTDEFAULT)
 	return 0;
@@ -386,11 +549,24 @@ ResAddBreakpointFunc(tile, dinfo, node)
 	    if (dinfo & TT_SIDE)
 		return 0;
 
-    NEWPORT(node, tile);
+    node = rld->rld_node;
+    label = rld->rld_label;
+    connect = rld->rld_connect;
+
+    TiToRect(tile, &rect);
+
+    pX = (resInfo *)TiGetClient(tile);
+
+    rp = (resPort *) mallocMagic((unsigned)(sizeof(resPort)));
+    rp->rp_nextPort = pX->portList;
+    rp->rp_bbox = label->lab_rect;
+    rp->rp_loc = label->lab_rect.r_ll;
+    rp->rp_connect = connect;
+    rp->rp_nodename = node->name;
+    pX->portList = rp;
 
     return 0;
 }
-
 
 /*
  *---------------------------------------------------------------------------
@@ -522,8 +698,8 @@ ResFindNewContactTiles(contacts)
 
 int
 ResProcessTiles(resisdata, origin)
-    Point	*origin;
     ResisData	*resisdata;
+    Point	*origin;
 
 {
     Tile 	*startTile;
@@ -541,7 +717,8 @@ ResProcessTiles(resisdata, origin)
         if (startTile == NULL)
 	    return 1;
 	resCurrentNode = NULL;
-	(void) ResEachTile(startTile, origin);
+	ResStartTile(startTile, origin->p_x, origin->p_y);
+	(void) ResEachTile(startTile);
     }
 #ifdef PARANOID
     else
@@ -578,7 +755,7 @@ ResProcessTiles(resisdata, origin)
 		    if ((ri->ri_status & RES_TILE_DONE) == 0)
 		    {
 			resCurrentNode = resptr2;
-			merged |= ResEachTile(tile, (Point *)NULL);
+			merged |= ResEachTile(tile);
 		    }
 		}
 		rj->rj_status = TRUE;
@@ -604,7 +781,7 @@ ResProcessTiles(resisdata, origin)
 			if (cp->cp_cnode[tilenum] == resptr2)
 			{
 			    resCurrentNode = resptr2;
-			    merged |= ResEachTile(tile, (Point *)NULL);
+			    merged |= ResEachTile(tile);
 			}
 			else
 			{
@@ -687,7 +864,7 @@ ResCalcPerimOverlap(tile, dev)
     }
 
     /* right */
-    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
+    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
     {
 	if TTMaskHasType(omask, TiGetLeftType(tp))
 	    overlap += MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
@@ -701,7 +878,7 @@ ResCalcPerimOverlap(tile, dev)
     }
 
     /* bottom */
-    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
+    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
     {
 	if TTMaskHasType(omask, TiGetTopType(tp))
 	      overlap += MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
@@ -1086,15 +1263,22 @@ ResExtractNet(node, resisdata, cellname)
 
     /* Copy Paint */
 
-    /* If the node location is INFINITY, then use the rs_bbox */
+    /* If the node location is INFINITY, then use the first drivepoint */
 
     if ((node->location.p_x == INFINITY) || (node->location.p_y == INFINITY))
     {
-	scx.scx_area.r_ll.p_x = node->rs_bbox.r_xbot;
-	scx.scx_area.r_ll.p_y = node->rs_bbox.r_ybot;
-	scx.scx_area.r_ur.p_x = node->rs_bbox.r_xtop;
-	scx.scx_area.r_ur.p_y = node->rs_bbox.r_ytop;
-	startpoint = node->drivepoint;
+	ResConnect *rdriver = node->drivepoints;
+	if (rdriver)
+	{
+	    scx.scx_area.r_ll.p_x = rdriver->rc_rect.r_xbot - 2;
+	    scx.scx_area.r_ll.p_y = rdriver->rc_rect.r_ybot - 2;
+	    scx.scx_area.r_ur.p_x = rdriver->rc_rect.r_xtop + 2;
+	    scx.scx_area.r_ur.p_y = rdriver->rc_rect.r_ytop + 2;
+	    startpoint.p_x = (rdriver->rc_rect.r_xtop + rdriver->rc_rect.r_xbot) / 2;
+	    startpoint.p_y = (rdriver->rc_rect.r_ytop + rdriver->rc_rect.r_ybot) / 2;
+	}
+	else
+	    TxError("Internal error:  Node location is set to infinity.\n");
     }
     else
     {
@@ -1117,13 +1301,40 @@ ResExtractNet(node, resisdata, cellname)
 	DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
 					SEL_DO_LABELS, ResUse);
     }
+    else if (node->drivepoints)
+    {
+	/* Use the first valid drivepoint */
+	ResConnect *drivepoint = node->drivepoints;
+	while (drivepoint && (drivepoint->rc_type == TT_SPACE))
+	    drivepoint = drivepoint->rc_next;
+	if (drivepoint)
+	{
+	    TTMaskZero(&FirstTileMask);
+	    TTMaskSetMask(&FirstTileMask, &DBConnectTbl[drivepoint->rc_type]);
 
-    TTMaskZero(&ResSDTypesBitMask);
+	    DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
+					SEL_DO_LABELS, ResUse);
+	}
+	else
+	{
+	    TxError("Node %s:  Did not find the net layout at any drivepoint.\n",
+			node->name);
+	    return TRUE;
+	}
+    }
+    else
+    {
+	TxError("Node %s:  Did not find the net layout at node location (%d %d).\n",
+		node->name, node->location.p_x, node->location.p_y);
+	return TRUE;
+    }
+
+    TTMaskZero(&ResTermTypesBitMask);
     TTMaskZero(&ResSubTypesBitMask);
 
     /* Add devices to ResUse from list in node */
     DevTiles = NULL;
-    for (tptr = node->firstDev; tptr; tptr = tptr->nextDev)
+    for (tptr = node->devices; tptr; tptr = tptr->nextDev)
     {
 	int result;
 	int i;
@@ -1155,13 +1366,13 @@ ResExtractNet(node, resisdata, cellname)
 	TTMaskSetOnlyType(&tMask, thisDev->type);
 	DBTreeSrTiles(&scx, &tMask, 0, resExpandDevFunc, (ClientData)thisDev);
 
-	/* If the device has source/drain types in a different plane than   */
-	/* the device identifier type, then add the source/drain types to   */
-	/* the mask ResSDTypesBitMask.					    */
+	/* If the device has terminal types in a different plane than	*/
+	/* the device identifier type, then add the terminal types to	*/
+	/* the mask ResTermTypesBitMask.				*/
 
 	devptr = tptr->thisDev->rs_devptr;
 	for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
-	    TTMaskSetMask(&ResSDTypesBitMask, &devptr->exts_deviceSDTypes[i]);
+	    TTMaskSetMask(&ResTermTypesBitMask, &devptr->exts_deviceSDTypes[i]);
 
 	/* Add the substrate types to the mask ResSubTypesBitMask	    */
 	TTMaskSetMask(&ResSubTypesBitMask, &devptr->exts_deviceSubstrateTypes);
@@ -1227,8 +1438,8 @@ ResExtractNet(node, resisdata, cellname)
      * cell.
      */
 
-    ResMakePortBreakpoints(ResUse->cu_def);
-    ResMakeLabelBreakpoints(ResUse->cu_def, resisdata);
+    ResMakeDriverSinkPorts(ResUse->cu_def);
+    ResMakeLabelPorts(ResUse->cu_def, resisdata);
 
     /* Finish preprocessing. */
 
@@ -1428,13 +1639,13 @@ FindStartTile(resisdata, SourcePoint)
 
 	    if (workingPoint.p_x == LEFT(tile))
 	    {
-		for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
+		for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 		    if (TiGetRightType(tp) == resisdata->rg_ttype)
 			return(tp);
 	    }
 	    else if (workingPoint.p_y == BOTTOM(tile))
 	    {
-		for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
+		for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 		    if (TiGetTopType(tp) == resisdata->rg_ttype)
 			return(tp);
 	    }
@@ -1491,7 +1702,7 @@ FindStartTile(resisdata, SourcePoint)
 			TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
 		{
 		    SourcePoint->p_x = LEFT(tile);
-		    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp)) +
+		    SourcePoint->p_y = (MIN(TOP(tile), TOP(tp)) +
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 		    return(tp);
 		}
@@ -1534,7 +1745,7 @@ FindStartTile(resisdata, SourcePoint)
 			TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
 		{
 		    SourcePoint->p_y = TOP(tile);
-		    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp)) +
+		    SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 		    return(tp);
 		}
@@ -1590,7 +1801,7 @@ FindStartTile(resisdata, SourcePoint)
 				TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
 			{
 			    SourcePoint->p_x = LEFT(tile);
-			    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp)) +
+			    SourcePoint->p_y = (MIN(TOP(tile), TOP(tp)) +
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 			    while (!StackEmpty(devStack))
 			    {
@@ -1658,7 +1869,7 @@ FindStartTile(resisdata, SourcePoint)
 				TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
 			{
 			    SourcePoint->p_y = TOP(tile);
-			    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp)) +
+			    SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
 			   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 			    while (!StackEmpty(devStack))
 			    {

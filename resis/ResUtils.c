@@ -604,7 +604,7 @@ ResAddPlumbing(tile, dinfo, arg)
 		    }
 		}
 		/* bottom */
-		for(tp2 = LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
+		for (tp2 = LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
 		{
 		    resInfo *re2 = (resInfo *) TiGetClientPTR(tp2);
 		    if (TiGetTopType(tp2) == t1)

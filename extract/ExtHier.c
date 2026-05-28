@@ -281,6 +281,13 @@ extHierSubstrate(ha, use, x, y)
 	    nn->nn_next = node2->node_names->nn_next;
 	    node2->node_names->nn_next = node1->node_names;
 	    node2->node_len += node1->node_len;
+	    if (node2->node_ports)
+	    {
+		ExtConnList *nport;
+		for (nport = node2->node_ports; nport && nport->r_next;
+				nport = nport->r_next);
+		if (nport) nport->r_next = node1->node_ports;
+	    }
 	    freeMagic((char *)node1);
 	}
 	else
@@ -294,6 +301,13 @@ extHierSubstrate(ha, use, x, y)
 	    nn->nn_next = node1->node_names;
 	    node1->node_names = node2->node_names;
 	    node1->node_len += node2->node_len;
+	    if (node1->node_ports)
+	    {
+		ExtConnList *nport;
+		for (nport = node1->node_ports; nport && nport->r_next;
+				nport = nport->r_next);
+		if (nport) nport->r_next = node2->node_ports;
+	    }
 	    freeMagic((char *)node2);
 	}
     }
@@ -499,6 +513,13 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 	    		nn->nn_next = node2->node_names->nn_next;
 	    		node2->node_names->nn_next = node1->node_names;
 			node2->node_len += node1->node_len;
+			if (node2->node_ports)
+			{
+			    ExtConnList *nport;
+			    for (nport = node2->node_ports; nport && nport->r_next;
+					nport = nport->r_next);
+			    if (nport) nport->r_next = node1->node_ports;
+			}
 		    	freeMagic((char *) node1);
 		    }
 		    else
@@ -514,6 +535,13 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 		    	nn->nn_next = node1->node_names;
 		    	node1->node_names = node2->node_names;
 			node1->node_len += node2->node_len;
+			if (node1->node_ports)
+			{
+			    ExtConnList *nport;
+			    for (nport = node1->node_ports; nport && nport->r_next;
+					nport = nport->r_next);
+			    if (nport) nport->r_next = node2->node_ports;
+			}
 		    	freeMagic((char *) node2);
 		    }
 		}
@@ -523,6 +551,48 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 }
 
 /*
+ *------------------------------------------------------------------------
+ *
+ * extHierFindTopNode --
+ *
+ * Simple callback function used in extHierConnectFunc2() to retrieve
+ * the node name of a node in the CellDef being extracted at a specific
+ * point.  If there is no node at that point (indicating that there is
+ * paint in a subcell at that location but no paint in the top level
+ * cell) then return NULL.
+ *
+ * Returns:
+ *	1 if a node is found, otherwise 0 to keep the search going.
+ *
+ * Side effects:
+ *	A pointer to the node is returned in the clientData field.
+ *
+ *------------------------------------------------------------------------
+ */
+
+int
+extHierFindTopNode(Tile *tile,
+	TileType dinfo,
+	ExtRegion **nreg)
+{
+    ExtRegion *tireg;
+
+    tireg = (ExtRegion *)ExtGetRegion(tile, dinfo);
+    if ((ClientData)tireg == CLIENTDEFAULT)
+    {
+	*nreg = (ExtRegion *)0;
+	return 0;
+    }
+    else
+    {
+	*nreg = tireg;
+	return 1;
+    }
+}
+
+/*
+ *------------------------------------------------------------------------
+ *
  * extHierConnectFunc2 --
  *
  * Called once for each tile 'cum' in extHierCumFlat->et_use->cu_def
@@ -538,6 +608,8 @@ extHierConnectFunc1(oneTile, dinfo, ha)
  *	if the types of ha->hierOneTile and 'cum' connect.
  *	Otherwise, if the tiles actually overlap (as opposed
  *	to merely abut), mark it with feedback as an error.
+ *
+ *------------------------------------------------------------------------
  */
 
 int
@@ -608,6 +680,53 @@ extHierConnectFunc2(cum, dinfo, ha)
 
 	if (node1 != node2)
 	{
+	    ExtConnList *newport;
+	    int pNum;
+
+	    if (ExtOptions & EXT_DOEXTRESIST)
+	    {
+		NodeRegion *topnode = NULL;
+
+		/* Record the area of connection for both nodes in their
+		 * respective coordinate systems, and the name of the
+		 * cell use to which the connection is made.
+		 */
+		newport = (ExtConnList *)mallocMagic(sizeof(ExtConnList));
+		newport->r_r = r;
+		newport->r_type = ttype;
+		newport->r_useid = ha->ha_subUse->cu_id;
+
+		/* Find a node at the given location in et_lookNames (the
+		 * original CellDef being extracted).  If there is no node
+		 * in the def itself then the entry is NULL.
+		 */
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    if (TTMaskHasType(&DBPlaneTypes[pNum], ttype))
+		    {
+			/* Make sure that the rect is not zero area */
+			if (r.r_xtop == r.r_xbot)
+			{
+			    r.r_xtop++;
+			    r.r_xbot--;
+			}
+			if (r.r_ytop == r.r_ybot)
+			{
+			    r.r_ytop++;
+			    r.r_ybot--;
+			}
+
+			DBSrPaintArea((Tile *)NULL,
+				ha->ha_cumFlat.et_lookNames->cd_planes[pNum],
+				&r, &DBConnectTbl[ttype], extHierFindTopNode,
+				(ClientData)PTR2CD(&topnode));
+			newport->r_upnode = PTR2CD(topnode);
+
+			newport->r_downnode = PTR2CD(node2->node_names);
+		    }
+		}
+	    }
+
 	    if (node1->node_len < node2->node_len)
 	    {
 	    	/*
@@ -622,6 +741,12 @@ extHierConnectFunc2(cum, dinfo, ha)
 	    	node2->node_names->nn_next = node1->node_names;
 	        node2->node_len += node1->node_len;
 	        freeMagic((char *) node1);
+
+		if (ExtOptions & EXT_DOEXTRESIST)
+		{
+		    newport->r_next = node2->node_ports;
+		    node2->node_ports = newport;
+		}
 	    }
 	    else
 	    {
@@ -637,6 +762,12 @@ extHierConnectFunc2(cum, dinfo, ha)
 	        node1->node_names = node2->node_names;
 	        node1->node_len += node2->node_len;
 	        freeMagic((char *) node2);
+
+		if (ExtOptions & EXT_DOEXTRESIST)
+		{
+		    newport->r_next = node1->node_ports;
+		    node1->node_ports = newport;
+		}
 	    }
 	}
     }
@@ -733,6 +864,13 @@ extHierConnectFunc3(cum, dinfo, ha)
 	    	nn->nn_next = node2->node_names->nn_next;
 	    	node2->node_names->nn_next = node1->node_names;
 	    	node2->node_len += node1->node_len;
+		if (node2->node_ports)
+		{
+		    ExtConnList *nport;
+		    for (nport = node2->node_ports; nport && nport->r_next;
+				nport = nport->r_next);
+		    if (nport) nport->r_next = node1->node_ports;
+		}
 	    	freeMagic((char *) node1);
 	    }
 	    else
@@ -748,6 +886,13 @@ extHierConnectFunc3(cum, dinfo, ha)
 	    	nn->nn_next = node1->node_names;
 	    	node1->node_names = node2->node_names;
 	    	node1->node_len += node2->node_len;
+		if (node1->node_ports)
+		{
+		    ExtConnList *nport;
+		    for (nport = node1->node_ports; nport && nport->r_next;
+				nport = nport->r_next);
+		    if (nport) nport->r_next = node2->node_ports;
+		}
 	    	freeMagic((char *) node2);
 	    }
 	}
@@ -916,6 +1061,7 @@ extOutputConns(table, outf)
     NodeName *nfirst;
     HashSearch hs;
     HashEntry *he;
+    ExtConnList *nport, *npnext;
 
     HashStartSearch(&hs);
     while ((he = HashNext(table, &hs)))
@@ -948,7 +1094,6 @@ extOutputConns(table, outf)
 				node->node_pa[n].pa_area,
 				node->node_pa[n].pa_perim);
 		fprintf(outf, "\n");
-
 		nn->nn_node = (Node *) NULL;		/* Processed */
 
 		/* Subsequent merges */
@@ -960,6 +1105,23 @@ extOutputConns(table, outf)
 		}
 	    }
 	    nn->nn_node = (Node *) NULL;
+	    for (nport = node->node_ports; nport;)
+	    {
+		LabRegion *lreg = (LabRegion *)CD2PTR(nport->r_upnode);
+		NodeName *nn2 = (NodeName *)CD2PTR(nport->r_downnode);
+
+		npnext = nport->r_next;
+		/* Output port positions */
+		fprintf(outf, "connect %d %d %d %d %s \"%s\" \"%s\"\n",
+			nport->r_r.r_xbot, nport->r_r.r_ybot,
+			nport->r_r.r_xtop, nport->r_r.r_ytop,
+			DBTypeShortName(nport->r_type),
+			(lreg == (LabRegion *)NULL) ? "None" :
+				extNodeName(lreg),
+			(nn2) ? nn2->nn_name : "None");
+		freeMagic((char *)nport);
+		nport = npnext;
+	    }
 	    freeMagic((char *) node);
 	}
 	freeMagic((char *) nfirst);
@@ -1005,6 +1167,7 @@ extHierNewNode(he)
     node->node_names = nn;
     node->node_cap = (CapValue) 0;
     node->node_len = 1;
+    node->node_ports = (ExtConnList *)NULL;
     for (n = 0; n < nclasses; n++)
 	node->node_pa[n].pa_perim = node->node_pa[n].pa_area = 0;
     HashSetValue(he, (char *) nn);

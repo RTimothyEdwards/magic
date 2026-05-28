@@ -88,6 +88,19 @@ typedef struct device
 } resDevice;
 
 /*
+ * A resConnect maintains a location and tile type of a connections up
+ * (driver) or down (sink), a tile type that makes the connection, and
+ * a link to the resNode that must exist at the point of connection.
+ */
+typedef struct resconnect
+{
+    TileType		rc_type;
+    Rect		rc_rect;
+    struct resnode	*rc_node;
+    struct resconnect	*rc_next;
+} ResConnect;
+
+/*
  * A junction is formed when two tiles that connect are next to one another.
  */
 
@@ -108,9 +121,10 @@ typedef struct junction
 typedef struct resport
 {
      struct resport *rp_nextPort;
-     Rect	    rp_bbox;
-     Point	    rp_loc;
      char 	    *rp_nodename;
+     ResConnect     *rp_connect;
+     Rect	     rp_bbox;
+     Point	     rp_loc;
 } resPort;
 
 /*
@@ -328,17 +342,13 @@ typedef struct resextnode
     float 		cap_couple;	/* Coupling capacitance 	  */
     float		resistance;     /* Lumped resistance 		  */
     float		minsizeres;	/* Minimum size resistor allowed  */
-    Point		drivepoint;	/* optional, user specified drive */
-     					/* point for network.		  */
-    TileType		rs_ttype;	/* Tiletype of drivepoint	  */
+    ResConnect		*drivepoints;	/* Upward connections		  */
+    ResConnect		*sinkpoints;	/* Downward connections		  */
     Point		location;	/* Location of bottom of leftmost */
 					/* tile in the lowest numbered    */
 					/* plane contained in the node.	  */
-    Rect		rs_bbox;	/* Location of bottom of leftmost */
-					/* tile in the lowest numbered    */
-					/* plane contained in the node.	  */
     TileType		type;		/* Tile type of tile at location  */
-    struct devptr	*firstDev;	/* Linked list of devices	  */
+    struct devptr	*devices;	/* Linked list of devices	  */
      					/* connected to node.		  */
     char		*name;		/* Pointer to name of node stored */
      					/* in hash table.		  */
@@ -518,7 +528,7 @@ extern ResFixPoint		*ResFixList;
 extern int			ResTileCount;
 extern ResExtNode		**ResNodeArray;
 extern CellDef			*mainDef;
-extern TileTypeBitMask		ResSDTypesBitMask;
+extern TileTypeBitMask		ResTermTypesBitMask;
 extern TileTypeBitMask		ResSubTypesBitMask;
 extern	HashTable		ResDevTable;
 extern TileTypeBitMask		ResNoMergeMask[NT];
@@ -533,6 +543,7 @@ extern int	      		ResReadResistor();
 extern int	      		ResReadAttribute();
 extern int			ResReadMerge();
 extern int			ResReadSubckt();
+extern int			ResReadParentExt();
 
 extern int			ResProcessNode();
 extern int	      		ResExtCombineParallel();
@@ -553,12 +564,16 @@ extern void			ResFixDevName();
 extern void			ResWriteLumpFile();
 extern int			ResSortBreaks();
 extern Plane			*extResPrepSubstrate();
+extern bool			ResEachTile();
+extern void			ResStartTile();
+
 
 /* C99 compat */
 
 extern void ExtResisForDef(CellDef *celldef, ResisData *resisdata);
 extern char *ResExtGetAttribute(char *sptr);
 extern int ResReadFET(int argc, char *argv[]);
+extern int ResReadConnectPoint(CellDef *def, int argc, char *argv[]);
 extern int ResReadPort(int argc, char *argv[]);
 extern char *ResExtGetAttribute(char *sptr);
 
@@ -575,7 +590,7 @@ extern void ResEliminateResistor();
 extern bool ResExtractNet();
 extern int  ResFracture();
 extern void ResMergeNodes();
-extern void ResNewSDDevice();
+extern void ResNewTermDevice();
 extern void ResNewSubDevice();
 extern void ResPreProcessDevices();
 extern void ResPrintDeviceList();
@@ -604,59 +619,8 @@ extern int  resWalkleft();
 extern int  resWalkright();
 extern int  resWalkup();
 
-/* Macros */
-
-#define InitializeResNode(node,x,y,why) \
-{\
-	  (node)->rn_te = NULL;\
-	  (node)->rn_id=0;\
-	  (node)->rn_float.rn_area = 0.0;\
-	  (node)->rn_name = NULL;\
-	  (node)->rn_client = (ClientData)NULL;\
-	  (node)->rn_noderes = RES_INFINITY;\
-	  (node)->rn_je = NULL;\
-	  (node)->rn_status = FALSE;\
-	  (node)->rn_loc.p_x = (x);\
-	  (node)->rn_loc.p_y = (y);\
-	  (node)->rn_why = (why);\
-	  (node)->rn_ce = (cElement *) NULL;\
-	  (node)->rn_re = (resElement *) NULL;\
-}
-
-#define ResInfoInit(Info) \
-{  \
-          Info->contactList = (cElement *) NULL; \
-          Info->deviceList = (resDevice *) NULL; \
-          Info->junctionList = (ResJunction *) NULL; \
-          Info->breakList = (Breakpoint *) NULL; \
-	  Info->portList = (resPort *) NULL; \
-          Info->ri_status = FALSE; \
-	  Info->sourceEdge = 0 ; \
-}
-
-#define NEWBREAK(node,tile,px,py,crect)\
-{\
-	Breakpoint	*bp;\
-	resInfo *jX_ = (resInfo *)((tile)->ti_client); \
-	bp = (Breakpoint *) mallocMagic((unsigned)(sizeof(Breakpoint))); \
-        bp->br_next= jX_->breakList; \
-	bp->br_this = (node); \
-	bp->br_loc.p_x = px; \
-	bp->br_loc.p_y = py; \
-        bp->br_crect = (Rect *) (crect); \
-	jX_->breakList = bp; \
-}
-
-#define NEWPORT(node,tile)\
-{\
-	resPort		*rp;\
-	resInfo *pX_ = (resInfo *)((tile)->ti_client); \
-	rp = (resPort *) mallocMagic((unsigned)(sizeof(resPort))); \
-	rp->rp_nextPort = pX_->portList; \
-	rp->rp_bbox = node->rs_bbox; \
-	rp->rp_loc = node->drivepoint; \
-	rp->rp_nodename = node->name; \
-	pX_->portList = rp; \
-}
+extern void InitializeResNode();
+extern void ResInfoInit();
+extern void ResNewBreak();
 
 #endif /* _MAGIC__RESIS__RESIS_H */

@@ -275,15 +275,11 @@ readfile:
 		efBuildCap(def, argv[1], argv[2], (double) cap);
 		break;
 
-	    /* subcap node capacitance */
-	    case SUBCAP:
-		cap = cscale*atoCap(argv[2]);
-		efAdjustSubCap(def, argv[1], cap);
-		break;
-
-	    /* equiv node1 node2 */
-	    case EQUIV:
-		efBuildEquiv(def, argv[1], argv[2], resist, isspice);
+	    /* connect useid llx lly urx ury type "node" ... */
+	    case CONNECT:
+		efBuildConnect(def, atoi(argv[1]), atoi(argv[2]),
+				atoi(argv[3]), atoi(argv[4]), argv[5],
+				argv[6], argv[7]);
 		break;
 
 	    /* replaces "fet" (below) */
@@ -344,6 +340,11 @@ readfile:
 		}
 		break;
 
+	    /* equiv node1 node2 */
+	    case EQUIV:
+		efBuildEquiv(def, argv[1], argv[2], resist, isspice);
+		break;
+
 	    /* for backwards compatibility */
 	    /* fet type xlo ylo xhi yhi area perim substrate GATE T1 T2 ... */
 	    case FET:
@@ -373,7 +374,7 @@ readfile:
 		*/
 
 		cap = (argc > 3) ? atoCap(argv[3]) * cscale : 0;
-		efBuildConnect(def, argv[1], argv[2], (double)cap, &argv[4], argc - 4);
+		efBuildMerge(def, argv[1], argv[2], (double)cap, &argv[4], argc - 4);
 		break;
 
 	    /* node name R C x y layer a1 p1 a2 p2 ... [ attrs ] */
@@ -447,6 +448,12 @@ resistChanged:
 			efReadError("Resistance class values don't match:\n");
 			goto resistChanged;
 		    }
+		break;
+
+	    /* subcap node capacitance */
+	    case SUBCAP:
+		cap = cscale*atoCap(argv[2]);
+		efAdjustSubCap(def, argv[1], cap);
 		break;
 
 	    /* use def use-id T0 .. T5 */

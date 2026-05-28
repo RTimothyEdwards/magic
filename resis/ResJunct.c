@@ -29,23 +29,28 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /*
  *-------------------------------------------------------------------------
  *
- * ResNewSDDevice -- called when a device is reached via a piece of
- *			 diffusion. (Devices  reached via poly, i.e.
- *			 gates, are handled by ResEachTile.)
+ * ResNewTermDevice --
  *
- * Results:none
+ *	Called when a device is reached via a type in the device's
+ *	terminal type list (e.g., diffusion, for MOSFETs).  Note that
+ *	devices reached by the device type (e.g., poly, for MOSFETs)
+ *	are handled by ResEachTile.
  *
- * Side Effects: determines to which terminal (source or drain) node
- * is connected. Makes new node if node hasn't already been created .
- * Allocates breakpoint in current tile for device.
+ * Results:
+ *	None
+ *
+ * Side Effects:
+ *	Determines to which terminal (source or drain) node is connected.
+ *	Makes new node if node hasn't already been created.  Allocates
+ *	breakpoint in current tile for device.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResNewSDDevice(tile, tp, xj, yj, direction, PendingList)
+ResNewTermDevice(tile, tp, n, xj, yj, direction, PendingList)
     Tile 	*tile, *tp;
-    int 	xj, yj, direction;
+    int 	n, xj, yj, direction;
     resNode	**PendingList;
 {
     resNode	*resptr = NULL;
@@ -97,9 +102,7 @@ ResNewSDDevice(tile, tp, xj, yj, direction, PendingList)
 	ResAddToQueue(resptr, PendingList);
     }
     if (resptr != NULL)
-    {
-	NEWBREAK(resptr, tile, xj, yj, NULL);
-    }
+	ResNewBreak(resptr, tile, xj, yj, NULL);
 }
 
 /*
@@ -149,7 +152,7 @@ ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
 	resptr->rn_te = tcell;
 	ResAddToQueue(resptr, PendingList);
     }
-    NEWBREAK(resptr, tile, xj, yj, NULL);
+    ResNewBreak(resptr, tile, xj, yj, NULL);
 }
 
 /*
@@ -207,10 +210,10 @@ ResProcessJunction(tile, tp, xj, yj, NodeList)
     junction->rj_nextjunction[1] = ri2->junctionList;
     ri2->junctionList = junction;
 
-    NEWBREAK(junction->rj_jnode,tile, junction->rj_loc.p_x, 
+    ResNewBreak(junction->rj_jnode, tile, junction->rj_loc.p_x, 
 		    junction->rj_loc.p_y, NULL);
 
-    NEWBREAK(junction->rj_jnode,tp, junction->rj_loc.p_x,
+    ResNewBreak(junction->rj_jnode, tp, junction->rj_loc.p_x,
 		    junction->rj_loc.p_y, NULL);
 
 }

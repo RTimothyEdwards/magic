@@ -578,6 +578,20 @@ typedef struct extRectList
    struct extRectList *r_next;
 } ExtRectList;
 
+/* Structure similar to the above, but adding a pointer to a cell use ID
+ * and a client data record which can be used to hold a region pointer.
+ */
+
+typedef struct extConnList
+{
+   char *r_useid;		/* Cell Use being connected to */
+   TileType r_type;		/* Connecting tile type in the parent */
+   Rect r_r;			/* Area of connection */
+   ClientData r_upnode;		/* Parent node making the connection */
+   ClientData r_downnode;	/* Child node making the connection */
+   struct extConnList *r_next;	/* Next item in the linked list */
+} ExtConnList;
+
 /* -------------------- Search context information -------------------- */
 
 /* Search contexts are used in hierarchical searches */

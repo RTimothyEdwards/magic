@@ -54,12 +54,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* C99 compat */
 #include "drc/drc.h"
 
-#ifdef	exactinteractions
 /*
- * If "exactinteractions" is defined, we use an experimental algorithm
- * for finding exact interaction areas.  Currently it doesn't work too
- * well, so we leave it turned off.
+ * If "exactinteractions" is defined, use an experimental algorithm
+ * for finding exact interaction areas.  Currently it doesn't work
+ * too well, so it is disabled.
  */
+/* #define exactinteractions */
+
+#ifdef	exactinteractions
 int ExtInterBloat = 10;
 #endif	/* exactinteractions */
 

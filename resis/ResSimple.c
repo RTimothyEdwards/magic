@@ -389,9 +389,9 @@ ResMoveDevices(node1, node2)
    	    device->rd_fet_gate = node2;
 	else if (device->rd_fet_subs == node1)
    	    device->rd_fet_subs = node2;
-	else if (device->rd_fet_source == node1)
+	else if ((device->rd_nterms > 2) && (device->rd_fet_source == node1))
 	    device->rd_fet_source = node2;
-	else if (device->rd_fet_drain == node1)
+	else if ((device->rd_nterms > 3) && (device->rd_fet_drain == node1))
   	    device->rd_fet_drain = node2;
 	else
 	    TxError("Missing Device connection in squish routines"
@@ -707,7 +707,7 @@ ResDistributeCapacitance(nodelist, totalcap)
 
     for (workingNode = nodelist; workingNode != NULL; workingNode = workingNode->rn_more)
     {
-     	for (rptr = workingNode->rn_re; rptr != NULL; rptr=rptr->re_nextEl)
+     	for (rptr = workingNode->rn_re; rptr != NULL; rptr = rptr->re_nextEl)
 	    if (rptr->re_thisEl->rr_float.rr_area != 0.0)
 		TxError("Nonnull resistor area\n");
 
@@ -920,7 +920,7 @@ ResPruneTree(node, minTdi, nodelist1, nodelist2, resistorlist)
  */
 
 int
-ResDoSimplify(tolerance,resisdata)
+ResDoSimplify(tolerance, resisdata)
     float	tolerance;
     ResisData 	*resisdata;
 

@@ -90,6 +90,7 @@ ExtResisForDef(celldef, resisdata)
     HashSearch hs;
     HashEntry  *entry;
     devPtr     *tptr, *oldtptr;
+    ResConnect *sptr, *snext;
     ResExtNode  *node;
     int                result, idx;
     char       *devname;
@@ -137,8 +138,8 @@ ExtResisForDef(celldef, resisdata)
     HashStartSearch(&hs);
     while((entry = HashNext(&ResNodeTable, &hs)) != NULL)
     {
-	node=(ResExtNode *) HashGetValue(entry);
-	tptr = node->firstDev;
+	node = (ResExtNode *) HashGetValue(entry);
+	tptr = node->devices;
 	if (node == NULL)
 	{
 	    TxError("Error:  NULL Hash entry!\n");
@@ -149,6 +150,18 @@ ExtResisForDef(celldef, resisdata)
 	    oldtptr = tptr;
 	    tptr = tptr->nextDev;
 	    freeMagic((char *)oldtptr);
+	}
+	for (sptr = node->drivepoints; sptr; )
+	{
+	    snext = sptr->rc_next;
+	    freeMagic((char *)sptr);
+	    sptr = snext;
+	}
+	for (sptr = node->sinkpoints; sptr; )
+	{
+	    snext = sptr->rc_next;
+	    freeMagic((char *)sptr);
+	    sptr = snext;
 	}
 	freeMagic((char *) node);
     }
@@ -749,6 +762,7 @@ resPortFunc(scx, lab, tpath, result)
     Point portloc;
     HashEntry *entry;
     ResExtNode *node;
+    ResConnect *newdriver;
 
     // Ignore the top level cell
     if (scx->scx_use->cu_id == NULL) return 0;
@@ -803,12 +817,15 @@ resPortFunc(scx, lab, tpath, result)
 		/* Digital outputs are drivers */
 		if (pclass == PORT_CLASS_OUTPUT) node->status |= FORCE;
 
-		node->drivepoint = portloc;
+		/* Create new node drivepoint */
+		newdriver = (ResConnect *)mallocMagic(sizeof(ResConnect));
+
+		newdriver->rc_type = lab->lab_type;
+		newdriver->rc_rect = r;
+		newdriver->rc_next = node->drivepoints;
+		node->drivepoints = newdriver;
+
 		node->status |= DRIVELOC | PORTNODE;
-		node->rs_bbox = r;
-		node->location = portloc;
-		node->rs_ttype = lab->lab_type;
-		node->type = lab->lab_type;
 
 		*result = 0;
 		freeMagic(nodename);
@@ -884,33 +901,16 @@ int
 ResCheckPorts(cellDef)
     CellDef *cellDef;
 {
-    Point portloc;
     Label *lab;
     HashEntry *entry;
     ResExtNode *node;
+    ResConnect *newdriver;
     int result = 1;
 
     for (lab = cellDef->cd_labels; lab; lab = lab->lab_next)
     {
 	if (lab->lab_flags & PORT_DIR_MASK)
 	{
-	    /* Get drivepoint from the port connection direction(s) */
-	    /* NOTE:  This is not rigorous! */
-
-	    if (lab->lab_flags & (PORT_DIR_NORTH | PORT_DIR_SOUTH))
-		portloc.p_x = (lab->lab_rect.r_xbot + lab->lab_rect.r_xtop) >> 1;
-	    else if (lab->lab_flags & (PORT_DIR_EAST | PORT_DIR_WEST))
-		portloc.p_y = (lab->lab_rect.r_ybot + lab->lab_rect.r_ytop) >> 1;
-
-	    if (lab->lab_flags & PORT_DIR_NORTH)
-		portloc.p_y = lab->lab_rect.r_ytop;
-	    if (lab->lab_flags & PORT_DIR_SOUTH)
-		portloc.p_y = lab->lab_rect.r_ybot;
-	    if (lab->lab_flags & PORT_DIR_EAST)
-		portloc.p_x = lab->lab_rect.r_xtop;
-	    if (lab->lab_flags & PORT_DIR_WEST)
-		portloc.p_x = lab->lab_rect.r_xbot;
-
 	    entry = HashFind(&ResNodeTable, lab->lab_text);
 	    result = 0;
 	    if ((node = (ResExtNode *) HashGetValue(entry)) != NULL)
@@ -919,9 +919,9 @@ ResCheckPorts(cellDef)
 			lab->lab_text);
 		TxPrintf("Location is (%d, %d); drivepoint (%d, %d)\n",
 			node->location.p_x, node->location.p_y,
-			portloc.p_x, portloc.p_y);
+			lab->lab_rect.r_xbot, lab->lab_rect.r_ybot);
 		TxFlush();
-		node->drivepoint = portloc;
+
 		node->status |= FORCE;
 	    }
 	    else
@@ -934,16 +934,20 @@ ResCheckPorts(cellDef)
 		TxPrintf("Port: name = %s is new node %p\n",
 			lab->lab_text, (void *)node);
 		TxPrintf("Location is (%d, %d); drivepoint (%d, %d)\n",
-			portloc.p_x, portloc.p_y,
-			portloc.p_x, portloc.p_y);
-		node->location = portloc;
-		node->drivepoint = node->location;
+			lab->lab_rect.r_xbot, lab->lab_rect.r_ybot,
+			lab->lab_rect.r_xtop, lab->lab_rect.r_ytop);
+		TxFlush();
+
 		node->status |= REDUNDANT;
 	    }
+
+	    newdriver = (ResConnect *)mallocMagic(sizeof(ResConnect));
+	    newdriver->rc_rect = lab->lab_rect;
+	    newdriver->rc_type = lab->lab_type;
+	    newdriver->rc_next = node->drivepoints;
+	    node->drivepoints = newdriver;
+
 	    node->status |= DRIVELOC | PORTNODE;
-	    node->rs_bbox = lab->lab_rect;
-	    node->rs_ttype = lab->lab_type;
-	    node->type = lab->lab_type;
 	}
     }
     return result;
@@ -1003,7 +1007,7 @@ ResProcessNode(
 	return 0;
 
     ResCurrentNode = node->name;
-    ResSortByGate(&node->firstDev);
+    ResSortByGate(&node->devices);
 
     /* Find largest SD device connected to node. */
 
@@ -1015,9 +1019,9 @@ ResProcessNode(
     /* The following is only used if there is a drivepoint	*/
     /* to identify which tile the drivepoint is on.		*/
 
-    resisdata->rg_ttype = node->rs_ttype;
+    resisdata->rg_ttype = node->type;
 
-    for (ptr = node->firstDev; ptr != NULL; ptr = ptr->nextDev)
+    for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)
     {
 	RDev	*t1;
 	RDev	*t2;
@@ -1067,16 +1071,26 @@ ResProcessNode(
 	else
 	    minRes = 0;
 
-	if (node->status & DRIVELOC)
+	/* NOTE:  This needs to be fixed, as it is assuming that
+	 * a node has exactly one drivepoint;  this is (probably)
+	 * valid for top level cells, but not in general.
+	 */
+	if ((node->status & (DRIVELOC | PORTNODE)) && (node->drivepoints != NULL))
 	{
-	    resisdata->rg_devloc = &node->drivepoint;
+	    resisdata->rg_devloc = &node->drivepoints->rc_rect.r_ll;
+	    resisdata->rg_ttype = node->drivepoints->rc_type;
 	    resisdata->rg_status |= DRIVEONLY;
 	}
-	if (node->status & PORTNODE)
+
+	/* If there is no drivepoint but there is a sinkpoint, use that.
+	 * The "drivers" and "sinks" are arbitrary, anyway, and any of
+	 * them can be considered a node start point.
+	 */
+	else if ((node->status & (DRIVELOC | PORTNODE)) && (node->sinkpoints != NULL))
 	{
-	    /* The node is a port, not a device, so make	*/
-	    /* sure rg_ttype is set accordingly.		*/
-	    resisdata->rg_ttype = node->rs_ttype;
+	    resisdata->rg_devloc = &node->sinkpoints->rc_rect.r_ll;
+	    resisdata->rg_ttype = node->sinkpoints->rc_type;
+	    resisdata->rg_status |= DRIVEONLY;
 	}
     }
     if ((resisdata->rg_devloc == NULL) && (node->status & FORCE))
@@ -1222,7 +1236,7 @@ ResCheckExtNodes(celldef, resisdata)
     if (ResOptionsFlags & ResOpt_FastHenry)
 	ResPrintReference(ResFHFile, ResRDevList, celldef);
 
-    for (node = ResOriginalNodes; node != NULL; node=node->nextnode)
+    for (node = ResOriginalNodes; node != NULL; node = node->nextnode)
     {
 	if (SigInterruptPending) break;
 	total += ResProcessNode(node, celldef, resisdata, outfile,
@@ -1285,7 +1299,51 @@ ResCheckExtNodes(celldef, resisdata)
 /*
  *-------------------------------------------------------------------------
  *
- * ResFixUpConnections--
+ * ResFixUpDrivepoints --
+ *
+ *	Change the name of a connection to a drivepoint (upward
+ *	connection in the hierarchy).  If there is an existing
+ *	drivepoint that has the name of the node, then keep it
+ *	as-is.  If not, then assign the original name of the node
+ *	to the drivepoint.  All other drivepoints get a ".uX"
+ *	suffix added to the node name ("u" for "upward").
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResFixUpDrivepoints(ResConnect *driver,
+    ResExtNode *node,
+    char *nodename)
+{
+    /* To be completed */
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResFixUpSinkpoints --
+ *
+ *	Change the name of a connection to a sinkpoint (downward
+ *	connection in the hierarchy).  All sinkpoints get a ".dX"
+ *	suffix added to the node name ("d" for "downward").
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResFixUpSinkpoints(ResConnect *sink,
+    ResExtNode *node,
+    char *nodename)
+{
+    /* To be completed */
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResFixUpConnections --
+ *
  *	Changes the connection to a terminal of a device.
  * 	The new name is formed by appending .t# to the old name.
  *	The new name is added to the hash table of node names.
@@ -1376,13 +1434,13 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 	}
     }
 
-    if (extDev->source == extNode)
+    if ((extDev->source == extNode) && (layoutDev->rd_nterms > 3))
     {
 	/* Check for devices with only one terminal.  If it was cast as drain,	*/
 	/* then swap it with the source so that the code below handles it	*/
 	/* correctly.								*/
 
-	if (layoutDev->rd_fet_source == NULL && layoutDev->rd_fet_drain != NULL)
+	if ((layoutDev->rd_fet_source == NULL) && (layoutDev->rd_fet_drain != NULL))
 	{
 	    layoutDev->rd_fet_source = layoutDev->rd_fet_drain;
 	    layoutDev->rd_fet_drain = (struct resnode *)NULL;
@@ -1401,7 +1459,7 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 	    if (((source = layoutDev->rd_fet_source) != NULL) &&
 	       	   ((drain = layoutDev->rd_fet_drain) != NULL))
 	    {
-	        if (source->rn_name != NULL && notdecremented)
+	        if ((source->rn_name != NULL) && notdecremented)
 		{
 		    resNodeNum--;
 		    notdecremented = FALSE;
@@ -1571,8 +1629,8 @@ ResFixDevName(line, type, device, layoutnode)
     }
     tptr = (devPtr *) mallocMagic((unsigned) (sizeof(devPtr)));
     tptr->thisDev = device;
-    tptr->nextDev = node->firstDev;
-    node->firstDev = tptr;
+    tptr->nextDev = node->devices;
+    node->devices = tptr;
     tptr->terminal = type;
     switch(type)
     {
@@ -1816,6 +1874,7 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
     devPtr	*ptr;
     resDevice	*layoutDev, *ResGetDevice();
     float	rctol;
+    ResConnect *driver, *sink;
 
     rctol = resisdata->tdiTolerance;
     RCdev = resisdata->rg_bigdevres * resisdata->rg_nodecap;
@@ -1826,8 +1885,9 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 		(rctol + 1) * RCdev < rctol * resisdata->rg_Tdi)
     {
 	ASSERT(resisdata->rg_Tdi != -1, "ResWriteExtFile");
-	(void)sprintf(newname,"%s", node->name);
-        cp = newname + strlen(newname)-1;
+
+	sprintf(newname, "%s", node->name);
+        cp = newname + strlen(newname) - 1;
         if (*cp == '!' || *cp == '#') *cp = '\0';
 	if ((rctol + 1) * RCdev < rctol * resisdata->rg_Tdi ||
 	  			(ResOptionsFlags & ResOpt_Tdi) == 0)
@@ -1841,13 +1901,26 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 	else
 	    TxPrintf("Adding  %s\n", node->name);
 
-        for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)
-        {
-	    if ((layoutDev = ResGetDevice(&ptr->thisDev->location, ptr->thisDev->rs_ttype)))
-	    {
+        for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)
+	    if ((layoutDev = ResGetDevice(&ptr->thisDev->location,
+			ptr->thisDev->rs_ttype)))
 		ResFixUpConnections(ptr->thisDev, layoutDev, node, newname);
-	    }
-	}
+
+	/* Copy the node name into a driver connection if no driver connection
+	 * has the original node name (e.g., was a port).  All other drivers
+	 * get ".uX" suffixes to distinguish them from internal network nodes
+	 * (".nX").
+	 */
+        for (driver = node->drivepoints; driver != NULL; driver = driver->rc_next)
+	    ResFixUpDrivepoints(driver, node, newname);
+
+	/* Replace downward connections (sinks) with new node names.  Node
+	 * names of sinks are given the suffix ".dX" to distinguish them
+	 * from terminals, drivers, and nodes.
+	 */
+        for (sink = node->sinkpoints; sink != NULL; sink = sink->rc_next)
+	    ResFixUpSinkpoints(driver, node, newname);
+
         if (ResOptionsFlags & ResOpt_DoExtFile)
         {
 	    ResPrintExtNode(ResExtFile, ResNodeList, node);
@@ -1870,5 +1943,115 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 	return 1;
     }
     else return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * InitializeResNode --
+ *
+ *	Initialize a ResNode structure.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Values are filled in the ResNode structure pointed to by "node".
+ *
+ * Notes:
+ *	This routine was previously defined as a macro.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void InitializeResNode(resNode *node,
+    int x,
+    int y,
+    int why)
+{
+    node->rn_te = NULL;
+    node->rn_id = 0;
+    node->rn_float.rn_area = 0.0;
+    node->rn_name = NULL;
+    node->rn_client = (ClientData)NULL;
+    node->rn_noderes = RES_INFINITY;
+    node->rn_je = NULL;
+    node->rn_status = FALSE;
+    node->rn_loc.p_x = x;
+    node->rn_loc.p_y = y;
+    node->rn_why = why;
+    node->rn_ce = (cElement *)NULL;
+    node->rn_re = (resElement *)NULL;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResInfoInit--
+ *
+ *	Initialize a resInfo structure.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Values are filled in the resInfo structure pointed to by "Info".
+ *
+ * Notes:
+ *	This routine was previously defined as a macro.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void ResInfoInit(resInfo *Info)
+{
+    Info->contactList = (cElement *)NULL;
+    Info->deviceList = (resDevice *)NULL;
+    Info->junctionList = (ResJunction *)NULL;
+    Info->breakList = (Breakpoint *)NULL;
+    Info->portList = (resPort *)NULL;
+    Info->ri_status = FALSE;
+    Info->sourceEdge = 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResNewBreak --
+ *
+ *	Create and initialize a new breakpoint structure.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Memory is allocated for the breakpoint, values are filled in,
+ *	and the breakpoint is added to the resNode structure pointed
+ *	to by "node".
+ *
+ * Notes:
+ *	This routine was previously defined as a macro.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResNewBreak(resNode *node,
+    Tile *tile,
+    int px,
+    int py,
+    Rect *crect)
+{
+    Breakpoint *bp;
+    resInfo *rX;
+
+    rX = (resInfo *)((tile)->ti_client);
+    bp = (Breakpoint *)mallocMagic((unsigned)(sizeof(Breakpoint)));
+    bp->br_next= rX->breakList;
+    bp->br_this = node;
+    bp->br_loc.p_x = px;
+    bp->br_loc.p_y = py;
+    bp->br_crect = crect;
+    rX->breakList = bp;
 }
 

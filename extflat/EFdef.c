@@ -122,6 +122,7 @@ EFDone(func)
 	efConnectionFreeLinkedList(def->def_conns);
 	efConnectionFreeLinkedList(def->def_caps);
 	efConnectionFreeLinkedList(def->def_resistors);
+	efConnPointFreeLinkedList(def->def_connpts);
 
 	free_magic1_t mm1 = freeMagic1_init();
 	for (kill = def->def_kills; kill; kill = kill->kill_next)
@@ -248,6 +249,7 @@ efDefNew(name)
     newdef->def_conns = (Connection *) NULL;
     newdef->def_caps = (Connection *) NULL;
     newdef->def_resistors = (Connection *) NULL;
+    newdef->def_connpts = (ConnectionPoint *) NULL;
     newdef->def_kills = (Kill *) NULL;
 
     /* Initialize circular list of nodes */

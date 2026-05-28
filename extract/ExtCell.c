@@ -88,6 +88,11 @@ ExtCell(def, outName, doLength)
     char *filename;
     FILE *f = NULL;
     Plane *savePlane;
+    bool noextract;
+
+    /* If marked abstract, then don't extract the cell */
+    DBPropGet(def, "noextract", &noextract);
+    if (noextract) return extPrepSubstrate(def);
 
     /* Incremental extraction:  If the cell is marked for no extraction,
      * then just prepare the substrate plane and return it to the caller.
