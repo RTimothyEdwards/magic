@@ -18,22 +18,22 @@
 #   node, npm                    — only required for --test / --pack
 #
 # Environment:
-#   EMSDK_DIR   Path to an activated emsdk checkout.
-#               If set, emsdk_env.sh is sourced from there.
-#               If unset, emcc must already be on PATH (e.g. sourced externally).
-#   TCL_REPO    Override the path to the tcltk/tcl checkout (default:
-#               ../tcl relative to this magic checkout). Used by the TCL
-#               variant only.
+#   EMSDK_DIR     Path to an activated emsdk checkout.
+#                 If set, emsdk_env.sh is sourced from there.
+#                 If unset, emcc must already be on PATH (e.g. sourced externally).
+#   TCL_REF       git ref (tag/branch/SHA) of tcltk/tcl to build for the TCL
+#                 variant. Default: main. (CI pins the latest stable tag.)
+#   TCL_REPO_URL  git URL to clone tcltk/tcl from. Default: the upstream repo.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-# The TCL variant builds against a sibling clone of tcltk/tcl (pristine —
-# magic never modifies it). The build itself happens inside magic under
-# build-tcl-wasm/, so the TCL source tree stays clean.
-TCL_REPO="${TCL_REPO:-$(dirname "$REPO_ROOT")/tcl}"
+# The TCL variant builds a static WASM Tcl from a pristine clone of tcltk/tcl.
+# Both the clone (tcl/) and the out-of-source build artifacts live entirely
+# under build-tcl-wasm/ (gitignored), so nothing outside it is ever touched.
 TCL_BUILD_DIR="${TCL_BUILD_DIR:-$REPO_ROOT/build-tcl-wasm}"
+TCL_SRC_DIR="$TCL_BUILD_DIR/tcl"
 TCL_WASM_PREFIX="$TCL_BUILD_DIR/install"
 
 OPT_RELEASE=0
@@ -99,24 +99,25 @@ else
   EXTRA_CFLAGS="-g"
 fi
 
-# --- TCL fork: locate and prebuild (TCL variant only) -----------------------
+# --- TCL fork: clone and prebuild (TCL variant only) ------------------------
 # Uses TCL_REPO_URL and TCL_REF from the environment (both have defaults).
-# If the TCL source tree does not exist yet, clones it. If it does exist,
-# checks out the requested ref — no auto-fetch, so builds are reproducible.
+# The source is cloned into build-tcl-wasm/tcl on the first run and checked
+# out at the requested ref. Because this clone is private to the build dir,
+# we manage its HEAD freely — no user-supplied tree is ever mutated.
 #
-# The TCL source tree is treated as read-only. The actual WASM build runs in
-# $TCL_BUILD_DIR (inside magic), driven by
+# The actual WASM build runs out-of-source in $TCL_BUILD_DIR, driven by
 # toolchains/emscripten/build-tcl-wasm.sh.
 ensure_tcl_built() {
   : "${TCL_REPO_URL:=https://github.com/tcltk/tcl.git}"
   : "${TCL_REF:=main}"
 
-  if [ ! -d "$TCL_REPO/.git" ]; then
-    echo "=== cloning $TCL_REPO_URL into $TCL_REPO ==="
-    git -c core.autocrlf=false clone "$TCL_REPO_URL" "$TCL_REPO"
+  if [ ! -d "$TCL_SRC_DIR/.git" ]; then
+    echo "=== cloning $TCL_REPO_URL into $TCL_SRC_DIR ==="
+    mkdir -p "$TCL_BUILD_DIR"
+    git -c core.autocrlf=false clone "$TCL_REPO_URL" "$TCL_SRC_DIR"
   fi
 
-  ( cd "$TCL_REPO"
+  ( cd "$TCL_SRC_DIR"
     current_sha=$(git rev-parse HEAD 2>/dev/null || echo "")
     if [ "$current_sha" != "$TCL_REF" ]; then
       git fetch --quiet origin
@@ -130,7 +131,7 @@ ensure_tcl_built() {
   if [ ! -f "$TCL_WASM_PREFIX/lib/tclConfig.sh" ]; then
     echo "=== building TCL for WASM into $TCL_BUILD_DIR (one-time) ==="
     bash "$REPO_ROOT/toolchains/emscripten/build-tcl-wasm.sh" \
-      --src="$TCL_REPO" --out="$TCL_BUILD_DIR"
+      --src="$TCL_SRC_DIR" --out="$TCL_BUILD_DIR"
   fi
 }
 

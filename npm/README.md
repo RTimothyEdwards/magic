@@ -182,13 +182,15 @@ on your PATH. If you pass `EMSDK_DIR=/path/to/emsdk`, `build.sh` sources
 
 The TCL variant links against a static WASM build of
 [tcltk/tcl](https://github.com/tcltk/tcl). `build.sh` clones the source tree
-automatically into a `../tcl` sibling directory on the first run, using the
-latest stable release tag resolved at build time:
+automatically into `build-tcl-wasm/tcl` on the first run and builds it
+out-of-source in the same directory — everything stays under `build-tcl-wasm/`
+(which is gitignored), so nothing outside it is touched. Subsequent runs reuse
+the existing clone and build.
 
 ```bash
-# Override the TCL version or location
+# Override the TCL version or source repository
 TCL_REF=core-9-0-3 bash npm/build.sh --variant=tcl
-TCL_REPO=/path/to/existing/tcl bash npm/build.sh --variant=tcl
+TCL_REPO_URL=https://github.com/tcltk/tcl.git bash npm/build.sh --variant=tcl
 ```
 
 CI always resolves the latest stable `core-9-0-x` tag automatically. To build
