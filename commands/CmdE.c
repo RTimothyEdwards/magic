@@ -1096,7 +1096,7 @@ CmdExtract(
 	"lumped			estimate lumped resistance",
 	"labelcheck		check for connections through sticky labels",
 	"aliases		output all net name aliases",
-	"unique			ensure unique node names during extraction",
+	"unique	 [notopports]	ensure unique node names during extraction",
 	"resistance		extract resistance (same as \"do extresist\")",
 	NULL
     };
@@ -1403,6 +1403,7 @@ CmdExtract(
 		TxPrintf("%s label check\n", OPTSET(EXT_DOLABELCHECK));
 		TxPrintf("%s aliases\n", OPTSET(EXT_DOALIASES));
 		TxPrintf("%s unique\n", OPTSET(EXT_DOUNIQUE));
+		TxPrintf("%s unique notopports\n", OPTSET(EXT_DOUNIQNOTOPPORTS));
 		TxPrintf("%s resistance (extresist)\n", OPTSET(EXT_DOEXTRESIST));
 		return;
 #undef	OPTSET
@@ -1433,9 +1434,19 @@ CmdExtract(
 		case DORESISTANCE:	option = EXT_DORESISTANCE; break;
 		case DOLABELCHECK:	option = EXT_DOLABELCHECK; break;
 		case DOALIASES:		option = EXT_DOALIASES; break;
-		case DOUNIQUE:		option = EXT_DOUNIQUE; break;
 		case DOEXTRESIST:
 		case DOEXTRESIST2:	option = EXT_DOEXTRESIST; break;
+		case DOUNIQUE:
+		    if (argc == 4)
+		    {
+			if (!strncmp(argv[3], "notop", 5))
+			    option = EXT_DOUNIQNOTOPPORTS | EXT_DOUNIQUE;
+			else
+			    TxError("Usage:  extract do unique [notopports]\n");
+		    }
+		    else
+			option = EXT_DOUNIQUE;
+		    break;
 		case DOLOCAL:
 		    /* "extract do local" and "extract no local" are kept for
 		     * backwards compatibility, but now effectively implement

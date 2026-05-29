@@ -519,6 +519,7 @@ ResReadNode(int argc, char *argv[])
 {
     HashEntry	*entry;
     ResExtNode	*node;
+    int noderesist;
 
     entry = HashFind(&ResNodeTable, argv[NODES_NODENAME]);
     node = ResExtInitNode(entry);
@@ -526,7 +527,10 @@ ResReadNode(int argc, char *argv[])
     node->location.p_x = atoi(argv[NODES_NODEX]);
     node->location.p_y = atoi(argv[NODES_NODEY]);
     node->type = DBTechNameType(argv[NODES_NODETYPE]);
-    node->resistance = atoi(argv[NODES_NODERES]);
+    noderesist = atoi(argv[NODES_NODERES]);
+    if (noderesist < 0) noderesist = INFINITY;
+    /* Make sure node resistance is in units of milliohms */
+    node->resistance = (float)noderesist * (float)ExtCurStyle->exts_resistScale;
 
     if (node->type == -1)
     {

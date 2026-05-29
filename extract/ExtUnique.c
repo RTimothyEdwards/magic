@@ -66,6 +66,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *	    label.  This way, the unique label form can be used by the
  *	    extraction code but labels (and port indexes) can be reverted
  *	    afterward, and no permanent change is made to the circuit.
+ *	Option EXT_UNIQ_TEMP_NOPORTS is a combination of EXT_UNIQ_TEMP and
+ *	    EXT_UNIQ_NOPORTS.
  *
  * Results:
  *	Returns the number of warnings generated.
@@ -226,8 +228,9 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
     text = ll->ll_label->lab_text;
     if (option == EXT_UNIQ_ALL || option == EXT_UNIQ_TEMP)
 	goto makeUnique;
-    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS)
-		&& !(ll->ll_label->lab_flags & PORT_DIR_MASK))
+    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS ||
+		option == EXT_UNIQ_TEMP_NOPORTS) &&
+		!(ll->ll_label->lab_flags & PORT_DIR_MASK))
 	goto makeUnique;
 
     cpend = strchr(text, '\0');
@@ -326,7 +329,8 @@ makeUnique:
 	    saveLab = *lab;
 
 	    /* Flag this label as having been modified */
-	    if (option == EXT_UNIQ_TEMP) flags |= LABEL_UNIQUE;
+	    if ((option == EXT_UNIQ_TEMP) || (option == EXT_UNIQ_TEMP_NOPORTS))
+		flags |= LABEL_UNIQUE;
 
 	    DBRemoveLabel(def, lab);
 	    DBPutFontLabel(def, &saveLab.lab_rect,

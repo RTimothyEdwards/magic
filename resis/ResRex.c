@@ -218,11 +218,11 @@ ResInit()
 	/* Defaults:
 	 * (1) rthresh:  Only extract networks with a lumped resistance > 10 ohms
 	 * (2) minres:   Prune resistors < 1 ohm when possible
-	 * (3) mindelay: Do not gate extraction based on calculated delay.
+	 * (3) mindelay: Only extract networks with a calculated delay > 1 ps
 	 */
 	resisdata->rthresh = 10000.0;
 	resisdata->minres = 1000.0;
-	resisdata->mindelay = 0.0;
+	resisdata->mindelay = 1.0e9;	/* 1ps = 1.0e9zs
 	resisdata->frequency = 10e6;	/* 10 MHz default */
 
 	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
@@ -407,7 +407,8 @@ typedef enum {
 		Tcl_SetObjResult(magicinterp,
 			Tcl_NewDoubleObj((double)resisdata->rthresh));
 #else
-		TxPrintf("Minimum resistor threshold is %g.\n", resisdata->rthresh);
+		TxPrintf("Minimum resistor threshold is %g mohms.\n",
+				resisdata->rthresh);
 #endif
 	    }
 	    return;
@@ -1907,9 +1908,17 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 
     if (!(ResOptionsFlags & ResOpt_RunSilent))
     {
-	TxPrintf("Adding  %s; (Tnew = %.2fps ; Tmin = %.2fps)\n",
-		     	node->name, resisdata->rg_Tdi * Z_TO_P,
-			resisdata->mindelay * Z_TO_P);
+	float ftdi, fdmin;
+
+	ftdi = resisdata->rg_Tdi * Z_TO_P;
+	fdmin = resisdata->mindelay * Z_TO_P;
+
+	if ((ftdi < 0.01) || ((fdmin < 0.01) && (resisdata->mindelay > 0)))
+	    TxPrintf("Adding  %s; (Tnew = %.2ffs ; Tmin = %.2ffs)\n",
+		     	node->name, ftdi * 1000, fdmin * 1000);
+	else
+	    TxPrintf("Adding  %s; (Tnew = %.2fps ; Tmin = %.2fps)\n",
+		     	node->name, ftdi, fdmin);
     }
 
     for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)

@@ -1382,8 +1382,6 @@ ResExtractNet(node, resisdata, cellname)
     }
     DBReComputeBbox(ResUse->cu_def);
 
-    ExtResetTiles(scx.scx_use->cu_def, CLIENTDEFAULT);
-
     /* To avoid issues with overlapping stacked contact types and	*/
     /* double-counting contacts on multiple planes, erase the top	*/
     /* contact layers of all contacts.  ExtFindRegions() will still	*/

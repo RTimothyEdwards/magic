@@ -629,6 +629,8 @@ extSetResist(reg)
 
     for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
     {
+	ResValue resnew, restot;
+
 	reg->nreg_pa[n].pa_area = area = extResistArea[n];
 	reg->nreg_pa[n].pa_perim = perim = extResistPerim[n];
 	if (area > 0 && perim > 0)
@@ -639,8 +641,15 @@ extSetResist(reg)
 	    if (v < 0) s = 0; else s = sqrt(v);
 
 	    fperim = (float) perim;
-	    reg->nreg_resist += (fperim + s) / (fperim - s)
-				    * ExtCurStyle->exts_resistByResistClass[n];
+	    resnew = (fperim + s) / (fperim - s) *
+		    ExtCurStyle->exts_resistByResistClass[n];
+	    restot = reg->nreg_resist + resnew;
+
+	    /* Check for integer overflow.  There is no point in trying
+	     * to accommodate huge resistance values for an estimate.
+	     * The value just saturates at the maximum integer value.
+	     */
+	    if (restot > 0) reg->nreg_resist = restot;
 	}
 
 	/* Reset for the next pass */
