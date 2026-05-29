@@ -181,27 +181,42 @@ on your PATH. If you pass `EMSDK_DIR=/path/to/emsdk`, `build.sh` sources
 ### TCL variant: cloning the TCL source tree
 
 The TCL variant links against a static WASM build of
-[tcltk/tcl](https://github.com/tcltk/tcl), pinned to a specific commit in
-[`npm/tcl.ref`](tcl.ref). `build.sh` clones the source tree automatically
-into a `../tcl` sibling directory on the first run:
+[tcltk/tcl](https://github.com/tcltk/tcl). `build.sh` clones the source tree
+automatically into a `../tcl` sibling directory on the first run, using the
+latest stable release tag resolved at build time:
 
 ```bash
-# Override the default clone location
+# Override the TCL version or location
+TCL_REF=core-9-0-3 bash npm/build.sh --variant=tcl
 TCL_REPO=/path/to/existing/tcl bash npm/build.sh --variant=tcl
 ```
 
-### Updating the pinned TCL version
+CI always resolves the latest stable `core-9-0-x` tag automatically. To build
+against a specific version, set `TCL_REF` in the environment.
 
-Edit [`npm/tcl.ref`](tcl.ref) and set `TCL_REF` to the desired commit SHA or
-tag, then commit and push. CI will rebuild and republish automatically on the
-next version tag.
+## Versioning
+
+Published versions follow the scheme `{MAJOR}.{MINOR}.{PATCH}0{YYYYMMDD}+git{SHA}`,
+for example `8.3.799020261231+git01234cde`.
+
+The date is embedded directly into the patch number (separated by a leading
+zero for readability). This means:
+
+- Versions are orderable numerically — a later build date is always a higher
+  version number within the same patch series.
+- Security or bugfix releases for `8.3.799` can be inserted as later dates
+  (`8.3.799020270101`, `8.3.799020270201`, …) without bumping the patch number.
+- Users who want to lock to the `8.3.799` series and receive only those patches
+  can use the range `<=8.3.799900000000` or `<8.3.8000000000000`.
+- `~8.3.799` matches all `8.3.*` versions (broader than the 799 series alone).
+
+The `+git…` suffix is build metadata — it is ignored by npm for version
+comparison and range matching. It exists purely for traceability.
 
 ## Limitations
 
 - Headless only. There is no display driver, so commands that draw to a
   window (`view`, `findbox`, interactive macros) are no-ops.
-- WASM memory starts at 32 MB and grows as needed. Very large GDS imports
-  may need `INITIAL_MEMORY` bumped (rebuild required).
 - Single-threaded. WASM modules are not thread-safe — create one instance
   per worker.
 
