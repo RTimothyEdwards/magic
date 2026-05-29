@@ -706,6 +706,11 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
 			dev->dev_terms[n].dterm_node =
 				(nn1->efnn_node == NULL) ?
 				nn2->efnn_node : nn1->efnn_node;
+
+		/* Also check the substrate terminal */
+		if (dev->dev_subsnode == lostnode)
+		    dev->dev_subsnode = (nn1->efnn_node == NULL) ?
+				nn2->efnn_node : nn1->efnn_node;
 	    }
 
 	    /* If a node has been merged away, make sure that its name	*/
