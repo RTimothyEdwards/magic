@@ -40,7 +40,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* giving zeptoseconds (yes, really.  Look it up).  This constant 	*/
 /* converts zeptoseconds to picoseconds.				*/
 
-#define Z_TO_P		1e9
+#define Z_TO_P		1e-9
+#define P_TO_Z		1e9
 
 /* Table of nodes to ignore (manually specified) */
 
@@ -62,7 +63,7 @@ int		resNodeNum;
 
 extern ResExtNode *ResOriginalNodes;	/*Linked List of Nodes */
 
-int	ResOptionsFlags = ResOpt_Simplify | ResOpt_Tdi | ResOpt_DoExtFile;
+int	ResOptionsFlags = ResOpt_Simplify | ResOpt_DoExtFile;
 char	*ResCurrentNode;
 
 FILE	*ResExtFile;
@@ -213,8 +214,15 @@ ResInit()
             TTMaskZero(&(ResCopyMask[i]));
 	    TTMaskSetMask(&ResCopyMask[i], &DBConnectTbl[i]);
      	}
-	resisdata->rthresh = 0;
-	resisdata->tdiTolerance = 1;
+
+	/* Defaults:
+	 * (1) rthresh:  Only extract networks with a lumped resistance > 10 ohms
+	 * (2) minres:   Prune resistors < 1 ohm when possible
+	 * (3) mindelay: Do not gate extraction based on calculated delay.
+	 */
+	resisdata->rthresh = 10000.0;
+	resisdata->minres = 1000.0;
+	resisdata->mindelay = 0.0;
 	resisdata->frequency = 10e6;	/* 10 MHz default */
 
 	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
@@ -227,7 +235,6 @@ ResInit()
     resisdata->rg_Tdi = 0.0;
     resisdata->rg_nodecap = 0.0;
     resisdata->rg_maxres = 0.0;
-    resisdata->rg_bigdevres = 0;
     resisdata->rg_tilecount = 0;
     resisdata->rg_status = 0;
     resisdata->rg_devloc = NULL;
@@ -280,8 +287,10 @@ CmdExtResis(win, cmd)
     static const char * const cmdExtresisCmd[] =
     {
 	"all 		       extract all the nets",
-	"threshold [value]    set minimum resistor extraction threshold",
-	"tolerance [value]    set ratio between resistor and device tol.",
+	"threshold [value]    set minimum network resistance threshold (milliohms)",
+	"minresist [value]    set minimum individual resistance threshold (milliohms)",
+	"mindelay  [value]    set minimum network delay threshold (picoseconds)",
+	"tolerance [value]    set ratio between resistor and device resistance (deprecated)",
 	"simplify [on/off]    turn on/off simplification of resistor nets",
 	"extout   [on/off]    turn on/off writing of .res.ext file",
 	"lumped   [on/off]    turn on/off writing of updated lumped resistances",
@@ -290,7 +299,7 @@ CmdExtResis(win, cmd)
 	"ignore	  names	      don't extract these nets",
 	"include  names	      extract only these nets",
 	"box      type        extract the signal under the box on layer type",
-	"cell	   cellname   extract the network for the cell named cellname",
+	"cell	  cellname    extract the network for the cell named cellname",
 	"blackbox [on/off]    treat subcircuits with ports as black boxes",
 	"fasthenry [freq]     extract subcircuit network geometry into .fh file",
 	"geometry	      extract network centerline geometry (experimental)",
@@ -301,7 +310,7 @@ CmdExtResis(win, cmd)
 
 typedef enum {
 	RES_BAD=-2, RES_AMBIG, RES_ALL,
-	RES_THRESH, RES_TOL,
+	RES_THRESH, RES_MINRES, RES_MINDELAY, RES_TOL,
 	RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT,
 	RES_SKIP, RES_IGNORE, RES_INCLUDE, RES_BOX, RES_CELL,
 	RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY, RES_STATS,
@@ -334,13 +343,13 @@ typedef enum {
 
     switch (option)
     {
-	 case RES_TOL:
+	case RES_MINRES:
 	    if (cmd->tx_argc > 2)
 	    {
-		resisdata->tdiTolerance = MagAtof(cmd->tx_argv[2]);
-		if (resisdata->tdiTolerance <= 0)
+		resisdata->minres = MagAtof(cmd->tx_argv[2]);
+		if (resisdata->minres < 0)
 		{
-		    TxError("Usage:  %s tolerance [value]\n", cmd->tx_argv[0]);
+		    TxError("Usage:  %s minres [value]\n", cmd->tx_argv[0]);
 			return;
 		}
 	    }
@@ -348,14 +357,41 @@ typedef enum {
 	    {
 #ifdef MAGIC_WRAPPER
 		Tcl_SetObjResult(magicinterp,
-			Tcl_NewDoubleObj((double)resisdata->tdiTolerance));
+			Tcl_NewDoubleObj((double)resisdata->minres));
 #else
-		TxPrintf("Tolerance ratio is %g.\n", resisdata->tdiTolerance);
+		TxPrintf("Minimum network resistance is %g milliohms.\n",
+			resisdata->minres);
 #endif
 	    }
 	    return;
 
-	 case RES_THRESH:
+	case RES_MINDELAY:
+	    if (cmd->tx_argc > 2)
+	    {
+		resisdata->mindelay = MagAtof(cmd->tx_argv[2]) * P_TO_Z;
+		if (resisdata->mindelay <= 0)
+		{
+		    TxError("Usage:  %s mindelay [value]\n", cmd->tx_argv[0]);
+			return;
+		}
+	    }
+	    else
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp,
+			Tcl_NewDoubleObj((double)resisdata->mindelay * Z_TO_P));
+#else
+		TxPrintf("Minimum network delay is %g picoseconds.\n",
+			resisdata->mindelay);
+#endif
+	    }
+	    return;
+
+	case RES_TOL:
+	    TxError("Note:  This option has been deprecated and is unused.\n");
+	    return;
+
+	case RES_THRESH:
 	    if (cmd->tx_argc > 2)
 	    {
 		resisdata->rthresh = MagAtof(cmd->tx_argv[2]);
@@ -371,23 +407,23 @@ typedef enum {
 		Tcl_SetObjResult(magicinterp,
 			Tcl_NewDoubleObj((double)resisdata->rthresh));
 #else
-		TxPrintf("Resistance threshold is %g.\n", resisdata->rthresh);
+		TxPrintf("Minimum resistor threshold is %g.\n", resisdata->rthresh);
 #endif
 	    }
 	    return;
 
-	 case RES_ALL:
+	case RES_ALL:
 	    ResOptionsFlags |= ResOpt_ExtractAll;
 	    break;
 
-	 case RES_GEOMETRY:
+	case RES_GEOMETRY:
 	    saveFlags = ResOptionsFlags;
 	    ResOptionsFlags |= ResOpt_Geometry | ResOpt_ExtractAll;
 	    ResOptionsFlags &= ~(ResOpt_DoExtFile | ResOpt_DoLumpFile
-			| ResOpt_Simplify | ResOpt_Tdi);
+			| ResOpt_Simplify);
 	    break;
 
-	 case RES_FASTHENRY:
+	case RES_FASTHENRY:
 	    if (cmd->tx_argc == 3)
 	    {
 		  double tmpf = strtod(cmd->tx_argv[2], &endptr);
@@ -402,7 +438,7 @@ typedef enum {
 	    saveFlags = ResOptionsFlags;
 	    ResOptionsFlags |= ResOpt_FastHenry | ResOpt_ExtractAll;
 	    ResOptionsFlags &= ~(ResOpt_DoExtFile | ResOpt_DoLumpFile
-			| ResOpt_Simplify | ResOpt_Tdi);
+			| ResOpt_Simplify);
 	    break;
 
 	case RES_BLACKBOX:
@@ -439,10 +475,14 @@ typedef enum {
 	      	   ResOptionsFlags &= ~ResOpt_Stats;
 	    }
 	    return;
+
 	case RES_SIMP:
+	    /* Enable or disable resistor network simplification.  Usually
+	     * enabled in conjunction with TDi calculations (see below).
+	     */
 	    if (cmd->tx_argc == 2)
 	    {
-		value = (ResOptionsFlags & (ResOpt_Simplify | ResOpt_Tdi)) ?
+		value = (ResOptionsFlags & ResOpt_Simplify) ?
 			TRUE : FALSE;
 		TxPrintf("%s\n", onOff[value]);
 	    }
@@ -451,11 +491,12 @@ typedef enum {
 		value = Lookup(cmd->tx_argv[2], onOff);
 
 		if (value)
-	      	   ResOptionsFlags |= ResOpt_Simplify | ResOpt_Tdi;
+	      	   ResOptionsFlags |= ResOpt_Simplify;
 		else
-	      	   ResOptionsFlags &= ~(ResOpt_Simplify | ResOpt_Tdi);
+	      	   ResOptionsFlags &= ~ResOpt_Simplify;
 	    }
 	    return;
+
 	case RES_EXTOUT:
 	    if (cmd->tx_argc == 2)
 	    {
@@ -472,6 +513,7 @@ typedef enum {
 	      	   ResOptionsFlags &= ~ResOpt_DoExtFile;
 	    }
 	    return;
+
 	case RES_LUMPED:
 	    if (cmd->tx_argc == 2)
 	    {
@@ -488,6 +530,7 @@ typedef enum {
 	      	   ResOptionsFlags &= ~ResOpt_DoLumpFile;
 	    }
 	    return;
+
 	case RES_SILENT:
 	    if (cmd->tx_argc == 2)
 	    {
@@ -623,14 +666,17 @@ typedef enum {
 	case RES_RUN:
 	    ResOptionsFlags &= ~ResOpt_ExtractAll;
 	    break;
+
 	case RES_AMBIG:
   	    TxPrintf("Ambiguous option: %s\n", cmd->tx_argv[1]);
 	    TxFlushOut();
 	    return;
+
 	case RES_BAD:
   	    TxPrintf("Unknown option: %s\n", cmd->tx_argv[1]);
 	    TxFlushOut();
 	    return;
+
 	default:
 	    return;
     }
@@ -981,8 +1027,6 @@ ResProcessNode(
 {
     HashEntry	*he;
     devPtr	*ptr;
-    float	ftolerance, minRes, cumRes;
-    float	rthresh = resisdata->rthresh;
     int		nidx = 1, eidx = 1;	/* node & segment counters for geom. */
 
     /* Ignore or include specified nodes */
@@ -1009,9 +1053,6 @@ ResProcessNode(
     ResCurrentNode = node->name;
     ResSortByGate(&node->devices);
 
-    /* Find largest SD device connected to node. */
-
-    minRes = FLT_MAX;
     resisdata->rg_devloc = (Point *) NULL;
     resisdata->rg_status = FALSE;
     resisdata->rg_nodecap = node->capacitance;
@@ -1021,56 +1062,27 @@ ResProcessNode(
 
     resisdata->rg_ttype = node->type;
 
+    /* Pick the first device connected to node. */
+
     for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)
     {
 	RDev	*t1;
-	RDev	*t2;
 
 	if (ptr->terminal == GATE)
-	{
 	    break;
-	}
 	else
 	{
-	    /* Get cumulative resistance of all devices */
-	    /* with same connections.		    	*/
-
-	    cumRes = ptr->thisDev->resistance;
 	    t1 = ptr->thisDev;
-	    for (; ptr->nextDev != NULL; ptr = ptr->nextDev)
-	    {
-		t1 = ptr->thisDev;
-		t2 = ptr->nextDev->thisDev;
-		if (t1->gate != t2->gate) break;
-		if ((t1->source != t2->source || t1->drain  != t2->drain) &&
-			(t1->source != t2->drain || t1->drain  != t2->source))
-		    break;
-
-		/* Do parallel combination  */
-		if ((cumRes != 0.0) && (t2->resistance != 0.0))
-		    cumRes = (cumRes * t2->resistance) / (cumRes + t2->resistance);
-		else
-		    cumRes = 0;
-	    }
-	    if (minRes > cumRes)
-	    {
-		minRes = cumRes;
-		resisdata->rg_devloc = &t1->location;
-		resisdata->rg_ttype = t1->rs_ttype;
-	    }
+	    resisdata->rg_devloc = &t1->location;
+	    resisdata->rg_ttype = t1->rs_ttype;
+	    break;
 	}
     }
 
     /* Special handling for FORCE and DRIVELOC labels:		*/
-    /* Set minRes = node->minsizeres if it exists, 0 otherwise.	*/
 
     if (node->status & (FORCE|DRIVELOC))
     {
-	if (node->status & MINSIZE)
-	    minRes = node->minsizeres;
-	else
-	    minRes = 0;
-
 	/* NOTE:  This needs to be fixed, as it is assuming that
 	 * a node has exactly one drivepoint;  this is (probably)
 	 * valid for top level cells, but not in general.
@@ -1098,24 +1110,32 @@ ResProcessNode(
     	TxError("Node %s has force label but no drive point or "
 			"driving device\n", node->name);
     }
-    if ((minRes == FLT_MAX) || (resisdata->rg_devloc == NULL))
+    if (resisdata->rg_devloc == NULL)
 	return 1;
 
-    resisdata->rg_bigdevres = (int)minRes * OHMSTOMILLIOHMS;
-    if (minRes > resisdata->rthresh)
-	ftolerance =  minRes;
-    else
-	ftolerance = resisdata->rthresh; 
-
     /*
-     *   Is the device resistance greater than the lumped node
-     *   resistance? If so, extract net.
+     * Extract the net if:
+     * 1. The lumped node resistance is greater than the minimum specified AND
+     * 2. The maximum net delay is greater than the minimum delay specified OR
+     * 3. "extresist all" has been invoked.
+     *
+     * The purpose of (1 AND 2) is to allow the cutoff to be specified either
+     * by absolute resistance ("extresist threshold") or by effective signal
+     * propagation delay ("extresist mindelay").  If either one is set to zero,
+     * it will be ignored, although they can also be used in combination.
      */
 
-    if ((node->resistance > ftolerance) || (node->status & FORCE) ||
-		(ResOpt_ExtractAll & ResOptionsFlags))
+    if ((ResOpt_ExtractAll & ResOptionsFlags) ||
+		((node->resistance > resisdata->rthresh) &&
+		(node->resistance * node->capacitance > resisdata->mindelay)))
     {
 	ResFixPoint fp;
+
+	/* Diagnostic */
+	TxPrintf("Extracting %s (Rnode = %.2fohm ; Rthresh = %.2fohm)\n",
+			node->name,
+			node->resistance * MILLIOHMSTOOHMS,
+			resisdata->rthresh * MILLIOHMSTOOHMS);
 
 	(*num_extracted)++;
 	if (ResExtractNet(node, resisdata, outfile) != 0)
@@ -1129,17 +1149,13 @@ ResProcessNode(
 	}
 	else
 	{
-	    ResDoSimplify(ftolerance, resisdata);
+	    ResDoSimplify(resisdata);
 	    if (ResOptionsFlags & ResOpt_DoLumpFile)
 		ResWriteLumpFile(node, resisdata);
 
-	    if (resisdata->rg_maxres >= ftolerance  ||
-			(ResOptionsFlags & ResOpt_ExtractAll))
-	    {
-		resNodeNum = 0;
-		(*num_output) += ResWriteExtFile(celldef, node, resisdata,
+	    resNodeNum = 0;
+	    (*num_output) += ResWriteExtFile(celldef, node, resisdata,
 				&nidx, &eidx);
-	    }
 	}
 #ifdef PARANOID
 	ResSanityChecks(node->name, ResResList, ResNodeList, ResDevList);
@@ -1774,12 +1790,12 @@ ResWriteLumpFile(node, resisdata)
 {
     int	lumpedres;
 
-    if (ResOptionsFlags & ResOpt_Tdi)
+    if (resisdata->mindelay > 0)
     {
 	if (resisdata->rg_nodecap != 0)
 	{
-	    lumpedres = (int)((resisdata->rg_Tdi / resisdata->rg_nodecap
-			- (float)(resisdata->rg_bigdevres)) / OHMSTOMILLIOHMS);
+	    lumpedres = (int)((resisdata->rg_Tdi / resisdata->rg_nodecap) /
+			OHMSTOMILLIOHMS);
 	}
 	else
 	    lumpedres = 0;
@@ -1869,80 +1885,73 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
     ResisData	*resisdata;
     int		*nidx, *eidx;
 {
-    float	RCdev;
     char	*cp, newname[MAXNAME];
     devPtr	*ptr;
     resDevice	*layoutDev, *ResGetDevice();
-    float	rctol;
     ResConnect *driver, *sink;
 
-    rctol = resisdata->tdiTolerance;
-    RCdev = resisdata->rg_bigdevres * resisdata->rg_nodecap;
+    ASSERT(resisdata->rg_Tdi != -1, "ResWriteExtFile");
 
-    if ((node->status & FORCE) ||
-		(ResOptionsFlags & ResOpt_ExtractAll) ||
-		(ResOptionsFlags & ResOpt_Simplify) == 0 ||
-		(rctol + 1) * RCdev < rctol * resisdata->rg_Tdi)
+    sprintf(newname, "%s", node->name);
+    cp = newname + strlen(newname) - 1;
+    if (*cp == '!' || *cp == '#') *cp = '\0';
+
+    /* Second cutoff (if mindelay is specified):  The original cutoff 
+     * was based on the original lumped resistance estimate from basic
+     * extraction.  Having done full network extraction, there is now
+     * a refined delay estimate rg_Tdi which may be much lower than
+     * the original estimate.  If the new estimate falls below the
+     * threshold, then return without outputting the node's network.
+     */
+    if (resisdata->rg_Tdi < resisdata->mindelay) return 0;
+
+    if (!(ResOptionsFlags & ResOpt_RunSilent))
     {
-	ASSERT(resisdata->rg_Tdi != -1, "ResWriteExtFile");
-
-	sprintf(newname, "%s", node->name);
-        cp = newname + strlen(newname) - 1;
-        if (*cp == '!' || *cp == '#') *cp = '\0';
-	if ((rctol + 1) * RCdev < rctol * resisdata->rg_Tdi ||
-	  			(ResOptionsFlags & ResOpt_Tdi) == 0)
-	{
-	    if ((ResOptionsFlags & (ResOpt_RunSilent | ResOpt_Tdi)) == ResOpt_Tdi)
-	    {
-		TxPrintf("Adding  %s; Tnew = %.2fns, Told = %.2fns\n",
-		     	    node->name, resisdata->rg_Tdi / Z_TO_P, RCdev / Z_TO_P);
-	    }
-        }
-	else
-	    TxPrintf("Adding  %s\n", node->name);
-
-        for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)
-	    if ((layoutDev = ResGetDevice(&ptr->thisDev->location,
-			ptr->thisDev->rs_ttype)))
-		ResFixUpConnections(ptr->thisDev, layoutDev, node, newname);
-
-	/* Copy the node name into a driver connection if no driver connection
-	 * has the original node name (e.g., was a port).  All other drivers
-	 * get ".uX" suffixes to distinguish them from internal network nodes
-	 * (".nX").
-	 */
-        for (driver = node->drivepoints; driver != NULL; driver = driver->rc_next)
-	    ResFixUpDrivepoints(driver, node, newname);
-
-	/* Replace downward connections (sinks) with new node names.  Node
-	 * names of sinks are given the suffix ".dX" to distinguish them
-	 * from terminals, drivers, and nodes.
-	 */
-        for (sink = node->sinkpoints; sink != NULL; sink = sink->rc_next)
-	    ResFixUpSinkpoints(driver, node, newname);
-
-        if (ResOptionsFlags & ResOpt_DoExtFile)
-        {
-	    ResPrintExtNode(ResExtFile, ResNodeList, node);
-      	    ResPrintExtRes(ResExtFile, ResResList, newname);
-        }
-	if (ResOptionsFlags & ResOpt_FastHenry)
-	{
-	    if (ResResList)
-		ResAlignNodes(ResNodeList, ResResList);
-	    ResPrintFHNodes(ResFHFile, ResNodeList, node->name, nidx, celldef);
-	    ResPrintFHRects(ResFHFile, ResResList, newname, eidx);
-	}
-	if (ResOptionsFlags & ResOpt_Geometry)
-	{
-	    if (ResResList)
-		ResAlignNodes(ResNodeList, ResResList);
-	    if (ResCreateCenterlines(ResResList, nidx, celldef) < 0)
-		return 0;
-	}
-	return 1;
+	TxPrintf("Adding  %s; (Tnew = %.2fps ; Tmin = %.2fps)\n",
+		     	node->name, resisdata->rg_Tdi * Z_TO_P,
+			resisdata->mindelay * Z_TO_P);
     }
-    else return 0;
+
+    for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)
+	if ((layoutDev = ResGetDevice(&ptr->thisDev->location,
+			ptr->thisDev->rs_ttype)))
+	    ResFixUpConnections(ptr->thisDev, layoutDev, node, newname);
+
+    /* Copy the node name into a driver connection if no driver connection
+     * has the original node name (e.g., was a port).  All other drivers
+     * get ".uX" suffixes to distinguish them from internal network nodes
+     * (".nX").
+     */
+    for (driver = node->drivepoints; driver != NULL; driver = driver->rc_next)
+	ResFixUpDrivepoints(driver, node, newname);
+
+    /* Replace downward connections (sinks) with new node names.  Node
+     * names of sinks are given the suffix ".dX" to distinguish them
+     * from terminals, drivers, and nodes.
+     */
+    for (sink = node->sinkpoints; sink != NULL; sink = sink->rc_next)
+	ResFixUpSinkpoints(driver, node, newname);
+
+    if (ResOptionsFlags & ResOpt_DoExtFile)
+    {
+	ResPrintExtNode(ResExtFile, ResNodeList, node);
+      	ResPrintExtRes(ResExtFile, ResResList, newname);
+    }
+    if (ResOptionsFlags & ResOpt_FastHenry)
+    {
+	if (ResResList)
+	    ResAlignNodes(ResNodeList, ResResList);
+	ResPrintFHNodes(ResFHFile, ResNodeList, node->name, nidx, celldef);
+	ResPrintFHRects(ResFHFile, ResResList, newname, eidx);
+    }
+    if (ResOptionsFlags & ResOpt_Geometry)
+    {
+	if (ResResList)
+	    ResAlignNodes(ResNodeList, ResResList);
+	if (ResCreateCenterlines(ResResList, nidx, celldef) < 0)
+	    return 0;
+    }
+    return 1;
 }
 
 /*

@@ -30,11 +30,31 @@ information.
       <BLOCKQUOTE>
          where <I>option</I> may be one of the following:
 	 <DL>
-	   <DT> <B>tolerance</B> <I>value</I>
-	   <DD> Set the ratio between resistor and transistor tolerance
-		for determining when to insert resistance into a network route.
 	   <DT> <B>all</B>
 	   <DD> Extract all the nets.
+	   <DT> <B>threshold</B> [<I>value</I>]
+	   <DD> With no value given, returns the current lumped resistance
+		threshold used to determine if a network will or will not be
+		analyzed for resistance extraction, in milliohms.  The default
+		<B>threshold</B> value is 10000 milliohms (10 ohms).  If
+		<I>value</I> is given, then set the lumped resistance threshold
+		to <I>value</I> milliohms.
+	   <DT> <B>mindelay</B> [<I>value</I>]
+	   <DD> With no value given, returns the current delay time threshold
+		used to determine if a network will or will not be analyzed for
+		resistance extraction, in picoseconds.  The default
+		<B>mindelay</B> value is zero, indicating that delay time is
+		not used for determining extraction.  If <I>value</I> is given,
+		then set the delay threshold to <I>value</I> picoseconds.
+	   <DT> <B>minres</B> [<I>value</I>]
+	   <DD> With no value given, returns the current absolute resistance
+		threshold used to prune small resistances from a network when
+		simplifying, in milliohms.  The default <B>minres</B> value
+		is 1000 milliohms (1 ohm).  If <I>value</I> is given, then set
+		the absolute resistance threshold to <I>value</I> milliohms.
+		Note that resistances smaller than <I>value</I> may still
+		appear in the output netlist if the algorithm is unable to
+		simplify the network around the resistor.
 	   <DT> <B>simplify</B> [<B>on</B>|<B>off</B>]
 	   <DD> Turn on/off simplification of resistor nets.
 	   <DT> <B>extout</B> [<B>on</B>|<B>off</B>]
@@ -69,6 +89,8 @@ information.
 		<TT>.fh</TT> file.  If <I>freq</I> is specified, the file will
 		be customized for <B>fasthenry</B> analysis at the indicated
 		frequency (in Hz).
+	   <DT> <B>tolerance</B> <I>value</I>
+	   <DD> <I>Deprecated!</I>  This option is no longer used by extresist.
 	   <DT> <B>help</B>
 	   <DD> Print help information
 	 </DL>
@@ -79,9 +101,9 @@ information.
    <BLOCKQUOTE>
       The normal flow through layout extraction into a simulation file
       treats routes as nonphysical entities, that is, with infinitesimal
-      impedence through the wires.  Extraction for digital simulation
-      using <B>irsim</B> generates "lumped resistances", a single
-      resistance per network node that, along with the node capacitance
+      impedence through the wires.  Standard extraction generates "lumped
+      resistance" values, a single resistance per network node that, along
+      with the node capacitance
       to substrate, provides an <I>RC</I> time constant to approximately
       model the delay from point to point in the network node.  The
       lumped resistance model is inappropriate for analog (i.e., SPICE)
@@ -96,10 +118,9 @@ information.
 
       Using <B>extresist</B> as a standalone command is a multi-step
       process.  It is first necessary to run <B>extract</B> to get
-      the initial netlist.
-      After a <TT>.ext</TT> file has been generated, the
-      <B>extresist</B> command may be run.  The output is
-      a file <TT>.res.ext</TT> for each cell in the hierarchy.
+      the initial netlist.  After a <TT>.ext</TT> file has been generated,
+      the <B>extresist</B> command may be run.  The output is a file
+      <TT>.res.ext</TT> for each cell in the hierarchy.
       Finally, with the option <B>extresist on</B> set, <B>ext2spice</B>
       will generate the final, detailed simulation file. <P>
 
@@ -110,7 +131,42 @@ information.
       magic version 8.3.597 an option <B>extract do resistance</B>
       that runs the resistance extraction in sequence with the regular
       extraction, producing both the <TT>.ext</TT> and <TT>.res.ext</TT>
-      files.
+      files.  When <B>extract do resistance</B> is used, there is no need
+      to run <B>extresist</B> as a separate command.  However,
+      <B>extresist</B> may be run prior to <B>extract</B> to set the
+      options that affect resistance network extraction, such as
+      <B>extresist threshold</B>, <B>extresist minres</B>, etc. <P>
+
+      As of magic version 8.3.653, the <B>extresist tolerance</B> option
+      is deprecated and has no effect on network resistance extraction.
+      Instead, extraction is controlled by three main options: <P>
+     
+      <B>extresist threshold</B> (value in milliohms) sets a cutoff for
+      considering a network for detailed resistance extraction based on
+      the lumped resistance estimate (see above).  For point-to-point
+      wires, the lumped resistance is approximately equal to the actual
+      wire resistance.  For branching networks, it will generally be an
+      over-estimate.  The default <B>threshold</B> value is set to
+      10 ohms. <P>
+
+      <B>extresist minres</B> (value in milliohms) sets a cutoff for
+      individual resistors in the detailed resistor network.  Resistors
+      below this threshold will get pruned out of the network if the
+      simplification algorithm is able to remove them.  The default
+      <B>minres</B> value is set to 1 ohm. <P>
+
+      <B>extresist mindelay</B> (value in picoseconds) sets a cutoff for
+      considering a network for detailed resistance extraction based on
+      the end-to-end delay calculated from the lumped resistance
+      estimate.  Once the network has been extracted, the <B>mindelay</B>
+      value is again evaluated against a revised calculation of the
+      delay to determine if the extracted detailed network should be
+      output.  The default <B>mindelay<B> value is set to 0, indicating
+      that only the lumped resistance threshold should be used for
+      determining when to extract a detailed resistance network.
+      <B>mindelay</B> may be used in place of <B>threshold</B>, or both
+      may be used together, in which case a network is only extracted
+      if both <B>threshold</B> and <B>mindelay</B> are exceeded. <P>
 
       More details on using <B>extresist</B> can be found in
       <B>magic</B> Tutorial number 8.
@@ -134,6 +190,6 @@ information.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 4, 2021 at 3:32pm <P>
+<P><I>Last updated:</I> May 29, 2026 at 11:33am <P>
 </BODY>
 </HTML>

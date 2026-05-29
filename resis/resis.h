@@ -274,9 +274,10 @@ typedef struct resoptions
 {
     /* Global options for extresist */
 
-    float	    tdiTolerance;
-    float	    frequency;
-    float	    rthresh;
+    float	    minres;	/* Minimum network resistance to output */
+    float	    mindelay;	/* Minimum network delay to output */
+    float	    rthresh;	/* Minimum individual resistance */
+    float	    frequency;	/* For FastHenry geometry extraction */
     struct saveList *savePlanes;
     CellDef	    *mainDef;
 
@@ -288,9 +289,8 @@ typedef struct resoptions
 
     TileType	rg_ttype;
     float	rg_maxres;
-    float	rg_nodecap;
-    float	rg_Tdi;
-    int		rg_bigdevres;
+    float	rg_nodecap;	/* Node capacitance */
+    float	rg_Tdi;		/* Node delay */
     int		rg_tilecount;
     int		rg_status;
     Point	*rg_devloc;
@@ -322,7 +322,6 @@ typedef struct rdev
      struct resextnode	*subs;		/* Used with subcircuit type only  */
      Point		location;	/* Location of lower left point of */
      					/* device.			   */
-     float		resistance;     /* "Resistance" of device.	   */
      TileType		rs_ttype;	/* tile type for device		   */
      ExtDevice		*rs_devptr;	/* device extraction record	   */
      char               *rs_gattr;      /* Gate attributes, if any         */
@@ -461,6 +460,7 @@ typedef struct capval
 /* Capacitance table constants */
 
 #define OHMSTOMILLIOHMS		1000
+#define MILLIOHMSTOOHMS		0.001
 
 #define UNTOUCHED	0
 #define SERIES		1
@@ -496,8 +496,7 @@ typedef struct capval
 #define		ResOpt_DoLumpFile	0x0008
 #define		ResOpt_RunSilent	0x0010
 #define		ResOpt_Stats		0x0020
-#define		ResOpt_Tdi		0x0040
-#define		ResOpt_Signal		0x0080
+#define		ResOpt_Signal		0x0040
 #define		ResOpt_Geometry		0x0100
 #define		ResOpt_FastHenry	0x0200
 #define		ResOpt_Blackbox		0x0300

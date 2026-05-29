@@ -178,7 +178,7 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 	    /* other recievers at far end? If so, reschedule other node;
 	     * deadlock will be settled from that node.
 	     */
-	    if ((MarkedReceivers+UnMarkedReceivers+NumberOfDrivers == 2) ||
+	    if ((MarkedReceivers + UnMarkedReceivers + NumberOfDrivers == 2) ||
 			(UnMarkedReceivers == 0 && MarkedReceivers > 1 &&
 			resistor2 == resistor1 && PendingReceivers == 0))
 	    {
@@ -229,7 +229,7 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
      * Two resistors in series? Combine them and move devices to
      * appropriate end.
      */
-    else if (numdrive+numreceive == 2 && (resistor1->rr_value < tolerance &&
+    else if (numdrive + numreceive == 2 && (resistor1->rr_value < tolerance &&
 		resistor2->rr_value < tolerance))
     {
 	if ((resistor1->rr_status & RES_MARKED) == 0 &&
@@ -362,7 +362,7 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 /*
  *-------------------------------------------------------------------------
  *
- * ResMoveDevices-- move devices from one node1 to node2
+ * ResMoveDevices-- move devices from one node (node1) to anther (node2)
  *
  * Results: none
  *
@@ -829,11 +829,11 @@ ResCalculateTDi(node, resistor, resistorvalue)
 
     ASSERT(rcd != NULL, "ResCalculateTdi");
     if (resistor == NULL)
-        rcd->rc_Tdi = rcd->rc_Cdownstream*(float)resistorvalue;
+        rcd->rc_Tdi = rcd->rc_Cdownstream * (float)resistorvalue;
     else
     {
         rcd2 = (RCDelayStuff *)resistor->rr_connection1->rn_client;
-        ASSERT(rcd2 != NULL,"ResCalculateTdi");
+        ASSERT(rcd2 != NULL, "ResCalculateTdi");
         rcd->rc_Tdi = rcd->rc_Cdownstream * (float)resistor->rr_value +
 	  		rcd2->rc_Tdi;
     }
@@ -920,25 +920,21 @@ ResPruneTree(node, minTdi, nodelist1, nodelist2, resistorlist)
  */
 
 int
-ResDoSimplify(tolerance, resisdata)
-    float	tolerance;
+ResDoSimplify(resisdata)
     ResisData 	*resisdata;
 
 {
     resNode 		*node, *slownode;
-    float 		bigres = 0;
-    float		millitolerance;
+    float		bigres = 0.0;
     float		totalcap;
-    float		rctol;
     resResistor		*res;
 
-    rctol = resisdata->tdiTolerance;
     ResSetPathRes(resisdata);
 
     for (node = ResNodeList; node != NULL; node = node->rn_more)
-    	 bigres = MAX(bigres, node->rn_noderes);
+	bigres = MAX(bigres, node->rn_noderes);
 
-    bigres /= OHMSTOMILLIOHMS; /* convert from milliohms to ohms */
+    bigres /= OHMSTOMILLIOHMS;
     resisdata->rg_maxres = bigres;
 
 #ifdef PARANOID
@@ -952,8 +948,8 @@ ResDoSimplify(tolerance, resisdata)
 
     (void) ResDistributeCapacitance(ResNodeList, resisdata->rg_nodecap);
 
-    if (((tolerance > bigres) || ((ResOptionsFlags & ResOpt_Simplify) == 0)) &&
-	    ((ResOptionsFlags & ResOpt_DoLumpFile) == 0))
+    if (((ResOptionsFlags & ResOpt_Simplify) == 0) &&
+		((ResOptionsFlags & ResOpt_DoLumpFile) == 0))
     	return 0;
 
     res = ResResList;
@@ -963,16 +959,6 @@ ResDoSimplify(tolerance, resisdata)
 
 	res = res->rr_nextResistor;
     	oldres->rr_status &= ~RES_HEAP;
-
-	/*------  NOTE:  resistors marked with RES_TDI_IGNORE are
-	 *	  part of loops but should NOT be removed.
-	if (oldres->rr_status & RES_TDI_IGNORE)
-	{
-	    ResDeleteResPointer(oldres->rr_node[0], oldres);
-	    ResDeleteResPointer(oldres->rr_node[1], oldres);
-	    ResEliminateResistor(oldres, &ResResList);
-	}
-	------*/
     }
 
     if (ResNodeAtOrigin == NULL)
@@ -980,7 +966,7 @@ ResDoSimplify(tolerance, resisdata)
 	TxError("Error:  Network simplification:  Failed to to get origin node.\n");
     	resisdata->rg_Tdi = 0;
     }
-    else if (ResOptionsFlags & ResOpt_Tdi)
+    else if (resisdata->mindelay > 0)
     {
 	if ((resisdata->rg_nodecap != -1) &&
 	 	(totalcap = ResCalculateChildCapacitance(ResNodeAtOrigin)) != -1)
@@ -988,8 +974,7 @@ ResDoSimplify(tolerance, resisdata)
 	    RCDelayStuff *rc = (RCDelayStuff *) ResNodeList->rn_client;
 
 	    resisdata->rg_nodecap = totalcap;
-	    ResCalculateTDi(ResNodeAtOrigin, (resResistor *)NULL,
-	      					resisdata->rg_bigdevres);
+	    ResCalculateTDi(ResNodeAtOrigin, (resResistor *)NULL, 0);
 	    if (rc != (RCDelayStuff *)NULL)
 		resisdata->rg_Tdi = rc->rc_Tdi;
 	    else
@@ -1013,20 +998,10 @@ ResDoSimplify(tolerance, resisdata)
     else
     	resisdata->rg_Tdi = 0;
 
-    if ((rctol+1) * resisdata->rg_bigdevres * resisdata->rg_nodecap >
-	    rctol * resisdata->rg_Tdi &&
-	    (ResOptionsFlags & ResOpt_Tdi) &&
-	    resisdata->rg_Tdi != -1)
-	return 0;
-
-    /* Simplify network; resistors are still in milliohms, so use
-     * millitolerance.
-     */
+    /* Simplify network */
 
     if (ResOptionsFlags & ResOpt_Simplify)
     {
-	millitolerance = tolerance * MILLIOHMSPEROHM;
-
         /*
          * Start simplification at driver (R=0). Remove it from the done list
          * and add it to the pending list. Call ResSimplifyNet as long as
@@ -1044,16 +1019,18 @@ ResDoSimplify(tolerance, resisdata)
             /* if Tdi is enabled, prune all branches whose end nodes	*/
 	    /* have time constants less than the tolerance.		*/
 
-	    if ((ResOptionsFlags & ResOpt_Tdi) &&
-	           resisdata->rg_Tdi != -1 &&
-		   rctol != 0)
-	    {
-	        ResPruneTree(ResNodeAtOrigin, (rctol + 1) *
-			resisdata->rg_bigdevres * resisdata->rg_nodecap / rctol,
+	    if ((resisdata->rg_Tdi != -1) && (resisdata->mindelay > 0))
+	        ResPruneTree(ResNodeAtOrigin, resisdata->mindelay,
 		   	&ResNodeList, &ResNodeQueue, &ResResList);
-	    }
+
 	    ResNodeAtOrigin->rn_status &= ~RES_MARKED;
-	    if (ResNodeAtOrigin->rn_less == NULL)
+	    if (ResNodeAtOrigin->rn_less == CLIENTDEFAULT)
+	    {
+		TxError("ResSimplify:  Bad resptr at node %s origin.\n",
+			ResNodeAtOrigin->rn_name);
+		return 0;
+	    }
+	    else if (ResNodeAtOrigin->rn_less == NULL)
 		ResNodeList = ResNodeAtOrigin->rn_more;
 	    else
 	        ResNodeAtOrigin->rn_less->rn_more = ResNodeAtOrigin->rn_more;
@@ -1065,13 +1042,14 @@ ResDoSimplify(tolerance, resisdata)
 	    ResNodeAtOrigin->rn_less = NULL;
 	    ResNodeQueue = ResNodeAtOrigin;
 	    while (ResNodeQueue != NULL)
-	        ResSimplifyNet(&ResNodeQueue, &ResNodeList, &ResResList, millitolerance);
+	        ResSimplifyNet(&ResNodeQueue, &ResNodeList, &ResResList,
+				resisdata->minres);
 
 	    /*
-	     * Call ResScrunchNet to eliminate any remaining under tolerance
+	     * Call ResScrunchNet to eliminate any remaining under-tolerance
 	     * resistors.
 	     */
-	    ResScrunchNet(&ResResList, &ResNodeQueue, &ResNodeList, millitolerance);
+	    ResScrunchNet(&ResResList, &ResNodeQueue, &ResNodeList, resisdata->minres);
         }
     }
     return 0;

@@ -61,6 +61,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define		DEV_PARAM_START		7
 
 #define		NODES_NODENAME		1
+#define		NODES_NODERES		2
 #define		NODES_NODEX		4
 #define		NODES_NODEY		5
 #define		NODES_NODETYPE		6
@@ -525,6 +526,7 @@ ResReadNode(int argc, char *argv[])
     node->location.p_x = atoi(argv[NODES_NODEX]);
     node->location.p_y = atoi(argv[NODES_NODEY]);
     node->type = DBTechNameType(argv[NODES_NODETYPE]);
+    node->resistance = atoi(argv[NODES_NODERES]);
 
     if (node->type == -1)
     {
@@ -727,8 +729,6 @@ ResReadDevice(int argc,
     TileType	ttype;
     HashEntry	*entry;
     ResExtNode	*node;
-    ResValue	rpersquare;
-    float	wval;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
 
@@ -757,34 +757,20 @@ ResReadDevice(int argc,
     device->drain = (ResExtNode *)NULL;
     device->subs = (ResExtNode *)NULL;
 
-    entry = HashLookOnly(&devptr->exts_deviceResist, "linear");
-    if (entry != NULL)
-	rpersquare = (ResValue)(spointertype)HashGetValue(entry);
-    else
-	rpersquare = (ResValue)10000.0;		/* Default to a sane value */
-
-    /* For devices, the device width is in the parameter list */
-    wval = 0.0;
+    /* Find the end of parameter arguments */
     for (i = DEV_Y; i < argc; i++)
     {
 	char *eptr;
-	if ((eptr = strchr(argv[i], '=')) != NULL)
-	{
-	    if (*argv[i] == 'w')
-		sscanf(eptr + 1, "%f", &wval);
-	}
-	else if (!StrIsInt(argv[i]))
-	    break;
+	if ((eptr = strchr(argv[i], '=')) == NULL)
+	    if (!StrIsInt(argv[i]))
+		break;
     }
-
     if (i == argc)
     {
 	TxError("Bad device %s:  Too few arguments in .ext file\n",
 		argv[DEV_NAME]);
 	return 1;
     }
-    else
-	device->resistance = wval * rpersquare;	/* Channel resistance */
 
     /* Find and record the device terminal nodes */
     /* Note that this only records up to two terminals matching FET
@@ -857,8 +843,6 @@ ResReadFET(int argc,
     TileType	ttype;
     HashEntry	*entry;
     ResExtNode	*node;
-    ResValue	rpersquare;
-    float	area, perim, wval, lval;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
 
@@ -882,20 +866,6 @@ ResReadFET(int argc,
     device->rs_sattr = RDEV_NOATTR;
     device->rs_dattr = RDEV_NOATTR;
     device->rs_devptr = devptr;
-
-    entry = HashLookOnly(&devptr->exts_deviceResist, "linear");
-    if (entry != NULL)
-	rpersquare = (ResValue)(spointertype)HashGetValue(entry);
-    else
-	rpersquare = (ResValue)10000.0;		/* Default to a sane value */
-
-    /* For old-style FETs, the width is determined from area and perimeter */ 
-    area = MagAtof(argv[FET_AREA]);
-    perim = MagAtof(argv[FET_PERIM]);
-    lval = 0.5 * (perim + sqrt(perim * perim - 4 * area));
-    wval = area / lval;
-
-    device->resistance = wval * rpersquare;	/* Channel resistance */
 
     /* Find and record the FET terminal nodes */
 
