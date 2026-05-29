@@ -9,7 +9,8 @@ name: CI-wasm
 #   git tag v8.3.638
 #   git push origin v8.3.638
 #
-# The tag name (minus the leading "v") becomes the published npm version.
+# The tag name (minus the leading "v") provides the base; the workflow appends
+# the commit date and short SHA: v8.3.799 → 8.3.799020261231+git01234cde.
 # Forks publish under their own namespace via the @<owner>/ scope.
 
 on:
@@ -161,28 +162,34 @@ jobs:
           done
 
       # The release gate. We publish a new npm version only when a tag of the
-      # shape v<x.y.z>... is pushed. The tag name (minus the leading "v") is
-      # taken as the npm version verbatim — so `v8.3.638` → npm 8.3.638.
+      # shape v<x.y.z>... is pushed.
+      #
+      # Version scheme (per dmiles' recommendation):
+      #   {MAJOR}.{MINOR}.{PATCH}0{YYYYMMDD}+git{SHORT_SHA}
+      # e.g. v8.3.799 pushed on 2026-12-31 → 8.3.799020261231+git01234cde
+      #
+      # The leading zero between PATCH and date keeps the number readable and
+      # ensures correct numeric ordering: 799020261231 < 800020261231.
+      # Build metadata (+git...) is ignored by npm for comparison but retained
+      # for traceability. Security patches for the 799 series can be inserted
+      # as later dates (799020270101, 799020270201, …) and are matched by the
+      # range <=8.3.799900000000 or <8.3.8000000000000.
       - name: Determine release version (tag-driven only)
         id: release
         run: |
+          date=$(git show -s --format=%cs | tr -d '-')
+          hash=$(git show -s --format=%h)
           if [ "${{ github.event_name }}" = "push" ] && \
              echo "${{ github.ref }}" | grep -Eq '^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+'; then
             tag="${GITHUB_REF#refs/tags/}"
-            echo "publish=true"            >> "$GITHUB_OUTPUT"
-            echo "version=${tag#v}"        >> "$GITHUB_OUTPUT"
-            echo "Tag release: $tag → npm version ${tag#v}"
+            base="${tag#v}"
+            echo "publish=true"                              >> "$GITHUB_OUTPUT"
+            echo "version=${base}0${date}+git${hash}"       >> "$GITHUB_OUTPUT"
+            echo "Tag release: $tag → npm version ${base}0${date}+git${hash}"
           else
-            # For non-tag CI runs, embed date + git hash as build metadata
-            # (semver +METADATA) so the snapshot sorts as 8.3.799+date.gitHASH.
-            # Build metadata is ignored by npm for version comparison — the
-            # snapshot is treated as equivalent to 8.3.799 for range matching,
-            # which is correct: it is that release built from a specific commit.
             base=$(cat VERSION)
-            date=$(git show -s --format=%cs | tr -d '-')
-            hash=$(git show -s --format=%h)
-            echo "publish=false"                          >> "$GITHUB_OUTPUT"
-            echo "version=${base}+${date}.git${hash}"  >> "$GITHUB_OUTPUT"
+            echo "publish=false"                             >> "$GITHUB_OUTPUT"
+            echo "version=${base}0${date}+git${hash}"       >> "$GITHUB_OUTPUT"
             echo "Non-tag build: will not publish."
           fi
 
