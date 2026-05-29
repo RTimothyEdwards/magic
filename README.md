@@ -36,6 +36,27 @@
 ---------------------------------
    See the file "INSTALL" in this directory, or "INSTALL_MacOS.md" for MacOS.
 
+2. (a) ## Quick Install for Debian-based Linux Systems:
+  Below are the libraries needed to compile magic on Debian-based Linux. You can copy this code in your terminal to install all the required packages.
+
+```bash 
+sudo apt update 
+sudo apt install -y build-essential \
+    gcc g++ make \
+    libcairo2-dev libncurses5-dev libncursesw5-dev \
+    tcl-dev tk-dev \
+    libx11-dev libx11-xcb-dev libxrender-dev libxcb1-dev libxft-dev \
+    git
+``` 
+
+After that paste the following in your terminal to compile and install magic:
+
+```bash
+./configure 
+make -j$(nproc) 
+sudo make install 
+``` 
+
 3. Version 8.3 Release Notes:
 ---------------------------------
 
