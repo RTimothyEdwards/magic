@@ -52,6 +52,10 @@ add_generated_mask_macro(
     "(m)->tt_words[{i}] = 0",
 )
 add_generated_mask_macro(
+    "TTMaskCopy(m, n)",
+    "(m)->tt_words[{i}] = (n)->tt_words[{i}]",
+)
+add_generated_mask_macro(
     "TTMaskIsZero(m)",
     "(m)->tt_words[{i}] == 0",
     connector=" &&",
