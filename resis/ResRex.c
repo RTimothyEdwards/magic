@@ -1933,7 +1933,7 @@ ResWriteLumpFile(node, resisdata)
     }
     else
     {
-	lumpedres = resisdata->rg_maxres;
+	lumpedres = resisdata->rg_maxres * MILLIOHMSTOOHMS;
     }
     fprintf(ResLumpFile, "R %s %d\n", node->name, lumpedres);
 }
@@ -2046,7 +2046,7 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 	    {
 		if (ResOptionsFlags & ResOpt_Debug)
 		    TxPrintf("Not adding %s (maxres = %.2fohm)\n", node->name,
-				resisdata->rg_maxres / 1000.0);
+				resisdata->rg_maxres * MILLIOHMSTOOHMS);
 		return 0;
 	    }
     }
@@ -2078,7 +2078,7 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 	if (resisdata->mindelay == 0)
 	{
 	    TxPrintf("Adding %s (maxres = %.2fohm)\n", node->name,
-			resisdata->rg_maxres / 1000.0);
+			resisdata->rg_maxres * MILLIOHMSTOOHMS);
 	}
 	else
 	{

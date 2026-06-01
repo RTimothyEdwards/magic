@@ -934,7 +934,6 @@ ResDoSimplify(resisdata)
     for (node = ResNodeList; node != NULL; node = node->rn_more)
 	bigres = MAX(bigres, node->rn_noderes);
 
-    bigres /= OHMSTOMILLIOHMS;
     resisdata->rg_maxres = bigres;
 
 #ifdef PARANOID
