@@ -387,10 +387,13 @@ ResReadDrivePoint(CellDef *def,
 	node->drivepoints = newdriver;
 	node->status |= FORCE | DRIVELOC;
 
-	/* XXX Diagnostic XXX */
-	TxPrintf("Added driver at %d %d %d %d\n",
+	if (ResOptionsFlags & ResOpt_Debug)
+	{
+	    /* Diagnostic */
+	    TxPrintf("Added driver at %d %d %d %d\n",
 			newdriver->rc_rect.r_xbot, newdriver->rc_rect.r_ybot,
 			newdriver->rc_rect.r_xtop, newdriver->rc_rect.r_ytop);
+	}
     }
 
     return 0;
@@ -607,10 +610,13 @@ ResReadConnectPoint(CellDef *def,
 	node->sinkpoints = newsink;
 	node->status |= FORCE | DRIVELOC;
 
-	/* XXX Diagnostic XXX */
-	TxPrintf("Added sink at %d %d %d %d\n", newsink->rc_rect.r_xbot,
+	if (ResOptionsFlags & ResOpt_Debug)
+	{
+	    /* Diagnostic */
+	    TxPrintf("Added sink at %d %d %d %d\n", newsink->rc_rect.r_xbot,
 			newsink->rc_rect.r_ybot, newsink->rc_rect.r_xtop,
 			newsink->rc_rect.r_ytop);
+	}
     }
 
     return 0;
@@ -662,10 +668,13 @@ ResReadPort(int argc,
     node->drivepoints = newdriver;
     node->status |= FORCE | DRIVELOC | PORTNODE;
 
-    /* XXX Diagnostic XXX */
-    TxPrintf("Added port at %d %d %d %d\n",
+    if (ResOptionsFlags & ResOpt_Debug)
+    {
+	/* Diagnostic */
+	TxPrintf("Added port at %d %d %d %d\n",
 		newdriver->rc_rect.r_xbot, newdriver->rc_rect.r_ybot,
 		newdriver->rc_rect.r_xtop, newdriver->rc_rect.r_ytop);
+    }
 
     if (node->type == -1)
     {
@@ -728,7 +737,7 @@ ResReadDevice(int argc,
     char *argv[])
 {
     RDev	*device;
-    int		rvalue, i, j, k;
+    int		rvalue, i, j, k, w, l;
     ExtDevice	*devptr;
     TileType	ttype;
     HashEntry	*entry;
@@ -792,6 +801,8 @@ ResReadDevice(int argc,
     entry = HashFind(&ResNodeTable, argv[i]);
     device->gate = (ResExtNode *)HashGetValue(entry);
     device->rs_gattr = StrDup((char **)NULL, argv[i + 2]);
+    l = atoi(argv[i + 1]);
+    w = 0;
     ResNodeAddDevice(device->gate, device, GATE);
     i += 3;
     
@@ -800,6 +811,7 @@ ResReadDevice(int argc,
 	entry = HashFind(&ResNodeTable, argv[i]);
 	device->source = (ResExtNode *)HashGetValue(entry);
 	device->rs_sattr = StrDup((char **)NULL, argv[i + 2]);
+	w = atoi(argv[i + 1]);
 	ResNodeAddDevice(device->source, device, SOURCE);
 	i += 3;
     }
@@ -809,6 +821,7 @@ ResReadDevice(int argc,
 	entry = HashFind(&ResNodeTable, argv[i]);
 	device->drain = (ResExtNode *)HashGetValue(entry);
 	device->rs_dattr = StrDup((char **)NULL, argv[i + 2]);
+	w = MAX(w, atoi(argv[i + 1]));
 	ResNodeAddDevice(device->drain, device, DRAIN);
 	i += 3;
     }
@@ -819,6 +832,7 @@ ResReadDevice(int argc,
     }
 
     device->rs_ttype = extGetDevType(devptr->exts_deviceName);
+    device->rs_wl = (l == 0) ? 0.0 : (float)w / (float)l;
 
     ResRDevList = device;
     device->layout = NULL;
@@ -842,7 +856,7 @@ ResReadFET(int argc,
     char *argv[])
 {
     RDev	*device;
-    int		rvalue, i, j, k;
+    int		rvalue, i, j, k, w, l;
     ExtDevice	*devptr;
     TileType	ttype;
     HashEntry	*entry;
@@ -891,6 +905,11 @@ ResReadFET(int argc,
     device->rs_gattr = StrDup((char **)NULL, argv[FET_GATE_ATTR]);
     device->rs_sattr = StrDup((char **)NULL, argv[FET_SOURCE_ATTR]);
     device->rs_dattr = StrDup((char **)NULL, argv[FET_DRAIN_ATTR]);
+
+    l = atoi(argv[FET_GATE_ATTR - 1]);
+    w = atoi(argv[FET_SOURCE_ATTR - 1]);
+    w = MAX(w, atoi(argv[FET_DRAIN_ATTR - 1]));
+    device->rs_wl = (l == 0) ? 0.0 : (float)w / (float)l;
 
     ResRDevList = device;
     device->layout = NULL;

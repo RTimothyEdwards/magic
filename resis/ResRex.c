@@ -44,15 +44,15 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define P_TO_Z		1e9
 
 /* Table of nodes to ignore (manually specified) */
-
 HashTable 	ResIgnoreTable;	    /* Hash table of nodes to ignore  */
 
 /* Table of nodes to include (manually specified) */
-
 HashTable 	ResIncludeTable;    /* Hash table of nodes to include  */
 
-/* Table of cells that have been processed */
+/* Table of nodes to force extraction of (manually specified) */
+HashTable 	ResForceTable;    /* Hash table of nodes to include  */
 
+/* Table of cells that have been processed */
 HashTable	ResProcessedTable;
 
 /* ResExtNode is a node read in from a .ext file */
@@ -226,6 +226,7 @@ ResInit()
 	resisdata->frequency = 10e6;	/* 10 MHz default */
 
 	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
+	HashInit(&ResForceTable, INITFLATSIZE, HT_STRINGKEYS);
 	HashInit(&ResIncludeTable, INITFLATSIZE, HT_STRINGKEYS);
 	init = 0;
     }
@@ -295,7 +296,9 @@ CmdExtResis(win, cmd)
 	"extout   [on/off]    turn on/off writing of .res.ext file",
 	"lumped   [on/off]    turn on/off writing of updated lumped resistances",
 	"silent   [on/off]    turn on/off printing of net statistics",
+	"debug	  [on/off]    turn on/off printing of detailed information",
 	"skip     mask        don't extract these types",
+	"force	  names	      force these nets to be extracted",
 	"ignore	  names	      don't extract these nets",
 	"include  names	      extract only these nets",
 	"box      type        extract the signal under the box on layer type",
@@ -311,10 +314,10 @@ CmdExtResis(win, cmd)
 typedef enum {
 	RES_BAD=-2, RES_AMBIG, RES_ALL,
 	RES_THRESH, RES_MINRES, RES_MINDELAY, RES_TOL,
-	RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT,
-	RES_SKIP, RES_IGNORE, RES_INCLUDE, RES_BOX, RES_CELL,
-	RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY, RES_STATS,
-	RES_HELP, RES_RUN
+	RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT, RES_DEBUG,
+	RES_SKIP, RES_FORCE, RES_IGNORE, RES_INCLUDE, RES_BOX,
+	RES_CELL, RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY,
+	RES_STATS, RES_HELP, RES_RUN
 } ResOptions;
 
     resisdata = ResInit();
@@ -549,6 +552,23 @@ typedef enum {
 	    }
 	    return;
 
+	case RES_DEBUG:
+	    if (cmd->tx_argc == 2)
+	    {
+		value = (ResOptionsFlags & ResOpt_Debug) ?
+			TRUE : FALSE;
+		TxPrintf("%s\n", onOff[value]);
+	    }
+	    else
+	    {
+		value = Lookup(cmd->tx_argv[2], onOff);
+		if (value)
+	      	   ResOptionsFlags |= ResOpt_Debug;
+		else
+	      	   ResOptionsFlags &= ~ResOpt_Debug;
+	    }
+	    return;
+
 	case RES_SKIP:
 	    if (cmd->tx_argc > 2)
 	    {
@@ -565,6 +585,31 @@ typedef enum {
 		    TTMaskZero(&(ResCopyMask[i]));
 		    TTMaskSetMask(&ResCopyMask[i], &DBConnectTbl[i]);
      		}
+	    }
+	    return;
+
+	case RES_FORCE:
+	    if (cmd->tx_argc > 2)
+	    {
+		if (!strcasecmp(cmd->tx_argv[2], "none"))
+		{
+		    /* Kill and reinitialize the table of forced nets */
+		    HashKill(&ResForceTable);
+		    HashInit(&ResForceTable, INITFLATSIZE, HT_STRINGKEYS);
+		}
+		else
+		    HashFind(&ResForceTable, cmd->tx_argv[2]);
+	    }
+	    else
+	    {
+		HashSearch hs;
+		HashEntry *entry;
+
+		/* List all net names that are being ignored */
+		HashStartSearch(&hs);
+		while((entry = HashNext(&ResForceTable, &hs)) != NULL)
+		    TxPrintf("%s ", (char *)entry->h_key.h_name);
+		TxPrintf("\n");
 	    }
 	    return;
 
@@ -1028,7 +1073,9 @@ ResProcessNode(
 {
     HashEntry	*he;
     devPtr	*ptr;
+    int		totWL, maxWL = 0;
     int		nidx = 1, eidx = 1;	/* node & segment counters for geom. */
+    bool	processThis;
 
     /* Ignore or include specified nodes */
 
@@ -1063,32 +1110,71 @@ ResProcessNode(
 
     resisdata->rg_ttype = node->type;
 
-    /* Pick the first device connected to node. */
+    /* Find the device with largest drive on the net;  this will be
+     * assumed to be the primary net driver.  Make sure that devices
+     * in parallel have been combined to determine which device is the
+     * largest.  If there are no drivers on the net, then choose a
+     * source or sink point as the driver.  The driver will be used as
+     * the starting point to determine the longest driver-to-terminal
+     * resistance or delay.
+     */ 
 
     for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)
     {
-	RDev	*t1;
+	RDev	*t1, *t2;
 
+	/* Ignore devices unless they are FETs or BJTs */
+	switch (ptr->thisDev->rs_devptr->exts_deviceClass)
+	{
+	    case DEV_FET:
+	    case DEV_MOSFET:
+	    case DEV_ASYMMETRIC:
+	    case DEV_MSUBCKT:
+	    case DEV_BJT:
+		break;
+	    default:
+		continue;
+	}
+
+	/* Devices have been sorted with those being gate terminals
+	 * at the end, so once the first gate terminal is reached,
+	 * there are no more drivers to be found.
+	 */
 	if (ptr->terminal == GATE)
 	    break;
 	else
 	{
+	    /* Sorting has put all parallel devices together, so
+	     * combine their total W/L
+	     */
+	    totWL = ptr->thisDev->rs_wl;
 	    t1 = ptr->thisDev;
-	    resisdata->rg_devloc = &t1->location;
-	    resisdata->rg_ttype = t1->rs_ttype;
-	    break;
+	    for (; ptr->nextDev != NULL; ptr = ptr->nextDev)
+	    {
+		t1 = ptr->thisDev;
+		t2 = ptr->nextDev->thisDev;
+		if (t1->gate != t2->gate) break;
+		if ((t1->source != t2->source || t1->drain != t2->drain) &&
+			(t1->source != t2->drain || t2->drain != t2->source))
+		    break;
+
+		/* Sum the W/L value of devices in parallel */
+		totWL += t2->rs_wl;
+	    }
+	    if (totWL > maxWL)
+	    {
+		maxWL = totWL;
+		resisdata->rg_devloc = &t1->location;
+		resisdata->rg_ttype = t1->rs_ttype;
+	    }
 	}
     }
 
-    /* Special handling for FORCE and DRIVELOC labels:		*/
+    /* Special handling for DRIVELOC labels: */
 
-    if (node->status & (FORCE|DRIVELOC))
+    if (node->status & DRIVELOC)
     {
-	/* NOTE:  This needs to be fixed, as it is assuming that
-	 * a node has exactly one drivepoint;  this is (probably)
-	 * valid for top level cells, but not in general.
-	 */
-	if ((node->status & (DRIVELOC | PORTNODE)) && (node->drivepoints != NULL))
+	if ((node->status & DRIVELOC) && (node->drivepoints != NULL))
 	{
 	    resisdata->rg_devloc = &node->drivepoints->rc_rect.r_ll;
 	    resisdata->rg_ttype = node->drivepoints->rc_type;
@@ -1097,15 +1183,40 @@ ResProcessNode(
 
 	/* If there is no drivepoint but there is a sinkpoint, use that.
 	 * The "drivers" and "sinks" are arbitrary, anyway, and any of
-	 * them can be considered a node start point.
+	 * them can be considered a node driver.
 	 */
-	else if ((node->status & (DRIVELOC | PORTNODE)) && (node->sinkpoints != NULL))
+	else if ((node->status & DRIVELOC) && (node->sinkpoints != NULL))
 	{
 	    resisdata->rg_devloc = &node->sinkpoints->rc_rect.r_ll;
 	    resisdata->rg_ttype = node->sinkpoints->rc_type;
 	    resisdata->rg_status |= DRIVEONLY;
 	}
     }
+
+    /* If no driving device was found and node was not marked with a
+     * DRIVELOC label, then use the first drivepoint as the driver.
+     * If there are no drivepoints, then use a sinkpoint.  Using sinkpoints
+     * (design is hierarchical) is problematic because there is no information
+     * on whether the sinkpoint leads to a driver in the child cell, which
+     * needs to be addressed to correctly handle hierarchical R-C extraction.
+     */
+
+    if (resisdata->rg_devloc == NULL)
+    {
+	if (node->drivepoints != NULL)
+	{
+	    resisdata->rg_devloc = &node->drivepoints->rc_rect.r_ll;
+	    resisdata->rg_ttype = node->drivepoints->rc_type;
+	    resisdata->rg_status |= DRIVEONLY;
+	}
+	else if (node->sinkpoints != NULL)
+	{
+	    resisdata->rg_devloc = &node->sinkpoints->rc_rect.r_ll;
+	    resisdata->rg_ttype = node->sinkpoints->rc_type;
+	    resisdata->rg_status |= DRIVEONLY;
+	}
+    }
+
     if ((resisdata->rg_devloc == NULL) && (node->status & FORCE))
     {
     	TxError("Node %s has force label but no drive point or "
@@ -1124,19 +1235,38 @@ ResProcessNode(
      * by absolute resistance ("extresist threshold") or by effective signal
      * propagation delay ("extresist mindelay").  If either one is set to zero,
      * it will be ignored, although they can also be used in combination.
+     *
+     * Note that the substrate net has a capacitance to substrate of zero by
+     * definition, and should be the only net with a zero capacitance.
+     * Therefore, for any node with zero capacitance, use only the lumped
+     * resistance to determine whether or not to process the node.
      */
 
-    if ((ResOpt_ExtractAll & ResOptionsFlags) ||
-		((node->resistance > resisdata->rthresh) &&
-		(node->resistance * node->capacitance > resisdata->mindelay)))
+    processThis = FALSE;
+    if (ResOpt_ExtractAll & ResOptionsFlags)
+	processThis = TRUE;
+    else if ((node->capacitance > 0) && (node->resistance > resisdata->rthresh) &&
+		(node->resistance * node->capacitance > resisdata->mindelay))
+	processThis = TRUE;
+    else if ((node->capacitance == 0) && (node->resistance > resisdata->rthresh))
+	processThis = TRUE;
+    else if (HashLookOnly(&ResForceTable, node->name) != NULL)
+	processThis = TRUE;
+
+    if (processThis)
     {
 	ResFixPoint fp;
 
 	/* Diagnostic */
-	TxPrintf("Extracting %s (Rnode = %.2fohm ; Rthresh = %.2fohm)\n",
-			node->name,
+	if (!(ResOptionsFlags & ResOpt_RunSilent))
+	{
+	    TxPrintf("Extracting %s", node->name);
+	    if (ResOptionsFlags & ResOpt_Debug)
+		TxPrintf(" (Rnode = %.2fohm ; Rthresh = %.2fohm)",
 			node->resistance * MILLIOHMSTOOHMS,
 			resisdata->rthresh * MILLIOHMSTOOHMS);
+	    TxPrintf("\n");
+	}
 
 	(*num_extracted)++;
 	if (ResExtractNet(node, resisdata, outfile) != 0)
@@ -1904,21 +2034,69 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
      * the original estimate.  If the new estimate falls below the
      * threshold, then return without outputting the node's network.
      */
-    if (resisdata->rg_Tdi < resisdata->mindelay) return 0;
-
-    if (!(ResOptionsFlags & ResOpt_RunSilent))
+    if (resisdata->rg_Tdi == 0)
     {
-	float ftdi, fdmin;
+	/* The substrate net has zero capacitance by definition and
+	 * so it also has zero delay by definition.  In that case,
+	 * check if the updated lumped resistance exceeds the
+	 * threshold or not.
+	 */
+	if (resisdata->rg_maxres < resisdata->rthresh)
+	    if (HashLookOnly(&ResForceTable, node->name) == NULL)
+	    {
+		if (ResOptionsFlags & ResOpt_Debug)
+		    TxPrintf("Not adding %s (maxres = %.2fohm)\n", node->name,
+				resisdata->rg_maxres / 1000.0);
+		return 0;
+	    }
+    }
+    else if ((resisdata->rg_Tdi != -1) && (resisdata->rg_Tdi < resisdata->mindelay))
+    {
+	if (HashLookOnly(&ResForceTable, node->name) == NULL)
+	{
+	    if (ResOptionsFlags & ResOpt_Debug)
+	    {
+		/* Diagnostic */
+		float ftdi, fdmin;
 
-	ftdi = resisdata->rg_Tdi * Z_TO_P;
-	fdmin = resisdata->mindelay * Z_TO_P;
+		ftdi = resisdata->rg_Tdi * Z_TO_P;
+		fdmin = resisdata->mindelay * Z_TO_P;
 
-	if ((ftdi < 0.01) || ((fdmin < 0.01) && (resisdata->mindelay > 0)))
-	    TxPrintf("Adding  %s; (Tnew = %.2ffs ; Tmin = %.2ffs)\n",
-		     	node->name, ftdi * 1000, fdmin * 1000);
+		if ((ftdi < 0.01) || ((fdmin < 0.01) && (resisdata->mindelay > 0)))
+		    TxPrintf("Not adding  %s; (Tnew = %.2ffs ; Tmin = %.2ffs)\n",
+				node->name, ftdi * 1000, fdmin * 1000);
+		else
+		    TxPrintf("Not adding  %s; (Tnew = %.2fps ; Tmin = %.2fps)\n",
+				node->name, ftdi, fdmin);
+	    }
+	    return 0;
+	}
+    }
+
+    if (ResOptionsFlags & ResOpt_Debug)
+    {
+	if (resisdata->mindelay == 0)
+	{
+	    TxPrintf("Adding %s (maxres = %.2fohm)\n", node->name,
+			resisdata->rg_maxres / 1000.0);
+	}
 	else
-	    TxPrintf("Adding  %s; (Tnew = %.2fps ; Tmin = %.2fps)\n",
+	{
+	    float ftdi, fdmin;
+	    fdmin = resisdata->mindelay * Z_TO_P;
+
+	    if (resisdata->rg_Tdi == -1)
+		ftdi = resisdata->rg_maxres * resisdata->rg_nodecap * Z_TO_P;
+	    else
+		ftdi = resisdata->rg_Tdi * Z_TO_P;
+
+	    if ((ftdi < 0.01) || ((fdmin < 0.01) && (resisdata->mindelay > 0)))
+		TxPrintf("Adding %s; (Tnew = %.2ffs ; Tmin = %.2ffs)\n",
+		     	node->name, ftdi * 1000, fdmin * 1000);
+	    else
+		TxPrintf("Adding %s; (Tnew = %.2fps ; Tmin = %.2fps)\n",
 		     	node->name, ftdi, fdmin);
+	}
     }
 
     for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)

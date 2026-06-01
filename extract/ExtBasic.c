@@ -731,7 +731,8 @@ extOutputNodes(nodeList, outFile)
 	/* Check if this node is the substrate */
 	if (reg == glob_subsnode)
 	{
-	    fprintf(outFile, "substrate \"%s\" 0 0", text);
+	    intR = (reg->nreg_resist + rround) / ExtCurStyle->exts_resistScale;
+	    fprintf(outFile, "substrate \"%s\" %d 0", text, intR);
 	}
 	else
 	{

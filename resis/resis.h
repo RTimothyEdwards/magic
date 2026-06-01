@@ -311,20 +311,19 @@ typedef struct rcdelaystuff
 typedef struct rdev
 {
      struct rdev	*nextDev;	/* Next device in linked list */
-     struct rdev 	*realDev;	/* Single Lumped Device for   */
-     					/* devices connected in parallel  */
      resDevice		*layout;	/* pointer to resDevice that	  */
      					/* corresponds to RDev		  */
      int		status;
      struct resextnode	*gate;		/* Terminals of transistor.	  */
      struct resextnode	*source;
      struct resextnode	*drain;
-     struct resextnode	*subs;		/* Used with subcircuit type only  */
-     Point		location;	/* Location of lower left point of */
-     					/* device.			   */
-     TileType		rs_ttype;	/* tile type for device		   */
-     ExtDevice		*rs_devptr;	/* device extraction record	   */
-     char               *rs_gattr;      /* Gate attributes, if any         */
+     struct resextnode	*subs;		/* Used with subcircuit type only */
+     Point		location;	/* Location of lower left point	  */
+     					/* of the device.		  */
+     TileType		rs_ttype;	/* tile type for device		  */
+     float		rs_wl;		/* device W/L, if relevant	  */
+     ExtDevice		*rs_devptr;	/* device extraction record	  */
+     char               *rs_gattr;      /* Gate attributes, if any        */
      char               *rs_sattr;
      char               *rs_dattr;
 } RDev;
@@ -495,11 +494,12 @@ typedef struct capval
 #define		ResOpt_DoExtFile	0x0004
 #define		ResOpt_DoLumpFile	0x0008
 #define		ResOpt_RunSilent	0x0010
-#define		ResOpt_Stats		0x0020
-#define		ResOpt_Signal		0x0040
+#define		ResOpt_Debug		0x0020
+#define		ResOpt_Stats		0x0040
+#define		ResOpt_Signal		0x0080
 #define		ResOpt_Geometry		0x0100
 #define		ResOpt_FastHenry	0x0200
-#define		ResOpt_Blackbox		0x0300
+#define		ResOpt_Blackbox		0x0400
 #define 	ResOpt_DoSubstrate	0x0800
 #define		ResOpt_Box		0x1000
 
