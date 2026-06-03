@@ -69,6 +69,7 @@ ResNewTermDevice(tile, tp, n, xj, yj, direction, PendingList)
 
     ri = (resInfo *) TiGetClientPTR(tp);
     resDev = ri->deviceList;
+    if (resDev == NULL) return;			/* Shouldn't happen? */
     if ((((ri->sourceEdge & direction) != 0) && (resDev->rd_nterms == 4))
 		|| (resDev->rd_nterms > 2))
     {
