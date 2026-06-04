@@ -338,7 +338,9 @@ readfile:
 		    /* Device name "Short" is a reserved name indicating
 		     * that the device does not get output but acts as a
 		     * short between the first two terminals.  Consequently,
-		     * it acts like an "equiv" statement.
+		     * it acts like an "equiv" statement.  However, unlike
+		     * regular "equiv" statements, it should always merge
+		     * the nodes, so do not pass "resis" to efBuildEquiv().
 		     */
 		    int argstart = 7;
 		    /* "Short" devices should not have parameters, but just in
@@ -349,7 +351,7 @@ readfile:
 			efReadError("Bad terminal description for Short device\n");
 		    else
 			efBuildEquiv(def, argv[argstart + 1], argv[argstart + 4],
-				resist, isspice);
+				FALSE, isspice);
 		    break;
 		}
 
