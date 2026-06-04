@@ -549,6 +549,7 @@ extern int	      		ResExtCombineParallel();
 extern int 			dbSrConnectStartFunc();
 extern int			ResEach();
 extern int			ResAddPlumbing();
+extern void			ResAddDevPlumbing();
 extern int			ResRemovePlumbing();
 extern float			ResCalculateChildCapacitance();
 extern ResDevTile		*DBTreeCopyConnectDCS();

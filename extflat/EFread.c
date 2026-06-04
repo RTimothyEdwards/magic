@@ -333,6 +333,26 @@ readfile:
 		r.r_xtop = (int)(0.5 + (float)atoi(argv[5]) * locScale);
 		r.r_ytop = (int)(0.5 + (float)atoi(argv[6]) * locScale);
 
+		if (!strcmp(argv[2], "Short"))
+		{
+		    /* Device name "Short" is a reserved name indicating
+		     * that the device does not get output but acts as a
+		     * short between the first two terminals.  Consequently,
+		     * it acts like an "equiv" statement.
+		     */
+		    int argstart = 7;
+		    /* "Short" devices should not have parameters, but just in
+		     * case, skip over any that are found.
+		     */
+		    while (strchr(argv[argstart], '=') != NULL) argstart++;
+		    if (argstart + 4 >= argc)
+			efReadError("Bad terminal description for Short device\n");
+		    else
+			efBuildEquiv(def, argv[argstart + 1], argv[argstart + 4],
+				resist, isspice);
+		    break;
+		}
+
 		if (efBuildDevice(def, (char)n, argv[2], &r, argc - 7, &argv[7]) != 0)
 		{
 		    efReadError("Incomplete terminal description for device\n");

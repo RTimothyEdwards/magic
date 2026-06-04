@@ -135,6 +135,8 @@ ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
     ri = (resInfo *) TiGetClientPTR(tp);
     resDev = ri->deviceList;
 
+    if (resDev == NULL) return;		/* Should not happen? */
+
     if (resDev->rd_fet_subs == (resNode *)NULL)
     {
 	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));

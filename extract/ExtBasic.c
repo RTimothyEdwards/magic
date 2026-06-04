@@ -2665,30 +2665,6 @@ extOutputDevices(def, transList, outFile)
 	if (!strcmp(devptr->exts_deviceName, "Ignore"))
 	    continue;
 
-	/* Model type "Short" in the techfile indicates a device    */
-	/* to short across the first two nodes (the gate and the    */
- 	/* source).  This solves the specific issue of a transistor */
-	/* extended drain where the drain is a resistor but the	    */
-	/* resistor is part of the model and should not be output.  */
-
-	if (!strcmp(devptr->exts_deviceName, "Short"))
-	{
-	    fprintf(outFile, "equiv ");
-
-	    /* To do:  Use parameters to specify which terminals   */
-	    /* are shorted.					   */
-
-	    /* gate */
-	    node = (NodeRegion *)ExtGetRegion(reg->treg_tile, reg->treg_dinfo);
-	    fprintf(outFile, "\"%s\" ", extNodeName((LabRegion *)node));
-
-	    /* First non-gate terminal */
-	    node = (NodeRegion *)extTransRec.tr_termnode[0];
-	    fprintf(outFile, "\"%s\"\n", extNodeName((LabRegion *)node));
-
-	    continue;
-	}
-
 	/* Original-style FET record backward compatibility */
 	if (devptr->exts_deviceClass != DEV_FET)
 	    fprintf(outFile, "device ");

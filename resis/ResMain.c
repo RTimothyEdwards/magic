@@ -1417,18 +1417,29 @@ ResExtractNet(node, resisdata, cellname)
 
     ResDissolveContacts(ResContactList);
 
-    /* Add "resInfo" fields to tiles */
+    /* Fracture the plane to change maximum horizontal stripes to a
+     * format better suited to tracking the path of current through
+     * the wiring.
+     */
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
     	Plane	*plane = ResUse->cu_def->cd_planes[pNum];
 	Rect	*rect  = &ResUse->cu_def->cd_bbox;
 	ResFracture(plane, rect);
-	(void) DBSrPaintClient((Tile *) NULL, plane, rect,
-	 		&DBAllButSpaceAndDRCBits,
-			(ClientData) CLIENTDEFAULT, ResAddPlumbing,
-			(ClientData) &ResDevList);
     }
+
+    /* Add "resInfo" fields to device tiles. */
+    for (thisDev = DevTiles; thisDev; thisDev = thisDev->nextDev)
+	ResAddDevPlumbing(thisDev, &ResDevList);
+
+    /* Add "resInfo" fields to any untouched tiles. */
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	DBSrPaintClient((Tile *)NULL, 
+		ResUse->cu_def->cd_planes[pNum],
+		&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+		(ClientData)CLIENTDEFAULT, ResAddPlumbing,
+		(ClientData)NULL);
 
     /* If this is a top-level cell, then determine where connections
      * are made into the cell from ports.  Otherwise, determine points
