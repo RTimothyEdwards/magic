@@ -4171,12 +4171,21 @@ cifSrTiles2(
     }
 
     cifScale = 1;
-    for (t = 0; t < TT_MAXTYPES; t++, temps++)
-	if (TTMaskHasType(&cifOp->co_cifMask, t))
-	    if (DBSrPaintArea((Tile *)NULL, *temps, area,
+    if (TTMaskIsZero(&cifOp->co_cifMask) && TTMaskIsZero(&cifOp->co_paintMask))
+    {
+	/* Current CIF plane is in *temps */
+	if (DBSrPaintArea((Tile *)NULL, *temps, area,
 			&CIFSolidBits, func, (ClientData)cdArg))
-		return 1;
-
+	    return 1;
+    }
+    else
+    {
+	for (t = 0; t < TT_MAXTYPES; t++, temps++)
+	    if (TTMaskHasType(&cifOp->co_cifMask, t))
+		if (DBSrPaintArea((Tile *)NULL, *temps, area,
+			&CIFSolidBits, func, (ClientData)cdArg))
+		    return 1;
+    }
     return 0;
 }
 
@@ -5454,7 +5463,6 @@ CIFGenLayer(
 
 	        if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
 	        {
-		    bls.temps = temps;
 		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, bls.temps++)
 			if (bloats->bl_distance[ttype] > 0)
 			    (void) DBSrPaintArea((Tile *)NULL, *bls.temps, &TiPlaneRect,
@@ -5660,6 +5668,20 @@ CIFGenLayer(
 		    	    bloats->bl_distance[ttype] = 0;
 		    }
 		}
+		else
+		{
+		    /* Operate on the existing plane. */
+
+		    bloats->bl_distance[0] = 1;
+		    for (ttype = 1; ttype < TT_MAXTYPES; ttype++)
+			bloats->bl_distance[ttype] = 0;
+
+		    bloats->bl_plane = -1;
+		    bls.temps = &curPlane;
+
+		    DBClearPaintPlane(nextPlane);
+		    cifPlane = nextPlane;
+		}
 
 		/* Replace the client data with the bloat record */
 		op->co_client = (ClientData)bloats;
@@ -5680,15 +5702,33 @@ CIFGenLayer(
 	        }
 
 		for (label = cellDef->cd_labels; label; label = label->lab_next)
+		{
 		    if (!strcmp(label->lab_text, text))
-			cifSrTiles2(op, &label->lab_rect, cellDef, temps,
+		    {
+			Rect labr = label->lab_rect;
+
+			/* Since cifSrTiles2() searches over an area, the
+			 * area must not be degenerate.
+			 */
+			if (labr.r_xbot == labr.r_xtop)
+			{
+			    labr.r_xbot--;
+			    labr.r_xtop++;
+			}
+			if (labr.r_ybot == labr.r_ytop)
+			{
+			    labr.r_ybot--;
+			    labr.r_ytop++;
+			}
+			cifSrTiles2(op, &labr, cellDef, bls.temps,
 				cifBloatAllFunc, (ClientData)&bls);
+		    }
+		}
 
 	        /* Reset marked tiles */
 
 	        if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
 	        {
-		    bls.temps = temps;
 		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, bls.temps++)
 			if (bloats->bl_distance[ttype] > 0)
 			    (void) DBSrPaintArea((Tile *)NULL, *bls.temps, &TiPlaneRect,
@@ -5706,6 +5746,15 @@ CIFGenLayer(
 		/* Replace the client data */
 		op->co_client = (ClientData)text;
 
+		/* If operating on the current plane, swap the current
+		 * and next planes.
+		 */
+		if (TTMaskIsZero(&op->co_cifMask) && TTMaskIsZero(&op->co_paintMask))
+		{
+		    temp = curPlane;
+		    curPlane = nextPlane;
+		    nextPlane = temp;
+		}
 		break;
 
 	    case CIFOP_BOUNDARY:

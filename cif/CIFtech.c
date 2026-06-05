@@ -1360,10 +1360,11 @@ bloatCheck:
 
 	case CIFOP_NET:
 	case CIFOP_TAGGED:
-	    if (argc != 3) goto wrongNumArgs;
+	    if ((argc != 2) && (argc != 3)) goto wrongNumArgs;
 	    newOp->co_client = (ClientData)StrDup((char **)NULL, argv[1]);
-	    cifParseLayers(argv[2], CIFCurStyle, &newOp->co_paintMask,
-		&newOp->co_cifMask, FALSE);
+	    if (argc == 3)
+		cifParseLayers(argv[2], CIFCurStyle, &newOp->co_paintMask,
+			&newOp->co_cifMask, FALSE);
 	    break;
 
 	case CIFOP_MASKHINTS:
