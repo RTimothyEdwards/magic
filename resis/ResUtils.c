@@ -388,10 +388,10 @@ ResUnmarkTerminal(
 /*
  *-------------------------------------------------------------------------
  *
- * ResAddlumbing --
+ * ResAddPlumbing --
  *
  * Each tile has a resInfo structure associated with it to keep track of
- * various things used by the extractor. ResAddDevPlumbing adds this structure
+ * various things used by the extractor. ResAddPlumbing adds this structure
  * and sets the tile's ClientData field to point to it.
  *
  * Results: Always return 0 to keep the search going.
@@ -571,6 +571,13 @@ ResAddDevPlumbing(
 		    if (TTMaskHasType(&(devptr->exts_deviceSDTypes[sourceTerm]),
 				TiGetBottomType(tp2)))
 		    {
+			/* If # terminals found > nterms then assume that they
+			 * are connected, for example through a well or substrate.
+			 */
+			if ((TiGetClient(tp2) == CLIENTDEFAULT) &&
+				(sourceTerm == nterms - 3))
+			    ResAddTerminalPlumbing(tp2, devptr, sourceTerm);
+
 			Info = resAddField(tp2);
 			if (Info->ri_status & RES_TILE_SD)
 			    re0->sourceEdge |= TOPEDGE;
@@ -622,6 +629,13 @@ ResAddDevPlumbing(
 		    if (TTMaskHasType(&(devptr->exts_deviceSDTypes[sourceTerm]),
 				TiGetBottomType(tp2)))
 		    {
+			/* If # terminals found > nterms then assume that they
+			 * are connected, for example through a well or substrate.
+			 */
+			if ((TiGetClient(tp2) == CLIENTDEFAULT) &&
+				(sourceTerm == nterms - 3))
+			    ResAddTerminalPlumbing(tp2, devptr, sourceTerm);
+
 			Info = resAddField(tp2);
 			if (Info->ri_status & RES_TILE_SD)
 			    re0->sourceEdge |= BOTTOMEDGE;
@@ -673,6 +687,13 @@ ResAddDevPlumbing(
 		    if (TTMaskHasType(&(devptr->exts_deviceSDTypes[sourceTerm]),
 				TiGetBottomType(tp2)))
 		    {
+			/* If # terminals found > nterms then assume that they
+			 * are connected, for example through a well or substrate.
+			 */
+			if ((TiGetClient(tp2) == CLIENTDEFAULT) &&
+				(sourceTerm == nterms - 3))
+			    ResAddTerminalPlumbing(tp2, devptr, sourceTerm);
+
 			Info = resAddField(tp2);
 			if (Info->ri_status & RES_TILE_SD)
 			    re0->sourceEdge |= RIGHTEDGE;
@@ -724,6 +745,13 @@ ResAddDevPlumbing(
 		    if (TTMaskHasType(&(devptr->exts_deviceSDTypes[sourceTerm]),
 				TiGetBottomType(tp2)))
 		    {
+			/* If # terminals found > nterms then assume that they
+			 * are connected, for example through a well or substrate.
+			 */
+			if ((TiGetClient(tp2) == CLIENTDEFAULT) &&
+				(sourceTerm == nterms - 3))
+			    ResAddTerminalPlumbing(tp2, devptr, sourceTerm);
+
 			Info = resAddField(tp2);
 			if (Info->ri_status & RES_TILE_SD)
 			    re0->sourceEdge |= LEFTEDGE;

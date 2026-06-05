@@ -350,7 +350,7 @@ typedef enum {
 	    if (cmd->tx_argc > 2)
 	    {
 		resisdata->minres = MagAtof(cmd->tx_argv[2]);
-		if (resisdata->minres < 0)
+		if (resisdata->minres <= 0)
 		{
 		    TxError("Usage:  %s minres [value]\n", cmd->tx_argv[0]);
 			return;
@@ -372,7 +372,7 @@ typedef enum {
 	    if (cmd->tx_argc > 2)
 	    {
 		resisdata->mindelay = MagAtof(cmd->tx_argv[2]) * P_TO_Z;
-		if (resisdata->mindelay <= 0)
+		if (resisdata->mindelay < 0)
 		{
 		    TxError("Usage:  %s mindelay [value]\n", cmd->tx_argv[0]);
 			return;
@@ -1514,13 +1514,23 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 {
     static char	newname[MAXNAME], oldnodename[MAXNAME];
     int		notdecremented;
+    ExtDevice  *devptr;
     resNode	*gate, *source, *drain, *subs;
+    bool	doPermute = FALSE;
 
     /* If we aren't doing output (i.e. this is just a statistical run)	*/
     /* don't patch up networks.  This cuts down on memory use.		*/
 
     if ((ResOptionsFlags & ResOpt_DoExtFile) == 0)
 	return;
+
+    /* Check if device has symmetric source and drain, which will
+     * force a check for permutations of source and drain.
+     */
+    devptr = extDev->rs_devptr;
+    if (devptr->exts_deviceSDCount > 1)
+	if (TTMaskEqual(&devptr->exts_deviceSDTypes[0], &devptr->exts_deviceSDTypes[1]))
+	    doPermute = TRUE;
 
     if (extDev->layout == NULL)
     {
@@ -1581,7 +1591,7 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 	}
     }
 
-    if ((extDev->source == extNode) && (layoutDev->rd_nterms > 3))
+    if ((extDev->source == extNode) && doPermute)
     {
 	/* Check for devices with only one terminal.  If it was cast as drain,	*/
 	/* then swap it with the source so that the code below handles it	*/
@@ -1627,7 +1637,7 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 		extNode->status |= DONTKILL;
 	    }
 	}
-	else if (layoutDev->rd_nterms > 3)
+	else
 	{
 	    if ((source = layoutDev->rd_fet_source) != NULL)
 	    {
@@ -1674,7 +1684,31 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 	    }
 	}
     }
-    else if ((extDev->drain == extNode) && (layoutDev->rd_nterms > 3))
+    else if (extDev->source == extNode)
+    {
+	/* Device only has 3 terminals, don't need to check for permutations */
+
+	if ((source = layoutDev->rd_fet_source) != NULL)
+	{
+	    if (source->rn_name != NULL && notdecremented)
+	    {
+	       	resNodeNum--;
+		notdecremented = FALSE;
+	    }
+
+	    ResFixDevName(newname, SOURCE, extDev, source);
+	    source->rn_name = extDev->source->name;
+     	    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
+	}
+	else
+	{
+	    TxError("Missing source connection of device at (%d %d) on net %s\n",
+			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
+			nodename);
+	    extNode->status |= DONTKILL;
+	}
+    }
+    else if ((extDev->drain == extNode) && doPermute)
     {
 	/* Check for devices with only one terminal.  If it was cast as source,	*/
 	/* then swap it with the drain so that the code below handles it	*/
@@ -1728,6 +1762,28 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 	else
 	{
 	    TxError("Missing terminal connection of device at (%d %d) on net %s\n",
+			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
+			nodename);
+	    extNode->status |= DONTKILL;
+	}
+    }
+    else if (extDev->drain == extNode)
+    {
+	if ((drain = layoutDev->rd_fet_drain) != NULL)
+	{
+	    if (drain->rn_name != NULL && notdecremented)
+	    {
+	       	resNodeNum--;
+		notdecremented = FALSE;
+	    }
+
+	    ResFixDevName(newname, DRAIN, extDev, drain);
+	    drain->rn_name = extDev->drain->name;
+     	    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
+	}
+	else
+	{
+	    TxError("Missing drain connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
 	    extNode->status |= DONTKILL;

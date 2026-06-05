@@ -470,6 +470,9 @@ SelectArea(scx, types, xMask, globmatch)
 
     if (TTMaskHasType(types, L_LABEL))
     {
+	TTMaskClearType(types, L_LABEL);
+	if (TTMaskIsZero(types)) types = &DBAllButSpaceAndDRCBits;
+
 	if (globmatch != NULL)
 	    DBCellCopyGlobLabels(scx, types, xMask, SelectUse, &labelArea,
 		    globmatch);
