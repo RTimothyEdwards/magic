@@ -202,10 +202,10 @@ esac
 
 # --- optional test -----------------------------------------------------------
 # Runs the same smoke test that CI runs (see .github/workflows/main-wasm.yml).
+# Run in a subshell so the cd does not leak into the --pack step below, which
+# relies on the script's working directory being unchanged.
 if [ $OPT_TEST -eq 1 ]; then
-  cd "$SCRIPT_DIR"
-  npm run test
-  npm run test:tcl
+  ( cd "$SCRIPT_DIR" && npm run test && npm run test:tcl )
 fi
 
 # --- optional pack -----------------------------------------------------------

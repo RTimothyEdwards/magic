@@ -2,7 +2,7 @@
 //
 // Usage:  node examples/drc.js [magFile [tech]]
 import { createMagic, loadCell, loadScript,
-         DEFAULT_TECH, DEFAULT_MAG } from './helpers.js';
+         DEFAULT_TECH, DEFAULT_MAG, reportError } from './helpers.js';
 import { fileURLToPath } from 'node:url';
 
 export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH } = {}) {
@@ -25,7 +25,7 @@ export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH } = {}) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const { violations } = await run().catch(e => { console.error(e.message ?? e); process.exit(1); });
+  const { violations } = await run().catch(e => { reportError(e); process.exit(1); });
   console.log(`\nDRC violations: ${violations ?? '(count not found in output)'}`);
   console.log('Done.');
 }
