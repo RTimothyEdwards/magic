@@ -1,6 +1,6 @@
 // gds-tcl.js — GDS export via the TCL variant.
 import { createMagic, vfsRead, loadCell, loadScript,
-         DEFAULT_TECH, DEFAULT_MAG, DEFAULT_OUT } from './helpers-tcl.js';
+         DEFAULT_TECH, DEFAULT_MAG, DEFAULT_OUT, reportError } from './helpers-tcl.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
@@ -22,7 +22,7 @@ export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH, outputDi
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const { outPath, bytes } = await run().catch(e => { console.error(e.message ?? e); process.exit(1); });
+  const { outPath, bytes } = await run().catch(e => { reportError(e); process.exit(1); });
   console.log(`\ngds: ${outPath} (${bytes} bytes)`);
   console.log('Done.');
 }

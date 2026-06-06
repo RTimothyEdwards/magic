@@ -1,6 +1,6 @@
 // extract-tcl.js — RC extraction via the TCL variant.
 import { createMagic, vfsWrite, vfsRead, loadCell, loadScript,
-         DEFAULT_TECH, DEFAULT_MAG, DEFAULT_OUT } from './helpers-tcl.js';
+         DEFAULT_TECH, DEFAULT_MAG, DEFAULT_OUT, reportError } from './helpers-tcl.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
@@ -32,7 +32,7 @@ export async function run({ magFile = DEFAULT_MAG, tech = DEFAULT_TECH, outputDi
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const { ext, spice } = await run().catch(e => { console.error(e.message ?? e); process.exit(1); });
+  const { ext, spice } = await run().catch(e => { reportError(e); process.exit(1); });
   console.log(`\next:   ${ext}`);
   if (spice) console.log(`spice: ${spice}`);
   console.log('Done.');
