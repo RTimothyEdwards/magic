@@ -697,10 +697,10 @@ ResFindNewContactTiles(contacts)
  */
 
 int
-ResProcessTiles(resisdata, origin)
+ResProcessTiles(resisdata, origin, devices)
     ResisData	*resisdata;
     Point	*origin;
-
+    ResDevTile	*devices;
 {
     Tile 	*startTile;
     int 	tilenum, merged;
@@ -718,7 +718,7 @@ ResProcessTiles(resisdata, origin)
 	    return 1;
 	resCurrentNode = NULL;
 	ResStartTile(startTile, origin->p_x, origin->p_y);
-	(void) ResEachTile(startTile);
+	(void) ResEachTile(startTile, devices);
     }
 #ifdef PARANOID
     else
@@ -755,7 +755,7 @@ ResProcessTiles(resisdata, origin)
 		    if ((ri->ri_status & RES_TILE_DONE) == 0)
 		    {
 			resCurrentNode = resptr2;
-			merged |= ResEachTile(tile);
+			merged |= ResEachTile(tile, devices);
 		    }
 		}
 		rj->rj_status = TRUE;
@@ -781,7 +781,7 @@ ResProcessTiles(resisdata, origin)
 			if (cp->cp_cnode[tilenum] == resptr2)
 			{
 			    resCurrentNode = resptr2;
-			    merged |= ResEachTile(tile);
+			    merged |= ResEachTile(tile, devices);
 			}
 			else
 			{
@@ -1209,6 +1209,7 @@ ResExtractNet(node, resisdata, cellname)
     int			pNum;
     int			resMakeDevFunc();
     int			resExpandDevFunc();
+    int			result;
 
     /* Make sure all global network variables are reset */
 
@@ -1336,7 +1337,6 @@ ResExtractNet(node, resisdata, cellname)
     DevTiles = NULL;
     for (tptr = node->devices; tptr; tptr = tptr->nextDev)
     {
-	int result;
 	int i;
 	ExtDevice *devptr;
 
@@ -1456,7 +1456,9 @@ ResExtractNet(node, resisdata, cellname)
     ResPreProcessDevices(DevTiles, ResDevList, ResUse->cu_def);
 
     /* do extraction */
-    if (ResProcessTiles(resisdata, &startpoint) != 0) return TRUE;
+    result = ResProcessTiles(resisdata, &startpoint, DevTiles);
+    ResFreeDevTiles(DevTiles);
+    if (result != 0) return TRUE;
     return FALSE;
 }
 

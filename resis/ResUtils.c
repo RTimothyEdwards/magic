@@ -827,6 +827,33 @@ ResRemovePlumbing(tile, dinfo, arg)
     return(0);
 }
 
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResFreeDevTiles --
+ *
+ * Free memory allocated to the DevTiles list.
+ *
+ * Results:  None.
+ *
+ * Side effects:  Frees memory.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResFreeDevTiles(TileList)
+    ResDevTile		*TileList;
+{
+    ResDevTile	*oldTile;
+
+    while (TileList != (ResDevTile *) NULL)
+    {
+	oldTile = TileList;
+	TileList = TileList->nextDev;
+	freeMagic((char *)oldTile);
+    }
+}
 
 /*
  *-------------------------------------------------------------------------
@@ -840,8 +867,7 @@ ResRemovePlumbing(tile, dinfo, arg)
  *
  * Results: none
  *
- * Side Effects: sets length and width of devices. "ResDevTile"
- * structures are freed.
+ * Side Effects: sets length and width of devices.
  *
  *-------------------------------------------------------------------------
  */
@@ -853,14 +879,14 @@ ResPreProcessDevices(TileList, DeviceList, Def)
     CellDef		*Def;
 {
     Tile	*tile;
-    ResDevTile	*oldTile;
+    ResDevTile	*devTile;
     resInfo	*tstruct;
     TileType	tt, residue;
     int		pNum;
 
-    while (TileList != (ResDevTile *) NULL)
+    for (devTile = TileList; devTile; devTile = devTile->nextDev)
     {
-	tt = TileList->type;
+	tt = devTile->type;
 	if (DBIsContact(tt))
 	{
 	    /* Find which residue of the contact is a device. */
@@ -884,7 +910,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	    pNum = DBPlane(tt);		/* always correct for non-contact types */
 
 	tile = PlaneGetHint(Def->cd_planes[pNum]);
-	GOTOPOINT(tile, &(TileList->area.r_ll));
+	GOTOPOINT(tile, &(devTile->area.r_ll));
 	PlaneSetHint(Def->cd_planes[pNum], tile);
 
 	tt = TiGetType(tile);
@@ -895,23 +921,20 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 		    !TTMaskHasType(&ExtCurStyle->exts_deviceMask, tt))
 	{
 	    TxError("Bad Device Location at %d,%d\n",
-			TileList->area.r_ll.p_x,
-			TileList->area.r_ll.p_y);
+			devTile->area.r_ll.p_x,
+			devTile->area.r_ll.p_y);
 	}
 	else if ((tstruct->ri_status & RES_TILE_MARK) == 0)
 	{
 	    resDevice	*rd = tstruct->deviceList;
 
 	    tstruct->ri_status |= RES_TILE_MARK;
-	    rd->rd_perim += TileList->perim;
-	    rd->rd_length += TileList->overlap;
-	    rd->rd_area += (TileList->area.r_xtop - TileList->area.r_xbot)
-			* (TileList->area.r_ytop - TileList->area.r_ybot);
+	    rd->rd_perim += devTile->perim;
+	    rd->rd_length += devTile->overlap;
+	    rd->rd_area += (devTile->area.r_xtop - devTile->area.r_xbot)
+			* (devTile->area.r_ytop - devTile->area.r_ybot);
 	    rd->rd_tiles++;
 	}
-	oldTile = TileList;
-	TileList = TileList->nextDev;
-	freeMagic((char *)oldTile);
     }
 
     for (; DeviceList != NULL; DeviceList = DeviceList->rd_nextDev)

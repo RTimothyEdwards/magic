@@ -230,8 +230,9 @@ ResStartTile(tile, x, y)
 #define IGNORE_BOTTOM	8
 
 bool
-ResEachTile(tile)
-    Tile 	*tile;
+ResEachTile(tile, devTiles)
+    Tile 	*tile;			/* Tile being processed */
+    ResDevTile	*devTiles;		/* List of device tiles for reference */
 {
     Tile 	*tp;
     resNode	*resptr;
@@ -452,7 +453,9 @@ ResEachTile(tile)
 	}
     }
 
-    /* Check for terminals on other planes (e.g., capacitors, bipolars, ...) */
+    /* Check for terminals on other planes (e.g., capacitors, bipolars, ...)	*/
+    /* Note:  Need to tag these tiles per device to avoid checking through	*/
+    /* the device list for each tile. (To be done)				*/
 
     if (TTMaskHasType(&ResTermTypesBitMask, t1))
     {
@@ -460,33 +463,30 @@ ResEachTile(tile)
 	int pNum;
 	TileTypeBitMask devMask;
 	TileAndTerm tat;
+	ResDevTile *devtile;
+	ExtDevice *devptr;
 
 	TiToRect(tile, &r);
 
-	for (pNum = 0; pNum < DBNumPlanes; pNum++)
+	for (devtile = devTiles; devtile; devtile = devtile->nextDev)
 	{
-	    if (DBTypeOnPlane(t1, pNum)) continue;
+	    Tile *tp;
+	    TileType devtype = devtile->type;
 
-	    for (devptr = ExtCurStyle->exts_device[t2]; devptr;
-			    devptr = devptr->exts_next)
+	    devptr = devtile->devptr;
+	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
 	    {
-		for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
+		if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], t1))
 		{
-		    /* Check if any type in the terminal type list exists on this
-		     * plane before calling the search function.
-		     */
-		    TileTypeBitMask termtypes;
-
-		    TTMaskAndMask3(&termtypes, &devptr->exts_deviceSDTypes[i],
-				&DBPlaneTypes[pNum]);
-
-		    if (TTMaskIsZero(&termtypes))
+		    if (GEO_OVERLAP(&devtile->area, &r))
 		    {
-			tat.tat_tile = tile;
-			tat.tat_term = i;
-			DBSrPaintArea((Tile *)NULL, ResUse->cu_def->cd_planes[pNum],
-				&r, &devptr->exts_deviceSDTypes[i],
-				ResMultiPlaneFunc, (ClientData)&tat);
+			Plane *plane = ResUse->cu_def->cd_planes[DBPlane(devtype)];
+			xj = (r.r_xtop + r.r_xbot) / 2;
+			yj = (r.r_ytop + r.r_ybot) / 2;
+			tp = PlaneGetHint(plane);
+			GOTOPOINT(tp, &devtile->area.r_ll);
+			PlaneSetHint(plane, tp);
+			ResNewTermDevice(tile, tp, i, xj, yj, OTHERPLANE, &ResNodeQueue);
 		    }
 		}
 	    }
@@ -500,26 +500,31 @@ ResEachTile(tile)
 	Rect r;
 	int pNum;
 	TileTypeBitMask devMask;
+	ResDevTile *devtile;
+	ExtDevice *devptr;
 
 	TiToRect(tile, &r);
 
-	for (pNum = 0; pNum < DBNumPlanes; pNum++)
+	for (devtile = devTiles; devtile; devtile = devtile->nextDev)
 	{
-	    if (DBTypeOnPlane(t1, pNum)) continue;
+	    Tile *tp;
+	    TileType devtype = devtile->type;
 
-	    /* NOTE:  This is ridiculously inefficient and should be done
-	     * in a different way.
-	     */
+	    devptr = devtile->devptr;
 
-	    TTMaskZero(&devMask);
-	    for (t2 = TT_TECHDEPBASE; t2 < DBNumUserLayers; t2++)
-		for (devptr = ExtCurStyle->exts_device[t2]; devptr;
-			    devptr = devptr->exts_next)
-		    if (TTMaskHasType(&devptr->exts_deviceSubstrateTypes, t1))
-			TTMaskSetType(&devMask, t2);
-
-	    DBSrPaintArea((Tile *)NULL, ResUse->cu_def->cd_planes[pNum],
-			&r, &devMask, ResSubstrateFunc, (ClientData)&tile);
+	    if (TTMaskHasType(&devptr->exts_deviceSubstrateTypes, t1))
+	    {
+		if (GEO_OVERLAP(&devtile->area, &r))
+		{
+		    Plane *plane = ResUse->cu_def->cd_planes[DBPlane(devtype)];
+		    xj = (r.r_xtop + r.r_xbot) / 2;
+		    yj = (r.r_ytop + r.r_ybot) / 2;
+		    tp = PlaneGetHint(plane);
+		    GOTOPOINT(tp, &devtile->area.r_ll);
+		    PlaneSetHint(plane, tp);
+		    ResNewSubDevice(tile, tp, xj, yj, OTHERPLANE, &ResNodeQueue);
+		}
+	    }
 	}
     }
 

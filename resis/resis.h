@@ -593,6 +593,7 @@ extern void ResMergeNodes();
 extern void ResNewTermDevice();
 extern void ResNewSubDevice();
 extern void ResPreProcessDevices();
+extern void ResFreeDevTiles();
 extern void ResPrintDeviceList();
 extern void ResPrintExtDev();
 extern void ResPrintReference();

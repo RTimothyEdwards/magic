@@ -1529,7 +1529,9 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
      */
     devptr = extDev->rs_devptr;
     if (devptr->exts_deviceSDCount > 1)
-	if (TTMaskEqual(&devptr->exts_deviceSDTypes[0], &devptr->exts_deviceSDTypes[1]))
+	if (TTMaskIsZero(&devptr->exts_deviceSDTypes[1]) ||
+		TTMaskEqual(&devptr->exts_deviceSDTypes[0],
+		&devptr->exts_deviceSDTypes[1]))
 	    doPermute = TRUE;
 
     if (extDev->layout == NULL)
