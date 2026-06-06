@@ -4,7 +4,7 @@
 // and verifies that both GDS outputs are non-empty.
 //
 // Usage:  node examples/pcell.js
-import { createMagic, vfsRead, loadScript, DEFAULT_TECH, DEFAULT_OUT } from './helpers-tcl.js';
+import { createMagic, vfsRead, loadScript, DEFAULT_TECH, DEFAULT_OUT, reportError } from './helpers-tcl.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
@@ -32,7 +32,7 @@ export async function run({ tech = DEFAULT_TECH, outputDir = DEFAULT_OUT } = {})
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const results = await run().catch(e => { console.error(e.message ?? e); process.exit(1); });
+  const results = await run().catch(e => { reportError(e); process.exit(1); });
   for (const [name, { outPath, bytes }] of Object.entries(results))
     console.log(`  ${name}.gds: ${outPath} (${bytes} bytes)`);
   console.log('Done.');

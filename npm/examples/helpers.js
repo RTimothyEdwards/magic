@@ -38,9 +38,26 @@ export class MagicWasm {
   runScript(text) {
     for (const line of text.split('\n')) {
       const l = line.trim();
-      if (l && !l.startsWith('#')) this._run(l);
+      if (l && !l.startsWith('#')) {
+        try {
+          this._run(l);
+        } catch (e) {
+          // Name the command that aborted before the error propagates — a
+          // WASM trap otherwise gives no hint which step failed.
+          console.error(`[magic] command failed: ${l}`);
+          throw e;
+        }
+      }
     }
   }
+}
+
+// Print a failure with enough detail to be actionable in CI.  WASM aborts
+// surface as a RuntimeError whose .message is terse ("memory access out of
+// bounds") while .stack carries the wasm-function offsets that emsymbolizer
+// maps back to C source — so always prefer the stack.
+export function reportError(e) {
+  console.error(e?.stack ?? String(e?.message ?? e));
 }
 
 // Creates a fresh Magic WASM instance and calls init().

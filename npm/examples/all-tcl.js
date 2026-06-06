@@ -9,6 +9,7 @@ import { run as runGds }     from './gds-tcl.js';
 import { run as runDrc }     from './drc-tcl.js';
 import { run as runCif }     from './cif-tcl.js';
 import { run as runPcell }   from './pcell.js';
+import { reportError }       from './helpers-tcl.js';
 
 const PAD = 9;
 
@@ -20,6 +21,9 @@ async function test(name, fn) {
     return true;
   } catch (e) {
     console.log(`FAIL  ${e.message ?? e}`);
+    // Full stack to stderr so CI shows the wasm-function offsets, while the
+    // one-line summary above stays readable.  Other tests still run.
+    reportError(e);
     return false;
   }
 }

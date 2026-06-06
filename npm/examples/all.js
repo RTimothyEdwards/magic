@@ -5,6 +5,7 @@ import { run as runExtract } from './extract.js';
 import { run as runGds }     from './gds.js';
 import { run as runDrc }     from './drc.js';
 import { run as runCif }     from './cif.js';
+import { reportError }       from './helpers.js';
 
 const PAD = 9;
 
@@ -16,6 +17,9 @@ async function test(name, fn) {
     return true;
   } catch (e) {
     console.log(`FAIL  ${e.message ?? e}`);
+    // Full stack to stderr so CI shows the wasm-function offsets, while the
+    // one-line summary above stays readable.  Other tests still run.
+    reportError(e);
     return false;
   }
 }

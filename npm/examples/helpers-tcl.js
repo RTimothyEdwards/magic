@@ -43,7 +43,14 @@ export class MagicWasm {
     const path = '/tmp/_magic_script.tcl';
     this.FS.mkdirTree('/tmp');
     this.FS.writeFile(path, text);
-    this._sourceFile(path);
+    try {
+      this._sourceFile(path);
+    } catch (e) {
+      // A WASM trap during Tcl evaluation otherwise gives no hint of the
+      // source; flag it before the error propagates.
+      console.error('[magic-tcl] script evaluation failed');
+      throw e;
+    }
   }
   // Evaluate a Tcl expression directly (needed for proc definitions in PCell).
   runTcl(text) {
@@ -73,4 +80,12 @@ export function loadScript(name, tech, cell) {
   return readFileSync(resolve(EXAMPLES_DIR, name), 'utf8')
     .replaceAll('__TECH__', tech)
     .replaceAll('__CELL__', cell);
+}
+
+// Print a failure with enough detail to be actionable in CI.  WASM aborts
+// surface as a RuntimeError whose .message is terse while .stack carries the
+// wasm-function offsets that emsymbolizer maps back to C source — so always
+// prefer the stack.
+export function reportError(e) {
+  console.error(e?.stack ?? String(e?.message ?? e));
 }
