@@ -1037,7 +1037,13 @@ dbcConnectFunc(tile, dinfo, cx)
     if (++csa2->csa2_top == CSA2_LIST_SIZE)
     {
 	/* Reached list size limit---need to push the list and	*/
-	/* start a new one.					*/
+	/* start a new one.  NOTE:  Setting lasttop to -1 means	*/
+	/* that some entries may be duplicated between the	*/
+	/* stacks, which is a small inefficiency.  In theory,	*/
+	/* lasttop could be left as is, then if lasttop > top	*/
+	/* when searching the last 5 entries, pop the stack, do	*/
+	/* the search, and then push the stack again.  But it's	*/
+	/* a lot easier just to be slightly inefficient.	*/
 
 	conSrArea *newlist;
 
@@ -1045,6 +1051,7 @@ dbcConnectFunc(tile, dinfo, cx)
 	StackPush((ClientData)csa2->csa2_list, csa2->csa2_stack);
 	csa2->csa2_list = newlist;
 	csa2->csa2_top = 0;
+	csa2->csa2_lasttop = -1;
     }
 
     csa2->csa2_list[csa2->csa2_top].area = newarea;

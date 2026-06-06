@@ -647,6 +647,9 @@ cmdSelectArea(
 	if (!(crec->dbw_flags & DBW_SEELABELS)) TTMaskClearType(&mask, L_LABEL);
 	if (!(crec->dbw_flags & DBW_SEECELLS)) TTMaskClearType(&mask, L_CELL);
     }
+    else if (option == SEL_AREA)
+	TTMaskSetType(&mask, L_LABEL);
+
     SelectArea(&scx, &mask, crec->dbw_bitmask, globmatch);
 }
 

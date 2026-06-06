@@ -1032,9 +1032,10 @@ CIFReadTechLine(
             newOp->co_client = (ClientData)StrDup((char **)NULL, argv[1]);
             break;
         case CIFOP_TAGGED:
-            if (argc != 3) goto wrongNumArgs;
+            if ((argc != 2) && (argc != 3)) goto wrongNumArgs;
             newOp->co_client = (ClientData)StrDup((char **)NULL, argv[1]);
-	    CIFParseReadLayers(argv[2], &newOp->co_cifMask, TRUE);
+	    if (argc == 3)
+		CIFParseReadLayers(argv[2], &newOp->co_cifMask, TRUE);
             break;
     }
 

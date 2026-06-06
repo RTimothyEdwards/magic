@@ -76,6 +76,7 @@ extern const char * const extDevTable[];
 #define	EXT_DOLABELCHECK	0x040	/* Check for connections by label */
 #define EXT_DOALIASES		0x080	/* Output all node aliases */
 #define EXT_DOEXTRESIST		0x200	/* Do full R-C extraction */
+#define EXT_DOUNIQNOTOPPORTS	0x400	/* Ignore top cell ports w/EXT_DOUNIQUE */
 
 extern int ExtOptions;		/* Bitmask of above */
 extern char *ExtLocalPath;	/* If non-NULL, location to write .ext files */ 
@@ -86,6 +87,7 @@ extern char *ExtLocalPath;	/* If non-NULL, location to write .ext files */
 #define EXT_UNIQ_NOPORTS	2
 #define EXT_UNIQ_NOTOPPORTS	3
 #define EXT_UNIQ_TEMP		4	/* Used only with "EXT_DOUNIQUE" */
+#define EXT_UNIQ_TEMP_NOPORTS	5	/* Used only with "EXT_DOUNIQUE" */
 
 extern bool ExtTechLine();
 extern void ExtTechInit();

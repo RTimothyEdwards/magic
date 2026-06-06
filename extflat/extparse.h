@@ -25,9 +25,9 @@
  */
 typedef enum
 {
-    ABSTRACT, ADJUST, ATTR, CAP, DEVICE, DIST, EQUIV, FET, KILLNODE, MERGE,
-    NODE, PARAMETERS, PORT, PRIMITIVE, RESISTOR, RESISTCLASS, RNODE, SCALE,
-    SUBCAP, SUBSTRATE, TECH, TIMESTAMP, USE, VERSION, EXT_STYLE
+    ABSTRACT, ADJUST, ATTR, CAP, CONNECT, DEVICE, DIST, EQUIV, FET, KILLNODE,
+    MERGE, NODE, PARAMETERS, PORT, PRIMITIVE, RESISTOR, RESISTCLASS, RNODE,
+    SCALE, SUBCAP, SUBSTRATE, TECH, TIMESTAMP, USE, VERSION, EXT_STYLE
 } Key;
 
 static const struct
@@ -42,6 +42,7 @@ keyTable[] =
     {"adjust",		ADJUST,		4},
     {"attr",		ATTR,		8},
     {"cap",		CAP,		4},
+    {"connect",		CONNECT,	7},
     {"device",		DEVICE,		11},	/* effectively replaces "fet" */
     {"distance",	DIST,		4},
     {"equiv",		EQUIV,		3},

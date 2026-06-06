@@ -102,16 +102,17 @@ Circuit netlist extractor
 			but will usually just slow down processing by commands
 			like "ext2spice" that use the .ext file contents, so it
 			is disabled by default.
-		  <DT> <B>unique</B>
+		  <DT> <B>unique</B> [<B>notopports</B>]
 		  <DD> (Added in magic version 8.3.594) This setting replaces
-			the use of the command option "extract unique".  Instead
-			of changing labels in the design, unique labels are
-			generated for the duration of the extraction, and then
-			reverted back to the original text.  The "extract unique"
-			command option is maintained for backwards compatibility.
-			Note the difference:  "extract unique" is a command that
-			runs immediately, and cannot be undone;
-			"extract do unique" is an option setting for "extract".
+			the use of the command option "extract unique" (and
+			"extract unique notopports").  Instead of changing labels
+			in the design, unique labels are generated for the duration
+			of the extraction, and then reverted back to the original
+			text.  The "extract unique" command option is maintained
+			for backwards compatibility.  Note the difference:
+			"extract unique" is a command that runs immediately, and
+			cannot be undone; "extract do unique" is an option setting
+			for "extract".
 		  <DT> <B>resistance</B>
 		  <DD> (Added in magic version 8.3.597) This setting replaces
 			the use of the standalone command "extresist".  The

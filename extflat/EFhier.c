@@ -32,6 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/utils.h"
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
+#include "textio/textio.h"
 
 /*
  * ----------------------------------------------------------------------------
@@ -491,7 +492,13 @@ efHierVisitDevs(hc, ca)
     {
 	dev = (Dev *)HashGetValue(he);
 	if (efHierDevKilled(hc, dev, hc->hc_hierName))
-	    continue;
+	{
+	    TxError("Error:  Device at (%d %d) is connected to one or more"
+			" eliminated nodes.\n",
+			dev->dev_rect.r_xbot, dev->dev_rect.r_ybot);
+	    /* Output the device anyway, but something needs fixing */
+	    // continue;
+	}
 
 	const cb_extflat_hiervisitdevs_t ca_hiervisitdevs_proc = (cb_extflat_hiervisitdevs_t) ca->ca_proc; /* FIXME temporary */
 	if ((*ca_hiervisitdevs_proc)(hc, dev, scale, ca->ca_cdata)) /* @invoke cb_extflat_hiervisitdevs_t */

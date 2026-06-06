@@ -76,18 +76,19 @@ void extHeader();
  */
 
 Plane *
-ExtCell(def, outName, doLength)
+ExtCell(def, outName, isTop)
     CellDef *def;	/* Cell being extracted */
     char *outName;	/* Name of output file; if NULL, derive from def name */
-    bool doLength;	/* If TRUE, extract pathlengths from drivers to
-			 * receivers (the names are stored in ExtLength.c).
-			 * Should only be TRUE for the root cell in a
-			 * hierarchy.
-			 */
+    bool isTop;		/* If TRUE, cell is the top level cell */
 {
     char *filename;
     FILE *f = NULL;
     Plane *savePlane;
+    bool noextract;
+
+    /* If marked abstract, then don't extract the cell */
+    DBPropGet(def, "noextract", &noextract);
+    if (noextract) return extPrepSubstrate(def);
 
     /* Incremental extraction:  If the cell is marked for no extraction,
      * then just prepare the substrate plane and return it to the caller.
@@ -111,7 +112,7 @@ ExtCell(def, outName, doLength)
     }
 
     extNumErrors = extNumWarnings = 0;
-    savePlane = extCellFile(def, f, doLength);
+    savePlane = extCellFile(def, f, isTop);
     if (f != NULL) fclose(f);
 
     if (extNumErrors > 0 || extNumWarnings > 0)
@@ -471,13 +472,10 @@ ExtRevertSubstrate(def, savePlane)
  */
 
 Plane *
-extCellFile(def, f, doLength)
+extCellFile(def, f, isTop)
     CellDef *def;	/* Def to be extracted */
     FILE *f;		/* Output to this file */
-    bool doLength;	/* TRUE if we should extract driver-receiver path
-			 * length information for this cell (see ExtCell
-			 * for more details).
-			 */
+    bool isTop;		/* TRUE if the cell is the top level cell */
 {
     NodeRegion *reg;
     Plane *saveSub;
@@ -488,8 +486,19 @@ extCellFile(def, f, doLength)
     /* If "extract do unique" was specified, then make labels in the
      * cell unique.
      */
+
     if (ExtOptions & EXT_DOUNIQUE)
-	extUniqueCell(def, EXT_UNIQ_TEMP);
+    {
+	if (ExtOptions & EXT_DOUNIQNOTOPPORTS)
+	{
+	    if (isTop)
+		extUniqueCell(def, EXT_UNIQ_TEMP_NOPORTS);
+	    else
+		extUniqueCell(def, EXT_UNIQ_TEMP);
+	}
+	else
+	    extUniqueCell(def, EXT_UNIQ_TEMP);
+    }
 
     /* Prep any isolated substrate areas */
     if (ExtOptions & EXT_DOEXTRESIST)
@@ -519,7 +528,7 @@ extCellFile(def, f, doLength)
     ExtResetTiles(def, CLIENTDEFAULT);
 
     /* Final pass: extract length information if desired */
-    if (!SigInterruptPending && doLength && (ExtOptions & EXT_DOLENGTH))
+    if (!SigInterruptPending && isTop && (ExtOptions & EXT_DOLENGTH))
 	extLength(extParentUse, f);
 
     UndoEnable();

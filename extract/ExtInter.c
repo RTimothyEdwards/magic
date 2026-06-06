@@ -272,7 +272,7 @@ extInterSubtreeElement(use, trans, x, y, r)
 int
 extInterSubtreeTile(tile, dinfo, cxp)
     Tile *tile;
-    TileType dinfo;
+    TileType dinfo;	/* (unused) */
     TreeContext *cxp;
 {
     SearchContext newscx;
@@ -343,8 +343,9 @@ extInterOverlapSubtree(scx)
  */
 
 int
-extInterOverlapTile(tile, cxp)
+extInterOverlapTile(tile, dinfo, cxp)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     TreeContext *cxp;
 {
     SearchContext *scx = cxp->tc_scx;

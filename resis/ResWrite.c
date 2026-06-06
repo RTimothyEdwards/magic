@@ -160,7 +160,7 @@ resCurrentPrintFunc(node, resistor, filename)
 void
 ResDeviceCounts()
 {
-    int i,j,k;
+    int i, j, k;
     resNode *n;
     resDevice *t;
     resResistor *r;

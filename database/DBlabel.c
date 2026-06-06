@@ -574,7 +574,8 @@ DBReOrientLabel(cellDef, area, newPos)
  * dbGetLabelArea ---
  *
  * Callback function used by DBAdjustLabels.  Find all material under a label
- * that is *not* the label type, and return the 
+ * that is *not* the label type, and return the label area adjusted to leave
+ * out that amount.
  *
  * Note:  This clips in a regular order, and does not consider what is the
  * largest rectangular area outside the area that has been clipped out.
@@ -602,6 +603,26 @@ dbGetLabelArea(tile, dinfo, area)
 	area->r_ybot = r.r_ytop;
 
     return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbLabelNotEmpty ---
+ *
+ * Callback function used by DBAdjustLabels.  Finds any material under a
+ * label that is the label type, and returns 1 to stop the search.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbLabelNotEmpty(tile, dinfo, clientData)
+    Tile *tile;		/* Tile found. */
+    TileType dinfo;	/* Split tile information (unused) */
+    ClientData clientData;	/* (unused) */
+{
+    return 1;
 }
 
 /*
@@ -661,28 +682,37 @@ DBAdjustLabels(def, area)
 
 	    TTMaskSetOnlyType(&lmask, lab->lab_type);
 	    /* To do:  Add compatible types (contact, residue) */
-	    TTMaskCom(&lmask);
 
-	    r = lab->lab_rect;
-	    DBSrPaintArea((Tile *) NULL, def->cd_planes[DBPlane(lab->lab_type)],
-		    &lab->lab_rect, &lmask, dbGetLabelArea, (ClientData) &r);
-
-	    if (!GEO_RECTNULL(&r))
+	    /* If there is no material left inside the label area, then
+	     * the label gets reassigned to space.
+	     */
+	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[DBPlane(lab->lab_type)],
+		    &lab->lab_rect, &lmask, dbLabelNotEmpty, (ClientData)NULL) == 1)
 	    {
-		if ((DBVerbose >= DB_VERBOSE_ALL) && ((def->cd_flags & CDINTERNAL) == 0))
-		{
-		    TxPrintf("Adjusting size of label \"%s\" in cell %s.\n",
-				lab->lab_text, def->cd_name);
-		}
+		TTMaskCom(&lmask);
 
-		DBUndoEraseLabel(def, lab);
-		DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
-		lab->lab_rect = r;
-		DBFontLabelSetBBox(lab);
-		DBUndoPutLabel(def, lab);
-		DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
-		modified = TRUE;
-		adjusted = TRUE;
+		r = lab->lab_rect;
+		DBSrPaintArea((Tile *) NULL, def->cd_planes[DBPlane(lab->lab_type)],
+		    	&lab->lab_rect, &lmask, dbGetLabelArea, (ClientData) &r);
+
+		if (!GEO_RECTNULL(&r))
+		{
+		    if ((DBVerbose >= DB_VERBOSE_ALL) &&
+				((def->cd_flags & CDINTERNAL) == 0))
+		    {
+			TxPrintf("Adjusting size of label \"%s\" in cell %s.\n",
+				lab->lab_text, def->cd_name);
+		    }
+
+		    DBUndoEraseLabel(def, lab);
+		    DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
+		    lab->lab_rect = r;
+		    DBFontLabelSetBBox(lab);
+		    DBUndoPutLabel(def, lab);
+		    DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
+		    modified = TRUE;
+		    adjusted = TRUE;
+		}
 	    }
 	}
 

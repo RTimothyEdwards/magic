@@ -61,6 +61,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define		DEV_PARAM_START		7
 
 #define		NODES_NODENAME		1
+#define		NODES_NODERES		2
 #define		NODES_NODEX		4
 #define		NODES_NODEY		5
 #define		NODES_NODETYPE		6
@@ -82,6 +83,24 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define		PORT_URY		6
 #define		PORT_TYPE		7
 
+#define		USE_DEF_NAME		1
+#define		USE_ID_NAME		2
+#define		USE_TRANSFORM_A		3
+#define		USE_TRANSFORM_B		4
+#define		USE_TRANSFORM_C		5
+#define		USE_TRANSFORM_D		6
+#define		USE_TRANSFORM_E		7
+#define		USE_TRANSFORM_F		8
+
+/* Note that "connect" lines may repeat these six entries up to argc */
+#define		CONNECT_LLX		1
+#define		CONNECT_LLY		2
+#define		CONNECT_URX		3
+#define		CONNECT_URY		4
+#define		CONNECT_TYPE		5
+#define		CONNECT_UP_NAME		6
+#define		CONNECT_DOWN_NAME	7
+
 #define MAXDIGIT		20
 
 ResExtNode	*ResOriginalNodes;	/*Linked List of Nodes 	*/
@@ -91,11 +110,18 @@ ResFixPoint	*ResFixList;
 /*
  *-------------------------------------------------------------------------
  *
- * ResReadExt--
+ * ResReadExt --
  *
- * Results: returns 0 if ext file is correct, 1 if not.
+ * Read a .ext file for resistance extraction.  Extresist does not use
+ * the .ext file reader in extflat/EFread.c because it takes only a
+ * small amount of information from the .ext file, mainly to keep a
+ * list of nets and net names, devices and their terminals and
+ * connections, and subcell connections.  However, it does make use
+ * of the line parser and tokenizer in extflat.
  *
- * Side Effects:Reads in ExtTable and makes a hash table of nodes.
+ * Results: Returns 0 if ext file is correct, 1 if not.
+ *
+ * Side Effects:  Creates lists of nodes and devices for extresist.
  *
  *-------------------------------------------------------------------------
  */
@@ -107,8 +133,11 @@ ResReadExt(CellDef *def)
     int	result, locresult;
     int argc, n, size = 0;
     FILE *fp;
-    CellDef *dbdef;
+    CellDef *dbdef, *parent;
+    CellUse *use;
     ResExtNode *curnode;
+    HashTable parentHash;
+    HashEntry *he;
 
     /* Search for the .ext file in the same way that efReadDef() does. */
 
@@ -142,7 +171,10 @@ ResReadExt(CellDef *def)
 	}
 
 	/* We don't care about most tokens, only DEVICE, NODE, PORT,
-	 * and SUBSTRATE; and MERGE is used to locate drive points.
+	 * and SUBSTRATE; and CONNECT is used to locate sink points.
+	 * Note that MERGE is not useful here, as it may implicitly
+ 	 * merge nets in the cell, which is useful for netlisting but
+	 * not for annotating the extraction file. 
 	 */
 	switch (keyTable[n].k_key)
 	{
@@ -161,16 +193,15 @@ ResReadExt(CellDef *def)
 	    case FET:
 		locresult = ResReadFET(argc, argv);
 		break;
-	    case MERGE:
-		/* To be completed */
-		/* ResReadDrivePoint(argc, argv); */
+	    case CONNECT:
+		locresult = ResReadConnectPoint(def, argc, argv);
+		break;
+	    case PORT:
+		locresult = ResReadPort(argc, argv);
 		break;
 	    case NODE:
 	    case SUBSTRATE:
 		curnode = ResReadNode(argc, argv);
-		break;
-	    case PORT:
-		locresult = ResReadPort(argc, argv);
 		break;
 	    case ATTR:
 		locresult = ResReadAttribute(curnode, argc, argv);
@@ -184,9 +215,293 @@ ResReadExt(CellDef *def)
 	if (locresult == 1) result = 1;
     }
     fclose(fp);
+
+    /* Find all the parent CellDefs of "def" and read the .ext file of
+     * each one to find where connections are made to this cell from
+     * parent cells.  Place drive points at each connection point.
+     */
+    HashInit(&parentHash, 32, HT_STRINGKEYS);
+
+    for (use = def->cd_parents; use; use = use->cu_nextuse)
+    {
+	if ((parent = use->cu_parent) == NULL) continue;
+	if (parent->cd_flags & CDINTERNAL) continue;
+	he = HashFind(&parentHash, parent->cd_name);
+	if ((CellDef *)HashGetValue(he) == NULL)
+	{
+	    /* Mark parent def as being visited */
+	    HashSetValue(he, (char *)parent);
+	    /* Read connection information from the parent's .ext file */
+	    ResReadParentExt(parent, def);
+	}
+    }
+    HashKill(&parentHash);
+
     return(result);
 }
 
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResReadUse --
+ *
+ *	Read a "use" statement from the .ext file of a parent CellDef of
+ *	the current def being extracted.  If the use is a use of the
+ *	current def, then save the use name and its transform in the
+ *	hash table so that later "connect" statements can be translated
+ *	into the coordinate system of the current cell def.
+ *
+ * Results:
+ *	1 if something went wrong with the parsing, 0 otherwise.
+ *
+ * Side effects:
+ *	May add to the hash table.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResReadUse(CellDef *def,
+   int argc,
+   char *argv[],
+   HashTable *useHash)
+{
+    char *defname, *useid;
+    Transform *tinv, t;
+    HashEntry *he;
+
+    defname = argv[USE_DEF_NAME];
+
+    if (strcmp(defname, def->cd_name)) return 0;	/* Not my use */
+
+    useid = argv[USE_ID_NAME];
+
+    he = HashFind(useHash, useid);
+
+    t.t_a = atoi(argv[USE_TRANSFORM_A]);
+    t.t_b = atoi(argv[USE_TRANSFORM_B]);
+    t.t_c = atoi(argv[USE_TRANSFORM_C]);
+    t.t_d = atoi(argv[USE_TRANSFORM_D]);
+    t.t_e = atoi(argv[USE_TRANSFORM_E]);
+    t.t_f = atoi(argv[USE_TRANSFORM_F]);
+
+    tinv = (Transform *)mallocMagic(sizeof(Transform));
+    GeoInvertTrans(&t, tinv);
+
+    HashSetValue(he, (char *)tinv);
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResReadDrivePoint --
+ *
+ *	Read a "connect" statement from the .ext file of a parent CellDef
+ *	of the current def being extracted.  If the connection is made to
+ *	a use of the current def, then translate the area of the connection
+ *	into the current def, and mark the connection as a drive point of
+ *	def.
+ *
+ * Results:
+ *	1 if something went wrong with the parsing, 0 otherwise.
+ *
+ * Side effects:
+ *	May add information to the node list of def.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResReadDrivePoint(CellDef *def,
+    int argc,
+    char *argv[],
+    HashTable *useHash)
+{
+    HashEntry	*entry;
+    ResExtNode	*node;
+    ResConnect  *newdriver;
+    int pNum;
+    TileType ttype;
+    Transform *t;
+    Rect r;
+    char *hierptr, *useid, *qptr, *downname;
+
+    /* Only handle entries that are in the use ID hash table */
+
+    useid = argv[CONNECT_DOWN_NAME];
+    if (*useid == '"') useid++;
+    hierptr = strchr(useid, '/');
+    if (hierptr != NULL) *hierptr = '\0';
+    qptr = strrchr(useid, '"');
+    if (qptr != NULL) *qptr = '\0';
+    if (hierptr != NULL)
+	downname = hierptr + 1;
+    else
+	downname = useid;	/* This is probably invalid */
+
+    entry = HashFind(useHash, useid);
+    if ((t = (Transform *)HashGetValue(entry)) == NULL) return 0;
+
+    /* Check for the given tile type */
+    ttype = DBTechNoisyNameType(argv[CONNECT_TYPE]);
+
+    if (ttype == -1)
+    {
+	TxError("Bad tile type name \"%s\" in .ext file for node %s\n",
+			argv[CONNECT_TYPE], argv[CONNECT_UP_NAME]);
+	return 1;
+    }
+
+    /* Look up the node name */
+    if (strcmp(downname, "None"))
+    {
+	entry = HashLookOnly(&ResNodeTable, downname);
+	if (entry != NULL)
+	    node = (ResExtNode *)HashGetValue(entry);
+	else
+	{
+	    TxError("Unknown node name \"%s\" in .ext file connect entry\n",
+			downname);
+	    return 1;
+	}
+
+	/* Generate new drivepoint entry */
+
+	newdriver = (ResConnect *)mallocMagic(sizeof(ResConnect));
+    
+	r.r_xbot = atoi(argv[CONNECT_LLX]);
+	r.r_ybot = atoi(argv[CONNECT_LLY]);
+	r.r_xtop = atoi(argv[CONNECT_URX]);
+	r.r_ytop = atoi(argv[CONNECT_URY]);
+
+	/* Translate the connection position from the parent to the
+	 * current cell def.
+	 */
+	GeoTransRect(t, &r, &newdriver->rc_rect);
+
+	newdriver->rc_type = ttype;
+	newdriver->rc_node = (resNode *)NULL;
+
+	newdriver->rc_next = node->drivepoints;
+	node->drivepoints = newdriver;
+	node->status |= FORCE | DRIVELOC;
+
+	if (ResOptionsFlags & ResOpt_Debug)
+	{
+	    /* Diagnostic */
+	    TxPrintf("Added driver at %d %d %d %d\n",
+			newdriver->rc_rect.r_xbot, newdriver->rc_rect.r_ybot,
+			newdriver->rc_rect.r_xtop, newdriver->rc_rect.r_ytop);
+	}
+    }
+
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResReadParentExt --
+ *
+ *	Read a .ext file for a parent cell of the cell being extracted.
+ *	Each .ext file contains a list of connection points into its
+ *	subcells.  However, no .ext file has information about how a
+ *	parent cell connects to it;  the exact connection may depend on
+ *	the layout, and may or may not coincide with marked ports.
+ *	Except for the top level cell, for which only marked ports can
+ *	be used to guess at intended points of connection, every subcell
+ *	can query its parents to find exact points of connection.
+ *
+ * Results:  Returns 0 if ext file is correct, 1 if not.
+ *
+ * Side Effects:  Creates lists of connection points for extresist.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResReadParentExt(CellDef *parent,
+    CellDef *def)
+{
+    char *line = NULL, *argv[128];
+    int	result, locresult;
+    int argc, n, size = 0;
+    FILE *fp;
+    CellDef *dbdef;
+    ResExtNode *curnode;
+    HashTable useHash;
+    HashEntry *he;
+    HashSearch hs;
+
+    /* Search for the .ext file in the same way that efReadDef() does. */
+
+    fp = ExtFileOpen(parent, (char *)NULL, "r", (char **)NULL);
+    if (fp == NULL)
+    {
+    	TxError("Cannot open file %s%s\n", parent->cd_name, ".ext");
+	return 1;
+    }
+
+    HashInit(&useHash, 32, HT_STRINGKEYS);
+
+    /* Read in the file.  Makes use of various functions
+     * from extflat, mostly in EFread.c.
+     */
+
+    EFSaveLocs = FALSE;
+    efReadLineNum = 0;
+    result = 0;
+
+    while ((argc = efReadLine(&line, &size, fp, argv)) >= 0)
+    {
+	n = LookupStruct(argv[0], (const LookupTable *)keyTable, sizeof keyTable[0]);
+	if (n < 0)
+	{
+	    efReadError("Unrecognized token \"%s\" (ignored)\n", argv[0]);
+	    continue;
+	}
+	if (argc < keyTable[n].k_mintokens)
+	{
+	    efReadError("Not enough tokens for %s line\n", argv[0]);
+	    continue;
+	}
+
+	/* When reading a parent .ext file to find connections to
+	 * the cell being extracted by "extresist", we only care
+	 * about CONNECT lines, and USE lines so that we can
+	 * translate the connection points into the current cell def.
+	 *
+	 * Note:  This method depends on the .ext file format having
+	 * all "use" lines before "connect" lines.
+	 */
+	switch (keyTable[n].k_key)
+	{
+	    case USE:
+		locresult = ResReadUse(def, argc, argv, &useHash);
+		break;
+	    case CONNECT:
+		locresult = ResReadDrivePoint(def, argc, argv, &useHash);
+		break;
+	    default:
+		break;
+	}
+	if (locresult == 1) result = 1;
+    }
+    fclose(fp);
+
+    HashStartSearch(&hs);
+    while ((he = HashNext(&useHash, &hs)))
+    {
+	if (HashGetValue(he) != NULL)
+	{
+	    freeMagic(HashGetValue(he));	/* Free the allocated tranform */
+	    HashSetValue(he, (ClientData)NULL);
+	}
+    }
+    HashKill(&useHash);
+    return(result);
+}
 
 /*
  *-------------------------------------------------------------------------
@@ -207,20 +522,18 @@ ResReadNode(int argc, char *argv[])
 {
     HashEntry	*entry;
     ResExtNode	*node;
+    int noderesist;
 
     entry = HashFind(&ResNodeTable, argv[NODES_NODENAME]);
     node = ResExtInitNode(entry);
 
     node->location.p_x = atoi(argv[NODES_NODEX]);
     node->location.p_y = atoi(argv[NODES_NODEY]);
-
-    /* If this node was previously read as a port, then don't change the
-     * node type, which is tracking the type at the drivepoint.
-     */
-    if (!(node->status & PORTNODE))
-    {
-	node->type = DBTechNameType(argv[NODES_NODETYPE]);
-    }
+    node->type = DBTechNameType(argv[NODES_NODETYPE]);
+    noderesist = atoi(argv[NODES_NODERES]);
+    if (noderesist < 0) noderesist = INFINITY;
+    /* Make sure node resistance is in units of milliohms */
+    node->resistance = (float)noderesist * (float)ExtCurStyle->exts_resistScale;
 
     if (node->type == -1)
     {
@@ -233,12 +546,98 @@ ResReadNode(int argc, char *argv[])
 /*
  *-------------------------------------------------------------------------
  *
+ * ResReadConnectPoint-- Reads in a "connect" statement from the .ext file
+ *	and sets node records accordingly to mark the node as a connection
+ *	point.  There is a use (instance) name associated with each connection,
+ *	which is unused for finding connection points to subcells;  we
+ *	don't care what the subcell is, only that there is a connection at
+ *	a point on a net in this cell that should be recorded and never
+ *	optimized out.
+ *
+ * Results:  0 if successful and 1 otherwise.
+ *
+ * Side Effects: see above
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResReadConnectPoint(CellDef *def,
+    int argc,
+    char *argv[])
+{
+    HashEntry	*entry;
+    ResExtNode	*node;
+    ResConnect  *newsink;
+    int pNum;
+    TileType ttype;
+
+    /* Check for the given tile type */
+    ttype = DBTechNoisyNameType(argv[CONNECT_TYPE]);
+
+    if (ttype == -1)
+    {
+	TxError("Bad tile type name \"%s\" in .ext file for node %s\n",
+			argv[CONNECT_TYPE], argv[CONNECT_UP_NAME]);
+	return 1;
+    }
+
+    /* Look up the node name */
+    if (strcmp(argv[CONNECT_UP_NAME], "None"))
+    {
+	entry = HashLookOnly(&ResNodeTable, argv[CONNECT_UP_NAME]);
+	if (entry != NULL)
+	    node = (ResExtNode *)HashGetValue(entry);
+	else
+	{
+	    TxError("Unknown node name \"%s\" in .ext file connect entry\n",
+			argv[CONNECT_UP_NAME]);
+	    return 1;
+	}
+
+	/* Generate new sinkpoint entry */
+
+	newsink = (ResConnect *)mallocMagic(sizeof(ResConnect));
+    
+	newsink->rc_rect.r_xbot = atoi(argv[CONNECT_LLX]);
+	newsink->rc_rect.r_ybot = atoi(argv[CONNECT_LLY]);
+	newsink->rc_rect.r_xtop = atoi(argv[CONNECT_URX]);
+	newsink->rc_rect.r_ytop = atoi(argv[CONNECT_URY]);
+	newsink->rc_type = ttype;
+	newsink->rc_node = (resNode *)NULL;
+
+	newsink->rc_next = node->sinkpoints;
+	node->sinkpoints = newsink;
+	node->status |= FORCE | DRIVELOC;
+
+	if (ResOptionsFlags & ResOpt_Debug)
+	{
+	    /* Diagnostic */
+	    TxPrintf("Added sink at %d %d %d %d\n", newsink->rc_rect.r_xbot,
+			newsink->rc_rect.r_ybot, newsink->rc_rect.r_xtop,
+			newsink->rc_rect.r_ytop);
+	}
+    }
+
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResReadPort-- Reads in a port statement from the .ext file and sets
  *	node records accordingly to mark the node as a drivepoint.
  *
  * Results:  0 if successful and 1 otherwise.
  *
  * Side Effects: see above
+ *
+ * NOTE: The use of "port" to mark drive points is restricted to top
+ * level cells, because no other information is available about how the
+ * cell connects to a parent cell.  For every cell other than the top
+ * level, the "connect" statements are used to find the actual locations
+ * where signals connect between cells through abutting or overlapping
+ * material.
  *
  *-------------------------------------------------------------------------
  */
@@ -249,22 +648,33 @@ ResReadPort(int argc,
 {
     HashEntry	*entry;
     ResExtNode	*node;
+    ResConnect  *newdriver;
 
     entry = HashFind(&ResNodeTable, argv[PORT_NAME]);
     node = ResExtInitNode(entry);
 
-    node->drivepoint.p_x = atoi(argv[PORT_LLX]);
-    node->drivepoint.p_y = atoi(argv[PORT_LLY]);
-    node->status |= FORCE;
-    /* To do:  Check for multiple ports on a net;  each port needs its
-     * own drivepoint.
-     */
-    node->status |= DRIVELOC | PORTNODE;
-    node->rs_bbox.r_ll = node->drivepoint;
-    node->rs_bbox.r_ur.p_x = atoi(argv[PORT_URX]);
-    node->rs_bbox.r_ur.p_y = atoi(argv[PORT_URY]);
-    node->rs_ttype = DBTechNoisyNameType(argv[PORT_TYPE]);
-    node->type = node->rs_ttype;
+    /* Generate new drivepoint entry */
+
+    newdriver = (ResConnect *)mallocMagic(sizeof(ResConnect));
+
+    newdriver->rc_rect.r_xbot = atoi(argv[PORT_LLX]);
+    newdriver->rc_rect.r_ybot = atoi(argv[PORT_LLY]);
+    newdriver->rc_rect.r_xtop = atoi(argv[PORT_URX]);
+    newdriver->rc_rect.r_ytop = atoi(argv[PORT_URY]);
+    newdriver->rc_type = DBTechNoisyNameType(argv[PORT_TYPE]);
+    newdriver->rc_node = (resNode *)NULL;
+
+    newdriver->rc_next = node->drivepoints;
+    node->drivepoints = newdriver;
+    node->status |= FORCE | DRIVELOC | PORTNODE;
+
+    if (ResOptionsFlags & ResOpt_Debug)
+    {
+	/* Diagnostic */
+	TxPrintf("Added port at %d %d %d %d\n",
+		newdriver->rc_rect.r_xbot, newdriver->rc_rect.r_ybot,
+		newdriver->rc_rect.r_xtop, newdriver->rc_rect.r_ytop);
+    }
 
     if (node->type == -1)
     {
@@ -273,6 +683,7 @@ ResReadPort(int argc,
     }
     return 0;
 }
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -287,7 +698,7 @@ ResReadPort(int argc,
  *	None.
  *
  * Side effects:
- *	Allocates memory for a devPtr, adds to the node's firstDev linked
+ *	Allocates memory for a devPtr, adds to the node's "devices" linked
  *	list.
  * 
  *-------------------------------------------------------------------------
@@ -302,8 +713,8 @@ ResNodeAddDevice(ResExtNode *node,
 
     tptr = (devPtr *)mallocMagic((unsigned)(sizeof(devPtr)));
     tptr->thisDev = device;
-    tptr->nextDev = node->firstDev;
-    node->firstDev = tptr;
+    tptr->nextDev = node->devices;
+    node->devices = tptr;
     tptr->terminal = termtype;
 }
 
@@ -326,13 +737,11 @@ ResReadDevice(int argc,
     char *argv[])
 {
     RDev	*device;
-    int		rvalue, i, j, k;
+    int		rvalue, i, j, k, w, l;
     ExtDevice	*devptr;
     TileType	ttype;
     HashEntry	*entry;
     ResExtNode	*node;
-    ResValue	rpersquare;
-    float	wval;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
 
@@ -361,34 +770,20 @@ ResReadDevice(int argc,
     device->drain = (ResExtNode *)NULL;
     device->subs = (ResExtNode *)NULL;
 
-    entry = HashLookOnly(&devptr->exts_deviceResist, "linear");
-    if (entry != NULL)
-	rpersquare = (ResValue)(spointertype)HashGetValue(entry);
-    else
-	rpersquare = (ResValue)10000.0;		/* Default to a sane value */
-
-    /* For devices, the device width is in the parameter list */
-    wval = 0.0;
+    /* Find the end of parameter arguments */
     for (i = DEV_Y; i < argc; i++)
     {
 	char *eptr;
-	if ((eptr = strchr(argv[i], '=')) != NULL)
-	{
-	    if (*argv[i] == 'w')
-		sscanf(eptr + 1, "%f", &wval);
-	}
-	else if (!StrIsInt(argv[i]))
-	    break;
+	if ((eptr = strchr(argv[i], '=')) == NULL)
+	    if (!StrIsInt(argv[i]))
+		break;
     }
-
     if (i == argc)
     {
 	TxError("Bad device %s:  Too few arguments in .ext file\n",
 		argv[DEV_NAME]);
 	return 1;
     }
-    else
-	device->resistance = wval * rpersquare;	/* Channel resistance */
 
     /* Find and record the device terminal nodes */
     /* Note that this only records up to two terminals matching FET
@@ -406,6 +801,8 @@ ResReadDevice(int argc,
     entry = HashFind(&ResNodeTable, argv[i]);
     device->gate = (ResExtNode *)HashGetValue(entry);
     device->rs_gattr = StrDup((char **)NULL, argv[i + 2]);
+    l = atoi(argv[i + 1]);
+    w = 0;
     ResNodeAddDevice(device->gate, device, GATE);
     i += 3;
     
@@ -414,6 +811,7 @@ ResReadDevice(int argc,
 	entry = HashFind(&ResNodeTable, argv[i]);
 	device->source = (ResExtNode *)HashGetValue(entry);
 	device->rs_sattr = StrDup((char **)NULL, argv[i + 2]);
+	w = atoi(argv[i + 1]);
 	ResNodeAddDevice(device->source, device, SOURCE);
 	i += 3;
     }
@@ -423,6 +821,7 @@ ResReadDevice(int argc,
 	entry = HashFind(&ResNodeTable, argv[i]);
 	device->drain = (ResExtNode *)HashGetValue(entry);
 	device->rs_dattr = StrDup((char **)NULL, argv[i + 2]);
+	w = MAX(w, atoi(argv[i + 1]));
 	ResNodeAddDevice(device->drain, device, DRAIN);
 	i += 3;
     }
@@ -433,6 +832,7 @@ ResReadDevice(int argc,
     }
 
     device->rs_ttype = extGetDevType(devptr->exts_deviceName);
+    device->rs_wl = (l == 0) ? 0.0 : (float)w / (float)l;
 
     ResRDevList = device;
     device->layout = NULL;
@@ -456,13 +856,11 @@ ResReadFET(int argc,
     char *argv[])
 {
     RDev	*device;
-    int		rvalue, i, j, k;
+    int		rvalue, i, j, k, w, l;
     ExtDevice	*devptr;
     TileType	ttype;
     HashEntry	*entry;
     ResExtNode	*node;
-    ResValue	rpersquare;
-    float	area, perim, wval, lval;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
 
@@ -487,20 +885,6 @@ ResReadFET(int argc,
     device->rs_dattr = RDEV_NOATTR;
     device->rs_devptr = devptr;
 
-    entry = HashLookOnly(&devptr->exts_deviceResist, "linear");
-    if (entry != NULL)
-	rpersquare = (ResValue)(spointertype)HashGetValue(entry);
-    else
-	rpersquare = (ResValue)10000.0;		/* Default to a sane value */
-
-    /* For old-style FETs, the width is determined from area and perimeter */ 
-    area = MagAtof(argv[FET_AREA]);
-    perim = MagAtof(argv[FET_PERIM]);
-    lval = 0.5 * (perim + sqrt(perim * perim - 4 * area));
-    wval = area / lval;
-
-    device->resistance = wval * rpersquare;	/* Channel resistance */
-
     /* Find and record the FET terminal nodes */
 
     entry = HashFind(&ResNodeTable, argv[FET_GATE]);
@@ -521,6 +905,11 @@ ResReadFET(int argc,
     device->rs_gattr = StrDup((char **)NULL, argv[FET_GATE_ATTR]);
     device->rs_sattr = StrDup((char **)NULL, argv[FET_SOURCE_ATTR]);
     device->rs_dattr = StrDup((char **)NULL, argv[FET_DRAIN_ATTR]);
+
+    l = atoi(argv[FET_GATE_ATTR - 1]);
+    w = atoi(argv[FET_SOURCE_ATTR - 1]);
+    w = MAX(w, atoi(argv[FET_DRAIN_ATTR - 1]));
+    device->rs_wl = (l == 0) ? 0.0 : (float)w / (float)l;
 
     ResRDevList = device;
     device->layout = NULL;
@@ -628,10 +1017,22 @@ ResReadAttribute(ResExtNode *node,
     else if (strncmp(avalue, "res:drive", 9) == 0 &&
      	      (ResOptionsFlags & ResOpt_Signal))
     {
-	node->drivepoint.p_x = atoi(argv[RES_EXT_ATTR_X]);
-	node->drivepoint.p_y = atoi(argv[RES_EXT_ATTR_Y]);
-	node->rs_ttype = DBTechNoisyNameType(argv[RES_EXT_ATTR_TYPE]);
+	ResConnect *newdriver;
+
+	/* Generate new drivepoint entry */
+
+	newdriver = (ResConnect *)mallocMagic(sizeof(ResConnect));
+    
 	node->status |= DRIVELOC;
+	newdriver->rc_rect.r_xbot = atoi(argv[RES_EXT_ATTR_X]);
+	newdriver->rc_rect.r_ybot = atoi(argv[RES_EXT_ATTR_Y]);
+	newdriver->rc_rect.r_xtop = atoi(argv[RES_EXT_ATTR_X]);
+	newdriver->rc_rect.r_ytop = atoi(argv[RES_EXT_ATTR_Y]);
+	newdriver->rc_type = DBTechNoisyNameType(argv[RES_EXT_ATTR_TYPE]);
+	newdriver->rc_node = (resNode *)NULL;
+
+	newdriver->rc_next = node->drivepoints;
+	node->drivepoints = newdriver;
     }
     return 0;
 }
@@ -668,11 +1069,11 @@ ResExtInitNode(entry)
 	node->cap_couple = 0;
 	node->resistance = 0;
 	node->type = 0;
-	node->firstDev = NULL;
+	node->devices = NULL;
 	node->name = entry->h_key.h_name;
 	node->oldname = NULL;
-	node->drivepoint.p_x = INFINITY;
-	node->drivepoint.p_y = INFINITY;
+	node->drivepoints = NULL;
+	node->sinkpoints = NULL;
 	node->location.p_x = INFINITY;
 	node->location.p_y = INFINITY;
     }

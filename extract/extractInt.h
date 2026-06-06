@@ -981,6 +981,7 @@ typedef struct node
 				 * in the list is the "official" node name.
 				 */
     int		 node_len;	/* Number of entries in node_names */
+    ExtConnList	*node_ports;	/* List of areas that connect to other cells */
     CapValue	 node_cap;	/* Capacitance to substrate */
     PerimArea	 node_pa[1];	/* Dummy; each node actually has
 				 * ExtCurStyle->exts_numResistClasses

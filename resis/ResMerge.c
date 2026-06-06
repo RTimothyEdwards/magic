@@ -210,7 +210,7 @@ ResFixParallel(elimResis, newResis)
  * ResSeriesCheck -- for nodes with no devices, sees if a series
  *	or loop combination is possible.
  *
- * Results: returns SINGLE,LOOP,or SERIES if succesful.
+ * Results: returns SINGLE, LOOP, or SERIES if succesful.
  *
  * Side Effects: may delete some nodes and resistors.
  *
@@ -839,9 +839,9 @@ ResTriangleCheck(resptr)
  *
  * ResMergeNodes--
  *
- * results: none
+ * Results: none
  *
- * side effects: appends all the cElement, jElement, tElement and
+ * Side Effects: appends all the cElement, jElement, tElement and
  *       resElement structures from node 2 onto node 1.  Node 2 is
  *	 then eliminated.
  *
@@ -1010,7 +1010,7 @@ ResMergeNodes(node1, node2, pendingList, doneList)
  * ResDeleteResPointer-- Deletes the pointer from a node to a resistor.
  *	Used when a resistor is deleted.
  *
- * Results:none
+ * Results: none
  *
  * Side Effects: Modifies a node's resistor list.
  *
@@ -1018,7 +1018,7 @@ ResMergeNodes(node1, node2, pendingList, doneList)
  */
 
 void
-ResDeleteResPointer(node,resistor)
+ResDeleteResPointer(node, resistor)
     resNode	*node;
     resResistor	*resistor;
 
@@ -1059,7 +1059,7 @@ ResDeleteResPointer(node,resistor)
  *
  * ResEliminateResistor--
  *
- * Results:none
+ * Results: none
  *
  * Side Effects: Deletes a resistor. Does not delete pointers from nodes to
  *	resistor.
@@ -1097,8 +1097,7 @@ ResEliminateResistor(resistor, homelist)
  *		they are no longer needed. If the 'info' option is used,
  *		the node is eradicated.
  *
- * Results:
- *	None.
+ * Results: none.
  *
  * Side Effects: frees memory
  *

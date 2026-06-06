@@ -93,7 +93,7 @@ SimConnectFunc(
     TileType		loctype, ctype;
     TileType		newdinfo = 0;
     int 		i, pNum;
-    static char		nodeName[256];
+    static char		nodeName[MAXPATHNAME];
     CellDef 		*def;
     TerminalPath	*tpath = cx->tc_filter->tf_tpath;
 
@@ -133,7 +133,8 @@ SimConnectFunc(
 	char c = *n;
 
 	SigDisableInterrupts();
-	strcpy(nodeName, SimGetNodeName(cx->tc_scx, tile, dinfo, tpath->tp_first));
+	strncpy(nodeName, SimGetNodeName(cx->tc_scx, tile, dinfo, tpath->tp_first),
+			MAXPATHNAME);
 	SigEnableInterrupts();
 
 	*n = c;

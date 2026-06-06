@@ -52,7 +52,7 @@ ResPrintExtRes(outextfile, resistors, nodename)
     char	*nodename;
 
 {
-    int	        nodenum=0;
+    int	        nodenum = 0;
     char	newname[MAXNAME];
     HashEntry  *entry;
     ResExtNode *node;
@@ -261,7 +261,7 @@ ResPrintExtNode(outextfile, nodelist, node)
     {
 	if (snode->rn_name == NULL)
 	{
-	    (void)sprintf(tmpname,"%s",nodename);
+	    (void)sprintf(tmpname, "%s", nodename);
 
 	    cp = tmpname + strlen(tmpname) - 1;
             if (*cp == '!' || *cp == '#') *cp = '\0';
@@ -342,13 +342,13 @@ ResPrintStats(resisdata, name)
     nodes = 0;
     resistors = 0;
     totalnets++;
-    for (node = ResNodeList; node != NULL; node=node->rn_more)
+    for (node = ResNodeList; node != NULL; node = node->rn_more)
 
     {
      	nodes++;
 	totalnodes++;
     }
-    for (res = ResResList; res != NULL; res=res->rr_nextResistor)
+    for (res = ResResList; res != NULL; res = res->rr_nextResistor)
     {
      	resistors++;
 	totalresistors++;

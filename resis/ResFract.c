@@ -106,7 +106,7 @@ enumerate:
 		}
 		else
 		{
-		    resTopTile=BL(resTopTile);
+		    resTopTile = BL(resTopTile);
 		}
 	    }
 	}
@@ -205,7 +205,7 @@ ResCheckConcavity(bot, top, tt)
 	    ylen = ypos - resWalkdown(bot, tt, xpos, ypos, NULL);
 	    if (xlen > ylen)
 	    {
-		(void) resWalkdown(bot,tt,xpos,ypos,ResSplitX);
+		(void) resWalkdown(bot, tt, xpos, ypos, ResSplitX);
 	    }
 	}
     }
@@ -274,7 +274,7 @@ int
 resWalkup(tile, tt, xpos, ypos, func)
     Tile	*tile;
     TileType	tt;
-    int		xpos,ypos;
+    int		xpos, ypos;
     Tile *	(*func)();
 
 {
@@ -443,7 +443,7 @@ ResSplitX(tile, x)
     Tile	*tp = TiSplitX(tile, x);
     Tile	*tp2;
 
-    TiSetBody(tp,tt);
+    TiSetBody(tp, tt);
     /* check to see if we can combine with the tiles above or below us */
     tp2 = RT(tile);
     if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tile) && RIGHT(tp2) == RIGHT(tile))

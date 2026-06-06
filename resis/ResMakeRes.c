@@ -76,10 +76,9 @@ ResCalcTileResistance(tile, info, pendingList, doneList)
 	if (x < MinX) MinX = x;
 	if (y > MaxY) MaxY = y;
 	if (y < MinY) MinY = y;
+
 	if (p1->br_this->rn_why == RES_NODE_DEVICE)
-	{
 	    device = TRUE;
-	}
     }
 
     /* Finally, produce resistors for partition. Keep track of	*/
@@ -125,7 +124,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 {
-    int 	height;
+    int 	count, height;
     bool	merged;
     TileType	ttype;
     Breakpoint	*p1, *p2, *p3;
@@ -134,6 +133,8 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     resNode	*currNode;
     float	rArea;
     resInfo	*info = (resInfo *)TiGetClientPTR(tile);
+    HashTable	BreakTable;
+    HashEntry	*he;
 
     merged = FALSE;
     height = TOP(tile) - BOTTOM(tile);
@@ -163,21 +164,38 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	ttype = TiGetTypeExact(tile);
 
     /* Re-sort nodes left to right. */
+    count = ResSortBreaks(&info->breakList, TRUE);
 
-    ResSortBreaks(&info->breakList, TRUE);
+    /* For long lists (defined as >= 16 entries), make a hash table of
+     * the node pointer conversions so that each node can be updated
+     * as we walk the list, instead of walking the rest of the list in
+     * a nested loop for each entry.
+     */
+    if (count >= 16)
+	HashInit(&BreakTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
 
     /*
      * Eliminate breakpoints with the same X coordinate and merge
      * their nodes.
      */
 
-    p2= info->breakList;
+    p2 = info->breakList;
 
     /* Add extra left area to leftmost node */
 
     p2->br_this->rn_float.rn_area += height * (p2->br_loc.p_x - LEFT(tile));
     while (p2->br_next != NULL)
     {
+	/* Has the node been recorded as needing to be replaced? */
+	if (count >= 16)
+	{
+	    while (TRUE)
+	    {
+		he = HashLookOnly(&BreakTable, (char *)p2->br_this);
+		if (!he) break;
+		p2->br_this = (resNode *)HashGetValue(he);
+	    }
+	}
 	p1 = p2;
 	p2 = p2->br_next;
 	if (p2->br_loc.p_x == p1->br_loc.p_x)
@@ -215,25 +233,38 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    /*
 	     * Was the node used in another info or breakpoint?
 	     * If so, replace the old node with the new one.
+	     *
+	     * Short lists:  Walk the list to the end and change
+	     * nodes on the fly.
+	     * Long lists:  Record the change to be made in the
+	     * hash table so that it can be executed as each list
+	     * entry is encountered.
 	     */
-
-	    p3  = p2->br_next;
-	    while (p3 != NULL)
+	    if (count >= 16)
 	    {
-		if (p3->br_this == currNode)
-		     p3->br_this = p2->br_this;
-
-		p3 = p3->br_next;
+		he = HashFind(&BreakTable, (char *)currNode);
+		HashSetValue(he, (char *)p2->br_this);
 	    }
-       }
+	    else
+	    {
+		p3 = p2->br_next;
+		while (p3 != NULL)
+		{
+		    if (p3->br_this == currNode)
+			p3->br_this = p2->br_this;
 
-       /*
-        * If the X coordinates don't match, make a resistor between
-        * the breakpoints.
-        */
+		    p3 = p3->br_next;
+		}
+	    }
+	}
 
-       else
-       {
+	/*
+	 * If the X coordinates don't match, make a resistor between
+	 * the breakpoints.
+	 */
+
+	else
+	{
             resistor = (resResistor *)mallocMagic((unsigned)sizeof(resResistor));
             resistor->rr_nextResistor = (*resList);
             resistor->rr_lastResistor = NULL;
@@ -276,6 +307,8 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	}
     }
 
+    if (count >= 16) HashKill(&BreakTable);
+
     p2->br_this->rn_float.rn_area += height * (RIGHT(tile) - p2->br_loc.p_x);
     freeMagic((char *)p2);
     info->breakList = NULL;
@@ -301,7 +334,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 {
-    int 	width;
+    int 	count, width;
     bool	merged;
     TileType	ttype;
     Breakpoint	*p1, *p2, *p3;
@@ -310,6 +343,8 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     resNode	*currNode;
     float	rArea;
     resInfo	*info = (resInfo *)TiGetClientPTR(tile);
+    HashTable	BreakTable;
+    HashEntry	*he;
 
     merged = FALSE;
     width = RIGHT(tile) - LEFT(tile);
@@ -329,7 +364,15 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     }
 
     /* Re-sort nodes south to north. */
-    ResSortBreaks(&info->breakList, FALSE);
+    count = ResSortBreaks(&info->breakList, FALSE);
+
+    /* For long lists (defined as >= 16 entries), make a hash table of
+     * the node pointer conversions so that each node can be updated
+     * as we walk the list, instead of walking the rest of the list in
+     * a nested loop for each entry.
+     */
+    if (count >= 16)
+	HashInit(&BreakTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
 
     /* Simplified split tile handling */
     if (IsSplit(tile))
@@ -353,51 +396,75 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     p2->br_this->rn_float.rn_area += width * (p2->br_loc.p_y - BOTTOM(tile));
     while (p2->br_next != NULL)
     {
+	/* Has the node been recorded as needing to be replaced? */
+	if (count >= 16)
+	{
+	    while (TRUE)
+	    {
+		he = HashLookOnly(&BreakTable, (char *)p2->br_this);
+		if (!he) break;
+		p2->br_this = (resNode *)HashGetValue(he);
+	    }
+	}
 	p1 = p2;
 	p2 = p2->br_next;
 	if (p1->br_loc.p_y == p2->br_loc.p_y)
 	{
 	    if (p2->br_this == p1->br_this)
 	    {
-		 currNode = NULL;
-		 p1->br_next = p2->br_next;
-		 freeMagic((char *)p2);
-		 p2 = p1;
+		currNode = NULL;
+		p1->br_next = p2->br_next;
+		freeMagic((char *)p2);
+		p2 = p1;
 	    }
 	    else if (p2->br_this == resCurrentNode)
 	    {
-		 currNode = p1->br_this;
-	    	 ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
-		 freeMagic((char *)p1);
-		 merged = TRUE;
+		currNode = p1->br_this;
+	    	ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
+		freeMagic((char *)p1);
+		merged = TRUE;
 	    }
 	    else if (p1->br_this == resCurrentNode)
 	    {
-		 currNode = p2->br_this;
-		 p1->br_next = p2->br_next;
-	    	 ResMergeNodes(p1->br_this, p2->br_this, pendingList, doneList);
-		 merged = TRUE;
-		 freeMagic((char *)p2);
-		 p2 = p1;
+		currNode = p2->br_this;
+		p1->br_next = p2->br_next;
+	    	ResMergeNodes(p1->br_this, p2->br_this, pendingList, doneList);
+		merged = TRUE;
+		freeMagic((char *)p2);
+		p2 = p1;
 	    }
 	    else
 	    {
-		 currNode = p1->br_this;
-	    	 ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
-		 freeMagic((char *)p1);
+		currNode = p1->br_this;
+	    	ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
+		freeMagic((char *)p1);
 	    }
 
 	    /*
 	     * Was the node used in another info or breakpoint?
 	     * If so, replace the old node with the new one.
+	     *
+	     * Short lists:  Walk the list to the end and change
+	     * nodes on the fly.
+	     * Long lists:  Record the change to be made in the
+	     * hash table so that it can be executed as each list
+	     * entry is encountered.
 	     */
-	    p3 = p2->br_next;
-	    while (p3 != NULL)
+	    if (count >= 16)
 	    {
-		if (p3->br_this == currNode)
-		     p3->br_this = p2->br_this;
+		he = HashFind(&BreakTable, (char *)currNode);
+		HashSetValue(he, (char *)p2->br_this);
+	    }
+	    else
+	    {
+		p3 = p2->br_next;
+		while (p3 != NULL)
+		{
+		    if (p3->br_this == currNode)
+			p3->br_this = p2->br_this;
 
-		p3 = p3->br_next;
+		    p3 = p3->br_next;
+		}
 	    }
 	}
 
@@ -491,7 +558,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
      *	breakpoint, then return.
      */
 
-    if   (info->breakList->br_next == NULL)
+    if (info->breakList->br_next == NULL)
     {
      	freeMagic((char *)info->breakList);
 	info->breakList = NULL;
@@ -620,7 +687,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 		}
 		else
 		{
-		    deltay=0;
+		    deltay = 0;
 		}
 	    }
 	    else
@@ -634,15 +701,15 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	    {
 	       	if (p2->br_crect->r_ll.p_y > p1->br_loc.p_y)
 		{
-		    deltay = MIN(deltay,p2->br_crect->r_ll.p_y - p1->br_loc.p_y);
+		    deltay = MIN(deltay, p2->br_crect->r_ll.p_y - p1->br_loc.p_y);
 		}
 	       	else if (p2->br_crect->r_ur.p_y < p1->br_loc.p_y)
 		{
-		    deltay = MIN(deltay,p1->br_loc.p_y - p2->br_crect->r_ur.p_y);
+		    deltay = MIN(deltay, p1->br_loc.p_y - p2->br_crect->r_ur.p_y);
 		}
 		else
 		{
-		    deltay=0;
+		    deltay = 0;
 		}
 	    }
 	    else
@@ -820,7 +887,7 @@ ResDoContacts(contact, nodes, resList)
 	    Tile *tile = contact->cp_tile[tilenum];
 
 	    contact->cp_cnode[tilenum] = resptr;
-	    NEWBREAK(resptr, tile, contact->cp_center.p_x,
+	    ResNewBreak(resptr, tile, contact->cp_center.p_x,
 			contact->cp_center.p_y, &contact->cp_rect);
         }
     }
@@ -869,7 +936,7 @@ ResDoContacts(contact, nodes, resList)
 	    ccell->ce_thisc = contact;
 
 	    contact->cp_cnode[tilenum] = resptr;
-	    NEWBREAK(resptr, tile, contact->cp_center.p_x,
+	    ResNewBreak(resptr, tile, contact->cp_center.p_x,
 			contact->cp_center.p_y, &contact->cp_rect);
 
 	    /* Add resistors here */
@@ -1093,12 +1160,14 @@ MergeSortBreaks(Breakpoint *list, int xsort)
  *	bottleneck. 
  *
  * Results:
- *	None
+ *	Return the length of the list (maximum truncated at 16) so that
+ *	the calling routine can determine if this is a long or a short
+ *	linked list and treat it accordingly.
  *
  *-------------------------------------------------------------------------
  */
 
-void
+int
 ResSortBreaks(masterlist, xsort)
     Breakpoint	**masterlist;
     int		xsort;
@@ -1113,7 +1182,7 @@ ResSortBreaks(masterlist, xsort)
 	if (count > 16)
 	{
 	    *masterlist = MergeSortBreaks(*masterlist, xsort);
-	    return;
+	    return count;
 	}
     }
 
@@ -1154,5 +1223,6 @@ ResSortBreaks(masterlist, xsort)
 	    }
 	}
     }
+    return count;
 }
 

@@ -473,6 +473,19 @@ ExtUnique(rootUse, option)
     /* Fix up bounding boxes if they've changed */
     DBFixMismatch();
 
+    /* Because the "extract unique" does the same thing as "extract do unique"
+     * but the options may be different, disable "extract do unique" when
+     * "extract unique" is run, on the assumption that no user would
+     * intentionally use both methods.  If "do unique" was set and got
+     * disabled, then flag a warning.
+     */
+    if (ExtOptions & EXT_DOUNIQUE)
+    {
+	ExtOptions &= ~EXT_DOUNIQUE;
+	TxPrintf("Warning:  Extract option \"do unique\" disabled because "
+		"\"extract unique\" was run.\n");
+    }
+
     /* Mark all defs as being unvisited */
     (void) DBCellSrDefs(0, extDefInitFunc, (ClientData) 0);
 

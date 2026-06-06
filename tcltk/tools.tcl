@@ -651,9 +651,9 @@ proc magic::startselect {window {option {}}} {
 	    select nocycle
 	 }
       }
-      set Opts(origin) [cursor]
+      set Opts(origin) [cursor internal]
       set Opts(motion) [bind ${window} <Motion>]
-      bind ${window} <Motion> [subst {$Opts(motion); set p \[cursor\]; \
+      bind ${window} <Motion> [subst {$Opts(motion); set p \[cursor internal\]; \
 	set x \[expr {\[lindex \$p 0\] - [lindex $Opts(origin) 0]}\]i; \
 	set y \[expr {\[lindex \$p 1\] - [lindex $Opts(origin) 1]}\]i; \
 	*bypass select move \${x} \${y}}]

@@ -275,15 +275,11 @@ readfile:
 		efBuildCap(def, argv[1], argv[2], (double) cap);
 		break;
 
-	    /* subcap node capacitance */
-	    case SUBCAP:
-		cap = cscale*atoCap(argv[2]);
-		efAdjustSubCap(def, argv[1], cap);
-		break;
-
-	    /* equiv node1 node2 */
-	    case EQUIV:
-		efBuildEquiv(def, argv[1], argv[2], resist, isspice);
+	    /* connect useid llx lly urx ury type "node" ... */
+	    case CONNECT:
+		efBuildConnect(def, atoi(argv[1]), atoi(argv[2]),
+				atoi(argv[3]), atoi(argv[4]), argv[5],
+				argv[6], argv[7]);
 		break;
 
 	    /* replaces "fet" (below) */
@@ -337,11 +333,38 @@ readfile:
 		r.r_xtop = (int)(0.5 + (float)atoi(argv[5]) * locScale);
 		r.r_ytop = (int)(0.5 + (float)atoi(argv[6]) * locScale);
 
+		if (!strcmp(argv[2], "Short"))
+		{
+		    /* Device name "Short" is a reserved name indicating
+		     * that the device does not get output but acts as a
+		     * short between the first two terminals.  Consequently,
+		     * it acts like an "equiv" statement.  However, unlike
+		     * regular "equiv" statements, it should always merge
+		     * the nodes, so do not pass "resis" to efBuildEquiv().
+		     */
+		    int argstart = 7;
+		    /* "Short" devices should not have parameters, but just in
+		     * case, skip over any that are found.
+		     */
+		    while (strchr(argv[argstart], '=') != NULL) argstart++;
+		    if (argstart + 4 >= argc)
+			efReadError("Bad terminal description for Short device\n");
+		    else
+			efBuildEquiv(def, argv[argstart + 1], argv[argstart + 4],
+				FALSE, isspice);
+		    break;
+		}
+
 		if (efBuildDevice(def, (char)n, argv[2], &r, argc - 7, &argv[7]) != 0)
 		{
 		    efReadError("Incomplete terminal description for device\n");
 		    continue;
 		}
+		break;
+
+	    /* equiv node1 node2 */
+	    case EQUIV:
+		efBuildEquiv(def, argv[1], argv[2], resist, isspice);
 		break;
 
 	    /* for backwards compatibility */
@@ -373,7 +396,7 @@ readfile:
 		*/
 
 		cap = (argc > 3) ? atoCap(argv[3]) * cscale : 0;
-		efBuildConnect(def, argv[1], argv[2], (double)cap, &argv[4], argc - 4);
+		efBuildMerge(def, argv[1], argv[2], (double)cap, &argv[4], argc - 4);
 		break;
 
 	    /* node name R C x y layer a1 p1 a2 p2 ... [ attrs ] */
@@ -447,6 +470,12 @@ resistChanged:
 			efReadError("Resistance class values don't match:\n");
 			goto resistChanged;
 		    }
+		break;
+
+	    /* subcap node capacitance */
+	    case SUBCAP:
+		cap = cscale*atoCap(argv[2]);
+		efAdjustSubCap(def, argv[1], cap);
 		break;
 
 	    /* use def use-id T0 .. T5 */
