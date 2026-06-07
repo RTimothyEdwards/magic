@@ -1142,7 +1142,7 @@ ResProcessNode(
 	 */
 	if (ptr->terminal == GATE)
 	    break;
-	else
+	else if (ptr->terminal != SUBS)
 	{
 	    /* Sorting has put all parallel devices together, so
 	     * combine their total W/L

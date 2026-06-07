@@ -1472,6 +1472,13 @@ ResExtractNet(node, resisdata, cellname)
 	resdevList = (resDevTerm *)HashGetValue(he);
 	while (resdevList)
 	{
+	    /* Diagnostic */
+	    Tile *tp;
+	    tp = (Tile *)he->h_key.h_ptr;
+	    TxError("Error:  %s tile at (%d %d) not visited!\n",
+			(resdevList->rdt_term < 0) ? "Substrate" : "Terminal",
+			tp->ti_ll.p_x, tp->ti_ll.p_y);
+
 	    resdevNext = resdevList->rdt_next;
 	    freeMagic((char *)resdevList);
 	    resdevList = resdevNext;
