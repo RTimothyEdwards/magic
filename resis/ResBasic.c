@@ -230,9 +230,9 @@ ResStartTile(tile, x, y)
 #define IGNORE_BOTTOM	8
 
 bool
-ResEachTile(tile, devTiles)
+ResEachTile(tile, devNodeTable)
     Tile 	*tile;			/* Tile being processed */
-    ResDevTile	*devTiles;		/* List of device tiles for reference */
+    HashTable	*devNodeTable;		/* Table of tiles connected to devices */
 {
     Tile 	*tp;
     resNode	*resptr;
@@ -244,6 +244,7 @@ ResEachTile(tile, devTiles)
     resInfo	*tstructs = (resInfo *)TiGetClientPTR(tile);
     ExtDevice   *devptr;
     int		sides;
+    HashEntry	*he;
 
     ResTileCount++;
 
@@ -457,6 +458,41 @@ ResEachTile(tile, devTiles)
     /* Note:  Need to tag these tiles per device to avoid checking through	*/
     /* the device list for each tile. (To be done)				*/
 
+    he = HashLookOnly(devNodeTable, (char *)tile);
+    if (he != NULL)
+    {
+	resDevTerm *resdevRec, *resdevList;
+	Tile *devtile;
+
+	resdevList = (resDevTerm *)HashGetValue(he);
+	while (resdevList != NULL)
+	{
+	    resdevRec = resdevList;
+	    /* Set the position from the device, not the current tile */
+	    devtile = resdevRec->rdt_tile;
+	    xj = (RIGHT(devtile) + LEFT(devtile)) / 2;
+	    yj = (TOP(devtile) + BOTTOM(devtile)) / 2;
+	    if (resdevRec->rdt_term == -1)	/* Substrate */
+	    {
+		ResNewSubDevice(tile, resdevRec->rdt_tile, xj, yj,
+				OTHERPLANE, &ResNodeQueue);
+	    }
+	    else	/* Terminal */
+	    {
+		ResNewTermDevice(tile, resdevRec->rdt_tile, resdevRec->rdt_term,
+				xj, yj, OTHERPLANE, &ResNodeQueue);
+	    }
+	    resdevList = resdevList->rdt_next;
+	    freeMagic(resdevRec);
+	}
+	HashSetValue(he, (char *)NULL);		/* Done with hash record */
+    }
+
+#if 0
+    /* Deprecated:  Searching through all devices for all tiles is 
+     * irresponsibly slow.  Do not do this.
+     */
+
     if (TTMaskHasType(&ResTermTypesBitMask, t1))
     {
 	Rect r;
@@ -527,6 +563,7 @@ ResEachTile(tile, devTiles)
 	    }
 	}
     }
+#endif /* 0 */
 
     tstructs->ri_status |= RES_TILE_DONE;
 

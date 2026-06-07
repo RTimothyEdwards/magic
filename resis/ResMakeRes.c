@@ -186,6 +186,9 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     p2->br_this->rn_float.rn_area += height * (p2->br_loc.p_x - LEFT(tile));
     while (p2->br_next != NULL)
     {
+	p1 = p2;
+	p2 = p2->br_next;
+
 	/* Has the node been recorded as needing to be replaced? */
 	if (count >= 16)
 	{
@@ -196,8 +199,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 		p2->br_this = (resNode *)HashGetValue(he);
 	    }
 	}
-	p1 = p2;
-	p2 = p2->br_next;
+
 	if (p2->br_loc.p_x == p1->br_loc.p_x)
 	{
 	    if (p2->br_this == p1->br_this)
@@ -396,6 +398,9 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     p2->br_this->rn_float.rn_area += width * (p2->br_loc.p_y - BOTTOM(tile));
     while (p2->br_next != NULL)
     {
+	p1 = p2;
+	p2 = p2->br_next;
+
 	/* Has the node been recorded as needing to be replaced? */
 	if (count >= 16)
 	{
@@ -406,8 +411,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 		p2->br_this = (resNode *)HashGetValue(he);
 	    }
 	}
-	p1 = p2;
-	p2 = p2->br_next;
+
 	if (p1->br_loc.p_y == p2->br_loc.p_y)
 	{
 	    if (p2->br_this == p1->br_this)

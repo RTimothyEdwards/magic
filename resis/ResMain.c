@@ -697,10 +697,10 @@ ResFindNewContactTiles(contacts)
  */
 
 int
-ResProcessTiles(resisdata, origin, devices)
+ResProcessTiles(resisdata, origin, devNodeTable)
     ResisData	*resisdata;
     Point	*origin;
-    ResDevTile	*devices;
+    HashTable	*devNodeTable;
 {
     Tile 	*startTile;
     int 	tilenum, merged;
@@ -718,7 +718,7 @@ ResProcessTiles(resisdata, origin, devices)
 	    return 1;
 	resCurrentNode = NULL;
 	ResStartTile(startTile, origin->p_x, origin->p_y);
-	(void) ResEachTile(startTile, devices);
+	(void) ResEachTile(startTile, devNodeTable);
     }
 #ifdef PARANOID
     else
@@ -755,7 +755,7 @@ ResProcessTiles(resisdata, origin, devices)
 		    if ((ri->ri_status & RES_TILE_DONE) == 0)
 		    {
 			resCurrentNode = resptr2;
-			merged |= ResEachTile(tile, devices);
+			merged |= ResEachTile(tile, devNodeTable);
 		    }
 		}
 		rj->rj_status = TRUE;
@@ -781,7 +781,7 @@ ResProcessTiles(resisdata, origin, devices)
 			if (cp->cp_cnode[tilenum] == resptr2)
 			{
 			    resCurrentNode = resptr2;
-			    merged |= ResEachTile(tile, devices);
+			    merged |= ResEachTile(tile, devNodeTable);
 			}
 			else
 			{
@@ -1210,6 +1210,9 @@ ResExtractNet(node, resisdata, cellname)
     int			resMakeDevFunc();
     int			resExpandDevFunc();
     int			result;
+    HashTable		DevNodeTable;
+    HashSearch		hs;
+    HashEntry		*he;
 
     /* Make sure all global network variables are reset */
 
@@ -1453,11 +1456,29 @@ ResExtractNet(node, resisdata, cellname)
     /* Finish preprocessing. */
 
     ResFindNewContactTiles(ResContactList);
-    ResPreProcessDevices(DevTiles, ResDevList, ResUse->cu_def);
+
+    HashInit(&DevNodeTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
+    ResPreProcessDevices(DevTiles, ResDevList, ResUse->cu_def, &DevNodeTable);
 
     /* do extraction */
-    result = ResProcessTiles(resisdata, &startpoint, DevTiles);
-    ResFreeDevTiles(DevTiles);
+    result = ResProcessTiles(resisdata, &startpoint, &DevNodeTable);
+
+    /* Free remaining table entries (if any) */
+    HashStartSearch(&hs);
+    while ((he = HashNext(&DevNodeTable, &hs)) != NULL)
+    {
+	resDevTerm *resdevList, *resdevNext;
+
+	resdevList = (resDevTerm *)HashGetValue(he);
+	while (resdevList)
+	{
+	    resdevNext = resdevList->rdt_next;
+	    freeMagic((char *)resdevList);
+	    resdevList = resdevNext;
+	}
+    }
+    HashKill(&DevNodeTable);
+    
     if (result != 0) return TRUE;
     return FALSE;
 }

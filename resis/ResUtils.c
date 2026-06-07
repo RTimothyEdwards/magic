@@ -858,12 +858,17 @@ ResFreeDevTiles(TileList)
 /*
  *-------------------------------------------------------------------------
  *
- * ResPreProcessDevices-- Given a list of all the device tiles and
- * a list of all the devices, this procedure calculates the width and
- * length.  The width is set equal to the sum of all edges that touch
- * diffusion divided by 2. The length is the remaining perimeter divided by
- * 2*tiles.  The perimeter and area fields of device structures are also
- * fixed.
+ * ResPreProcessDevices --
+ *
+ * Given a list of all the device tiles and a list of all the devices, this
+ * procedure calculates the width and length.  The width is set equal to the
+ * sum of all edges that touch diffusion divided by 2. The length is the
+ * remaining perimeter divided by 2*tiles.  The perimeter and area fields of
+ * device structures are also fixed.
+ *
+ * Each device is checked for terminals and substrate on a plane other than
+ * the plane of the device type.  If so, find the tile on that plane
+ * directly under the device.
  *
  * Results: none
  *
@@ -873,20 +878,21 @@ ResFreeDevTiles(TileList)
  */
 
 void
-ResPreProcessDevices(TileList, DeviceList, Def)
+ResPreProcessDevices(TileList, DeviceList, Def, devNodeTable)
     ResDevTile		*TileList;
     resDevice		*DeviceList;
     CellDef		*Def;
+    HashTable		*devNodeTable;
 {
     Tile	*tile;
-    ResDevTile	*devTile;
+    ResDevTile	*oldTile;
     resInfo	*tstruct;
     TileType	tt, residue;
     int		pNum;
 
-    for (devTile = TileList; devTile; devTile = devTile->nextDev)
+    while (TileList != (ResDevTile *)NULL)
     {
-	tt = devTile->type;
+	tt = TileList->type;
 	if (DBIsContact(tt))
 	{
 	    /* Find which residue of the contact is a device. */
@@ -910,7 +916,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	    pNum = DBPlane(tt);		/* always correct for non-contact types */
 
 	tile = PlaneGetHint(Def->cd_planes[pNum]);
-	GOTOPOINT(tile, &(devTile->area.r_ll));
+	GOTOPOINT(tile, &(TileList->area.r_ll));
 	PlaneSetHint(Def->cd_planes[pNum], tile);
 
 	tt = TiGetType(tile);
@@ -921,20 +927,103 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 		    !TTMaskHasType(&ExtCurStyle->exts_deviceMask, tt))
 	{
 	    TxError("Bad Device Location at %d,%d\n",
-			devTile->area.r_ll.p_x,
-			devTile->area.r_ll.p_y);
+			TileList->area.r_ll.p_x,
+			TileList->area.r_ll.p_y);
 	}
 	else if ((tstruct->ri_status & RES_TILE_MARK) == 0)
 	{
 	    resDevice	*rd = tstruct->deviceList;
+	    ExtDevice	*devptr;
+	    int 	i;
+	    Tile	*tp;
+	    TileType	ttype;
+	    PlaneMask	pmask;
+	    TileTypeBitMask termMask, subMask;
+	    resDevTerm	*resdevRec, *resdevList;
+	    HashEntry	*he;
 
 	    tstruct->ri_status |= RES_TILE_MARK;
-	    rd->rd_perim += devTile->perim;
-	    rd->rd_length += devTile->overlap;
-	    rd->rd_area += (devTile->area.r_xtop - devTile->area.r_xbot)
-			* (devTile->area.r_ytop - devTile->area.r_ybot);
+	    rd->rd_perim += TileList->perim;
+	    rd->rd_length += TileList->overlap;
+	    rd->rd_area += (TileList->area.r_xtop - TileList->area.r_xbot)
+			* (TileList->area.r_ytop - TileList->area.r_ybot);
 	    rd->rd_tiles++;
+
+	    /* Get the device record */
+	    devptr = TileList->devptr;
+	    TTMaskZero(&subMask);
+	    TTMaskSetMask(&subMask, &devptr->exts_deviceSubstrateTypes);
+	    /* Remove TT_SPACE from mask or else all planes will be flagged */
+	    TTMaskClearType(&subMask, TT_SPACE);
+	    pmask = DBTechTypesToPlanes(&subMask);
+	    if ((pmask != 0) && !PlaneMaskHasPlane(pmask, DBPlane(tt)))
+	    {
+ 		/* Record substrate tile if it exists */
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    if (PlaneMaskHasPlane(pmask, pNum))
+		    {
+			tp = PlaneGetHint(Def->cd_planes[pNum]);
+			GOTOPOINT(tp, &(TileList->area.r_ll));
+			PlaneSetHint(Def->cd_planes[pNum], tp);
+
+			ttype = TiGetType(tp);
+			if (TTMaskHasType(&subMask, ttype))
+			{
+			    he = HashFind(devNodeTable, (char *)tp);
+			    resdevList = (resDevTerm *)HashGetValue(he);
+			    resdevRec = (resDevTerm *)mallocMagic(sizeof(resDevTerm));
+			    resdevRec->rdt_term = -1;	/* Indicates substrate */
+			    resdevRec->rdt_tile = tile;
+			    resdevRec->rdt_next = resdevList;
+			    HashSetValue(he, (char *)resdevRec);
+			}
+		    }
+		}
+	    }
+
+	    /* Record terminal tiles on other planes, if they exist */
+
+	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    {
+		TTMaskZero(&termMask);
+		TTMaskSetMask(&termMask, &devptr->exts_deviceSDTypes[i]);
+		/* Remove TT_SPACE from mask or else all planes will be flagged */
+		TTMaskClearType(&termMask, TT_SPACE);
+		pmask = DBTechTypesToPlanes(&termMask);
+		if ((pmask != 0) && !PlaneMaskHasPlane(pmask, DBPlane(tt)))
+		{
+		    /* Record terminal tile if it exists */
+		    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		    {
+			if (PlaneMaskHasPlane(pmask, pNum))
+			{
+			    tp = PlaneGetHint(Def->cd_planes[pNum]);
+			    GOTOPOINT(tp, &(TileList->area.r_ll));
+			    PlaneSetHint(Def->cd_planes[pNum], tp);
+
+			    ttype = TiGetType(tp);
+			    if (TTMaskHasType(&termMask, ttype))
+			    {
+				he = HashFind(devNodeTable, (char *)tp);
+			        resdevList = (resDevTerm *)HashGetValue(he);
+			        resdevRec = (resDevTerm *)mallocMagic(sizeof(resDevTerm));
+				resdevRec->rdt_term = i;
+			        resdevRec->rdt_tile = tile;
+			        resdevRec->rdt_next = resdevList;
+			        HashSetValue(he, (char *)resdevRec);
+			    }
+			}
+		    }
+		}
+	    }
 	}
+
+	/* Free up memory from the devTile list */
+
+	oldTile = TileList;
+	TileList = TileList->nextDev;
+	freeMagic((char *)oldTile);
     }
 
     for (; DeviceList != NULL; DeviceList = DeviceList->rd_nextDev)
@@ -964,7 +1053,6 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	}
     }
 }
-
 
 /*
  *-------------------------------------------------------------------------

@@ -51,6 +51,17 @@ typedef struct resistor
 #define  rr_connection1 	rr_node[0]
 #define  rr_connection2		rr_node[1]
 
+/* The resDevTerm structure holds information needed to quickly check	*/
+/* if a tile belongs to a terminal of a device in a plane other than	*/
+/* the plane of the device.						*/
+
+typedef struct resdevterm
+{
+     struct resdevterm	*rdt_next;	/* next connected device in the list */
+     Tile		*rdt_tile;	/* the tile of the device */
+     int		 rdt_term;	/* terminal number, or -1 for substrate */
+} resDevTerm;
+
 /* Definitions for old FET-style MOSFET devices.  Actual devices may have
  * any number of terminals.  "GATE" is the identifying type;  "SUBS" is
  * the substrate/well connection (if it exists), and the other terminals
