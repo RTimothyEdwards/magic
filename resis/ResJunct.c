@@ -50,7 +50,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 void
 ResNewTermDevice(tile, tp, n, xj, yj, direction, PendingList)
     Tile 	*tile, *tp;
-    int 	n, xj, yj, direction;
+    int 	n;			/* Terminal index */
+    int		xj, yj;			/* Location of connection */
+    int		direction;		/* Direction of current */
     resNode	**PendingList;
 {
     resNode	*resptr = NULL;
@@ -70,29 +72,39 @@ ResNewTermDevice(tile, tp, n, xj, yj, direction, PendingList)
     ri = (resInfo *) TiGetClientPTR(tp);
     resDev = ri->deviceList;
     if (resDev == NULL) return;			/* Shouldn't happen? */
-    if ((((ri->sourceEdge & direction) != 0) && (resDev->rd_nterms == 4))
-		|| (resDev->rd_nterms > 2))
+
+    /* Set the terminal indicated (source or drain).  If the terminal
+     * indicated is already set, then create a new breakpoint on the
+     * terminal.  However, to handle cases where a device may have
+     * source and drain tied to the same net, if there is an existing
+     * entry and the edge direction is opposite of "direction", then
+     * create a new terminal on the other side (i.e., permute source
+     * and drain).
+     */
+ 
+    if (resDev->rd_terminals[2 + n] == (resNode *)NULL)
     {
-	if (resDev->rd_fet_source == (resNode *) NULL)
-	{
-	    resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-	    newnode = TRUE;
-	    resDev->rd_fet_source = resptr;
-	}
-	else
-	    resptr = resDev->rd_fet_source;
+	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
+	newnode = TRUE;
+	resDev->rd_terminals[2 + n] = resptr;
     }
-    else if (resDev->rd_nterms > 3)
+    else if (((ri->sourceEdge & direction) != 0) || (resDev->rd_nterms < 4))
     {
-	if (resDev->rd_fet_drain == (resNode *) NULL)
-	{
-	    resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-	    newnode = TRUE;
-	    resDev->rd_fet_drain = resptr;
-	}
-	else
-	    resptr = resDev->rd_fet_drain;
+	resptr = resDev->rd_terminals[2 + n];
     }
+    else if ((n == 0) && (resDev->rd_terminals[3] == (resNode *)NULL))
+    {
+	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
+	newnode = TRUE;
+	resDev->rd_terminals[3] = resptr;
+    }
+    else if ((n == 1) && (resDev->rd_terminals[2] == (resNode *)NULL))
+    {
+	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
+	newnode = TRUE;
+	resDev->rd_terminals[2] = resptr;
+    }
+
     if (newnode)
     {
 	tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));

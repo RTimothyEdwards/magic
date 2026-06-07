@@ -937,6 +937,7 @@ resMakeDevFunc(tile, dinfo, cx)
     {
 	if (DBPlane(ttype) != DBPlane(thisDev->type))
 	    return 0;	/* Completely different device? */
+
 	thisDev->type = ttype;
     }
 
@@ -1361,6 +1362,27 @@ ResExtractNet(node, resisdata, cellname)
 		    DBWPrintValue(tptr->thisDev->location.p_y, (MagWindow*)NULL, FALSE));
 	    freeMagic(thisDev);
 	    continue;
+	}
+	else if (thisDev->type != tptr->thisDev->rs_ttype)
+	{
+	    /* The type changed.  Note that when reading the .ext file, only
+	     * the device name is given.  If the device name maps to multiple
+	     * entries, then it may point to the wrong type.  Regardless of
+	     * the reason, rewrite the tptr->thisDev and local thisDev records
+	     * to match the actual device at the location.
+	     */
+	    thisDev->type = tptr->thisDev->rs_ttype;
+	    for (devptr = ExtCurStyle->exts_device[thisDev->type]; devptr;
+				devptr = devptr->exts_next)
+	    {
+		if (!strcmp(devptr->exts_deviceName,
+			tptr->thisDev->rs_devptr->exts_deviceName))
+		{
+		    tptr->thisDev->rs_devptr = devptr;
+		    thisDev->devptr = devptr;
+		    break;
+		}
+	    }
 	}
 	thisDev->nextDev = DevTiles;
 	DevTiles = thisDev;
