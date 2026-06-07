@@ -465,6 +465,12 @@ ResAddDevPlumbing(
 
     tile = PlaneGetHint(plane);
     GOTOPOINT(tile, &(thisDev->area.r_ll));
+    if (TiGetTypeExact(tile) == TT_SPACE)
+    {
+	TxError("Bad device location at (%d %d).  There is nothing here.\n",
+			thisDev->area.r_ll.p_x, thisDev->area.r_ll.p_y);
+	return;
+    }
     PlaneSetHint(plane, tile);
 
     if (IsSplit(tile))

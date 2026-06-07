@@ -821,8 +821,14 @@ extOutputNodes(nodeList, outFile)
 				 * For a net to be shorted to itself is not an error.
 				 * NOTE:  Potentially the unique name could be removed
 				 * here and save ext2spice the trouble.
+				 *
+				 * Also:  If "extresist" is being run in the same
+				 * pass, then don't print an error, because
+				 * electrical shorts are meaningless in an R-C
+				 * extraction.
 				 */
 				if ((portname != NULL) &&
+					    (!(ExtOptions & EXT_DORESISTANCE)) &&
 			    		    (ll->ll_attr == LL_PORTATTR) &&
 					    (strcmp(ll->ll_label->lab_text, portname)))
 				{

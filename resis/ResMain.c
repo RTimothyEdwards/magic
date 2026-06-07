@@ -1371,7 +1371,7 @@ ResExtractNet(node, resisdata, cellname)
 	     * the reason, rewrite the tptr->thisDev and local thisDev records
 	     * to match the actual device at the location.
 	     */
-	    thisDev->type = tptr->thisDev->rs_ttype;
+	    tptr->thisDev->rs_ttype = thisDev->type;
 	    for (devptr = ExtCurStyle->exts_device[thisDev->type]; devptr;
 				devptr = devptr->exts_next)
 	    {
