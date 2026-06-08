@@ -481,6 +481,28 @@ proc magic::techmanager {{option "update"}} {
 		"magic::tech load $j ; \
 		 magic::techmanager update"
       }
+
+      # Open PDK support:  If environment variable $PDK_ROOT exists
+      # then search in that directory using the standard open PDK
+      # path <tech_name>/libs.tech/magic/<tech_name>.tech.  NOTE:
+      # This can be done by sourcing the .magicrc file instead of
+      # loading the .tech file, but the window menus will not be
+      # updated until the next window is opened.
+
+      set dirtop {}
+      if {[catch {set dirtop $PDK_ROOT}]} {
+	 catch {set dirtop $::env(PDK_ROOT)}
+      }
+      if {$dirtop != {}} {
+         set tlist [glob -nocomplain ${dirtop}/*]
+         foreach i [join $tlist] {
+	    set j [file tail ${i}]
+	    set rcfile ${i}/libs.tech/magic/${j}.magicrc
+	    .techmgr.title.tname.menu add command -label ${j} -command \
+		"source ${rcfile} ; \
+		 magic::techmanager update"
+	 }
+      }
    }
 
    set techlambda [magic::tech lambda]

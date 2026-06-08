@@ -563,6 +563,7 @@ mainInitAfterArgs()
     SectionID sec_cifinput, sec_cifoutput;
     SectionID sec_drc, sec_extract, sec_wiring, sec_router;
     SectionID sec_plow, sec_plot, sec_mzrouter;
+    char *syspath;
 
     DBTypeInit();
     MacroInit();
@@ -577,9 +578,8 @@ mainInitAfterArgs()
 #endif
 
     /*
-     * Setup path names for system directory searches
+     * Set up path names for system directory searches
      */
-
     StrDup(&SysLibPath, MAGIC_SYS_PATH);
 
     /*
