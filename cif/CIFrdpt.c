@@ -462,9 +462,22 @@ CIFPaintWirePath(
 		/* Wire reverses direction.  Break wire here,	*/
 		/* draw, and start new polygon.			*/
 
-		TxError("Warning: direction reversal in path at (%d, %d).\n",
-				pathp->cifp_x, pathp->cifp_y);
+		/* Check first if last point and current point	*/
+		/* are the same, in which case a different	*/
+		/* message should be issued (and possibly	*/
+		/* should be handled differently?)		*/
 
+		if (previousp && previousp->cifp_x == pathp->cifp_x
+			&& previousp->cifp_y == pathp->cifp_y)
+		{
+		    TxError("Warning: duplicate point in path at (%d, %d).\n",
+				pathp->cifp_x / 2, pathp->cifp_y / 2);
+		}
+		else
+		{
+		    TxError("Warning: direction reversal in path at (%d, %d).\n",
+				pathp->cifp_x / 2, pathp->cifp_y / 2);
+		}
 		phi = theta;
 		if (endcap)
 		{

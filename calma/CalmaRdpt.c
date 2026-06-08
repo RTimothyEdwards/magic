@@ -537,7 +537,6 @@ calmaElementPath(void)
     int layer, dt, width, pathtype, ciftype, savescale;
     int xmin, ymin, xmax, ymax, temp;
     CIFPath *pathheadp, *pathp, *previousp;
-    Rect segment;
     Plane *plane;
     int first,last;
     CellUse *use;
