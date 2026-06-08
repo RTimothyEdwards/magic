@@ -995,6 +995,9 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	node2->rn_client = (ClientData)NULL;
     }
 
+    /* Don't merge away the ResNodeAtOrigin node */
+    if (ResNodeAtOrigin == node2) ResNodeAtOrigin = node1;
+
     node2->rn_re = (resElement *)CLIENTDEFAULT;
     node2->rn_ce = (cElement   *)CLIENTDEFAULT;
     node2->rn_je = (jElement   *)CLIENTDEFAULT;
