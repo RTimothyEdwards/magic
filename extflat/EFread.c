@@ -340,18 +340,31 @@ readfile:
 		     * short between the first two terminals.  Consequently,
 		     * it acts like an "equiv" statement.  However, unlike
 		     * regular "equiv" statements, it should always merge
-		     * the nodes, so do not pass "resis" to efBuildEquiv().
+		     * the nodes, so do not pass "resist" to efBuildEquiv().
 		     */
 		    int argstart = 7;
+
 		    /* "Short" devices should not have parameters, but just in
 		     * case, skip over any that are found.
 		     */
 		    while (strchr(argv[argstart], '=') != NULL) argstart++;
+
+		    /* Tricky---Since "Short" devices are treated like "equiv"
+		     * statements, then when doing full R-C extraction, it's
+		     * important *not* to merge the nodes when reading the
+		     * .ext file, but only when reading the .res.ext file.
+		     * Otherwise the wrong nodes may get merged.  "resist" is
+		     * TRUE when "ext2spice extresist on" is selected, and
+		     * DoResist is set to FALSE when the .res.ext file is
+		     * opened for reading.
+		     */
 		    if (argstart + 4 >= argc)
 			efReadError("Bad terminal description for Short device\n");
-		    else
+		    else if ((!resist) || (resist && (!(DoResist))))
+		    {
 			efBuildEquiv(def, argv[argstart + 1], argv[argstart + 4],
 				FALSE, isspice);
+		    }
 		    break;
 		}
 
