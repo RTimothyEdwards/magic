@@ -1479,7 +1479,7 @@ ResExtractNet(node, resisdata, cellname)
 
     ResFindNewContactTiles(ResContactList);
 
-    HashInit(&DevNodeTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
+    HashInit(&DevNodeTable, HT_DEFAULTSIZE, HT_WORDKEYS);
     ResPreProcessDevices(DevTiles, ResDevList, ResUse->cu_def, &DevNodeTable);
 
     /* do extraction */

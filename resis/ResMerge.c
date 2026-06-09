@@ -431,7 +431,7 @@ ResParallelCheck(resptr)
 	HashEntry	*he;
 
 	/* Hash the connections */
-	HashInit(&NodeResTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
+	HashInit(&NodeResTable, HT_DEFAULTSIZE, HT_WORDKEYS);
 	
 	for (rcell2 = resptr->rn_re; rcell2 != NULL; rcell2 = rcell2->re_nextEl)
 	{
@@ -549,7 +549,7 @@ ResTriangleCheck(resptr)
 	HashSearch	hs;
 
 	/* Hash the neighboring connections */
-	HashInit(&NodeResTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
+	HashInit(&NodeResTable, HT_DEFAULTSIZE, HT_WORDKEYS);
 
 	for (rcell2 = resptr->rn_re; rcell2 != NULL; rcell2 = rcell2->re_nextEl)
 	{

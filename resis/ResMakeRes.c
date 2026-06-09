@@ -172,7 +172,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
      * a nested loop for each entry.
      */
     if (count >= 16)
-	HashInit(&BreakTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
+	HashInit(&BreakTable, HT_DEFAULTSIZE, HT_WORDKEYS);
 
     /*
      * Eliminate breakpoints with the same X coordinate and merge
@@ -374,7 +374,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
      * a nested loop for each entry.
      */
     if (count >= 16)
-	HashInit(&BreakTable, HT_DEFAULTSIZE, HT_CLIENTKEYS);
+	HashInit(&BreakTable, HT_DEFAULTSIZE, HT_WORDKEYS);
 
     /* Simplified split tile handling */
     if (IsSplit(tile))
