@@ -5130,7 +5130,7 @@ extFindNodes(def, clipArea, subonly)
 
 	pNum = ExtCurStyle->exts_globSubstratePlane;
 	/* Does the type set of this plane intersect the substrate types? */
-	if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
+	if ((pNum != -1) && TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
     	{
 	    arg.fra_pNum = pNum;
 	    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
