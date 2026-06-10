@@ -36,9 +36,11 @@ extern int rasFileByteCount;
  */
 
 void
-PlotHPRTLHeader(width, height, density, hpfile)
-    int width, height, density;
-    FILE *hpfile;
+PlotHPRTLHeader(
+    int width,
+    int height,
+    int density,
+    FILE *hpfile)
 {
     fprintf(hpfile, "\033*r-3U\n");	   /* Simple CMY color space  */
     fprintf(hpfile, "\033*r%dS", width);   /* Image width in pixels. */
@@ -64,9 +66,12 @@ PlotHPRTLHeader(width, height, density, hpfile)
 #define THIN_MARGIN   40	/* thin spacer (1mm) in HPGL2 coordinates */
 
 void
-PlotHPGL2Header(width, height, density, scale, hpfile)
-    int width, height, density, scale;
-    FILE *hpfile;
+PlotHPGL2Header(
+    int width,
+    int height,
+    int density,
+    int scale,
+    FILE *hpfile)
 {
     fprintf(hpfile, "\033%%-12345X");	   /* Universal Command Language. */
     fprintf(hpfile, "@PJL ENTER LANGUAGE=HPGL2\r\n");
@@ -132,8 +137,8 @@ PlotHPGL2Header(width, height, density, scale, hpfile)
  */
 
 void
-PlotHPRTLTrailer(hpfile)
-    FILE *hpfile;
+PlotHPRTLTrailer(
+    FILE *hpfile)
 {
     fprintf(hpfile, "\033*r0B\014\n");		/* End raster graphics. */
 }
@@ -147,8 +152,8 @@ PlotHPRTLTrailer(hpfile)
  */
 
 void
-PlotHPGL2Trailer(hpfile)
-    FILE *hpfile;
+PlotHPGL2Trailer(
+    FILE *hpfile)
 {
     fprintf(hpfile, "\033*rC");		/* End raster graphics. */
     fprintf(hpfile, "\033%%0B");	/* HPGL2 mode. */
@@ -204,9 +209,10 @@ PlotHPGL2Trailer(hpfile)
  */
 
 int
-PlotRTLCompress(s1, s2, len)
-    unsigned char *s1, *s2;
-    int len;
+PlotRTLCompress(
+    unsigned char *s1,
+    unsigned char *s2,
+    int len)
 {
     /*
      * Pack s1 using TIFF packbits encoding into s2
@@ -292,12 +298,12 @@ PlotRTLCompress(s1, s2, len)
  */
 
 int
-PlotDumpHPRTL(hpfile, kRaster, cRaster, mRaster, yRaster)
-    FILE *hpfile;		/* File in which to dump it. */
-    Raster *kRaster;		/* Rasters to be dumped. */
-    Raster *cRaster;
-    Raster *mRaster;
-    Raster *yRaster;
+PlotDumpHPRTL(
+    FILE *hpfile,		/* File in which to dump it. */
+    Raster *kRaster,		/* Rasters to be dumped. */
+    Raster *cRaster,
+    Raster *mRaster,
+    Raster *yRaster)
 {
     int line, count, line_offset = 0;
     int ipl, bpl;

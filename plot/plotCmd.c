@@ -86,9 +86,9 @@ typedef enum {
 	HELP } PlotOptions;
 
 void
-CmdPlot(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdPlot(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option;
     const char * const *msg;

@@ -144,9 +144,9 @@ struct plotRTLdata {
 };
 
 int
-pnmRTLLineFunc(linebuffer, arg)
-    unsigned char *linebuffer;
-    struct plotRTLdata *arg;
+pnmRTLLineFunc(
+    unsigned char *linebuffer,
+    struct plotRTLdata *arg)
 {
     int size;
 
@@ -167,9 +167,9 @@ pnmRTLLineFunc(linebuffer, arg)
  */
 
 int
-pnmLineFunc(linebuffer, fp)
-    unsigned char *linebuffer;
-    FILE *fp;
+pnmLineFunc(
+    unsigned char *linebuffer,
+    FILE *fp)
 {
     fwrite(linebuffer, im_x * 3, 1, fp);
     return 0;
@@ -192,15 +192,15 @@ pnmLineFunc(linebuffer, fp)
  */
 
 void
-pnmRenderRegion(scale, scale_over_2, normal, temp, func, arg)
-     float scale;
-     int scale_over_2;
-     float normal;		/* normalizing factor */
-     float *temp;		/* passed so we don't have to allocate it
+pnmRenderRegion(
+     float scale,
+     int scale_over_2,
+     float normal,		/* normalizing factor */
+     float *temp,		/* passed so we don't have to allocate it
 				 * on every call.
 				 */
-     int (*func)();		/* Function to call per line of output */
-     ClientData arg;		/* Arguments to function */
+     int (*func)(),		/* Function to call per line of output */
+     ClientData arg)		/* Arguments to function */
 {
     int i, j;
     int jmax;
@@ -311,10 +311,10 @@ pnmRenderRegion(scale, scale_over_2, normal, temp, func, arg)
  */
 
 int
-pnmBBOX (tile, dinfo, cxp)
-     Tile *tile;
-     TileType dinfo;
-     TreeContext *cxp;
+pnmBBOX(
+    Tile *tile,
+    TileType dinfo,
+    TreeContext *cxp)
 {
     Rect targetRect, sourceRect;
     SearchContext *scx = cxp->tc_scx;
@@ -369,10 +369,10 @@ pnmBBOX (tile, dinfo, cxp)
  */
 
 int
-pnmTile (tile, dinfo, cxp)
-     Tile *tile;
-     TileType dinfo;
-     TreeContext *cxp;
+pnmTile(
+    Tile *tile,
+    TileType dinfo,
+    TreeContext *cxp)
 {
     SearchContext *scx = cxp->tc_scx;
     Rect targetRect, sourceRect, *clipRect;
@@ -552,12 +552,12 @@ pnmTile (tile, dinfo, cxp)
  */
 
 void
-PlotPNM(fileName, scx, layers, xMask, width)
-    char *fileName;			/* Name of PNM file to write. */
-    SearchContext *scx;			/* The use and area and transformation
+PlotPNM(
+    char *fileName,			/* Name of PNM file to write. */
+    SearchContext *scx,			/* The use and area and transformation
 					 * in this describe what to plot.
 					 */
-    TileTypeBitMask *layers;		/* Tells what layers to plot.  Only
+    TileTypeBitMask *layers,		/* Tells what layers to plot.  Only
 					 * paint layers in this mask, and also
 					 * expanded according to xMask, are
 					 * plotted.  If L_LABELS is set, then
@@ -568,13 +568,13 @@ PlotPNM(fileName, scx, layers, xMask, width)
 					 * according to xMask are plotted as
 					 * bounding boxes.
 					 */
-    int xMask;				/* An expansion mask, used to indicate
+    int xMask,				/* An expansion mask, used to indicate
 					 * the window whose expansion status
 					 * will be used to determine
 					 * visibility.  Zero means treat
 					 * everything as expanded.
 					 */
-    int  width;		        	/* Indicates the width of the
+    int  width)		        	/* Indicates the width of the
 					 * plot, in pixels.
 					 */
 {
@@ -1010,8 +1010,9 @@ float lanczos_kernel(i, n)
  */
 
 pnmcolor
-PNMColorBlend(c_have, c_put)
-    pnmcolor *c_have, *c_put;
+PNMColorBlend(
+    pnmcolor *c_have,
+    pnmcolor *c_put)
 {
     pnmcolor loccolor;
     short r, g, b;
@@ -1030,9 +1031,9 @@ PNMColorBlend(c_have, c_put)
 }
 
 pnmcolor
-PNMColorIndexAndBlend(c_have, cidx)
-    pnmcolor *c_have;
-    int cidx;
+PNMColorIndexAndBlend(
+    pnmcolor *c_have,
+    int cidx)
 {
     pnmcolor loccolor, *c_put;
     int ir, ig, ib;
@@ -1129,10 +1130,10 @@ PlotPNMTechInit()
 
 	/* ARGSUSED */
 bool
-PlotPNMTechLine(sectionName, argc, argv)
-    char *sectionName;		/* Name of this section (unused). */
-    int argc;			/* Number of arguments on line. */
-    char *argv[];		/* Pointers to fields of line. */
+PlotPNMTechLine(
+    char *sectionName,		/* Name of this section (unused). */
+    int argc,			/* Number of arguments on line. */
+    char *argv[])		/* Pointers to fields of line. */
 {
     int i, j, k, style;
     void PlotPNMSetDefaults();	/* Forward declaration */
@@ -1351,8 +1352,8 @@ PlotPNMTechFinal()
  */
 
 void
-PlotLoadStyles(filename)
-    char *filename;
+PlotLoadStyles(
+    char *filename)
 {
     FILE *inp;
     char fullName[256];
@@ -1453,8 +1454,8 @@ dstyle_err:
  */
 
 void
-PlotLoadColormap(filename)
-    char *filename;
+PlotLoadColormap(
+    char *filename)
 {
     FILE *inp;
     char fullName[256];
