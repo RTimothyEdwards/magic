@@ -92,17 +92,16 @@ typedef struct labelSearchData
  */
 
 int
-irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
-		destType, argDestRect, argDestLabel, argDestLayers)
-    MagWindow *cmdWindow;	/* window route command issued to */
-    int startType;	/* how start is specified */
-    Point *argStartPt;	/* location to route from (in edit cell coords) */
-    char *argStartLabel;	/* label to route from */
-    List *argStartLayers;	/* OK route layers to start route on */
-    int destType;	/* how dest is specified */
-    Rect *argDestRect;	/* location to route to (in edit cell coords) */
-    char *argDestLabel; /* label to route to */
-    List *argDestLayers;	/* OK route layers to end route on */
+irRoute(
+    MagWindow *cmdWindow,	/* window route command issued to */
+    int startType,	/* how start is specified */
+    Point *argStartPt,	/* location to route from (in edit cell coords) */
+    char *argStartLabel,	/* label to route from */
+    List *argStartLayers,	/* OK route layers to start route on */
+    int destType,	/* how dest is specified */
+    Rect *argDestRect,	/* location to route to (in edit cell coords) */
+    char *argDestLabel, /* label to route to */
+    List *argDestLayers)	/* OK route layers to end route on */
 {
     CellUse *routeUse;		/* Toplevel cell visible during routing */
     int expansionMask;		/* Subcell expansion modes to use during
@@ -497,13 +496,13 @@ abort:
  */
 
 Point
-irGetStartPoint(startType, argStartPt, argStartLabel, startLayerPtr, routeUse)
-    int startType;		/* how start is specified */
-    Point *argStartPt;		/* location to route from
+irGetStartPoint(
+    int startType,		/* how start is specified */
+    Point *argStartPt,		/* location to route from
 				 * (in edit cell coords) */
-    char *argStartLabel;	/* label to route from */
-    TileType *startLayerPtr;	/* layer type (returned value) */
-    CellUse *routeUse;		/* toplevel cell visible to router */
+    char *argStartLabel,	/* label to route from */
+    TileType *startLayerPtr,	/* layer type (returned value) */
+    CellUse *routeUse)		/* toplevel cell visible to router */
 {
     Point startPt;
 
@@ -626,13 +625,13 @@ abort:
  */
 
 Rect
-irGetDestRect(destType, argDestRect, argDestLabel, destLayerPtr, routeUse)
-    int destType;		/* how dest is specified */
-    Rect *argDestRect;		/* location to route to
+irGetDestRect(
+    int destType,		/* how dest is specified */
+    Rect *argDestRect,		/* location to route to
 				 * (in edit cell coords) */
-    char *argDestLabel;		/* label to route to */
-    TileType *destLayerPtr;	/* layer type (returned value) */
-    CellUse *routeUse;		/* toplevel cell visible to router */
+    char *argDestLabel,		/* label to route to */
+    TileType *destLayerPtr,	/* layer type (returned value) */
+    CellUse *routeUse)		/* toplevel cell visible to router */
 {
     Rect destRect;
 
@@ -754,11 +753,11 @@ abort:
  */
 
 int
-irSelLabelsFunc(label, cellUse, transform, clientData)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    ClientData clientData;
+irSelLabelsFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    ClientData clientData)
 {
     LabelSearchData *lsd = (LabelSearchData *)clientData;
     CellDef *cellDef = cellUse->cu_def;
@@ -804,11 +803,11 @@ irSelLabelsFunc(label, cellUse, transform, clientData)
  */
 
 int
-irAllLabelsFunc(rect, name, label, clientData)
-    Rect *rect;
-    char *name;
-    Label *label;
-    ClientData clientData;
+irAllLabelsFunc(
+    Rect *rect,
+    char *name,
+    Label *label,
+    ClientData clientData)
 {
     LabelSearchData *lsd = (LabelSearchData *)clientData;
 
@@ -849,10 +848,10 @@ irAllLabelsFunc(rect, name, label, clientData)
  */
 
 int
-irSelectedTileFunc(rect, type, c)
-    Rect *rect;
-    TileType type;
-    ClientData c;
+irSelectedTileFunc(
+    Rect *rect,
+    TileType type,
+    ClientData c)
 {
     RouteLayer *rL = (RouteLayer *) c;
     MZAddDest(rect, rL->rl_routeType.rt_tileType);
@@ -915,12 +914,12 @@ LayerInTouchingContact(
  */
 
 List *
-irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
-    CellUse *routeUse;
-    int expansionMask; /* mask of expanded subcells */
-    Point *endPt;
-    List *argLayers;
-    char *endPtName;
+irChooseEndPtLayers(
+    CellUse *routeUse,
+    int expansionMask, /* mask of expanded subcells */
+    Point *endPt,
+    List *argLayers,
+    char *endPtName)
 {
     List *activeLayers;
     List *presentLayers;

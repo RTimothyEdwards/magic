@@ -77,9 +77,9 @@ extern const TestCmdTableE irTestCommands[];
  */
 
 void
-irDebugTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irDebugTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int result;
     bool value;
@@ -130,9 +130,9 @@ irDebugTstCmd(w, cmd)
  */
 
 void
-irHelpTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irHelpTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int n;
     int which;
@@ -206,9 +206,9 @@ irHelpTstCmd(w, cmd)
  */
 
 void
-irParmsTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irParmsTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 
     MZPrintRLs(irRouteLayers);
@@ -265,9 +265,9 @@ const TestCmdTableE irTestCommands[] = {
  */
 
 void
-IRTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+IRTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int n;
     int which;
