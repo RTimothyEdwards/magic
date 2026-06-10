@@ -46,11 +46,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-ResPrintExtRes(outextfile, resistors, nodename)
-    FILE	*outextfile;
-    resResistor *resistors;
-    char	*nodename;
-
+ResPrintExtRes(
+    FILE *outextfile,
+    resResistor *resistors,
+    char *nodename)
 {
     int	        nodenum = 0;
     char	newname[MAXNAME];
@@ -106,9 +105,9 @@ ResPrintExtRes(outextfile, resistors, nodename)
  */
 
 void
-ResPrintExtDev(outextfile, devices)
-    FILE	*outextfile;
-    RDev	*devices;
+ResPrintExtDev(
+    FILE *outextfile,
+    RDev *devices)
 {
     char *subsName;
     ExtDevice *devptr, *devtest;
@@ -210,10 +209,10 @@ ResPrintExtDev(outextfile, devices)
  */
 
 void
-ResPrintExtNode(outextfile, nodelist, node)
-	FILE	*outextfile;
-	resNode	*nodelist;
-	ResExtNode *node;
+ResPrintExtNode(
+    FILE *outextfile,
+    resNode *nodelist,
+    ResExtNode *node)
 {
     char       *nodename = node->name;
     int		nodenum = 0;
@@ -321,9 +320,9 @@ ResPrintExtNode(outextfile, nodelist, node)
  */
 
 void
-ResPrintStats(resisdata, name)
-    ResisData	*resisdata;
-    char	*name;
+ResPrintStats(
+    ResisData *resisdata,
+    char *name)
 {
     static int	totalnets = 0, totalnodes = 0, totalresistors = 0;
     int nodes, resistors;
@@ -367,9 +366,9 @@ ResPrintStats(resisdata, name)
  */
 
 void
-resWriteNodeName(fp, nodeptr)
-   FILE		*fp;
-   resNode	*nodeptr;
+resWriteNodeName(
+    FILE *fp,
+    resNode *nodeptr)
 {
     if (nodeptr->rn_name == NULL)
 	fprintf(fp, "N%d", nodeptr->rn_id);
@@ -387,12 +386,12 @@ resWriteNodeName(fp, nodeptr)
  */
 
 void
-ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
-    FILE	*fp;
-    resNode	*nodelist;
-    char	*nodename;
-    int		*nidx;
-    CellDef	*celldef;
+ResPrintFHNodes(
+    FILE *fp,
+    resNode *nodelist,
+    char *nodename,
+    int *nidx,
+    CellDef *celldef)
 {
     char 	newname[16];
     resNode	*nodeptr;
@@ -575,11 +574,11 @@ ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
  */
 
 void
-ResPrintFHRects(fp, reslist, nodename, eidx)
-    FILE	*fp;
-    resResistor	*reslist;
-    char	*nodename;
-    int		*eidx;		/* element (segment) index */
+ResPrintFHRects(
+    FILE	*fp,
+    resResistor	*reslist,
+    char	*nodename,
+    int		*eidx)		/* element (segment) index */
 {
     resResistor	*resistors;
     float	oscale, thick, cwidth;
@@ -677,10 +676,10 @@ ResPrintFHRects(fp, reslist, nodename, eidx)
  */
 
 void
-ResPrintReference(fp, devices, cellDef)
-    FILE	*fp;
-    RDev	*devices;
-    CellDef	*cellDef;
+ResPrintReference(
+    FILE *fp,
+    RDev *devices,
+    CellDef *cellDef)
 {
     char 	*outfile = cellDef->cd_name;
     Rect	*bbox = &(cellDef->cd_bbox);
@@ -735,10 +734,10 @@ ResPrintReference(fp, devices, cellDef)
  */
 
 int
-ResCreateCenterlines(reslist, nidx, def)
-    resResistor	*reslist;
-    int		*nidx;
-    CellDef *def;
+ResCreateCenterlines(
+    resResistor *reslist,
+    int *nidx,
+    CellDef *def)
 {
     resResistor	*resistors;
     resNode *nodeptr;

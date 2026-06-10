@@ -61,9 +61,9 @@ extern void ResCheckConcavity();
  */
 
 int
-ResFracture(plane, rect)
-    Plane *plane;
-    Rect *rect;
+ResFracture(
+    Plane *plane,
+    Rect *rect)
 {
     Point start;
     Tile  *tpnew;
@@ -161,10 +161,10 @@ enumerate:
  */
 
 void
-ResCheckConcavity(bot, top, tt)
-    Tile	*bot, *top;
-    TileType	tt;
-
+ResCheckConcavity(
+    Tile *bot,
+    Tile *top,
+    TileType tt)
 {
     Tile    *tp;
     int	    xlen, ylen;
@@ -271,12 +271,12 @@ ResCheckConcavity(bot, top, tt)
  */
 
 int
-resWalkup(tile, tt, xpos, ypos, func)
-    Tile	*tile;
-    TileType	tt;
-    int		xpos, ypos;
-    Tile *	(*func)();
-
+resWalkup(
+    Tile *tile,
+    TileType tt,
+    int xpos,
+    int ypos,
+    Tile * (*func)())
 {
     Point	pt;
     Tile	*tp;
@@ -304,12 +304,12 @@ resWalkup(tile, tt, xpos, ypos, func)
 }
 
 int
-resWalkdown(tile, tt, xpos, ypos, func)
-    Tile	*tile;
-    TileType	tt;
-    int		xpos, ypos;
-    Tile *	(*func)();
-
+resWalkdown(
+    Tile *tile,
+    TileType tt,
+    int xpos,
+    int ypos,
+    Tile * (*func)())
 {
     Point	pt;
     Tile	*tp;
@@ -345,12 +345,12 @@ resWalkdown(tile, tt, xpos, ypos, func)
 }
 
 int
-resWalkright(tile, tt, xpos, ypos, func)
-    Tile	*tile;
-    TileType	tt;
-    int		xpos, ypos;
-    Tile *	(*func)();
-
+resWalkright(
+    Tile *tile,
+    TileType tt,
+    int xpos,
+    int ypos,
+    Tile * (*func)())
 {
     Point	pt;
     Tile	*tp;
@@ -378,12 +378,12 @@ resWalkright(tile, tt, xpos, ypos, func)
 }
 
 int
-resWalkleft(tile, tt, xpos, ypos, func)
-    Tile	*tile;
-    TileType	tt;
-    int		xpos, ypos;
-    Tile *	(*func)();
-
+resWalkleft(
+    Tile *tile,
+    TileType tt,
+    int xpos,
+    int ypos,
+    Tile * (*func)())
 {
     Point	pt;
     Tile	*tp;
@@ -433,10 +433,9 @@ resWalkleft(tile, tt, xpos, ypos, func)
  */
 
 Tile *
-ResSplitX(tile, x)
-    Tile    *tile;
-    int	    x;
-
+ResSplitX(
+    Tile *tile,
+    int x)
 {
     Tile        *delayed = NULL; /* delayed free to extend lifetime */
     TileType	tt = TiGetType(tile);

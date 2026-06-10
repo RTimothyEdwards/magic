@@ -42,10 +42,9 @@ static char sccsid[] = "@(#)Write.c	4.10 MAGIC (Stanford Addition) 07/86";
 #define RESGROUPSIZE  256
 
 void
-ResPrintNetwork(filename, reslist)
-    char	*filename;
-    resResistor	*reslist;
-
+ResPrintNetwork(
+    char *filename,
+    resResistor *reslist)
 {
     char	bigname[255], name1[255], name2[255];
     FILE	*fp;
@@ -95,11 +94,10 @@ ResPrintNetwork(filename, reslist)
 }
 
 void
-ResPrintCurrents(filename, extension, node)
-    char	*filename;
-    float	extension;
-    resNode	*node;
-
+ResPrintCurrents(
+    char *filename,
+    float extension,
+    resNode *node)
 {
     char    bigname[255];
     FILE    *fp;
@@ -128,11 +126,10 @@ ResPrintCurrents(filename, extension, node)
  */
 
 void
-resCurrentPrintFunc(node, resistor, filename)
-    resNode	*node;
-    resResistor	*resistor;
-    FILE	*filename;
-
+resCurrentPrintFunc(
+    resNode *node,
+    resResistor *resistor,
+    FILE *filename)
 {
     tElement	*workingDev;
     float	i_sum = 0.0;
@@ -174,11 +171,10 @@ ResDeviceCounts()
 
 
 void
-ResWriteECLFile(filename, reslist, nodelist)
-    char	*filename;
-    resResistor	*reslist;
-    resNode	*nodelist;
-
+ResWriteECLFile(
+    char *filename,
+    resResistor *reslist,
+    resNode *nodelist)
 {
     char    newname[100], *tmpname, *per;
     FILE    *fp;

@@ -45,10 +45,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 ExtRegion *
-ResFirst(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    FindRegion *arg;
+ResFirst(
+    Tile *tile,
+    TileType dinfo,
+    FindRegion *arg)
 {
     ResContactPoint *reg;
     TileType t;
@@ -151,11 +151,11 @@ resSubstrateTerm(
  */
 
 int
-ResEach(tile, dinfo, pNum, arg)
-    Tile	*tile;
-    TileType	dinfo;
-    int		pNum;
-    FindRegion	*arg;
+ResEach(
+    Tile *tile,
+    TileType dinfo,
+    int pNum,
+    FindRegion *arg)
 {
 
     if (((ResContactPoint *)(arg->fra_region))->cp_contactTile != tile)
@@ -818,11 +818,10 @@ ResAddDevPlumbing(
  */
 
 int
-ResRemovePlumbing(tile, dinfo, arg)
-    Tile	*tile;
-    TileType	dinfo;		// Unused, but should be handled.
-    ClientData	*arg;
-
+ResRemovePlumbing(
+    Tile	*tile,
+    TileType	dinfo,		// Unused, but should be handled.
+    ClientData	*arg)
 {
     ClientData ticlient = TiGetClient(tile);
     if (ticlient != CLIENTDEFAULT)
@@ -848,8 +847,8 @@ ResRemovePlumbing(tile, dinfo, arg)
  */
 
 void
-ResFreeDevTiles(TileList)
-    ResDevTile		*TileList;
+ResFreeDevTiles(
+    ResDevTile *TileList)
 {
     ResDevTile	*oldTile;
 
@@ -884,11 +883,11 @@ ResFreeDevTiles(TileList)
  */
 
 void
-ResPreProcessDevices(TileList, DeviceList, Def, devNodeTable)
-    ResDevTile		*TileList;
-    resDevice		*DeviceList;
-    CellDef		*Def;
-    HashTable		*devNodeTable;
+ResPreProcessDevices(
+    ResDevTile *TileList,
+    resDevice *DeviceList,
+    CellDef *Def,
+    HashTable *devNodeTable)
 {
     Tile	*tile;
     ResDevTile	*oldTile;
@@ -1072,8 +1071,9 @@ ResPreProcessDevices(TileList, DeviceList, Def, devNodeTable)
  */
 
 void
-ResAddToQueue(node, list)
-   resNode  *node, **list;
+ResAddToQueue(
+    resNode *node,
+    resNode **list)
 {
    node->rn_more = *list;
    node->rn_less = NULL;
@@ -1095,8 +1095,9 @@ ResAddToQueue(node, list)
  */
 
 void
-ResRemoveFromQueue(node, list)
-    resNode	*node, **list;
+ResRemoveFromQueue(
+    resNode *node,
+    resNode **list)
 {
     if (node->rn_less != NULL)
     {
@@ -1122,8 +1123,8 @@ ResRemoveFromQueue(node, list)
 }
 
 resInfo *
-resAddField(tile)
-    Tile    *tile;
+resAddField(
+    Tile *tile)
 {
     ClientData ticlient = TiGetClient(tile);
     resInfo *Info = (resInfo *)CD2PTR(ticlient);
