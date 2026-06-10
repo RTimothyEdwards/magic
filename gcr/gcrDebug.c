@@ -41,7 +41,7 @@ bool GcrShowMap = FALSE;
 int gcrStandalone=FALSE; /*Flag to control standalone/integrated operation*/
 
 /* Forward declarations */
-void gcrDumpResult();
+void gcrDumpResult(GCRChannel *ch, bool showResult);
 void gcrStats();
 void gcrShowMap();
 bool gcrMakeChannel();
@@ -67,8 +67,8 @@ void gcrPrintCol(GCRChannel *, int, int);
  */
 
 GCRChannel *
-GCRRouteFromFile(fname)
-    char *fname;
+GCRRouteFromFile(
+    char *fname)
 {
     static Point initOrigin = { 0, 0 };
     struct tms tbuf1, tbuf2;
@@ -131,9 +131,9 @@ GCRRouteFromFile(fname)
  */
 
 bool
-gcrMakeChannel(ch, fp)
-    GCRChannel *ch;
-    FILE *fp;
+gcrMakeChannel(
+    GCRChannel *ch,
+    FILE *fp)
 {
     GCRPin *gcrMakePinLR();
     unsigned lenWds, widWds;
@@ -238,9 +238,10 @@ gcrMakeChannel(ch, fp)
 }
 
 GCRPin *
-gcrMakePinLR(fp, x, size)
-    FILE *fp;
-    int x, size;
+gcrMakePinLR(
+    FILE *fp,
+    int x,
+    int size)
 {
     GCRPin *result;
     int i;
@@ -281,8 +282,8 @@ gcrMakePinLR(fp, x, size)
  */
 
 void
-gcrSaveChannel(ch)
-    GCRChannel *ch;
+gcrSaveChannel(
+    GCRChannel *ch)
 {
     FILE *fp;
     char name[128];
@@ -367,9 +368,9 @@ gcrSaveChannel(ch)
  */
 
 void
-gcrPrDensity(ch, chanDensity)
-    GCRChannel *ch;
-    int chanDensity;
+gcrPrDensity(
+    GCRChannel *ch,
+    int chanDensity)
 {
     int i, diff;
     char name[256];
@@ -444,8 +445,8 @@ gcrPrDensity(ch, chanDensity)
  */
 
 void
-gcrDumpPins(ch)
-    GCRChannel *ch;
+gcrDumpPins(
+    GCRChannel *ch)
 {
     int      i;
     GCRPin * pinArray;
@@ -501,9 +502,9 @@ gcrDumpPins(ch)
  */
 
 void
-gcrDumpPinList(pin, dir)
-    GCRPin *pin;
-    bool dir;
+gcrDumpPinList(
+    GCRPin *pin,
+    bool dir)
 {
     if (pin)
     {
@@ -532,9 +533,9 @@ gcrDumpPinList(pin, dir)
  */
 
 void
-gcrDumpCol(col, size)
-    GCRColEl *col;
-    int size;
+gcrDumpCol(
+    GCRColEl *col,
+    int size)
 {
     int i;
 
@@ -566,9 +567,9 @@ gcrDumpCol(col, size)
  */
 
 void
-gcrDumpResult(ch, showResult)
-    GCRChannel *ch;
-    bool showResult;
+gcrDumpResult(
+    GCRChannel *ch,
+    bool showResult)
 {
     int j;
 
@@ -791,8 +792,8 @@ void  gcrPrintCol(ch, i, showResult)
  */
 
 void
-gcrStats(ch)
-    GCRChannel * ch;
+gcrStats(
+    GCRChannel * ch)
 {
     int wireLength=0, viaCount=0, row, col;
     short **res, mask, code, code2;
@@ -872,10 +873,10 @@ gcrStats(ch)
  */
 
 void
-gcrCheckCol(ch, c, where)
-    GCRChannel *ch;
-    int c;
-    char *where;
+gcrCheckCol(
+    GCRChannel *ch,
+    int c,
+    char *where)
 {
     int i, j;
     GCRColEl * col;
@@ -965,8 +966,8 @@ gcrCheckCol(ch, c, where)
  */
 
 void
-gcrShowMap(ch)
-    GCRChannel * ch;
+gcrShowMap(
+    GCRChannel * ch)
 {
     int i, j, field;
     short ** res;

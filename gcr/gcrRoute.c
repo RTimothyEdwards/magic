@@ -62,8 +62,8 @@ void gcrExtend();
  */
 
 int
-GCRroute(ch)
-    GCRChannel *ch;
+GCRroute(
+    GCRChannel *ch)
 {
     int i, density, netId;
     char mesg[256];
@@ -154,9 +154,9 @@ bottom:
  */
 
 void
-gcrRouteCol(ch, indx)
-    GCRChannel *ch;
-    int indx;		/* Index of column being routed. */
+gcrRouteCol(
+    GCRChannel *ch,
+    int indx)		/* Index of column being routed. */
 {
     GCRNet **gcrClassify(), **list;
     GCRColEl *col;
@@ -228,9 +228,9 @@ gcrRouteCol(ch, indx)
  */
 
 void
-gcrExtend(ch, currentCol)
-    GCRChannel *ch;	/* Channel being routed */
-    int currentCol;	/* Column that has just been completed */
+gcrExtend(
+    GCRChannel *ch,	/* Channel being routed */
+    int currentCol)	/* Column that has just been completed */
 {
     short *res = ch->gcr_result[currentCol];
     GCRColEl *col = ch->gcr_lCol;

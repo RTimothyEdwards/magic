@@ -60,12 +60,12 @@ void gcrEvalPat();
  */
 
 void
-gcrCollapse(col, width, bot, top, freed)
-    GCRColEl **	col;
-    int    	width;
-    int 	bot;
-    int   	top;
-    int	        freed;
+gcrCollapse(
+    GCRColEl ** col,
+    int width,
+    int bot,
+    int top,
+    int freed)
 {
     int         i, to;
     GCRNet   *	net;
@@ -139,8 +139,8 @@ gcrCollapse(col, width, bot, top, freed)
  */
 
 void
-gcrInitCollapse(size)
-    int size;		/* Number of tracks in column. */
+gcrInitCollapse(
+    int size)		/* Number of tracks in column. */
 {
     gcrBestFreed = 0;
     gcrSplitNets = -1;
@@ -176,12 +176,12 @@ gcrInitCollapse(size)
  */
 
 void
-gcrEvalPat(col, freed, size)
-    GCRColEl **	col;		/* Describes column in which to collapse. */
-    int		freed;		/* We've already found a set of collapsing
+gcrEvalPat(
+    GCRColEl **	col,		/* Describes column in which to collapse. */
+    int		freed,		/* We've already found a set of collapsing
 				 * jogs that frees at least this many tracks.
 				 */
-    int		size;		/* Number of tracks in column. */
+    int		size)		/* Number of tracks in column. */
 {
     int		i, n, newDist, oldWiring, newWiring;
 
@@ -266,10 +266,10 @@ gcrEvalPat(col, freed, size)
  */
 
 int
-gcrNextSplit(col, size, i)
-    GCRColEl *	col;
-    int		size;
-    int		i;
+gcrNextSplit(
+    GCRColEl * col,
+    int size,
+    int i)
 {
     for(i++; i<size/2; i++)
 	if( ((col[i].gcr_hi!= EMPTY)&&(col[i].gcr_lo== EMPTY)) ||
@@ -294,8 +294,8 @@ gcrNextSplit(col, size, i)
  */
 
 void
-gcrPickBest(ch)
-    GCRChannel * ch;
+gcrPickBest(
+    GCRChannel * ch)
 {
     ASSERT(gcrBestCol!=(GCRColEl *) NULL, "gcrPickBest");
     ASSERT(ch->gcr_lCol==(GCRColEl *) NULL, "gcrPickBest");
@@ -321,9 +321,9 @@ gcrPickBest(ch)
  */
 
 void
-gcrReduceRange(col, width)
-    GCRColEl *	col;
-    int		width;
+gcrReduceRange(
+    GCRColEl * col,
+    int width)
 {
     int		i, j;
     int		farthest;

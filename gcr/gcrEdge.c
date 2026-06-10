@@ -47,9 +47,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-gcrWanted(ch, track, column)
-    GCRChannel *ch;
-    int track, column;
+gcrWanted(
+    GCRChannel *ch,
+    int track,
+    int column)
 {
     GCRColEl *col = ch->gcr_lCol;
     GCRPin *pin, *next;
@@ -99,8 +100,8 @@ gcrWanted(ch, track, column)
  */
 
 void
-gcrMarkWanted(ch)
-    GCRChannel *ch;
+gcrMarkWanted(
+    GCRChannel *ch)
 {
     GCRColEl *col = ch->gcr_lCol;
     GCRPin *pin = ch->gcr_rPins;
@@ -133,12 +134,13 @@ gcrMarkWanted(ch)
  */
 
 void
-gcrUncollapse(ch, col, width, bot, top, split)
-    GCRChannel *ch;	/* Channel being processed */
-    GCRColEl **col;
-    int width;		/* Size of array pointed to by *col */
-    int bot, top;	/* Consider tracks between bot .. top inclusive */
-    int split;		/* Somewhere between 0 and width inclusive */
+gcrUncollapse(
+    GCRChannel *ch,	/* Channel being processed */
+    GCRColEl **col,
+    int width,		/* Size of array pointed to by *col */
+    int bot,
+    int top,
+    int split)		/* Somewhere between 0 and width inclusive */
 {
     int i, to, type, extra, flags;
     GCRColEl *newCol, *gcrCopyCol();
