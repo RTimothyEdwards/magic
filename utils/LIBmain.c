@@ -42,8 +42,8 @@ static char rcsid[] = "$Header: /usr/cvsroot/magic-8.0/utils/LIBmain.c,v 1.1.1.1
  */
 
 void
-MainExit(code)
-    int code;
+MainExit(
+    int code)
 {
     exit (code);
 }

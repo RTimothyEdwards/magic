@@ -49,9 +49,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-LookupFull(name, table)
-    const char *name;
-    const char * const *table;
+LookupFull(
+    const char *name,
+    const char * const *table)
 {
     const char * const *tp;
 
@@ -106,15 +106,15 @@ LookupFull(name, table)
  */
 
 int
-LookupStructFull(str, table, size)
-    const char *str;		/* Pointer to a string to be looked up */
-    const char * const *table;
+LookupStructFull(
+    const char *str,		/* Pointer to a string to be looked up */
+    const char * const *table,
 			/* Pointer to an array of structs containing string
 			 * pointers to valid commands.
 			 * The last table entry should have a NULL
 			 * string pointer.
 			 */
-    int	size;		/* The size, in bytes, of each table entry */
+    int	size)		/* The size, in bytes, of each table entry */
 {
   const char * const *entry;
   int pos;

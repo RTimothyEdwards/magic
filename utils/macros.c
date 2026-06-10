@@ -93,12 +93,12 @@ MacroInit()
  */
 
 void
-MacroDefineByName(clientName, xc, str, help, imacro)
-    char *clientName;	/* window client name */
-    int xc;		/* full (X11) keycode of macro with modifiers */
-    char *str;		/* ...and the string to be attached to it */
-    char *help;		/* ...and/or the help text for the macro */
-    bool imacro;	/* is this an interactive macro? */
+MacroDefineByName(
+    char *clientName,	/* window client name */
+    int xc,		/* full (X11) keycode of macro with modifiers */
+    char *str,		/* ...and the string to be attached to it */
+    char *help,		/* ...and/or the help text for the macro */
+    bool imacro)	/* is this an interactive macro? */
 {
     HashEntry *h;
     HashTable *clienttable, newTable;
@@ -159,12 +159,12 @@ MacroDefineByName(clientName, xc, str, help, imacro)
  */
 
 void
-MacroDefine(client, xc, str, help, imacro)
-    WindClient client;	/* window client type */
-    int xc;		/* full (X11) keycode of macro with modifiers */
-    char *str;		/* ...and the string to be attached to it */
-    char *help;		/* ...and/or the help text for the macro */
-    bool imacro;	/* is this an interactive macro? */
+MacroDefine(
+    WindClient client,	/* window client type */
+    int xc,		/* full (X11) keycode of macro with modifiers */
+    char *str,		/* ...and the string to be attached to it */
+    char *help,		/* ...and/or the help text for the macro */
+    bool imacro)	/* is this an interactive macro? */
 {
     char *clientName = NULL;
 
@@ -193,10 +193,10 @@ MacroDefine(client, xc, str, help, imacro)
  */
 
 void
-MacroDefineHelp(client, xc, help)
-    WindClient client;	/* window client type */
-    int xc;		/* full (X11) keycode of macro with modifiers */
-    char *help;		/* ...and/or the help text for the macro */
+MacroDefineHelp(
+    WindClient client,	/* window client type */
+    int xc,		/* full (X11) keycode of macro with modifiers */
+    char *help)		/* ...and/or the help text for the macro */
 {
     HashEntry *h;
     HashTable *clienttable;
@@ -241,10 +241,10 @@ MacroDefineHelp(client, xc, help)
  */
 
 char *
-MacroRetrieve(client, xc, iReturn)
-    WindClient client;		/* window client type */
-    int xc;			/* the extended name of the macro */
-    bool *iReturn;		/* TRUE if macro is interactive */
+MacroRetrieve(
+    WindClient client,		/* window client type */
+    int xc,			/* the extended name of the macro */
+    bool *iReturn)		/* TRUE if macro is interactive */
 {
     HashEntry *h;
     HashTable *clienttable;
@@ -297,9 +297,9 @@ MacroRetrieve(client, xc, iReturn)
  */
 
 char *
-MacroRetrieveHelp(client, xc)
-    WindClient client;		/* window client type */
-    int xc;			/* the extended name of the macro */
+MacroRetrieveHelp(
+    WindClient client,		/* window client type */
+    int xc)			/* the extended name of the macro */
 {
     HashEntry *h;
     HashTable *clienttable;
@@ -347,10 +347,10 @@ MacroRetrieveHelp(client, xc)
  */
 
 char *
-MacroSubstitute(macrostr, searchstr, replacestr)
-    char *macrostr;
-    char *searchstr;
-    char *replacestr;
+MacroSubstitute(
+    char *macrostr,
+    char *searchstr,
+    char *replacestr)
 {
     char *found, *last, *new;
     int expand, length, oldlength, srchsize;
@@ -402,9 +402,9 @@ MacroSubstitute(macrostr, searchstr, replacestr)
  */
 
 void
-MacroDelete(client, xc)
-    WindClient client;	/* window client type */
-    int xc;		/* the extended name of the macro */
+MacroDelete(
+    WindClient client,	/* window client type */
+    int xc)		/* the extended name of the macro */
 {
     HashEntry *h;
     HashTable *clienttable;
@@ -459,9 +459,9 @@ MacroDelete(client, xc)
  */
 
 void
-MacroCopy(client, clientkey)
-    WindClient client;	/* Current window client */
-    char *clientkey;	/* Name of client to copy macros to */
+MacroCopy(
+    WindClient client,	/* Current window client */
+    char *clientkey)	/* Name of client to copy macros to */
 {
     HashTable *clienttable;
     HashTable *copytable;
@@ -511,8 +511,8 @@ MacroCopy(client, clientkey)
  */
 
 char *
-MacroName(xc)
-    int xc;
+MacroName(
+    int xc)
 {
     char *vis;
     static char hex[17] = "0123456789ABCDEF";
@@ -598,9 +598,9 @@ MacroName(xc)
  */
 
 int
-MacroKey(str, verbose)
-    char *str;
-    int *verbose;
+MacroKey(
+    char *str,
+    int *verbose)
 {
     static int warn = 1;
 
@@ -759,8 +759,8 @@ MacroKey(str, verbose)
  */
 
 int
-TranslateChar(key)
-    int key;
+TranslateChar(
+    int key)
 {
     int rval = key;
 

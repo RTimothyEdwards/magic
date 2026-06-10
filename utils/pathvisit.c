@@ -78,8 +78,8 @@ PaVisitInit()
  */
 
 void
-PaVisitFree(pv)
-    PaVisit *pv;
+PaVisitFree(
+    PaVisit *pv)
 {
     PaVisitClient *pvc;
 
@@ -126,11 +126,11 @@ PaVisitFree(pv)
  */
 
 void
-PaVisitAddClient(pv, keyword, proc, cdata)
-    PaVisit *pv;
-    char *keyword;
-    int  (*proc)();
-    ClientData cdata;
+PaVisitAddClient(
+    PaVisit *pv,
+    char *keyword,
+    int (*proc)(),
+    ClientData cdata)
 {
     PaVisitClient *pvc;
 
@@ -175,17 +175,17 @@ PaVisitAddClient(pv, keyword, proc, cdata)
  */
 
 int
-PaVisitFiles(path, file, pv)
-    char *path;		/* Colon or space separated list of directories to
+PaVisitFiles(
+    char *path,		/* Colon or space separated list of directories to
 			 * search for the file 'file'.  If 'file' does not
 			 * exist in a given directory, that directory is
 			 * skipped.
 			 */
-    char *file;		/* If 'file' exists in a directory of 'path' we
+    char *file,		/* If 'file' exists in a directory of 'path' we
 			 * open it and match each line against the list
 			 * of clients pointed to by 'pv'.
 			 */
-    PaVisit *pv;
+    PaVisit *pv)
 {
     int paVisitFilesProc();
 
@@ -219,9 +219,9 @@ PaVisitFiles(path, file, pv)
  */
 
 int
-paVisitFilesProc(name, pv)
-    char *name;		/* Full filename */
-    PaVisit *pv;	/* Points to list of clients */
+paVisitFilesProc(
+    char *name,		/* Full filename */
+    PaVisit *pv)	/* Points to list of clients */
 {
     char *lp;
     char line[BUFSIZ+2];
@@ -280,9 +280,9 @@ next:	;
  */
 
 int
-paVisitProcess(line, pv)
-    char *line;
-    PaVisit *pv;
+paVisitProcess(
+    char *line,
+    PaVisit *pv)
 {
     PaVisitClient *pvc;
     char *cp;

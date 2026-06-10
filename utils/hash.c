@@ -143,10 +143,10 @@ static int rebuildLimit = 3;
  */
 
 void
-HashInit(table, nBuckets, ptrKeys)
-    HashTable *table;		/* Table to be initialized */
-    int nBuckets;		/* How many buckets to create for starters */
-    int ptrKeys;		/* See comments above */
+HashInit(
+    HashTable *table,		/* Table to be initialized */
+    int nBuckets,		/* How many buckets to create for starters */
+    int ptrKeys)		/* See comments above */
 {
     ASSERT(ptrKeys != HT_CLIENTKEYS, "HashInit: should use HashInitClient");
     HashInitClient(table, nBuckets, ptrKeys,
@@ -155,14 +155,14 @@ HashInit(table, nBuckets, ptrKeys)
 }
 
 void
-HashInitClient(table, nBuckets, ptrKeys, compareFn, copyFn, hashFn, killFn)
-    HashTable *table;		/* Table to be initialized */
-    int nBuckets;		/* How many buckets to create for starters */
-    int ptrKeys;		/* See comments above */
-    int (*compareFn)();		/* Function to compare two keys */
-    char *(*copyFn)();		/* Function to copy a key */
-    int (*hashFn)();		/* For hashing */
-    int (*killFn)();		/* For hashing */
+HashInitClient(
+    HashTable *table,		/* Table to be initialized */
+    int nBuckets,		/* How many buckets to create for starters */
+    int ptrKeys,		/* See comments above */
+    int (*compareFn)(),		/* Function to compare two keys */
+    char *(*copyFn)(),		/* Function to copy a key */
+    int (*hashFn)(),		/* For hashing */
+    int (*killFn)())		/* For hashing */
 {
     HashEntry ** ptr;
     int i;
@@ -215,9 +215,9 @@ HashInitClient(table, nBuckets, ptrKeys, compareFn, copyFn, hashFn, killFn)
  */
 
 int
-hash(table, key)
-    HashTable *table;
-    char *key;
+hash(
+    HashTable *table,
+    char *key)
 {
     unsigned *up;
     unsigned long i;
@@ -280,9 +280,9 @@ hash(table, key)
  */
 
 HashEntry *
-HashLookOnly(table, key)
-    HashTable *table;	/* Hash table to search. */
-    const char *key;		/* Interpreted according to table->ht_ptrKeys
+HashLookOnly(
+    HashTable *table,	/* Hash table to search. */
+    const char *key)		/* Interpreted according to table->ht_ptrKeys
 				 * as described in HashInit()'s comments.
 				 */
 {
@@ -350,9 +350,9 @@ next:
  */
 
 HashEntry *
-HashFind(table, key)
-    HashTable *table;	/* Hash table to search. */
-    const char *key;		/* Interpreted according to table->ht_ptrKeys
+HashFind(
+    HashTable *table,	/* Hash table to search. */
+    const char *key)		/* Interpreted according to table->ht_ptrKeys
 				 * as described in HashInit()'s comments.
 				 */
 {
@@ -475,8 +475,8 @@ next:
  */
 
 void
-rebuild(table)
-    HashTable *table;		/* Table to be enlarged. */
+rebuild(
+    HashTable *table)		/* Table to be enlarged. */
 {
     HashEntry **oldTable, **old2, *h, *next;
     int oldSize, bucket;
@@ -537,8 +537,8 @@ rebuild(table)
 #define	MAXCOUNT	15
 
 void
-HashStats(table)
-    HashTable *table;
+HashStats(
+    HashTable *table)
 {
     int count[MAXCOUNT], overflow, i, j;
     HashEntry *h;
@@ -575,9 +575,9 @@ HashStats(table)
  */
 
 void
-HashRemove(table, key)
-    HashTable *table;	/* Hash table to search. */
-    const char *key;		/* Interpreted according to table->ht_ptrKeys
+HashRemove(
+    HashTable *table,	/* Hash table to search. */
+    const char *key)		/* Interpreted according to table->ht_ptrKeys
 				 * as described in HashInit()'s comments.
 				 */
 {
@@ -624,8 +624,8 @@ HashRemove(table, key)
  */
 
 void
-HashStartSearch(hs)
-    HashSearch *hs;	/* Area in which to keep state about search.*/
+HashStartSearch(
+    HashSearch *hs)	/* Area in which to keep state about search.*/
 {
     hs->hs_nextIndex = 0;
     hs->hs_h = NIL;
@@ -651,9 +651,9 @@ HashStartSearch(hs)
  */
 
 HashEntry *
-HashNext(table, hs)
-    HashTable *table;	/* Table to be searched. */
-    HashSearch *hs;	/* Area used to keep state about search. */
+HashNext(
+    HashTable *table,	/* Table to be searched. */
+    HashSearch *hs)	/* Area used to keep state about search. */
 {
     HashEntry *h;
 
@@ -684,8 +684,8 @@ HashNext(table, hs)
  */
 
 void
-HashKill(table)
-    HashTable *table;	/* Hash table whose space is to be freed */
+HashKill(
+    HashTable *table)	/* Hash table whose space is to be freed */
 {
     HashEntry *h, **hp, **hend;
     int (*killFn)() = (int (*)()) NULL;
@@ -731,8 +731,8 @@ HashKill(table)
  *---------------------------------------------------------
  */
 void
-HashFreeKill(table)
-HashTable *table;
+HashFreeKill(
+HashTable *table)
 {
 	HashSearch hs;
 	HashEntry *he;

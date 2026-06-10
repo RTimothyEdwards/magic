@@ -121,7 +121,8 @@ static int sigNumDisables = 0;
  */
 
 void
-SigSetTimer(int secs)
+SigSetTimer(
+    int secs)
 {
 #ifdef __EMSCRIPTEN__
     (void)secs;
@@ -170,7 +171,8 @@ SigRemoveTimer()
 }
 
 sigRetVal
-sigOnAlarm(int signo)
+sigOnAlarm(
+    int signo)
 {
     if (GrDisplayStatus == DISPLAY_IN_PROGRESS)
 	GrDisplayStatus = DISPLAY_BREAK_PENDING;
@@ -211,7 +213,8 @@ SigTimerInterrupts()
  */
 
 sigRetVal
-sigOnStop(int signo)
+sigOnStop(
+    int signo)
 {
     /* fix things up */
     TxResetTerminal(TRUE);
@@ -262,8 +265,8 @@ sigOnStop(int signo)
  */
 
 bool
-SigCheckProcess(pid)
-    int pid;
+SigCheckProcess(
+    int pid)
 {
 #ifdef __EMSCRIPTEN__
     (void)pid;
@@ -341,9 +344,9 @@ SigDisableInterrupts()
  */
 
 void
-SigWatchFile(filenum, filename)
-    int filenum;		/* A file descriptor number */
-    char *filename;		/* Used to recognize special files that
+SigWatchFile(
+    int filenum,		/* A file descriptor number */
+    char *filename)		/* Used to recognize special files that
 				 * don't support a full range of fcntl
 				 * calls (such as windows: /dev/winXX).
 				 */
@@ -422,9 +425,9 @@ SigWatchFile(filenum, filename)
  /*ARGSUSED*/
 
 void
-SigUnWatchFile(filenum, filename)
-    int filenum;		/* A file descriptor number */
-    char *filename;		/* Used to recognize special files that
+SigUnWatchFile(
+    int filenum,		/* A file descriptor number */
+    char *filename)		/* Used to recognize special files that
 				 * don't support a full range of fcntl
 				 * calls (such as windows: /dev/winXX).
 				 */
@@ -471,7 +474,8 @@ SigUnWatchFile(filenum, filename)
  */
 
 sigRetVal
-sigOnInterrupt(int signo)
+sigOnInterrupt(
+    int signo)
 {
     if (sigNumDisables != 0)
 	sigInterruptReceived = TRUE;
@@ -499,7 +503,8 @@ sigOnInterrupt(int signo)
  */
 
 sigRetVal
-sigOnTerm(int signo)
+sigOnTerm(
+    int signo)
 {
     DBWriteBackup(NULL, FALSE, FALSE);
     exit (1);
@@ -522,7 +527,8 @@ sigOnTerm(int signo)
  */
 
 sigRetVal
-sigOnWinch(int signo)
+sigOnWinch(
+    int signo)
 {
     SigGotSigWinch = TRUE;
     sigReturn;
@@ -543,7 +549,8 @@ sigOnWinch(int signo)
  */
 
 sigRetVal
-sigIO(int signo)
+sigIO(
+    int signo)
 {
     SigIOReady = TRUE;
     if (SigInterruptOnSigIO == 1) sigOnInterrupt(0);
@@ -567,8 +574,8 @@ sigIO(int signo)
  */
 
 sigRetVal
-sigCrash(signum)
-    int signum;
+sigCrash(
+    int signum)
 {
     static int magicNumber = 1239987;
     char *msg;
@@ -637,8 +644,8 @@ sigCrash(signum)
  */
 
 void
-SigInit(batchmode)
-    int batchmode;
+SigInit(
+    int batchmode)
 {
 #ifdef __EMSCRIPTEN__
     SigInterruptOnSigIO = (batchmode) ? -1 : 0;
@@ -706,7 +713,9 @@ SigInit(batchmode)
 }
 
 void
-sigSetAction(int signo, sigRetVal (*handler)(int))
+sigSetAction(
+    int signo,
+    sigRetVal (*handler)(int))
 {
 #if defined(SYSV) || defined(CYGWIN) || defined(__NetBSD__) || defined(EMSCRIPTEN)
     struct sigaction sa;

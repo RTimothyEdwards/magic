@@ -58,10 +58,10 @@ int ShowRectStyle;
 CellDef *ShowRectDef;
 
 void
-ShowRect(def, r, style)
-    CellDef *def;	/* The area is in this def */
-    Rect *r;		/* Display this area (in coords of def above) */
-    int style;		/* in this style */
+ShowRect(
+    CellDef *def,	/* The area is in this def */
+    Rect *r,		/* Display this area (in coords of def above) */
+    int style)		/* in this style */
 {
     int ShowRectFunc();
 
@@ -72,9 +72,9 @@ ShowRect(def, r, style)
 }
 
 int
-ShowRectFunc(w, r)
-    MagWindow *w;
-    Rect *r;
+ShowRectFunc(
+    MagWindow *w,
+    Rect *r)
 {
     Rect screenRect;
 

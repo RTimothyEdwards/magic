@@ -110,7 +110,7 @@ typedef struct nlNet
      * A NLNetList contains a list of nets, along with the
      * table that maps from signal names to terminals.
      */
-typedef struct
+typedef struct nlNetList
 {
     struct nlNet	*nnl_nets;	/* List of nets */
     int			 nnl_numNets;	/* # of nets in list (redundant, since

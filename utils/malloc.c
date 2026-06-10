@@ -104,8 +104,8 @@ static char *freeDelayedItem = NULL;
  */
 
 void *
-mallocMagicLegacy(nbytes)
-    size_t nbytes;
+mallocMagicLegacy(
+    size_t nbytes)
 {
     void *p;
 
@@ -139,8 +139,8 @@ mallocMagicLegacy(nbytes)
  */
 
 void
-freeMagicLegacy(cp)
-    void *cp;
+freeMagicLegacy(
+    void *cp)
 {
     if (cp == NULL)
 	TxError("freeMagic called with NULL argument.\n");
@@ -162,8 +162,8 @@ freeMagicLegacy(cp)
  */
 
 void *
-callocMagicLegacy(nbytes)
-    size_t nbytes;
+callocMagicLegacy(
+    size_t nbytes)
 {
     void *cp;
 

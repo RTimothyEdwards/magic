@@ -51,8 +51,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-FindGCF(a, b)
-    int a, b;
+FindGCF(
+    int a,
+    int b)
 {
     int a_mod_b, bp;
 
@@ -80,8 +81,9 @@ FindGCF(a, b)
  */
 
 void
-ReduceFraction(n, d)
-    int *n, *d;
+ReduceFraction(
+    int *n,
+    int *d)
 {
     int c;
 

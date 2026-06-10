@@ -40,7 +40,7 @@ extern HashTable MacroClients;
 
 /* procedures */
 extern void MacroInit();
-extern void MacroDefine();
+extern void MacroDefine(WindClient client, int xc, char *str, char *help, bool imacro);
 extern void MacroDefineHelp();
 extern void MacroDefineInt();
 extern char *MacroRetrieve();	/* returns a malloc'ed string */

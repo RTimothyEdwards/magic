@@ -45,7 +45,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define	NETSIZE(r)  ((int)((r)->r_xtop - (r)->r_xbot + (r)->r_ytop - (r)->r_ybot))
 
 /* Forward declarations */
-int nlTermFunc(), nlLabelFunc();
+int nlTermFunc(char *name, bool firstInNet, NLNetList *netList), nlLabelFunc();
 
 /*
  * ----------------------------------------------------------------------------
@@ -71,9 +71,9 @@ int nlTermFunc(), nlLabelFunc();
  */
 
 int
-NLBuild(rootUse, netList)
-    CellUse *rootUse;	/* Cell searched for terminals */
-    NLNetList *netList;	/* Netlist to build */
+NLBuild(
+    CellUse *rootUse,	/* Cell searched for terminals */
+    NLNetList *netList)	/* Netlist to build */
 {
     NLTerm *term;
     NLNet *net;
@@ -154,10 +154,10 @@ done:
  */
 
 int
-nlTermFunc(name, firstInNet, netList)
-    char *name;
-    bool firstInNet;
-    NLNetList *netList;
+nlTermFunc(
+    char *name,
+    bool firstInNet,
+    NLNetList *netList)
 {
     NLNet *net;
     NLTerm *term;
@@ -212,11 +212,11 @@ nlTermFunc(name, firstInNet, netList)
  */
 
 int
-nlLabelFunc(area, name, label, term)
-    Rect *area;		/* Root coords of label */
-    char *name;		/* Same as term->nterm_name (UNUSED) */
-    Label *label;	/* Label within scx->scx_use->cu_def */
-    NLTerm *term;	/* Prepend new NLTermLoc to this terminal */
+nlLabelFunc(
+    Rect *area,		/* Root coords of label */
+    char *name,		/* Same as term->nterm_name (UNUSED) */
+    Label *label,	/* Label within scx->scx_use->cu_def */
+    NLTerm *term)	/* Prepend new NLTermLoc to this terminal */
 {
     NLTermLoc *loc;
 
@@ -261,8 +261,8 @@ nlLabelFunc(area, name, label, term)
  */
 
 void
-NLFree(netList)
-    NLNetList *netList;
+NLFree(
+    NLNetList *netList)
 {
     NLTermLoc *loc;
     NLTerm *term;
@@ -303,9 +303,9 @@ NLFree(netList)
  */
 
 void
-NLSort(netList, netHeap)
-    NLNetList *netList;
-    Heap *netHeap;
+NLSort(
+    NLNetList *netList,
+    Heap *netHeap)
 {
     NLTermLoc *loc;
     NLTerm *term;
@@ -366,8 +366,8 @@ NLSort(netList, netHeap)
  */
 
 char *
-NLNetName(net)
-    NLNet *net;
+NLNetName(
+    NLNet *net)
 {
     static char tempId[100];
 #if defined(EMSCRIPTEN)

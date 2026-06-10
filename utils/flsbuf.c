@@ -48,9 +48,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 char	*malloc();
 
 int
-_flsbuf(c, iop)
-    unsigned c;
-    FILE *iop;
+_flsbuf(
+    unsigned c,
+    FILE *iop)
 {
 	char *base;
 	n, rn;
@@ -125,8 +125,8 @@ tryagain:
 }
 
 int
-fflush(iop)
-    struct _iobuf *iop;
+fflush(
+    struct _iobuf *iop)
 {
 	char *base;
 	n, rn;
@@ -149,8 +149,8 @@ fflush(iop)
 }
 
 int
-fclose(iop)
-    struct _iobuf *iop;
+fclose(
+    struct _iobuf *iop)
 {
 	int r;
 

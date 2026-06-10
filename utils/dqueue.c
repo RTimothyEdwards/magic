@@ -43,9 +43,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-DQInit(q, capacity)
-    DQueue *q;
-    int capacity;
+DQInit(
+    DQueue *q,
+    int capacity)
 {
     if (capacity < 1) capacity = 1;
     q->dq_data = (ClientData *) mallocMagic((unsigned)((capacity+1) * sizeof (ClientData)));
@@ -73,8 +73,8 @@ DQInit(q, capacity)
  */
 
 void
-DQFree(q)
-    DQueue *q;
+DQFree(
+    DQueue *q)
 {
     freeMagic((char *) q->dq_data);
 }
@@ -96,9 +96,9 @@ DQFree(q)
  */
 
 void
-DQPushFront(q, elem)
-    DQueue *q;
-    ClientData elem;
+DQPushFront(
+    DQueue *q,
+    ClientData elem)
 {
     if (q->dq_size == q->dq_maxSize)  DQChangeSize(q, 2 * q->dq_maxSize);
     q->dq_data[q->dq_front] = elem;
@@ -108,9 +108,9 @@ DQPushFront(q, elem)
 }
 
 void
-DQPushRear(q, elem)
-    DQueue *q;
-    ClientData elem;
+DQPushRear(
+    DQueue *q,
+    ClientData elem)
 {
     if (q->dq_size == q->dq_maxSize)  DQChangeSize(q, 2 * q->dq_maxSize);
     q->dq_data[q->dq_rear] = elem;
@@ -136,8 +136,8 @@ DQPushRear(q, elem)
  */
 
 ClientData
-DQPopFront(q)
-    DQueue *q;
+DQPopFront(
+    DQueue *q)
 {
     if (q->dq_size == 0) return (ClientData) NULL;
     q->dq_size--;
@@ -147,8 +147,8 @@ DQPopFront(q)
 }
 
 ClientData
-DQPopRear(q)
-    DQueue *q;
+DQPopRear(
+    DQueue *q)
 {
     if (q->dq_size == 0) return (ClientData) NULL;
     q->dq_size--;
@@ -175,9 +175,9 @@ DQPopRear(q)
  */
 
 void
-DQChangeSize(q, newSize)
-    DQueue *q;
-    int newSize;
+DQChangeSize(
+    DQueue *q,
+    int newSize)
 {
     DQueue newq;
 
@@ -209,9 +209,9 @@ DQChangeSize(q, newSize)
  */
 
 void
-DQCopy(dst, src)
-    DQueue *dst;	/* The destination queue */
-    DQueue *src;	/* The source queue */
+DQCopy(
+    DQueue *dst,	/* The destination queue */
+    DQueue *src)	/* The source queue */
 {
     int i;
     dst->dq_size = 0;

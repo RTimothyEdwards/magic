@@ -52,6 +52,11 @@ extern bool TechOverridesDefault; /* Set TRUE if technology was specified on
 /* ----------------- Exported procedures ---------------- */
 
 extern void TechError(const char *, ...) ATTR_FORMAT_PRINTF_1;
+/* TechAddClient takes per-section callbacks with intentionally varying
+ * signatures, so its declaration stays generic (unprototyped) and "opt" is
+ * declared int (not bool) in the definition so this empty-parameter-list
+ * declaration remains compatible with it under C23/GCC 16.
+ */
 extern void TechAddClient();
 extern void TechAddAlias();
 

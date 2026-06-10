@@ -46,8 +46,8 @@ bool stackCopyStr;
  */
 
 Stack *
-StackNew(sincr)
-    int sincr;		/* Number of entries by which to grow storage area */
+StackNew(
+    int sincr)		/* Number of entries by which to grow storage area */
 {
     Stack *stack;
 
@@ -76,8 +76,8 @@ StackNew(sincr)
  */
 
 void
-StackFree(stack)
-    Stack *stack;
+StackFree(
+    Stack *stack)
 {
     struct stackBody *stackp, *stacknext;
 
@@ -106,9 +106,9 @@ StackFree(stack)
  * ----------------------------------------------------------------------------
  */
 void
-StackPush(arg, stack)
-    ClientData arg;
-    Stack *stack;
+StackPush(
+    ClientData arg,
+    Stack *stack)
 {
     struct stackBody *bodyNew;
 
@@ -142,8 +142,8 @@ StackPush(arg, stack)
  */
 
 ClientData
-StackPop(stack)
-    Stack *stack;
+StackPop(
+    Stack *stack)
 {
     struct stackBody *bodyOld;
 
@@ -177,8 +177,8 @@ StackPop(stack)
  */
 
 ClientData
-StackLook(stack)
-    Stack *stack;
+StackLook(
+    Stack *stack)
 {
     struct stackBody *bodyNext;
 
@@ -218,10 +218,10 @@ StackLook(stack)
  * ----------------------------------------------------------------------------
  */
 void
-StackEnum(stack, func, cd)
-    Stack    * stack;
-    int     (* func)();
-    ClientData cd;
+StackEnum(
+    Stack    * stack,
+    int (* func)(),
+    ClientData cd)
 {
     int i, j;
     struct stackBody * sb;
@@ -256,9 +256,10 @@ StackEnum(stack, func, cd)
  * ----------------------------------------------------------------------------
  */
 void
-StackCopy(src, dest, copystr)
-    Stack * src, ** dest;
-    bool copystr;
+StackCopy(
+    Stack *src,
+    Stack **dest,
+    bool copystr)
 {
     int stackCopyFn();
 
@@ -276,10 +277,10 @@ StackCopy(src, dest, copystr)
 
 /*ARGSUSED*/
 int
-stackCopyFn(stackItem, i, cd)
-    ClientData stackItem;
-    int i;
-    ClientData cd;
+stackCopyFn(
+    ClientData stackItem,
+    int i,
+    ClientData cd)
 {
     if(stackCopyStr)
 	StackPush((ClientData) StrDup((char **) NULL, (char *)stackItem), (Stack *) cd);

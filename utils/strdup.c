@@ -51,9 +51,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 char *
-StrDup(oldstr, str)
-    char **oldstr;
-    const char *str;
+StrDup(
+    char **oldstr,
+    const char *str)
 {
     char *newstr;
 
@@ -89,9 +89,9 @@ StrDup(oldstr, str)
  */
 
 bool
-StrIsWhite(line, commentok)
-    const char *line;
-    bool commentok;	/* TRUE means # comments are considered all-white */
+StrIsWhite(
+    const char *line,
+    bool commentok)	/* TRUE means # comments are considered all-white */
 {
     if ( (*line == '#') && commentok)
 	return TRUE;
@@ -122,8 +122,8 @@ StrIsWhite(line, commentok)
  */
 
 bool
-StrIsInt(s)
-    const char *s;
+StrIsInt(
+    const char *s)
 {
     if (*s == '-' || *s == '+') s++;
     while (*s)
@@ -151,8 +151,8 @@ StrIsInt(s)
  */
 
 bool
-StrIsNumeric(s)
-    const char *s;
+StrIsNumeric(
+    const char *s)
 {
     double result;
     char *endptr;

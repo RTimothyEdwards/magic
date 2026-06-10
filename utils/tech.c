@@ -156,9 +156,9 @@ techSection *techFindSection();
  */
 
 SectionID
-TechSectionGetMask(sectionName, depend)
-    char *sectionName;
-    SectionID *depend;
+TechSectionGetMask(
+    char *sectionName,
+    SectionID *depend)
 {
     techSection *tsp, *thissect;
     SectionID invid = 0;
@@ -234,9 +234,9 @@ TechInit()
  */
 
 void
-TechAddAlias(primaryName, alias)
-    char *primaryName;
-    char *alias;
+TechAddAlias(
+    char *primaryName,
+    char *alias)
 {
     techSection *tsp;
 
@@ -278,9 +278,9 @@ TechAddAlias(primaryName, alias)
  */
 
 int
-changePlanesFunc(cellDef, arg)
-    CellDef *cellDef;
-    int *arg;
+changePlanesFunc(
+    CellDef *cellDef,
+    int *arg)
 {
     int oldnumplanes = *arg;
     int pNum;
@@ -355,14 +355,14 @@ changePlanesFunc(cellDef, arg)
  */
 
 void
-TechAddClient(sectionName, init, proc, final, prevSections, pSectionID, opt)
-    char *sectionName;
-    void (*init)();
-    bool (*proc)();
-    void (*final)();
-    SectionID prevSections;
-    SectionID *pSectionID;
-    bool opt; /* optional section */
+TechAddClient(
+    char *sectionName,
+    void (*init)(),
+    bool (*proc)(),
+    void (*final)(),
+    SectionID prevSections,
+    SectionID *pSectionID,
+    int opt) /* optional section */
 {
     techSection *tsp;
     techClient *tcp, *tcl;
@@ -422,9 +422,9 @@ TechAddClient(sectionName, init, proc, final, prevSections, pSectionID, opt)
  */
 
 bool
-TechLoad(filename, initmask)
-    char *filename;
-    SectionID initmask;
+TechLoad(
+    char *filename,
+    SectionID initmask)
 {
     FILE *tf;
     techSection *tsp;
@@ -901,7 +901,9 @@ TechPrintLine()
 }
 
 void
-TechError(const char *fmt, ...)
+TechError(
+    const char *fmt,
+    ...)
 {
     va_list args;
 
@@ -932,8 +934,8 @@ TechError(const char *fmt, ...)
  */
 
 techSection *
-techFindSection(sectionName)
-    char *sectionName;
+techFindSection(
+    char *sectionName)
 {
     techSection *tsp;
 
@@ -974,11 +976,11 @@ techFindSection(sectionName)
  */
 
 int
-techGetTokens(line, size, fstack, argv)
-    char *line;			/* Character array into which line is read */
-    int size;			/* Size of character array */
-    filestack **fstack;		/* Open technology file on top of stack */
-    char *argv[];		/* Vector of tokens built by techGetTokens() */
+techGetTokens(
+    char *line,			/* Character array into which line is read */
+    int size,			/* Size of character array */
+    filestack **fstack,		/* Open technology file on top of stack */
+    char *argv[])		/* Vector of tokens built by techGetTokens() */
 {
     char *get, *put, *getp;
     bool inquote;

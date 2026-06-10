@@ -8,8 +8,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/geometry.h"
 
 void
-PrintTrans(t)
-    Transform *t;
+PrintTrans(
+    Transform *t)
 {
     printf("Translate: (%d, %d)\n", t->t_c, t->t_f);
     printf("%d\t%d\n", t->t_a, t->t_d);
@@ -17,8 +17,8 @@ PrintTrans(t)
 }
 
 void
-PrintRect(r)
-    Rect *r;
+PrintRect(
+    Rect *r)
 {
     printf("(%d,%d) :: (%d,%d)\n", r->r_xbot, r->r_ybot, r->r_xtop, r->r_ytop);
 }
