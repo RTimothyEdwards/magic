@@ -58,10 +58,10 @@ static char sccsid[] = "@(#)groutePin.c	4.9 MAGIC (Berkeley) 12/8/85";
  */
 
 GCRPin *
-glPointToPin(ch, side, point)
-    GCRChannel *ch;	/* The channel containing the point */
-    int side;			/* Side of ch that point lies on */
-    Point *point;	/* The point to be converted to a pin */
+glPointToPin(
+    GCRChannel *ch,	/* The channel containing the point */
+    int side,			/* Side of ch that point lies on */
+    Point *point)	/* The point to be converted to a pin */
 {
     int coord;
 
@@ -131,8 +131,8 @@ glPointToPin(ch, side, point)
  */
 
 void
-GLInitPins(ch)
-    GCRChannel *ch;
+GLInitPins(
+    GCRChannel *ch)
 {
     glPinArrayInit(ch, GEO_NORTH, ch->gcr_tPins, ch->gcr_length);
     glPinArrayInit(ch, GEO_SOUTH, ch->gcr_bPins, ch->gcr_length);
@@ -141,10 +141,11 @@ GLInitPins(ch)
 }
 
 void
-glPinArrayInit(ch, side, pins, nPins)
-    GCRChannel *ch;
-    GCRPin *pins;
-    int nPins;
+glPinArrayInit(
+    GCRChannel *ch,
+    int side,
+    GCRPin *pins,
+    int nPins)
 {
     GCRPin *pin, *linked;
     GCRChannel *adjacent;
@@ -275,8 +276,8 @@ glPinArrayInit(ch, side, pins, nPins)
  */
 
 bool
-GLBlockPins(ch)
-    GCRChannel *ch;
+GLBlockPins(
+    GCRChannel *ch)
 {
     bool changed;
 
@@ -294,13 +295,13 @@ GLBlockPins(ch)
 }
 
 bool
-glPinArrayBlock(ch, pins, opins, nPins)
-    GCRChannel *ch;	/* Channel pins belong to */
-    GCRPin *pins;	/* Processing this side of channel */
-    GCRPin *opins;	/* Pins on opposite side; used only if ch is a
+glPinArrayBlock(
+    GCRChannel *ch,	/* Channel pins belong to */
+    GCRPin *pins,	/* Processing this side of channel */
+    GCRPin *opins,	/* Pins on opposite side; used only if ch is a
 			 * river-routing channel.
 			 */
-    int nPins;		/* Number of internal pins (not counting pins[0]) */
+    int nPins)		/* Number of internal pins (not counting pins[0]) */
 {
     bool changed, isRiver = (ch->gcr_type != CHAN_NORMAL);
     GCRPin *pin, *opin, *linked;
@@ -353,8 +354,8 @@ glPinArrayBlock(ch, pins, opins, nPins)
  */
 
 void
-GLLinkPins(ch)
-    GCRChannel *ch;
+GLLinkPins(
+    GCRChannel *ch)
 {
     glPinArrayLink(ch->gcr_tPins, ch->gcr_length);
     glPinArrayLink(ch->gcr_bPins, ch->gcr_length);
@@ -363,9 +364,9 @@ GLLinkPins(ch)
 }
 
 void
-glPinArrayLink(pins, nPins)
-    GCRPin *pins;
-    int nPins;
+glPinArrayLink(
+    GCRPin *pins,
+    int nPins)
 {
     GCRPin *pin, *lastPin, *lastValid;
 
@@ -386,8 +387,8 @@ glPinArrayLink(pins, nPins)
     }
 }
 
-glShowPin(pin)
-    GCRPin *pin;
+glShowPin(
+    GCRPin *pin)
 {
     char mesg[256];
     Rect r, area;
@@ -453,8 +454,8 @@ glShowPin(pin)
  */
 
 void
-GLFixStemPins(ch)
-    GCRChannel *ch;
+GLFixStemPins(
+    GCRChannel *ch)
 {
     glPinArrayFixStems(ch->gcr_tPins, ch->gcr_length);
     glPinArrayFixStems(ch->gcr_bPins, ch->gcr_length);
@@ -463,9 +464,9 @@ GLFixStemPins(ch)
 }
 
 void
-glPinArrayFixStems(pins, nPins)
-    GCRPin *pins;
-    int nPins;
+glPinArrayFixStems(
+    GCRPin *pins,
+    int nPins)
 {
     GCRPin *pin, *lastPin;
 

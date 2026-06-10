@@ -131,9 +131,9 @@ int fudgeDenom = 10;
  */
 
 GlPoint *
-glRouteToPoint(loc, bestCost)
-    NLTermLoc *loc;	/* Route from points on heap to this point */
-    int bestCost;		/* If we haven't found a path with less than
+glRouteToPoint(
+    NLTermLoc *loc,	/* Route from points on heap to this point */
+    int bestCost)		/* If we haven't found a path with less than
 				 * this cost, return NULL.
 				 */
 {
@@ -321,14 +321,14 @@ glScalePenalties()
  */
 
 bool
-glPopFromHeap(pNewBest, newPaths, hEntry)
-    bool *pNewBest;	/* Should be TRUE on initial call; afterwards,
+glPopFromHeap(
+    bool *pNewBest,	/* Should be TRUE on initial call; afterwards,
 			 * we set it to TRUE when glBestCost is updated.
 			 */
-    bool newPaths;	/* TRUE if points added to glHeap since the last
+    bool newPaths,	/* TRUE if points added to glHeap since the last
 			 * call to glPopFromHeap().
 			 */
-    HeapEntry *hEntry;	/* See above */
+    HeapEntry *hEntry)	/* See above */
 {
     HeapEntry *bestCostTop, *glHeapTop;
     int minAcceptableCost, newBestCost;
@@ -495,9 +495,9 @@ glPopFromHeap(pNewBest, newPaths, hEntry)
  */
 
 bool
-glFinalPropagate(inPt, loc)
-    GlPoint *inPt;	/* Point being processed */
-    NLTermLoc *loc;	/* Destination point */
+glFinalPropagate(
+    GlPoint *inPt,	/* Point being processed */
+    NLTermLoc *loc)	/* Destination point */
 {
     GCRChannel *destCh = loc->nloc_chan;
     GCRPin *destPin = loc->nloc_pin;
@@ -565,8 +565,8 @@ glFinalPropagate(inPt, loc)
  */
 
 int
-glRiverPropagate(inPt)
-    GlPoint *inPt;
+glRiverPropagate(
+    GlPoint *inPt)
 {
     GCRPin *inPin = inPt->gl_pin, *outPin, *linkedPin;
     GCRChannel *inCh = inPt->gl_ch;
@@ -719,10 +719,10 @@ glRiverPropagate(inPt)
  */
 
 void
-glNormalPropagate(inPt, inCh, heapCost)
-    GlPoint *inPt;	/* Point on the boundary of inCh */
-    GCRChannel *inCh;	/* Channel through which we're passing */
-    int heapCost;		/* Cost with which inPt was added to heap */
+glNormalPropagate(
+    GlPoint *inPt,	/* Point on the boundary of inCh */
+    GCRChannel *inCh,	/* Channel through which we're passing */
+    int heapCost)		/* Cost with which inPt was added to heap */
 {
     PinRanges pinRange, prevRange;
     int x, y, baseCost, min, max;
@@ -913,10 +913,11 @@ glNormalPropagate(inPt, inCh, heapCost)
 
 
 int
-glMinRemainingCost(inPt, inCh, pRect, dRect)
-    GlPoint *inPt;
-    GCRChannel *inCh;
-    Rect *pRect, *dRect;
+glMinRemainingCost(
+    GlPoint *inPt,
+    GCRChannel *inCh,
+    Rect *pRect,
+    Rect *dRect)
 {
     int cost, n;
     GCRPin *pins;
@@ -1042,10 +1043,10 @@ glMinRemainingCost(inPt, inCh, pRect, dRect)
 
 
 int
-glPinCost(inPt, pin, oldCost)
-    GlPoint *inPt;
-    GCRPin *pin;
-    int oldCost;
+glPinCost(
+    GlPoint *inPt,
+    GCRPin *pin,
+    int oldCost)
 {
     int cost;
 
@@ -1089,10 +1090,10 @@ glPinCost(inPt, pin, oldCost)
  */
 
 bool
-glSetDensityClip(inPt, ch, dRect)
-    GlPoint *inPt;
-    GCRChannel *ch;
-    Rect *dRect;
+glSetDensityClip(
+    GlPoint *inPt,
+    GCRChannel *ch,
+    Rect *dRect)
 {
     GCRPin *inPin = inPt->gl_pin;
     short *den, maxdensity;
@@ -1213,11 +1214,12 @@ glSetDensityClip(inPt, ch, dRect)
  */
 
 void
-glSetPinClip(inPt, inCh, heapCost, dRect, pRect)
-    GlPoint *inPt;
-    GCRChannel *inCh;
-    int heapCost;
-    Rect *dRect, *pRect;
+glSetPinClip(
+    GlPoint *inPt,
+    GCRChannel *inCh,
+    int heapCost,
+    Rect *dRect,
+    Rect *pRect)
 {
     int bloat, estCost, t;
     Rect r;
@@ -1272,9 +1274,9 @@ glSetPinClip(inPt, inCh, heapCost, dRect, pRect)
  */
 
 void
-glResetCost(headPage, headFree)
-    GlPage *headPage;
-    int headFree;
+glResetCost(
+    GlPage *headPage,
+    int headFree)
 {
     GlPage *gpage;
     GCRPin *pin;
@@ -1315,10 +1317,10 @@ glResetCost(headPage, headFree)
  */
 
 int
-glPropagateFn(outCh, outPin, inPt)
-    GCRChannel *outCh;		/* Channel entered from outPin */
-    GCRPin *outPin;	/* Exit pin, also in inCh */
-    GlPoint *inPt;	/* Point being considered */
+glPropagateFn(
+    GCRChannel *outCh,		/* Channel entered from outPin */
+    GCRPin *outPin,	/* Exit pin, also in inCh */
+    GlPoint *inPt)	/* Point being considered */
 {
     int cost, n;
     int finalCost;
@@ -1403,14 +1405,14 @@ glPropagateFn(outCh, outPin, inPt)
  */
 
 int
-glCrossPenalty(cost, inCh, outCh, inPin, outPin)
-    int cost;			/* Distance cost */
-    GCRChannel *inCh;		/* Both inPin and outPin are in this channel */
-    GCRChannel *outCh;		/* Channel to which outPin exits, or NULL
+glCrossPenalty(
+    int cost,			/* Distance cost */
+    GCRChannel *inCh,		/* Both inPin and outPin are in this channel */
+    GCRChannel *outCh,		/* Channel to which outPin exits, or NULL
 				 * if outPin is the destination.
 				 */
-    GCRPin *inPin;	/* Pin used to enter inCh */
-    GCRPin *outPin;	/* Pin used to exit inCh into outCh */
+    GCRPin *inPin,	/* Pin used to enter inCh */
+    GCRPin *outPin)	/* Pin used to exit inCh into outCh */
 {
     GCRPin *otherPin;
     int count;
@@ -1518,9 +1520,10 @@ glCrossPenalty(cost, inCh, outCh, inPin, outPin)
  */
 
 bool
-glDensityExceeded(inCh, inPin, outPin)
-    GCRChannel *inCh;
-    GCRPin *inPin, *outPin;
+glDensityExceeded(
+    GCRChannel *inCh,
+    GCRPin *inPin,
+    GCRPin *outPin)
 {
     int min, max, maxdensity;
     short *den;
@@ -1590,10 +1593,10 @@ glDensityExceeded(inCh, inPin, outPin)
  */
 
 void
-glRectToRange(ch, r, pr)
-    GCRChannel *ch;
-    Rect *r;
-    PinRanges *pr;
+glRectToRange(
+    GCRChannel *ch,
+    Rect *r,
+    PinRanges *pr)
 {
     Rect clipR;
 
@@ -1642,8 +1645,9 @@ glRectToRange(ch, r, pr)
  */
 
 bool
-glJogsAcrossChannel(inPin, outPin)
-    GCRPin *inPin, *outPin;
+glJogsAcrossChannel(
+    GCRPin *inPin,
+    GCRPin *outPin)
 {
     switch (inPin->gcr_side)
     {
@@ -1691,11 +1695,13 @@ glJogsAcrossChannel(inPin, outPin)
  */
 
 void
-glPropagateDebug(inPt, inPin, outCh, outPin, prevCost, distCost)
-    GlPoint *inPt;
-    GCRPin *inPin, *outPin;
-    GCRChannel *outCh;
-    int prevCost, distCost;
+glPropagateDebug(
+    GlPoint *inPt,
+    GCRPin *inPin,
+    GCRChannel *outCh,
+    GCRPin *outPin,
+    int prevCost,
+    int distCost)
 {
     char mesg[256];
     Point linkedPt;
@@ -1752,9 +1758,9 @@ glPropagateDebug(inPt, inPin, outCh, outPin, prevCost, distCost)
  */
 
 void
-glLogPath(inPt, cost)
-    GlPoint *inPt;
-    int cost;
+glLogPath(
+    GlPoint *inPt,
+    int cost)
 {
     extern Rect glInitRect;
 
@@ -1784,8 +1790,8 @@ glLogPath(inPt, cost)
  */
 
 void
-glPrintPoint(inPt)
-    GlPoint *inPt;
+glPrintPoint(
+    GlPoint *inPt)
 {
     TxPrintf("(%d,%d) l=%d p=0x%x c=0x%x",
 	inPt->gl_point.p_x, inPt->gl_point.p_y,

@@ -92,9 +92,9 @@ bool glMazeCheckLoop();
  */
 
 GlPoint *
-glMazeFindPath(loc, bestCost)
-    NLTermLoc *loc;	/* Destination point */
-    int bestCost;	/* Beat this cost or give up */
+glMazeFindPath(
+    NLTermLoc *loc,	/* Destination point */
+    int bestCost)	/* Beat this cost or give up */
 {
     int heapPts, startPts, frontierPts;
     GlPoint *inPt;
@@ -183,9 +183,9 @@ glMazeFindPath(loc, bestCost)
  */
 
 void
-glMazePropFinal(inPt, loc)
-    GlPoint *inPt;	/* Point being processed */
-    NLTermLoc *loc;	/* Destination point */
+glMazePropFinal(
+    GlPoint *inPt,	/* Point being processed */
+    NLTermLoc *loc)	/* Destination point */
 {
     GCRPin *destPin = loc->nloc_pin;
     Point *destPoint = &loc->nloc_stem;
@@ -229,8 +229,8 @@ glMazePropFinal(inPt, loc)
  */
 
 void
-glMazePropRiver(inPt)
-    GlPoint *inPt;
+glMazePropRiver(
+    GlPoint *inPt)
 {
     GCRPin *inPin = inPt->gl_pin, *outPin, *linkedPin;
     GCRChannel *inCh = inPin->gcr_ch;
@@ -311,8 +311,8 @@ glMazePropRiver(inPt)
 #define	NOTBLOCKEDV(tp)	(NOTBLOCKED(tp) && TiGetType(tp) != CHAN_HRIVER)
 
 void
-glMazePropNormal(inPt)
-    GlPoint *inPt;
+glMazePropNormal(
+    GlPoint *inPt)
 {
     Tile *tile = inPt->gl_tile, *tp;
 
@@ -362,10 +362,10 @@ glMazePropNormal(inPt)
  */
 
 void
-glMazeTile(inPt, tile, dir)
-    GlPoint *inPt;		/* Top of heap point being expanded */
-    Tile *tile;	/* Tile adjacent to inPt->gl_tile */
-    int dir;			/* Direction from inPt->gl_tile to tile */
+glMazeTile(
+    GlPoint *inPt,		/* Top of heap point being expanded */
+    Tile *tile,	/* Tile adjacent to inPt->gl_tile */
+    int dir)			/* Direction from inPt->gl_tile to tile */
 {
     GCRChannel *ch = (GCRChannel *) tile->ti_client;
     TileType type = TiGetType(tile);
@@ -471,10 +471,10 @@ glMazeTile(inPt, tile, dir)
  */
 
 int
-glMazeTileFunc(inPt, tp, pin)
-    GlPoint *inPt;	/* Top of heap point being expanded */
-    Tile *tp;		/* Tile adjacent to inPt->gl_tile */
-    GCRPin *pin;	/* Available pin on boundary of tp */
+glMazeTileFunc(
+    GlPoint *inPt,	/* Top of heap point being expanded */
+    Tile *tp,		/* Tile adjacent to inPt->gl_tile */
+    GCRPin *pin)	/* Available pin on boundary of tp */
 {
     GlPoint *outPt;
     int cost;
@@ -530,9 +530,9 @@ glMazeTileFunc(inPt, tp, pin)
  */
 
 bool
-glMazeCheckLoop(path, tp)
-    GlPoint *path;
-    Tile *tp;
+glMazeCheckLoop(
+    GlPoint *path,
+    Tile *tp)
 {
     for ( ; path; path = path->gl_path)
 	if (path->gl_tile == tp)
@@ -559,9 +559,9 @@ glMazeCheckLoop(path, tp)
  */
 
 void
-glMazeResetCost(headPage, headFree)
-    GlPage *headPage;
-    int headFree;
+glMazeResetCost(
+    GlPage *headPage,
+    int headFree)
 {
     GlPage *gpage;
     GCRPin *pin;
@@ -583,8 +583,8 @@ glMazeResetCost(headPage, headFree)
 }
 
 void
-glPathPrint(path)
-    GlPoint *path;
+glPathPrint(
+    GlPoint *path)
 {
     GlPoint *rp;
     GCRPin *pin;

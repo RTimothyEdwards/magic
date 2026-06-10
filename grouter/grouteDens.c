@@ -61,10 +61,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 bool
-glDensAdjust(dens, srcPin, dstPin, netid)
-    DensMap dens[2];
-    GCRPin *srcPin, *dstPin;
-    NetId netid;
+glDensAdjust(
+    DensMap dens[2],
+    GCRPin *srcPin,
+    GCRPin *dstPin,
+    NetId netid)
 {
     int minprow, maxprow, minpcol, maxpcol, mincol, maxcol, minrow, maxrow;
     int maxvd, maxhd, col, row, nrow, ncol;
@@ -187,9 +188,10 @@ glDensAdjust(dens, srcPin, dstPin, netid)
  */
 
 void
-glDMAlloc(dm, top, cap)
-    DensMap *dm;
-    int top, cap;
+glDMAlloc(
+    DensMap *dm,
+    int top,
+    int cap)
 {
     dm->dm_max = 0;
     dm->dm_size = top + 1;
@@ -216,8 +218,9 @@ glDMAlloc(dm, top, cap)
  */
 
 void
-glDMCopy(dm1, dm2)
-    DensMap *dm1, *dm2;
+glDMCopy(
+    DensMap *dm1,
+    DensMap *dm2)
 {
     dm2->dm_max = dm1->dm_max;
     ASSERT(dm2->dm_size == dm1->dm_size, "glDMCopy");
@@ -243,8 +246,8 @@ glDMCopy(dm1, dm2)
  */
 
 void
-glDMFree(dm)
-    DensMap *dm;
+glDMFree(
+    DensMap *dm)
 {
     freeMagic((char *) dm->dm_value);
 }
@@ -266,9 +269,10 @@ glDMFree(dm)
  */
 
 int
-glDMMaxInRange(dm, lo, hi)
-    DensMap *dm;
-    int lo, hi;
+glDMMaxInRange(
+    DensMap *dm,
+    int lo,
+    int hi)
 {
     short *dval = dm->dm_value;
     int n, max;
@@ -305,9 +309,9 @@ glDMMaxInRange(dm, lo, hi)
  */
 
 void
-glDensInit(dmap, ch)
-    DensMap dmap[2];
-    GCRChannel *ch;
+glDensInit(
+    DensMap dmap[2],
+    GCRChannel *ch)
 {
     short *dSrc, *dDst, *dEnd;
 

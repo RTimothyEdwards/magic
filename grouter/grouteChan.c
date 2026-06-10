@@ -134,8 +134,8 @@ PaintArea *glChanPaintList;
  */
 
 void
-glChanBuildMap(chanList)
-    GCRChannel *chanList;	/* List of all channels in routing problem */
+glChanBuildMap(
+    GCRChannel *chanList)	/* List of all channels in routing problem */
 {
     GCRChannel *ch;
     bool workDone;
@@ -235,10 +235,10 @@ glChanBuildMap(chanList)
  */
 
 int
-glChanFeedFunc(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+glChanFeedFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     char *mesg;
     Rect r;
@@ -307,9 +307,9 @@ glChanFreeMap()
 int glChanCheckCount;
 
 void
-glChanCheckCover(chanList, mask)
-    GCRChannel *chanList;
-    TileTypeBitMask *mask;
+glChanCheckCover(
+    GCRChannel *chanList,
+    TileTypeBitMask *mask)
 {
     int glChanCheckFunc();
     GCRChannel *ch;
@@ -344,10 +344,10 @@ glChanCheckCover(chanList, mask)
  */
 
 int
-glChanCheckFunc(tile, dinfo, ch)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    GCRChannel *ch;
+glChanCheckFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    GCRChannel *ch)
 {
     char mesg[1024];
     Rect r;
@@ -394,8 +394,8 @@ glChanCheckFunc(tile, dinfo, ch)
  */
 
 bool
-glChanClip(ch)
-    GCRChannel *ch;
+glChanClip(
+    GCRChannel *ch)
 {
     bool ret;
 
@@ -432,17 +432,17 @@ glChanClip(ch)
 }
 
 int
-glChanSetClient(tile, cdata)
-    Tile *tile;
-    ClientData cdata;
+glChanSetClient(
+    Tile *tile,
+    ClientData cdata)
 {
     tile->ti_client = cdata;
     return 0;
 }
 
 void
-glChanShowTiles(mesg)
-    char *mesg;
+glChanShowTiles(
+    char *mesg)
 {
     char answer[100], m[1024];
 
@@ -457,10 +457,10 @@ glChanShowTiles(mesg)
 }
 
 int
-glChanShowFunc(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+glChanShowFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     GCRChannel *ch;
     char mesg[1024];
@@ -503,10 +503,10 @@ glChanShowFunc(tile, dinfo, clientdata)
  */
 
 int
-glChanClipFunc(tile, dinfo, area)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    Rect *area;
+glChanClipFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    Rect *area)
 {
     ClientData tileClient = tile->ti_client;
     TileType type = TiGetType(tile);
@@ -573,10 +573,10 @@ glChanClipFunc(tile, dinfo, area)
  */
 
 int
-glChanMergeFunc(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+glChanMergeFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     GCRChannel *ch = (GCRChannel *) tile->ti_client;
     Tile *delayed = NULL; /* delayed free to extend lifetime */
@@ -664,8 +664,8 @@ glChanMergeFunc(tile, dinfo, clientdata)
  */
 
 void
-glChanBlockDens(ch)
-    GCRChannel *ch;
+glChanBlockDens(
+    GCRChannel *ch)
 {
     GlobChan *gc = (GlobChan *) ch->gcr_client;
     int halfGrid, shiftedOrigin;
@@ -782,10 +782,10 @@ glChanBlockDens(ch)
 }
 
 int
-glChanPaintFunc(tile, dinfo, type)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    TileType type;
+glChanPaintFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    TileType type)
 {
     static TileType changeTable[4][4] = {
 	    /* Paint atop CHAN_NORMAL */
@@ -832,9 +832,9 @@ glChanPaintFunc(tile, dinfo, type)
  */
 
 void
-glChanFlood(area, type)
-    Rect *area;
-    TileType type;
+glChanFlood(
+    Rect *area,
+    TileType type)
 {
     TileTypeBitMask hMask, vMask;
     Rect outside;
@@ -878,10 +878,10 @@ glChanFlood(area, type)
 }
 
 int
-glChanFloodVFunc(tile, dinfo, area)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    Rect *area;
+glChanFloodVFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    Rect *area)
 {
     PaintArea *pa;
 
@@ -898,10 +898,10 @@ glChanFloodVFunc(tile, dinfo, area)
 }
 
 int
-glChanFloodHFunc(tile, dinfo, area)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    Rect *area;
+glChanFloodHFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    Rect *area)
 {
     PaintArea *pa;
 
@@ -939,10 +939,10 @@ glChanFloodHFunc(tile, dinfo, area)
  */
 
 int
-glChanSplitRiver(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+glChanSplitRiver(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     ClientData tileClient = tile->ti_client;
     Tile *tp, *newTile;
@@ -1022,10 +1022,10 @@ glChanSplitRiver(tile, dinfo, clientdata)
  */
 
 int
-glChanRiverBlock(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+glChanRiverBlock(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     GCRPin *pin, *pinLast;
     GCRChannel *ch;
@@ -1087,9 +1087,9 @@ glChanRiverBlock(tile, dinfo, clientdata)
  */
 
 Tile *
-glChanPinToTile(hintTile, pin)
-    Tile *hintTile;	/* Hint for starting the tile search */
-    GCRPin *pin;	/* Find tile containing this pin */
+glChanPinToTile(
+    Tile *hintTile,	/* Hint for starting the tile search */
+    GCRPin *pin)	/* Find tile containing this pin */
 {
     GCRChannel *ch;
     Tile *tp;

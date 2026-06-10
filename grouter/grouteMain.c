@@ -80,9 +80,9 @@ void glClientFree();
  */
 
 void
-GlGlobalRoute(chanList, netList)
-    GCRChannel *chanList;	/* List of all channels in routing problem */
-    NLNetList *netList;		/* Netlist built by caller */
+GlGlobalRoute(
+    GCRChannel *chanList,	/* List of all channels in routing problem */
+    NLNetList *netList)		/* Netlist built by caller */
 {
     HeapEntry entry;
     Heap netHeap;
@@ -166,9 +166,9 @@ GlGlobalRoute(chanList, netList)
  */
 
 void
-glClientInit(chanList, netList)
-    GCRChannel *chanList;
-    NLNetList *netList;
+glClientInit(
+    GCRChannel *chanList,
+    NLNetList *netList)
 {
     GCRChannel *ch;
     GlobChan *gc;
@@ -214,9 +214,9 @@ glClientInit(chanList, netList)
  */
 
 void
-glClientFree(chanList, netList)
-    GCRChannel *chanList;
-    NLNetList *netList;
+glClientFree(
+    GCRChannel *chanList,
+    NLNetList *netList)
 {
     GlobChan *gc;
     CZone *cz;
@@ -279,13 +279,13 @@ glClientFree(chanList, netList)
  */
 
 GlPoint *
-glProcessLoc(startList, loc, bestCost, doFast)
-    GlPoint *startList;	/* List of starting points */
-    NLTermLoc *loc;	/* Location of terminal being routed to */
-    int bestCost;	/* Best cost so far; if we can't find a path in
+glProcessLoc(
+    GlPoint *startList,	/* List of starting points */
+    NLTermLoc *loc,	/* Location of terminal being routed to */
+    int bestCost,	/* Best cost so far; if we can't find a path in
 			 * less than this cost, give up.
 			 */
-    bool doFast;	/* If TRUE, only wiggle crossings around within the
+    bool doFast)	/* If TRUE, only wiggle crossings around within the
 			 * channels on the shortest path; don't bother
 			 * considering other sequences of channels.  If FALSE,
 			 * we keep generating longer and longer paths until

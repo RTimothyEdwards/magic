@@ -111,9 +111,9 @@ void glShowCross();
  */
 
 void
-GlTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+GlTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int glDebugSides();
     typedef enum { CLRDEBUG, ONLYNET, SETDEBUG, SHOWDEBUG, SIDES } cmdType;
@@ -209,8 +209,8 @@ badCmd:
 }
 
 int
-glDebugSides(side)
-    Side *side;
+glDebugSides(
+    Side *side)
 {
     char mesg[256];
     CellDef *def = EditCellUse->cu_def;
@@ -311,9 +311,10 @@ GlInit()
  */
 
 void
-glShowPath(dest, root, kind)
-    GlPoint *dest, *root;
-    int kind;
+glShowPath(
+    GlPoint *dest,
+    GlPoint *root,
+    int kind)
 {
     static NetId dummyId = { 0, 0 };
     GlPoint *temp;
@@ -343,10 +344,10 @@ glShowPath(dest, root, kind)
  */
 
 void
-glShowCross(pin, netId, kind)
-    GCRPin *pin;	/* Pin itself */
-    NetId netId;	/* Identifies net and segment for this pin */
-    int kind;		/* Determines kind of display; see above */
+glShowCross(
+    GCRPin *pin,	/* Pin itself */
+    NetId netId,	/* Identifies net and segment for this pin */
+    int kind)		/* Determines kind of display; see above */
 {
     char *name, name1[1024], name2[1024];
     int style;
@@ -402,8 +403,10 @@ glShowCross(pin, netId, kind)
  */
 
 void
-glHistoAdd(heapPtsBefore, frontierPtsBefore, startPtsBefore)
-    int heapPtsBefore, frontierPtsBefore, startPtsBefore;
+glHistoAdd(
+    int heapPtsBefore,
+    int frontierPtsBefore,
+    int startPtsBefore)
 {
     GlNetHisto *gh;
 
@@ -575,9 +578,9 @@ glStatsInit()
  */
 
 void
-glStatsDone(numNets, numTerms)
-    int numNets;
-    int numTerms;
+glStatsDone(
+    int numNets,
+    int numTerms)
 {
 
     if (DebugIsSet(glDebugID, glDebVerbose))
