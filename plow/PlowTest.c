@@ -130,9 +130,9 @@ const struct
 };
 
 void
-PlowTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+PlowTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     pCmd plowCmd, plowGetCommand();
     Rect editArea, dummyRect, rootBox, area2;
@@ -414,8 +414,8 @@ PlowTest(w, cmd)
  */
 
 pCmd
-plowGetCommand(cmd)
-    TxCommand *cmd;
+plowGetCommand(
+    TxCommand *cmd)
 {
     int plowIndex;
 
@@ -497,9 +497,9 @@ plowDebugInit()
  */
 
 int
-plowShowShadow(edge, def)
-    Edge *edge;
-    CellDef *def;
+plowShowShadow(
+    Edge *edge,
+    CellDef *def)
 {
     char mesg[512];
     int scaleFactor = 10;
@@ -537,9 +537,9 @@ plowShowShadow(edge, def)
  */
 
 void
-plowTestJog(def, area)
-    CellDef *def;
-    Rect *area;
+plowTestJog(
+    CellDef *def,
+    Rect *area)
 {
     extern CellUse *plowYankUse;
     extern Rect plowYankedArea;
@@ -613,10 +613,10 @@ plowTestJog(def, area)
  */
 
 void
-plowDebugEdge(edge, rtePtr, mesg)
-    Edge *edge;
-    RuleTableEntry *rtePtr;
-    char *mesg;
+plowDebugEdge(
+    Edge *edge,
+    RuleTableEntry *rtePtr,
+    char *mesg)
 {
     int scaleFactor = 10;
     Rect edgeArea;
@@ -721,9 +721,9 @@ again:
  */
 
 int
-plowShowOutline(outline, clipArea)
-    Outline *outline;
-    Rect *clipArea;
+plowShowOutline(
+    Outline *outline,
+    Rect *clipArea)
 {
     static char *dirNames[] = {
 	"center", "north", "northeast", "east",
@@ -815,8 +815,8 @@ plowShowOutline(outline, clipArea)
  */
 
 void
-plowDisplay(dodef)
-    bool dodef;
+plowDisplay(
+    bool dodef)
 {
     if (dodef)
 	DBWAreaChanged(plowDummyUse->cu_def, &TiPlaneRect,

@@ -177,10 +177,10 @@ PlowDRCInit()
 
     /*ARGSUSED*/
 bool
-PlowDRCLine(sectionName, argc, argv)
-    char *sectionName;		/* Unused */
-    int argc;
-    char *argv[];
+PlowDRCLine(
+    char *sectionName,		/* Unused */
+    int argc,
+    char *argv[])
 {
     int which;
     static const struct
@@ -233,9 +233,9 @@ PlowDRCLine(sectionName, argc, argv)
  */
 
 int
-plowWidthRule(argc, argv)
-    int argc;
-    char *argv[];
+plowWidthRule(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int distance = atoi(argv[2]);
@@ -314,9 +314,9 @@ plowWidthRule(argc, argv)
  */
 
 int
-plowSpacingRule(argc, argv)
-    int argc;
-    char *argv[];
+plowSpacingRule(
+    int argc,
+    char *argv[])
 {
     char *layers1 = argv[1], *layers2 = argv[2];
     int distance = atoi(argv[3]);
@@ -458,9 +458,9 @@ plowSpacingRule(argc, argv)
  */
 
 int
-plowEdgeRule(argc, argv)
-    int argc;
-    char *argv[];
+plowEdgeRule(
+    int argc,
+    char *argv[])
 {
     char *layers1 = argv[1], *layers2 = argv[2];
     int distance = atoi(argv[3]);
@@ -693,8 +693,8 @@ PlowDRCFinal()
  */
 
 PlowRule *
-plowTechOptimizeRule(ruleList)
-    PlowRule *ruleList;
+plowTechOptimizeRule(
+    PlowRule *ruleList)
 {
     PlowRule *pCand, *pCandLast, *pr;
     TileTypeBitMask tmpMask;
@@ -819,10 +819,10 @@ PlowTechInit()
  */
 
 bool
-PlowTechLine(sectionName, argc, argv)
-    char *sectionName;	/* Unused */
-    int argc;
-    char *argv[];
+PlowTechLine(
+    char *sectionName,	/* Unused */
+    int argc,
+    char *argv[])
 {
     TileTypeBitMask types;
 
@@ -945,7 +945,10 @@ void plowScaleDown(PlowRule *pr, int scalefactor)
  */
 
 void
-DRCPlowScale(int scaled, int scalen, bool adjustmax)
+DRCPlowScale(
+    int scaled,
+    int scalen,
+    bool adjustmax)
 {
     PlowRule *pr;
     TileType i, j;
@@ -997,9 +1000,9 @@ DRCPlowScale(int scaled, int scalen, bool adjustmax)
  */
 
 void
-plowTechPrintRule(pr, f)
-    PlowRule *pr;
-    FILE *f;
+plowTechPrintRule(
+    PlowRule *pr,
+    FILE *f)
 {
     fprintf(f, "\tDISTANCE=%d, PLANE=%s, FLAGS=",
 		pr->pr_dist, DBPlaneLongName(pr->pr_pNum));
@@ -1015,10 +1018,10 @@ plowTechPrintRule(pr, f)
 }
 
 void
-plowTechShowTable(table, header, f)
-    PlowRule *table[TT_MAXTYPES][TT_MAXTYPES];
-    char *header;
-    FILE *f;
+plowTechShowTable(
+    PlowRule *table[TT_MAXTYPES][TT_MAXTYPES],
+    char *header,
+    FILE *f)
 {
     PlowRule *pr;
     TileType i, j;
@@ -1036,8 +1039,8 @@ plowTechShowTable(table, header, f)
 }
 
 void
-plowTechShow(f)
-    FILE *f;
+plowTechShow(
+    FILE *f)
 {
     plowTechShowTable(plowWidthRulesTbl, "Width Rules", f);
     plowTechShowTable(plowSpacingRulesTbl, "Spacing Rules", f);

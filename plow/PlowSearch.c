@@ -279,10 +279,10 @@ plowSrShadow(
  */
 
 int
-plowShadowRHS(tp, s, bottomLeft)
-    Tile *tp;		/* Tile whose RHS is to be followed */
-    struct shadow *s;	/* Shadow search argument */
-    int bottomLeft;		/* Bottom of 'tp', clipped to area */
+plowShadowRHS(
+    Tile *tp,		/* Tile whose RHS is to be followed */
+    struct shadow *s,	/* Shadow search argument */
+    int bottomLeft)		/* Bottom of 'tp', clipped to area */
 {
     Tile *tpR;
     int bottom, left;
@@ -434,10 +434,10 @@ plowSrShadowInitial(
  */
 
 int
-plowShadowInitialRHS(tp, s, bottomLeft)
-    Tile *tp;		/* Tile whose RHS is to be followed */
-    struct shadow *s;	/* Shadow search argument */
-    int bottomLeft;		/* Bottom of 'tp', clipped to area */
+plowShadowInitialRHS(
+    Tile *tp,		/* Tile whose RHS is to be followed */
+    struct shadow *s,	/* Shadow search argument */
+    int bottomLeft)		/* Bottom of 'tp', clipped to area */
 {
     Tile *tpR;
     int bottom, left;
@@ -591,10 +591,10 @@ plowSrShadowBack(
  */
 
 int
-plowShadowLHS(tp, s, topRight)
-    Tile *tp;		/* Tile whose LHS is to be followed */
-    struct shadow *s;	/* Shadow search argument */
-    int topRight;		/* Top of 'tp', clipped to area */
+plowShadowLHS(
+    Tile *tp,		/* Tile whose LHS is to be followed */
+    struct shadow *s,	/* Shadow search argument */
+    int topRight)		/* Top of 'tp', clipped to area */
 {
     Tile *tpL;
     int top, right;
@@ -674,14 +674,14 @@ plowShadowLHS(tp, s, topRight)
  */
 
 int
-plowAtomize(pNum, rect, proc, cdata)
-    int pNum;			/* Plane from plowYankDef to search */
-    Rect *rect;	/* LHS is the geometrical edge we search; each
+plowAtomize(
+    int pNum,			/* Plane from plowYankDef to search */
+    Rect *rect,	/* LHS is the geometrical edge we search; each
 				 * Edge found will have an e_newx coordinate
 				 * equal to the RHS of this rect.
 				 */
-    int (*proc)();		/* Procedure to apply to each Edge */
-    ClientData cdata;		/* Additional argument to (*proc)() */
+    int (*proc)(),		/* Procedure to apply to each Edge */
+    ClientData cdata)		/* Additional argument to (*proc)() */
 {
     Tile *tpL, *tpR;
     Plane *plane = plowYankDef->cd_planes[pNum];
@@ -889,8 +889,8 @@ plowSrOutline(
  */
 
 void
-plowSrOutlineInit(outline)
-    Outline *outline;
+plowSrOutlineInit(
+    Outline *outline)
 {
     Plane *plane = plowYankDef->cd_planes[outline->o_pNum];
     Tile *in, *out;
@@ -1054,8 +1054,8 @@ plowSrOutlineInit(outline)
  */
 
 void
-plowSrOutlineNext(outline)
-    Outline *outline;
+plowSrOutlineNext(
+    Outline *outline)
 {
     Tile *tpL, *tpR;
 

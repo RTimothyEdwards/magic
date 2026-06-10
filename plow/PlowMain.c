@@ -186,11 +186,11 @@ extern void plowYankCreate();
  */
 
 void
-PlowSetBound(def, area, rootDef, rootArea)
-    CellDef *def;	/* Def in which bounding area applies */
-    Rect *area;		/* Area in 'def' coordinates */
-    CellDef *rootDef;	/* Display bounding area in windows with this root */
-    Rect *rootArea;	/* Area in 'rootDef' coordinates */
+PlowSetBound(
+    CellDef *def,	/* Def in which bounding area applies */
+    Rect *area,		/* Area in 'def' coordinates */
+    CellDef *rootDef,	/* Display bounding area in windows with this root */
+    Rect *rootArea)	/* Area in 'rootDef' coordinates */
 {
     static bool firstTime = TRUE;
     PlowBoundary *pb;
@@ -267,9 +267,9 @@ PlowClearBound()
  */
 
 void
-PlowRedrawBound(window, plane)
-    MagWindow *window;		/* Window in which to redraw. */
-    Plane *plane;		/* Non-space tiles on this plane indicate
+PlowRedrawBound(
+    MagWindow *window,		/* Window in which to redraw. */
+    Plane *plane)		/* Non-space tiles on this plane indicate
 				 * areas where highlights need to be
 				 * redisplayed.
 				 */
@@ -305,7 +305,10 @@ PlowRedrawBound(window, plane)
 }
 
 int
-plowBoundAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
+plowBoundAlways1(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)
 {
     return 1;
 }
@@ -329,10 +332,10 @@ plowBoundAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
  */
 
 void
-PlowStraighten(def, area, direction)
-    CellDef *def;	/* Def whose jogs we should straighten */
-    Rect *area;		/* Area in which jogs are to be straightened */
-    int direction;	/* Pull all jogs in this direction to straighten them */
+PlowStraighten(
+    CellDef *def,	/* Def whose jogs we should straighten */
+    Rect *area,		/* Area in which jogs are to be straightened */
+    int direction)	/* Pull all jogs in this direction to straighten them */
 {
     Rect changedArea, changedUserArea, yankArea;
     bool saveCheckBoundary;
@@ -435,10 +438,10 @@ PlowStraighten(def, area, direction)
  */
 
 bool
-PlowSelection(def, pdistance, direction)
-    CellDef *def;	/* Cell being plowed */
-    int *pdistance;	/* Distance to plow */
-    int direction;	/* One of GEO_NORTH, GEO_SOUTH, GEO_WEST, or GEO_EAST */
+PlowSelection(
+    CellDef *def,	/* Cell being plowed */
+    int *pdistance,	/* Distance to plow */
+    int direction)	/* One of GEO_NORTH, GEO_SOUTH, GEO_WEST, or GEO_EAST */
 {
     Rect changedArea;
     bool firstTime;
@@ -555,10 +558,10 @@ Plow(
  */
 
 void
-plowUpdate(def, direction, pChangedArea)
-    CellDef *def;
-    int direction;
-    Rect *pChangedArea;
+plowUpdate(
+    CellDef *def,
+    int direction,
+    Rect *pChangedArea)
 {
     Rect changedUserArea;
     TileTypeBitMask *m;
@@ -825,10 +828,10 @@ plowPropagateRect(
  */
 
 bool
-plowPropagateSel(def, pdistance, changedArea)
-    CellDef *def;	/* Def being plowed */
-    int *pdistance;	/* Distance to plow */
-    Rect *changedArea;	/* Set to bounding box around area modified */
+plowPropagateSel(
+    CellDef *def,	/* Def being plowed */
+    int *pdistance,	/* Distance to plow */
+    Rect *changedArea)	/* Set to bounding box around area modified */
 {
 #ifndef NO_RUSAGE
     struct rusage t1, t2;
@@ -988,10 +991,10 @@ plowPropagateSel(def, pdistance, changedArea)
  */
 
 int
-plowSelPaintBox(rect, type, pSelBox)
-    Rect *rect;
-    TileType type;
-    Rect *pSelBox;
+plowSelPaintBox(
+    Rect *rect,
+    TileType type,
+    Rect *pSelBox)
 {
     Rect editRect;
 
@@ -1001,11 +1004,11 @@ plowSelPaintBox(rect, type, pSelBox)
 }
 
 int
-plowSelCellBox(selUse, realUse, transform, pSelBox)
-    CellUse *selUse;
-    CellUse *realUse;
-    Transform *transform;
-    Rect *pSelBox;
+plowSelCellBox(
+    CellUse *selUse,
+    CellUse *realUse,
+    Transform *transform,
+    Rect *pSelBox)
 {
     GeoInclude(&realUse->cu_bbox, pSelBox);
     return (0);
@@ -1030,10 +1033,10 @@ plowSelCellBox(selUse, realUse, transform, pSelBox)
  */
 
 int
-plowSelPaintPlow(rect, type, distance)
-    Rect *rect;
-    TileType type;
-    int distance;
+plowSelPaintPlow(
+    Rect *rect,
+    TileType type,
+    int distance)
 {
     int plowSelPaintAdd();
     Rect editRect, plowRect, plowLHS, plowRHS;
@@ -1067,8 +1070,8 @@ plowSelPaintPlow(rect, type, distance)
 }
 
 int
-plowSelPaintAdd(edge)
-    Edge *edge;
+plowSelPaintAdd(
+    Edge *edge)
 {
     int saveFlags = edge->e_flags;
 
@@ -1098,11 +1101,11 @@ plowSelPaintAdd(edge)
  */
 
 int
-plowSelCellPlow(selUse, realUse, transform, distance)
-    CellUse *selUse;		/* Cell in selection */
-    CellUse *realUse;		/* Corresponding cell in def being plowed */
-    Transform *transform;	/* UNUSED */
-    int distance;		/* Plow distance */
+plowSelCellPlow(
+    CellUse *selUse,		/* Cell in selection */
+    CellUse *realUse,		/* Corresponding cell in def being plowed */
+    Transform *transform,	/* UNUSED */
+    int distance)		/* Plow distance */
 {
     int plowFindSelCell();
     ClientData save;
@@ -1117,9 +1120,9 @@ plowSelCellPlow(selUse, realUse, transform, distance)
 }
 
 int
-plowFindSelCell(yankUse, editUse)
-    CellUse *yankUse;	/* Cell in the plow yank buffer */
-    CellUse *editUse;	/* Cell from the original cell def */
+plowFindSelCell(
+    CellUse *yankUse,	/* Cell in the plow yank buffer */
+    CellUse *editUse)	/* Cell from the original cell def */
 {
     Edge edge;
 
@@ -1180,8 +1183,8 @@ plowFindSelCell(yankUse, editUse)
  */
 
 void
-PlowExtendJogHorizon(edge)
-    Edge *edge;			/* Edge being moved */
+PlowExtendJogHorizon(
+    Edge *edge)			/* Edge being moved */
 {
     int horizonTop, horizonBot, eTop, eBot;
     Tile *tpR, *tpL;
@@ -1319,8 +1322,8 @@ restartbot:
  */
 
 void
-plowSetTrans(direction)
-    int direction;
+plowSetTrans(
+    int direction)
 {
     plowDirection = direction;
     switch (direction)
@@ -1361,10 +1364,10 @@ plowSetTrans(direction)
  */
 
 bool
-plowPastBoundary(def, edge, pmove)
-    CellDef *def;		/* Def being plowed */
-    Edge *edge;	/* Edge being moved */
-    int *pmove;	/* Updated to be the maximum distance by
+plowPastBoundary(
+    CellDef *def,		/* Def being plowed */
+    Edge *edge,	/* Edge being moved */
+    int *pmove)	/* Updated to be the maximum distance by
 				 * which something moves in an illegal area.
 				 */
 {
@@ -1422,9 +1425,9 @@ plowPastBoundary(def, edge, pmove)
  */
 
 int
-plowInitialPaint(edge, xnew)
-    Edge *edge;
-    int xnew;
+plowInitialPaint(
+    Edge *edge,
+    int xnew)
 {
     edge->e_newx = xnew;
     edge->e_flags = E_ISINITIAL;
@@ -1450,9 +1453,9 @@ plowInitialPaint(edge, xnew)
  */
 
 int
-plowInitialCell(use, plowRect)
-    CellUse *use;
-    Rect *plowRect;
+plowInitialCell(
+    CellUse *use,
+    Rect *plowRect)
 {
     int xmove;
     Edge edge;
@@ -1518,9 +1521,9 @@ plowInitialCell(use, plowRect)
  */
 
 void
-plowProcessEdge(edge, changedArea)
-    Edge *edge;		/* Edge to be processed (in plowYankDef) */
-    Rect *changedArea;	/* Include any additional area changed in this area */
+plowProcessEdge(
+    Edge *edge,		/* Edge to be processed (in plowYankDef) */
+    Rect *changedArea)	/* Include any additional area changed in this area */
 {
     int amountToMove = edge->e_newx - edge->e_x;
     RuleTableEntry *rte;
@@ -1649,8 +1652,8 @@ worktodo:
  */
 
 int
-plowApplySearchRules(edge)
-    Edge *edge;
+plowApplySearchRules(
+    Edge *edge)
 {
     PlowRule *widthRules, *rules;
     RuleTableEntry *rte;
@@ -1742,10 +1745,10 @@ plowApplySearchRules(edge)
  */
 
 PlowRule *
-plowBuildWidthRules(edge, bbox, phalo)
-    Edge *edge;		/* Edge being moved */
-    Rect *bbox;		/* Bounding box of def being plowed */
-    int *phalo;		/* Update *phalo to be the max of its initial value
+plowBuildWidthRules(
+    Edge *edge,		/* Edge being moved */
+    Rect *bbox,		/* Bounding box of def being plowed */
+    int *phalo)		/* Update *phalo to be the max of its initial value
 			 * and each of the widths we compute for the rules
 			 * we return.
 			 */
@@ -1829,8 +1832,8 @@ retry:
  */
 
 void
-plowMoveEdge(edge)
-    Edge *edge;	/* Edge to be moved */
+plowMoveEdge(
+    Edge *edge)	/* Edge to be moved */
 {
     Plane *plane = plowYankDef->cd_planes[edge->e_pNum];
     Tile *delayed = NULL; /* delayed free to extend lifetime */
@@ -1948,9 +1951,9 @@ plowMoveEdge(edge)
  */
 
 Tile *
-plowSplitY(tp, y)
-    Tile *tp;
-    int y;
+plowSplitY(
+    Tile *tp,
+    int y)
 {
     Tile *newTile;
 
@@ -1986,7 +1989,10 @@ plowSplitY(tp, y)
  */
 
 void
-plowMergeTop(Tile **delay1, Tile *tp, Plane *plane)
+plowMergeTop(
+    Tile **delay1,
+    Tile *tp,
+    Plane *plane)
 {
     Tile *tpRT = RT(tp);
 
@@ -1999,7 +2005,10 @@ plowMergeTop(Tile **delay1, Tile *tp, Plane *plane)
 }
 
 void
-plowMergeBottom(Tile **delay1, Tile *tp, Plane *plane)
+plowMergeBottom(
+    Tile **delay1,
+    Tile *tp,
+    Plane *plane)
 {
     Tile *tpLB = LB(tp);
 
@@ -2259,9 +2268,12 @@ plowYankCreate()
 
 #ifndef	NO_RUSAGE
 void
-plowShowTime(t1, t2, nqueued, nprocessed, nmoved)
-    struct rusage *t1, *t2;
-    int nqueued, nprocessed, nmoved;
+plowShowTime(
+    struct rusage *t1,
+    struct rusage *t2,
+    int nqueued,
+    int nprocessed,
+    int nmoved)
 {
     double secs, usecs;
 

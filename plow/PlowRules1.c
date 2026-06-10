@@ -77,8 +77,8 @@ bool plowSliverApplyRules();
  */
 
 void
-prClearUmbra(edge)
-    Edge *edge;	/* Edge being moved */
+prClearUmbra(
+    Edge *edge)	/* Edge being moved */
 {
     TileTypeBitMask rhsTypes;
     struct applyRule ar;
@@ -123,9 +123,9 @@ prClearUmbra(edge)
  */
 
 void
-prUmbra(edge, rules)
-    Edge *edge;		/* Edge being moved */
-    PlowRule *rules;	/* List of rules */
+prUmbra(
+    Edge *edge,		/* Edge being moved */
+    PlowRule *rules)	/* List of rules */
 {
     PlowRule *pr;
     struct applyRule ar;
@@ -215,9 +215,9 @@ prUmbra(edge, rules)
  */
 
 void
-prPenumbraTop(edge, rules)
-    Edge *edge;		/* Edge being moved */
-    PlowRule *rules;	/* Rules to apply (must be non-NULL) */
+prPenumbraTop(
+    Edge *edge,		/* Edge being moved */
+    PlowRule *rules)	/* Rules to apply (must be non-NULL) */
 {
     PlowRule *pr;
     struct applyRule ar;
@@ -238,9 +238,9 @@ prPenumbraTop(edge, rules)
 }
 
 int
-prPenumbraBot(edge, rules)
-    Edge *edge;		/* Edge being moved */
-    PlowRule *rules;	/* Rules to apply (must be non-NULL) */
+prPenumbraBot(
+    Edge *edge,		/* Edge being moved */
+    PlowRule *rules)	/* Rules to apply (must be non-NULL) */
 {
     TileTypeBitMask insideTypes;
     PlowRule *pr;
@@ -301,9 +301,9 @@ prPenumbraBot(edge, rules)
  */
 
 int
-plowPenumbraTopProc(outline, ar)
-    Outline *outline;		/* Segment along penumbra border */
-    struct applyRule *ar;	/* Info needed for shadow search */
+plowPenumbraTopProc(
+    Outline *outline,		/* Segment along penumbra border */
+    struct applyRule *ar)	/* Info needed for shadow search */
 {
     Edge *movingEdge = ar->ar_moving;
     PlowRule *pr = ar->ar_rule;
@@ -355,9 +355,9 @@ plowPenumbraTopProc(outline, ar)
 }
 
 int
-plowPenumbraBotProc(outline, ar)
-    Outline *outline;		/* Segment along penumbra border */
-    struct applyRule *ar;	/* Info needed for shadow search */
+plowPenumbraBotProc(
+    Outline *outline,		/* Segment along penumbra border */
+    struct applyRule *ar)	/* Info needed for shadow search */
 {
     Edge *movingEdge = ar->ar_moving;
     PlowRule *pr = ar->ar_rule;
@@ -425,9 +425,9 @@ plowPenumbraBotProc(outline, ar)
  */
 
 int
-plowPenumbraRule(impactedEdge, ar)
-    Edge *impactedEdge;	/* Edge found by shadow search */
-    struct applyRule *ar;	/* Edge causing the shadow search, and
+plowPenumbraRule(
+    Edge *impactedEdge,	/* Edge found by shadow search */
+    struct applyRule *ar)	/* Edge causing the shadow search, and
 					 * the design rule to apply.
 					 */
 {
@@ -478,9 +478,9 @@ plowPenumbraRule(impactedEdge, ar)
  */
 
 int
-prSliverTop(edge, rules)
-    Edge *edge;
-    PlowRule *rules;
+prSliverTop(
+    Edge *edge,
+    PlowRule *rules)
 {
     PlowRule *pr;
     struct applyRule ar;
@@ -532,9 +532,9 @@ prSliverTop(edge, rules)
 }
 
 int
-prSliverBot(edge, rules)
-    Edge *edge;
-    PlowRule *rules;
+prSliverBot(
+    Edge *edge,
+    PlowRule *rules)
 {
     TileTypeBitMask insideTypes;
     PlowRule *pr;
@@ -619,9 +619,9 @@ prSliverBot(edge, rules)
  */
 
 int
-plowSliverTopMove(outline, ar)
-    Outline *outline;		/* Segment of outline being followed */
-    struct applyRule *ar;
+plowSliverTopMove(
+    Outline *outline,		/* Segment of outline being followed */
+    struct applyRule *ar)
 {
     int howfar = ar->ar_moving->e_newx - ar->ar_moving->e_x;
     Edge edge;
@@ -649,13 +649,13 @@ plowSliverTopMove(outline, ar)
 }
 
 int
-plowSliverBotMove(outline, ar)
-    Outline *outline;		/* Segment of outline being followed.
+plowSliverBotMove(
+    Outline *outline,		/* Segment of outline being followed.
 					 * The sense of "inside" and "outside"
 					 * is reversed from that when handling
 					 * the top half of the penumbra.
 					 */
-    struct applyRule *ar;
+    struct applyRule *ar)
 {
     int howfar = ar->ar_moving->e_newx - ar->ar_moving->e_x;
     Edge edge;
@@ -712,9 +712,9 @@ plowSliverBotMove(outline, ar)
  */
 
 int
-plowSliverTopExtent(outline, ar)
-    Outline *outline;		/* Segment of outline being followed */
-    struct applyRule *ar;
+plowSliverTopExtent(
+    Outline *outline,		/* Segment of outline being followed */
+    struct applyRule *ar)
 {
     Edge *movingEdge = ar->ar_moving;
     int newx, xmove, ret = 0;
@@ -818,9 +818,9 @@ plowSliverTopExtent(outline, ar)
 }
 
 int
-plowSliverBotExtent(outline, ar)
-    Outline *outline;		/* Segment of outline being followed */
-    struct applyRule *ar;
+plowSliverBotExtent(
+    Outline *outline,		/* Segment of outline being followed */
+    struct applyRule *ar)
 {
     Edge *movingEdge = ar->ar_moving;
     int newx, xmove, ret = 0;
@@ -956,10 +956,10 @@ plowSliverBotExtent(outline, ar)
  */
 
 bool
-plowSliverApplyRules(ar, far, farDist)
-    struct applyRule *ar;
-    TileType far;
-    int farDist;
+plowSliverApplyRules(
+    struct applyRule *ar,
+    TileType far,
+    int farDist)
 {
     TileType near = ar->ar_moving->e_ltype;
     PlowRule *pr;
@@ -1002,9 +1002,9 @@ plowSliverApplyRules(ar, far, farDist)
  */
 
 int
-plowApplyRule(impactedEdge, ar)
-    Edge *impactedEdge;	/* Edge found by shadow search */
-    struct applyRule *ar;	/* Edge causing the shadow search, and
+plowApplyRule(
+    Edge *impactedEdge,	/* Edge found by shadow search */
+    struct applyRule *ar)	/* Edge causing the shadow search, and
 					 * the design rule to apply.
 					 */
 {

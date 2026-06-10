@@ -81,9 +81,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define	PLOWPLOW		9	/* Implicit when direction specified */
 
 void
-CmdPlow(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdPlow(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int xdelta, ydelta, absX, absY;
     int option, dir, distance;
@@ -334,9 +334,9 @@ usage2:
  */
 
 void
-CmdStraighten(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdStraighten(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect editBox;
     int dir;
@@ -394,9 +394,9 @@ usage:
  */
 
 void
-CmdPlowTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdPlowTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     PlowTest(w, cmd);
 }

@@ -66,8 +66,8 @@ int plowDragEdgeProc();
  */
 
 void
-prFixedLHS(edge)
-    Edge *edge;			/* Edge being moved */
+prFixedLHS(
+    Edge *edge)			/* Edge being moved */
 {
     int distance = edge->e_newx - edge->e_x;
     Tile *tpL;
@@ -99,8 +99,8 @@ restart:
 }
 
 int
-prFixedRHS(edge)
-    Edge *edge;			/* Edge being moved */
+prFixedRHS(
+    Edge *edge)			/* Edge being moved */
 {
     int distance = edge->e_newx - edge->e_x;
     Tile *tpR, *tp;
@@ -207,8 +207,8 @@ restart:
  */
 
 void
-prFixedPenumbraTop(edge)
-    Edge *edge;	/* Edge being moved */
+prFixedPenumbraTop(
+    Edge *edge)	/* Edge being moved */
 {
     struct applyRule ar;
     PlowRule *pr;
@@ -237,8 +237,8 @@ prFixedPenumbraTop(edge)
 }
 
 int
-prFixedPenumbraBot(edge)
-    Edge *edge;	/* Edge being moved */
+prFixedPenumbraBot(
+    Edge *edge)	/* Edge being moved */
 {
     struct applyRule ar;
     PlowRule *pr;
@@ -289,8 +289,8 @@ prFixedPenumbraBot(edge)
  */
 
 void
-prFixedDragStubs(edge)
-    Edge *edge;	/* Edge being moved; RHS is fixed-width */
+prFixedDragStubs(
+    Edge *edge)	/* Edge being moved; RHS is fixed-width */
 {
     int distance = edge->e_newx - edge->e_x;
     Tile *tpL;
@@ -343,12 +343,12 @@ restart:
  */
 
 int
-plowDragEdgeProc(lhsEdge, movingEdge)
-    Edge *lhsEdge;	/* Edge on LHS; the caller has already
+plowDragEdgeProc(
+    Edge *lhsEdge,	/* Edge on LHS; the caller has already
 				 * determined that this edge has not
 				 * already moved far enough.
 				 */
-    Edge *movingEdge;	/* RHS of this edge is fixed-width */
+    Edge *movingEdge)	/* RHS of this edge is fixed-width */
 {
     PlowRule *pr;
     int xsep, width;
@@ -412,8 +412,8 @@ plowDragEdgeProc(lhsEdge, movingEdge)
  */
 
 void
-prContactLHS(edge)
-    Edge *edge;	/* Edge being moved (LHS is contact) */
+prContactLHS(
+    Edge *edge)	/* Edge being moved (LHS is contact) */
 {
     int pNum;
     PlaneMask connPlanes = DBConnPlanes[edge->e_ltype];
@@ -429,8 +429,8 @@ prContactLHS(edge)
 }
 
 int
-prContactRHS(edge)
-    Edge *edge;	/* Edge being moved (RHS is contact) */
+prContactRHS(
+    Edge *edge)	/* Edge being moved (RHS is contact) */
 {
     int pNum;
     PlaneMask connPlanes = DBConnPlanes[edge->e_rtype];
@@ -467,8 +467,8 @@ prContactRHS(edge)
  */
 
 void
-prCoverTop(edge)
-    Edge *edge;	/* Edge being moved */
+prCoverTop(
+    Edge *edge)	/* Edge being moved */
 {
     TileType ltype, rtype;
     PlowRule *pr;
@@ -505,8 +505,8 @@ prCoverTop(edge)
 }
 
 int
-prCoverBot(edge)
-    Edge *edge;	/* Edge being moved */
+prCoverBot(
+    Edge *edge)	/* Edge being moved */
 {
     TileType ltype, rtype;
     PlowRule *pr;
@@ -562,8 +562,8 @@ prCoverBot(edge)
  */
 
 void
-prIllegalTop(edge)
-    Edge *edge;
+prIllegalTop(
+    Edge *edge)
 {
     TileTypeBitMask insideTypes;
     struct applyRule ar;
@@ -592,8 +592,8 @@ prIllegalTop(edge)
 }
 
 int
-prIllegalBot(edge)
-    Edge *edge;
+prIllegalBot(
+    Edge *edge)
 {
     TileTypeBitMask insideTypes;
     struct applyRule ar;
@@ -642,9 +642,9 @@ prIllegalBot(edge)
  */
 
 int
-plowCoverTopProc(outline, ar)
-    Outline *outline;
-    struct applyRule *ar;
+plowCoverTopProc(
+    Outline *outline,
+    struct applyRule *ar)
 {
     Edge edge;
     int ret = 0;
@@ -678,9 +678,9 @@ plowCoverTopProc(outline, ar)
 }
 
 int
-plowCoverBotProc(outline, ar)
-    Outline *outline;
-    struct applyRule *ar;
+plowCoverBotProc(
+    Outline *outline,
+    struct applyRule *ar)
 {
     Edge edge;
     int ret = 0;
@@ -741,9 +741,9 @@ plowCoverBotProc(outline, ar)
  */
 
 int
-plowIllegalTopProc(outline, ar)
-    Outline *outline;
-    struct applyRule *ar;
+plowIllegalTopProc(
+    Outline *outline,
+    struct applyRule *ar)
 {
     TileType badType = TiGetTypeExact(outline->o_inside), leftType;
     Edge *movingEdge = ar->ar_moving;
@@ -786,9 +786,9 @@ found_bad:
 }
 
 int
-plowIllegalBotProc(outline, ar)
-    Outline *outline;
-    struct applyRule *ar;
+plowIllegalBotProc(
+    Outline *outline,
+    struct applyRule *ar)
 {
     TileType badType = TiGetTypeExact(outline->o_outside), leftType;
     Edge *movingEdge = ar->ar_moving;
@@ -853,8 +853,8 @@ found_bad:
  */
 
 void
-prFindCells(edge)
-    Edge *edge;	/* Edge being moved */
+prFindCells(
+    Edge *edge)	/* Edge being moved */
 {
     BPlane *cellPlane = plowYankDef->cd_cellPlane;
     struct applyRule ar;
@@ -890,8 +890,8 @@ prFindCells(edge)
  */
 
 void
-prCell(edge)
-    Edge *edge;			/* Cell edge being moved */
+prCell(
+    Edge *edge)			/* Cell edge being moved */
 {
     Rect cellArea, shadowArea;
     CellUse *use = edge->e_use;
@@ -962,10 +962,10 @@ prCell(edge)
  */
 
 int
-plowCellDragPaint(tile, dinfo, ar)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct applyRule *ar;
+plowCellDragPaint(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct applyRule *ar)
 {
     Edge *movingEdge = ar->ar_moving;
     int distance = movingEdge->e_newx - movingEdge->e_x;
@@ -1016,9 +1016,9 @@ plowCellDragPaint(tile, dinfo, ar)
  */
 
 int
-plowCellPushPaint(impactedEdge, ar)
-    Edge *impactedEdge;		/* Edge found by shadow search */
-    struct applyRule *ar;	/* Describes edge being moved and search area */
+plowCellPushPaint(
+    Edge *impactedEdge,		/* Edge found by shadow search */
+    struct applyRule *ar)	/* Describes edge being moved and search area */
 {
     Edge *movingEdge = ar->ar_moving;
     int xsep, newx;
@@ -1057,9 +1057,9 @@ plowCellPushPaint(impactedEdge, ar)
  */
 
 int
-plowFoundCell(use, ar)
-    CellUse *use;
-    struct applyRule *ar;
+plowFoundCell(
+    CellUse *use,
+    struct applyRule *ar)
 {
     Edge *movingEdge = ar->ar_moving;
     int xmove, xsep;

@@ -97,9 +97,9 @@ extern void plowProcessJog();
  */
 
 void
-plowCleanupJogs(area, changedArea)
-    Rect *area;
-    Rect *changedArea;
+plowCleanupJogs(
+    Rect *area,
+    Rect *changedArea)
 {
     Edge edge;
 
@@ -167,9 +167,9 @@ plowCleanupJogs(area, changedArea)
  */
 
 void
-plowProcessJog(edge, area)
-    Edge *edge;
-    Rect *area;
+plowProcessJog(
+    Edge *edge,
+    Rect *area)
 {
     Rect r;
 
@@ -218,8 +218,8 @@ plowProcessJog(edge, area)
  */
 
 int
-plowJogPropagateLeft(edge)
-    Edge *edge;
+plowJogPropagateLeft(
+    Edge *edge)
 {
     if (DebugIsSet(plowDebugID, plowDebJogs))
 	plowDebugEdge(edge, (RuleTableEntry *) NULL, "plowJogPropagateLeft");
@@ -254,9 +254,9 @@ plowJogPropagateLeft(edge)
  */
 
 int
-plowProcessJogFunc(edge, area)
-    Edge *edge;		/* Edge found by shadow search */
-    Rect *area;		/* Area in which jogs are being eliminated */
+plowProcessJogFunc(
+    Edge *edge,		/* Edge found by shadow search */
+    Rect *area)		/* Area in which jogs are being eliminated */
 {
     LinkedRect *lr;
     Rect r, lhs;
@@ -418,8 +418,8 @@ plowProcessJogFunc(edge, area)
  */
 
 int
-plowJogTopProc(outline)
-    Outline *outline;
+plowJogTopProc(
+    Outline *outline)
 {
     /* Stop if we're no longer adjacent to space */
     if (TiGetTypeExact(outline->o_outside) != TT_SPACE)
@@ -465,8 +465,8 @@ plowJogTopProc(outline)
 }
 
 int
-plowJogBotProc(outline)
-    Outline *outline;
+plowJogBotProc(
+    Outline *outline)
 {
     /* Stop if we're no longer adjacent to space */
     if (TiGetTypeExact(outline->o_inside) != TT_SPACE)
@@ -534,9 +534,9 @@ plowJogBotProc(outline)
  */
 
 int
-plowJogDragLHS(edge, newx)
-    Edge *edge;		/* Edge potentially on the LHS of the jog */
-    int newx;		/* Move the edge to this position */
+plowJogDragLHS(
+    Edge *edge,		/* Edge potentially on the LHS of the jog */
+    int newx)		/* Move the edge to this position */
 {
     LinkedRect *lr;
 
@@ -583,8 +583,8 @@ plowJogDragLHS(edge, newx)
  */
 
 int
-plowJogMoveFunc(edge)
-    Edge *edge;
+plowJogMoveFunc(
+    Edge *edge)
 {
     Edge *origEdge = jogEdge;
 
