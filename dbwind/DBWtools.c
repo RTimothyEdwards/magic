@@ -111,13 +111,13 @@ extern int DBWToolDraw();
  */
 
 MagWindow *
-toolFindPoint(p, rootPoint, rootArea)
-    Point *p;			/* The point to find, in the current window. */
-    Point *rootPoint;		/* Modified to contain coordinates of point
+toolFindPoint(
+    Point *p,			/* The point to find, in the current window. */
+    Point *rootPoint,		/* Modified to contain coordinates of point
 				 * in root cell coordinates.  Is unchanged
 				 * if NULL is returned.
 				 */
-    Rect *rootArea;		/* Modified to contain box around point.  Is
+    Rect *rootArea)		/* Modified to contain box around point.  Is
 				 * unchanged when NULL is returned.
 				 */
 {
@@ -158,12 +158,12 @@ toolFindPoint(p, rootPoint, rootArea)
  */
 
 MagWindow *
-ToolGetPoint(rootPoint, rootArea)
-    Point *rootPoint;		/* Modified to contain coordinates of point
+ToolGetPoint(
+    Point *rootPoint,		/* Modified to contain coordinates of point
 				 * in root cell coordinates.  Is unchanged
 				 * if NULL is returned.
 				 */
-    Rect *rootArea;		/* Modified to contain box around point.  Is
+    Rect *rootArea)		/* Modified to contain box around point.  Is
 				 * unchanged when NULL is returned.
 				 */
 {
@@ -193,9 +193,9 @@ ToolGetPoint(rootPoint, rootArea)
  */
 
 bool
-ToolGetBox(rootDef, rootArea)
-    CellDef **rootDef;		/* Filled in with the root def of the box */
-    Rect *rootArea;		/* Filled in with area of box.  Will be
+ToolGetBox(
+    CellDef **rootDef,		/* Filled in with the root def of the box */
+    Rect *rootArea)		/* Filled in with area of box.  Will be
 				 * unchanged when NULL is returned.
 				 */
 {
@@ -210,9 +210,9 @@ ToolGetBox(rootDef, rootArea)
 /* ToolScaleBox ---  Simple scaling of the root area box, no update needed */
 
 void
-ToolScaleBox(scalen, scaled)
-    int scalen;
-    int scaled;
+ToolScaleBox(
+    int scalen,
+    int scaled)
 {
     DBScalePoint(&boxRootArea.r_ll, scalen, scaled);
     DBScalePoint(&boxRootArea.r_ur, scalen, scaled);
@@ -245,11 +245,11 @@ ToolScaleBox(scalen, scaled)
 static int toolMask;		/* Shared between these two routines. */
 
 MagWindow *
-ToolGetBoxWindow(rootArea, pMask)
-    Rect *rootArea;		/* Filled in with area of box.  Will be
+ToolGetBoxWindow(
+    Rect *rootArea,		/* Filled in with area of box.  Will be
 				 * unchanged when NULL is returned.
 				 */
-    int *pMask;			/* Filled in with mask of all windows
+    int *pMask)			/* Filled in with mask of all windows
 				 * containing box.
 				 */
 {
@@ -275,9 +275,9 @@ ToolGetBoxWindow(rootArea, pMask)
 }
 
 int
-toolWindowSave(window, clientData)
-    MagWindow *window;		/* Window that matched in some search. */
-    ClientData clientData;	/* Contains the address of a location
+toolWindowSave(
+    MagWindow *window,		/* Window that matched in some search. */
+    ClientData clientData)	/* Contains the address of a location
 				 * to be filled in with the window address.
 				 */
 {
@@ -311,8 +311,8 @@ toolWindowSave(window, clientData)
  */
 
 bool
-ToolGetEditBox(rect)
-    Rect *rect;
+ToolGetEditBox(
+    Rect *rect)
 {
     CellDef *editDef;
 
@@ -370,9 +370,8 @@ ToolGetEditBox(rect)
  */
 
 int
-ToolGetCorner(screenPoint)
-    Point *screenPoint;
-
+ToolGetCorner(
+    Point *screenPoint)
 {
     Point p;
     MagWindow *w;
@@ -447,9 +446,9 @@ dbwCrosshairInit()
  */
 
 void
-dbwRecordCrosshairYPos(def, erase)
-    CellDef *def;
-    bool erase;			/* TRUE means crossair is being erased from its
+dbwRecordCrosshairYPos(
+    CellDef *def,
+    bool erase)			/* TRUE means crossair is being erased from its
 				 * current position.  FALSE means the crosshair
 				 * is being added at a new position.
 				 */
@@ -463,9 +462,9 @@ dbwRecordCrosshairYPos(def, erase)
 }
 
 void
-dbwRecordCrosshairXPos(def, erase)
-    CellDef *def;
-    bool erase;			/* TRUE means crossair is being erased from its
+dbwRecordCrosshairXPos(
+    CellDef *def,
+    bool erase)			/* TRUE means crossair is being erased from its
 				 * current position.  FALSE means the crosshair
 				 * is being added at a new position.
 				 */
@@ -497,9 +496,9 @@ dbwRecordCrosshairXPos(def, erase)
  */
 
 void
-DBWDrawCrosshair(window, plane)
-    MagWindow *window;		/* Window in which to redraw box. */
-    Plane *plane;		/* Non-space tiles on this plane indicate
+DBWDrawCrosshair(
+    MagWindow *window,		/* Window in which to redraw box. */
+    Plane *plane)		/* Non-space tiles on this plane indicate
 				 * which highlight areas must be redrawn.
 				 */
 {
@@ -532,9 +531,9 @@ DBWDrawCrosshair(window, plane)
 /* DBWScaleCrosshair ---  Simple scaling of the crosshair point, no update needed */
 
 void
-DBWScaleCrosshair(scalen, scaled)
-    int scalen;
-    int scaled;
+DBWScaleCrosshair(
+    int scalen,
+    int scaled)
 {
     DBScalePoint(&(curCrosshair.pos), scalen, scaled);
 }
@@ -554,9 +553,9 @@ DBWScaleCrosshair(scalen, scaled)
  */
 
 void
-DBWSetCrosshair(window, pos)
-    MagWindow *window;
-    Point *pos;			/* New crosshair location in coords of rootDef. */
+DBWSetCrosshair(
+    MagWindow *window,
+    Point *pos)			/* New crosshair location in coords of rootDef. */
 {
     bool needUpdate = FALSE;
 
@@ -617,8 +616,8 @@ DBWSetCrosshair(window, pos)
  */
 
 void
-dbwRecordBoxArea(erase)
-    bool erase;			/* TRUE means box is being erased from its
+dbwRecordBoxArea(
+    bool erase)			/* TRUE means box is being erased from its
 				 * current area.  FALSE means box is being
 				 * added to a new area.
 				 */
@@ -666,9 +665,9 @@ dbwRecordBoxArea(erase)
  */
 
 void
-DBWDrawBox(window, plane)
-    MagWindow *window;		/* Window in which to redraw box. */
-    Plane *plane;		/* Non-space tiles on this plane indicate
+DBWDrawBox(
+    MagWindow *window,		/* Window in which to redraw box. */
+    Plane *plane)		/* Non-space tiles on this plane indicate
 				 * which highlight areas must be redrawn.
 				 */
 {
@@ -797,12 +796,12 @@ dbwBoxAlways1(
  */
 
 void
-DBWSetBox(rootDef, rect)
-    CellDef *rootDef;		/* Root definition in whose coordinate system
+DBWSetBox(
+    CellDef *rootDef,		/* Root definition in whose coordinate system
 				 * the box is defined.  It will appear in all
 				 * windows with this as root cell.
 				 */
-    Rect *rect;			/* New box location in coords of rootDef. */
+    Rect *rect)			/* New box location in coords of rootDef. */
 {
     /* Record the old and area of the box for redisplay. */
 
@@ -841,7 +840,8 @@ DBWSetBox(rootDef, rect)
  */
 
 void
-DBWResetBox(CellDef *def)
+DBWResetBox(
+    CellDef *def)
 {
     if (def == boxRootDef)
 	boxRootDef = NULL;
@@ -873,17 +873,17 @@ DBWResetBox(CellDef *def)
  */
 
 void
-ToolMoveBox(corner, point, screenCoords, rootDef)
-    int corner;			/* Specifies a corner in the format
+ToolMoveBox(
+    int corner,			/* Specifies a corner in the format
 				 * returned by ToolGetCorner.
 				 */
-    Point *point;		/* New position of corner, in screen
+    Point *point,		/* New position of corner, in screen
 				 * coordinates.
 				 */
-    int screenCoords;		/* TRUE means point is in screen coordinates,
+    int screenCoords,		/* TRUE means point is in screen coordinates,
 				 * FALSE means root cell coordinates.
 				 */
-    CellDef *rootDef;		/* Used only when screenCoords = FALSE, to
+    CellDef *rootDef)		/* Used only when screenCoords = FALSE, to
 				 * give root cell def.
 				 */
 {
@@ -977,17 +977,17 @@ ToolMoveBox(corner, point, screenCoords, rootDef)
  */
 
 void
-ToolMoveCorner(corner, point, screenCoords, rootDef)
-    int corner;			/* The corner to be moved, in format
+ToolMoveCorner(
+    int corner,			/* The corner to be moved, in format
 				 * returned by ToolGetCorner.
 				 */
-    Point *point;		/* Destination of corner. */
-    int screenCoords;		/* TRUE means point is in screen coordinates,
+    Point *point,		/* Destination of corner. */
+    int screenCoords,		/* TRUE means point is in screen coordinates,
 				 * we look up window and translate to root
 				 * cell coordinates.  FALSE means point is in
 				 * coordinates of rootDef.
 				 */
-    CellDef *rootDef;		/* Root cell Def if screenCoords = FALSE,
+    CellDef *rootDef)		/* Root cell Def if screenCoords = FALSE,
 				 * unused otherwise.
 				 */
 {
@@ -1089,10 +1089,10 @@ ToolMoveCorner(corner, point, screenCoords, rootDef)
  */
 
 void
-ToolSnapToGrid(w, p, rEnclose)
-    MagWindow *w;
-    Point *p;
-    Rect *rEnclose;
+ToolSnapToGrid(
+    MagWindow *w,
+    Point *p,
+    Rect *rEnclose)
 {
     DBWclientRec *crec = (DBWclientRec *) w->w_clientData;
     Rect *r;

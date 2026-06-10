@@ -120,9 +120,9 @@ static CellDef *dbwfbRootDef;		/* To pass root cell definition from
  */
 
 void
-DBWFeedbackRedraw(window, plane)
-    MagWindow *window;		/* Window in which to redraw. */
-    Plane *plane;		/* Non-space tiles on this plane mark what
+DBWFeedbackRedraw(
+    MagWindow *window,		/* Window in which to redraw. */
+    Plane *plane)		/* Non-space tiles on this plane mark what
 				 * needs to be redrawn.
 				 */
 {
@@ -276,8 +276,8 @@ dbwFeedbackAlways1(
  */
 
 void
-DBWFeedbackClear(text)
-    char *text;
+DBWFeedbackClear(
+    char *text)
 {
     int i, oldCount;
     Feedback *fb, *fl, *fe;
@@ -377,13 +377,13 @@ DBWFeedbackClear(text)
  */
 
 void
-DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
-    Rect *area;			/* The area to be highlighted. */
-    char *text;			/* Text associated with the area. */
-    CellDef *cellDef;		/* The cellDef in whose coordinates area
+DBWFeedbackAdd(
+    Rect *area,			/* The area to be highlighted. */
+    char *text,			/* Text associated with the area. */
+    CellDef *cellDef,		/* The cellDef in whose coordinates area
 				 * is given.
 				 */
-    int scaleFactor;		/* The coordinates provided for feedback
+    int scaleFactor,		/* The coordinates provided for feedback
 				 * areas are divided by this to produce
 				 * coordinates in Magic database units.
 				 * This will probably be 1 most of the time.
@@ -394,7 +394,7 @@ DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
 				 * exactly the same coordinates as other Magic
 				 * stuff.
 				 */
-    int style;			/* A display style to use for the feedback.
+    int style)			/* A display style to use for the feedback.
 				 * Use one of:
 				 * STYLE_OUTLINEHIGHLIGHTS:	solid outlines
 				 * STYLE_DOTTEDHIGHLIGHTS:	dotted outlines
@@ -505,12 +505,12 @@ DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
  */
 
 int
-dbwfbGetTransform(use, transform, cdarg)
-    CellUse *use;			/* A root use that is an ancestor
+dbwfbGetTransform(
+    CellUse *use,			/* A root use that is an ancestor
 					 * of cellDef in DBWFeedbackAdd.
 					 */
-    Transform *transform;		/* Transform up from cellDef to use. */
-    Transform *cdarg;			/* Place to store transform from
+    Transform *transform,		/* Transform up from cellDef to use. */
+    Transform *cdarg)			/* Place to store transform from
 					 * cellDef to its root def.
 					 */
 {
@@ -533,9 +533,9 @@ dbwfbGetTransform(use, transform, cdarg)
 
 /*ARGSUSED*/
 int
-dbwfbWindFunc(w, clientData)
-    MagWindow *w;		/* UNUSED */
-    ClientData clientData;	/* UNUSED */
+dbwfbWindFunc(
+    MagWindow *w,		/* UNUSED */
+    ClientData clientData)	/* UNUSED */
 {
     return 1;
 }
@@ -630,18 +630,18 @@ DBWFeedbackShow()
  */
 
 char *
-DBWFeedbackNth(nth, area, pRootDef, pStyle)
-    int nth;			/* Selects which feedback area to return
+DBWFeedbackNth(
+    int nth,			/* Selects which feedback area to return
 				 * stuff from.  (0 <= nth < DBWFeedbackCount)
 				 */
-    Rect *area;			/* To be filled in with area of feedback, in
+    Rect *area,			/* To be filled in with area of feedback, in
 				 * rounded-outward Magic coordinates.
 				 */
-    CellDef **pRootDef;		/* *pRootDef gets filled in with root def for
+    CellDef **pRootDef,		/* *pRootDef gets filled in with root def for
 				 * this feedback area.  If pRootDef is NULL,
 				 * nothing is touched.
 				 */
-    int *pStyle;		/* *pStyle gets filled in with the display
+    int *pStyle)		/* *pStyle gets filled in with the display
 				 * style for this feedback area.  If NULL,
 				 * nothing is touched.
 				 */

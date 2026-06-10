@@ -219,7 +219,7 @@ extern void ToolSnapToGrid();
 extern bool ToolGetEditBox(Rect *);
 extern void ToolMoveBox(), ToolMoveCorner();
 extern int ToolGetCorner();
-extern void DBWloadWindow(), DBWxloadWindow();
+extern void DBWloadWindow(MagWindow *window, char *name, unsigned char flags), DBWxloadWindow();
 extern void DBWSetBox();
 extern void DBWResetBox();
 extern void DBWUndoOldEdit();
@@ -260,7 +260,7 @@ extern void DBWElementNames();
 extern void DBWElementInbox();
 extern void DBWElementClearDef();
 extern void DBWElementParseFlags();
-extern char *DBWPrintElements();
+extern char *DBWPrintElements(CellDef *cellDef, unsigned char flagmask, int reducer);
 extern void DBWScaleElements();
 extern void DBWScaleCrosshair();
 
