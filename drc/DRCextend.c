@@ -48,10 +48,10 @@ Stack *DRCstack = (Stack *)NULL;
 
 
 void
-drcCheckAngles(tile, arg, cptr)
-    Tile	*tile;
-    struct drcClientData *arg;
-    DRCCookie	*cptr;
+drcCheckAngles(
+    Tile *tile,
+    struct drcClientData *arg,
+    DRCCookie *cptr)
 {
     Rect rect;
     bool ortho = (cptr->drcc_flags & DRC_ANGLES_45) ? FALSE : TRUE;
@@ -84,10 +84,10 @@ drcCheckAngles(tile, arg, cptr)
  */
 
 void
-drcCheckOffGrid(edgeRect, arg, cptr)
-	Rect	*edgeRect;
-	struct drcClientData	*arg;
-	DRCCookie	*cptr;
+drcCheckOffGrid(
+    Rect *edgeRect,
+    struct drcClientData *arg,
+    DRCCookie *cptr)
 {
     Rect rect;
     int gtest;
@@ -128,11 +128,10 @@ drcCheckOffGrid(edgeRect, arg, cptr)
  */
 
 void
-drcCheckArea(starttile,arg,cptr)
-	Tile	*starttile;
-	struct drcClientData	*arg;
-	DRCCookie	*cptr;
-
+drcCheckArea(
+    Tile *starttile,
+    struct drcClientData *arg,
+    DRCCookie *cptr)
 {
     int			arealimit;
     long		area = 0L;
@@ -257,11 +256,11 @@ forgetit:
  */
 
 int
-drcCheckMaxwidth(starttile,arg,cptr,both)
-    Tile	*starttile;
-    struct drcClientData	*arg;
-    DRCCookie	*cptr;
-    bool both;
+drcCheckMaxwidth(
+    Tile *starttile,
+    struct drcClientData *arg,
+    DRCCookie *cptr,
+    bool both)
 {
     int			width;
     int			height;
@@ -395,10 +394,10 @@ drcCheckMaxwidth(starttile,arg,cptr,both)
  */
 
 void
-drcCheckRectSize(starttile, arg, cptr)
-    Tile *starttile;
-    struct drcClientData *arg;
-    DRCCookie *cptr;
+drcCheckRectSize(
+    Tile *starttile,
+    struct drcClientData *arg,
+    DRCCookie *cptr)
 {
     int maxsize, even;
     TileTypeBitMask *oktypes = &cptr->drcc_mask;
@@ -510,12 +509,12 @@ MaxRectsExclude(
  */
 
 MaxRectsData *
-drcCanonicalMaxwidth(starttile, dir, arg, cptr, mrdptr)
-    Tile	*starttile;
-    int		dir;			/* direction of rule */
-    struct	drcClientData	*arg;
-    DRCCookie	*cptr;
-    MaxRectsData **mrdptr;
+drcCanonicalMaxwidth(
+    Tile	*starttile,
+    int		dir,			/* direction of rule */
+    struct	drcClientData	*arg,
+    DRCCookie	*cptr,
+    MaxRectsData **mrdptr)
 {
     int		    s, edgelimit;
     Tile	    *tile,*tp;

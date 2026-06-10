@@ -112,9 +112,9 @@ char	*drcNeedStyle = NULL;
  */
 
 int
-drcCifSetStyle(argc, argv)
-    int argc;
-    char *argv[];
+drcCifSetStyle(
+    int argc,
+    char *argv[])
 {
     CIFKeep     *new;
 
@@ -178,9 +178,9 @@ drcCifWarning()
  */
 
 int
-drcCifWidth(argc, argv)
-    int argc;
-    char *argv[];
+drcCifWidth(
+    int argc,
+    char *argv[])
 {
     char *layername = argv[1];
     int scalefactor;
@@ -239,9 +239,9 @@ drcCifWidth(argc, argv)
  */
 
 int
-drcCifSpacing(argc, argv)
-    int argc;
-    char *argv[];
+drcCifSpacing(
+    int argc,
+    char *argv[])
 {
     char *adjacency = argv[4];
     int why = drcWhyCreate(argv[5]);
@@ -385,7 +385,9 @@ drcCifSpacing(argc, argv)
  */
 
 void
-drcCifScale(int n, int d)
+drcCifScale(
+    int n,
+    int d)
 {
     DRCCookie *dp;
     int i, j;
@@ -512,8 +514,8 @@ drcCifFinal()
  */
 
 void
-drcCifCheck(arg)
-    struct drcClientData *arg;
+drcCifCheck(
+    struct drcClientData *arg)
 {
     Rect	*checkRect = arg->dCD_rect;
     Rect	cifrect;
@@ -603,10 +605,10 @@ drcCifCheck(arg)
  */
 
 int
-drcCifTile (tile, dinfo, arg)
-    Tile *tile;			/* Tile being examined */
-    TileType dinfo;		/* Split tile information */
-    struct drcClientData *arg;
+drcCifTile(
+    Tile *tile,			/* Tile being examined */
+    TileType dinfo,		/* Split tile information */
+    struct drcClientData *arg)
 {
     DRCCookie *cptr;	/* Current design rule on list */
     Tile *tp;		/* Used for corner checks */
@@ -1032,10 +1034,10 @@ tbcheck:
  */
 
 int
-areaCifCheck(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    struct drcClientData *arg;
+areaCifCheck(
+    Tile *tile,
+    TileType dinfo,
+    struct drcClientData *arg)
 {
     Rect rect;		/* Area where error is to be recorded. */
     Rect cifrect;	/* rect, in CIF coordinates */
@@ -1174,9 +1176,9 @@ areaCifCheck(tile, dinfo, arg)
  */
 
 int
-drcCifArea(argc, argv)
-    int argc;
-    char *argv[];
+drcCifArea(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int centiarea = atoi(argv[2]);
@@ -1235,9 +1237,9 @@ drcCifArea(argc, argv)
  */
 
 int
-drcCifMaxwidth(argc, argv)
-    int argc;
-    char *argv[];
+drcCifMaxwidth(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int centidistance = atoi(argv[2]);
@@ -1308,10 +1310,10 @@ drcCifMaxwidth(argc, argv)
  */
 
 void
-drcCheckCifArea(starttile, arg, cptr)
-    Tile		 *starttile;
-    struct drcClientData *arg;
-    DRCCookie	 *cptr;
+drcCheckCifArea(
+    Tile *starttile,
+    struct drcClientData *arg,
+    DRCCookie *cptr)
 {
      int		arealimit = cptr->drcc_cdist;
      long		area = 0L;
@@ -1434,11 +1436,10 @@ forgetit:
  */
 
 void
-drcCheckCifMaxwidth(starttile, arg, cptr)
-    Tile	*starttile;
-    struct drcClientData *arg;
-    DRCCookie	*cptr;
-
+drcCheckCifMaxwidth(
+    Tile *starttile,
+    struct drcClientData *arg,
+    DRCCookie *cptr)
 {
     int			edgelimit = cptr->drcc_dist;
     Rect		boundrect;

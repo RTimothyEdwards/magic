@@ -53,9 +53,9 @@ extern const char *DBTypeShortName(TileType type);
  */
 
 char *
-drcGetName(layer, string)
-    int layer;
-    char *string;		/* Used to hold name.  Must have length >= 8 */
+drcGetName(
+    int layer,
+    char *string)		/* Used to hold name.  Must have length >= 8 */
 {
     (void) strncpy(string, DBTypeShortName(layer), 8);
     string[8] = '\0';
@@ -79,8 +79,8 @@ drcGetName(layer, string)
  */
 
 void
-DRCPrintRulesTable (fp)
-    FILE *fp;
+DRCPrintRulesTable(
+    FILE *fp)
 {
     int		  i, j, k;
     DRCCookie	* dp;
@@ -163,8 +163,8 @@ DRCPrintRulesTable (fp)
 }
 
 char *
-maskToPrint (mask)
-    TileTypeBitMask *mask;
+maskToPrint(
+    TileTypeBitMask *mask)
 {
     int	i;
     int gotSome = FALSE;
