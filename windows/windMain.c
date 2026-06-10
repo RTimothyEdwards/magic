@@ -221,21 +221,20 @@ WindInit()
  */
 
 WindClient
-WindAddClient(clientName, create, delete, redisplay, command, update,
-		exitproc, reposition, icon)
-    char *clientName;		/* A textual name for the client.  This
+WindAddClient(
+    char *clientName,	/* A textual name for the client.  This
 				 * name will be visable in the user
 				 * interface as the name to use to switch
 				 * a window over to a new client
 				 */
-    bool (*create)();
-    bool (*delete)();
-    void (*redisplay)();
-    void (*command)();
-    void (*update)();
-    bool (*exitproc)();
-    void (*reposition)();
-    GrGlyph *icon;		/* An icon to draw when the window is closed.
+    bool (*create)(),
+    bool (*delete)(),
+    void (*redisplay)(),
+    void (*command)(),
+    void (*update)(),
+    bool (*exitproc)(),
+    void (*reposition)(),
+    GrGlyph *icon)	/* An icon to draw when the window is closed.
 				 * (currently for Sun Windows only).
 				 */
 {
@@ -288,9 +287,9 @@ WindAddClient(clientName, create, delete, redisplay, command, update,
  */
 
 WindClient
-WindGetClient(clientName, exact)
-    char *clientName;	/* the textual name of the client */
-    bool exact;		/* must the name be exact, or are abbreviations allowed */
+WindGetClient(
+    char *clientName,	/* the textual name of the client */
+    bool exact)	/* must the name be exact, or are abbreviations allowed */
 {
     clientRec *cr, *found;
     int length;
@@ -339,8 +338,8 @@ WindGetClient(clientName, exact)
  */
 
 char *
-WindGetClientName(client)
-    WindClient client;
+WindGetClientName(
+    WindClient client)
 {
     clientRec *clientrec  = (clientRec *)client;
     if (client == (WindClient)NULL) return NULL;
@@ -366,8 +365,8 @@ WindGetClientName(client)
  */
 
 WindClient
-WindNextClient(client)
-    WindClient client;
+WindNextClient(
+    WindClient client)
 {
     clientRec *cr = (clientRec *)client;
     int length;
@@ -393,8 +392,8 @@ WindNextClient(client)
  */
 
 void
-WindPrintClientList(wizard)
-    bool wizard;	/* If true print the names of ALL clients, even those
+WindPrintClientList(
+    bool wizard)	/* If true print the names of ALL clients, even those
 			 * that don't have user-visable windows */
 {
     clientRec *cr;
@@ -424,10 +423,10 @@ WindPrintClientList(wizard)
  */
 
 int
-WindExecute(w, rc, cmd)
-    MagWindow *w;
-    WindClient rc;
-    TxCommand *cmd;
+WindExecute(
+    MagWindow *w,
+    WindClient rc,
+    TxCommand *cmd)
 {
     int cmdNum;
     clientRec *client = (clientRec *) rc;
@@ -469,11 +468,11 @@ WindExecute(w, rc, cmd)
  */
 
 void
-WindAddCommand(rc, text, func, dynamic)
-    WindClient rc;
-    char *text;
-    void (*func)();
-    bool dynamic;
+WindAddCommand(
+    WindClient rc,
+    char *text,
+    void (*func)(),
+    bool dynamic)
 {
     int cidx, numCommands = 0;
     clientRec *client = (clientRec *) rc;
@@ -552,10 +551,10 @@ WindAddCommand(rc, text, func, dynamic)
  */
 
 int
-WindReplaceCommand(rc, command, newfunc)
-    WindClient rc;
-    char *command;
-    void (*newfunc)();
+WindReplaceCommand(
+    WindClient rc,
+    char *command,
+    void (*newfunc)())
 {
     int cidx, clen;
     clientRec *client = (clientRec *) rc;
@@ -595,8 +594,8 @@ WindReplaceCommand(rc, command, newfunc)
  */
 
 const char * const *
-WindGetCommandTable(rc)
-    WindClient rc;
+WindGetCommandTable(
+    WindClient rc)
 {
     clientRec *client = (clientRec *) rc;
     return client->w_commandTable;

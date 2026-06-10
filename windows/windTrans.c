@@ -45,12 +45,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
  */
 
 void
-WindScreenToSurface(w, screen, surface)
-    MagWindow *w;			/* Window in whose coordinates screen is
+WindScreenToSurface(
+    MagWindow *w,			/* Window in whose coordinates screen is
 				 * is defined.
 				 */
-    Rect *screen;		/* A rectangle in screen coordinates */
-    Rect *surface;		/* A pointer to a rectangle to be filled
+    Rect *screen,		/* A rectangle in screen coordinates */
+    Rect *surface)		/* A pointer to a rectangle to be filled
 				 * in with a rectangle in surface coords that
 				 * is big enough to contain everything
 				 * displayed within the screen rectangle.
@@ -87,15 +87,15 @@ WindScreenToSurface(w, screen, surface)
  */
 
 void
-WindPointToSurface(w, screenPoint, surfacePoint, surfaceBox)
-    MagWindow *w;		/* Window in whose coordinate system the
+WindPointToSurface(
+    MagWindow *w,	/* Window in whose coordinate system the
 			 * transformation is to be done.
 			 */
-    Point *screenPoint;	/* The point in screen coordinates. */
-    Point *surfacePoint;/* Filled in with the nearest surface coordinate.
+    Point *screenPoint,	/* The point in screen coordinates. */
+    Point *surfacePoint,	/* Filled in with the nearest surface coordinate.
 			 * Nothing is filled in if the pointer is NULL.
 			 */
-    Rect *surfaceBox;	/* Filled in with a box in surface coordinates that
+    Rect *surfaceBox)	/* Filled in with a box in surface coordinates that
 			 * surrounds the point.  It is not filled in if this
 			 * is a NULL pointer.
 			 */
@@ -175,12 +175,12 @@ WindPointToSurface(w, screenPoint, surfacePoint, surfaceBox)
  */
 
 void
-WindSurfaceToScreen(w, surface, screen)
-    MagWindow *w;			/* Window in whose coordinate system the
+WindSurfaceToScreen(
+    MagWindow *w,	/* Window in whose coordinate system the
 				 * transform is to be done.
 				 */
-    Rect *surface;		/* Rectangle in surface coordinates of w. */
-    Rect *screen;		/* Rectangle filled in with screen coordinates
+    Rect *surface,	/* Rectangle in surface coordinates of w. */
+    Rect *screen)	/* Rectangle filled in with screen coordinates
 				 * (in w) of surface.
 				 */
 {
@@ -265,10 +265,10 @@ WindSurfaceToScreen(w, surface, screen)
  */
 
 void
-WindSurfaceToScreenNoClip(w, surface, screen)
-    MagWindow *w;
-    Rect *surface;
-    Rect *screen;
+WindSurfaceToScreenNoClip(
+    MagWindow *w,
+    Rect *surface,
+    Rect *screen)
 {
     dlong tmp, dval;
 
@@ -306,12 +306,12 @@ WindSurfaceToScreenNoClip(w, surface, screen)
  */
 
 void
-WindPointToScreen(w, surface, screen)
-    MagWindow *w;			/* Window in whose coordinate system the
+WindPointToScreen(
+    MagWindow *w,			/* Window in whose coordinate system the
 				 * transform is to be done.
 				 */
-    Point *surface;		/* Point in surface coordinates of w. */
-    Point *screen;		/* Point filled in with screen coordinates
+    Point *surface,		/* Point in surface coordinates of w. */
+    Point *screen)		/* Point filled in with screen coordinates
 				 * (in w) of surface.
 				 */
 {
@@ -352,12 +352,12 @@ WindPointToScreen(w, surface, screen)
  */
 
 void
-windScreenToFrame(w, screen, frame)
-    MagWindow *w;			/* Window in whose coordinate system the
+windScreenToFrame(
+    MagWindow *w,			/* Window in whose coordinate system the
 				 * transform is to be done.
 				 */
-    Point *screen;		/* Point in screen coordinates of w. */
-    Point *frame;		/* Point filled in with frame coordinates.
+    Point *screen,		/* Point in screen coordinates of w. */
+    Point *frame)		/* Point filled in with frame coordinates.
 				 */
 {
     switch ( WindPackageType )

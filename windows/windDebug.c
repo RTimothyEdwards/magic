@@ -48,8 +48,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
  */
 
 void
-windPrintWindow(w)
-    MagWindow *w;
+windPrintWindow(
+    MagWindow *w)
 {
     LinkedRect *lr;
 
@@ -136,8 +136,8 @@ windDump()
  */
 
 void
-windPrintCommand(cmd)
-    TxCommand *cmd;
+windPrintCommand(
+    TxCommand *cmd)
 {
     if (cmd->tx_button == TX_NO_BUTTON)
     {

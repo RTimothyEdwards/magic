@@ -51,9 +51,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
  */
 
 MagWindow *
-windSearchPoint(p, inside)
-    Point *p;		/* A point in screen coordinates */
-    bool *inside;	/* A pointer to a boolean variable that is set to
+windSearchPoint(
+    Point *p,		/* A point in screen coordinates */
+    bool *inside)	/* A pointer to a boolean variable that is set to
 			 * TRUE if the point is in the interior of the window,
 			 * and FALSE if it is in the border.  If this pointer
 			 * is NULL then 'inside' is not filled in.
@@ -92,8 +92,8 @@ windSearchPoint(p, inside)
  */
 
 MagWindow *
-WindSearchWid(wid)
-    int wid;
+WindSearchWid(
+    int wid)
 {
     MagWindow *w;
     for(w = windTopWindow; w != (MagWindow *) NULL; w = w->w_nextWindow) {
@@ -119,8 +119,8 @@ WindSearchWid(wid)
  */
 
 MagWindow *
-WindSearchData(grdata)
-    ClientData grdata;
+WindSearchData(
+    ClientData grdata)
 {
     MagWindow *w;
     for(w = windTopWindow; w != (MagWindow *) NULL; w = w->w_nextWindow) {
@@ -158,22 +158,22 @@ WindSearchData(grdata)
  */
 
 int
-WindSearch(client, surfaceID, surfaceArea, func, clientData)
-    WindClient client;		/* Search for the windows that belong to
+WindSearch(
+    WindClient client,	/* Search for the windows that belong to
 				 * this client.  NULL means all clients.
 				 */
-    ClientData surfaceID;	/* The unique ID of the surface that we
+    ClientData surfaceID,	/* The unique ID of the surface that we
 				 * are looking for.  If NULL then look for
 				 * any surface.
 				 */
-    Rect *surfaceArea;		/* The area that we are looking for in surface
+    Rect *surfaceArea,	/* The area that we are looking for in surface
 				 * coordinates.  If NULL then match without
 				 * regard to the area in the window.
 				 */
-    int (*func)();		/* The function to call with each window
+    int (*func)(),	/* The function to call with each window
 				 * that matches.
 				 */
-    ClientData clientData;	/* The client data to be passed to the caller's
+    ClientData clientData)	/* The client data to be passed to the caller's
 				 * function.
 				 */
 {

@@ -59,7 +59,7 @@ extern MagWindow *windSearchPoint();
 
 /* C99 compat */
 extern void windScreenToFrame();
-extern void WindPrintClientList();
+extern void WindPrintClientList(bool wizard);
 
 /* ----------------- constants ----------------- */
 
