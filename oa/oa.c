@@ -77,20 +77,20 @@ OAInit()
  */
 
 int
-OACellSearch(scx, xMask, func, cdarg)
-    SearchContext *scx; /* Pointer to search context specifying a cell use to
+OACellSearch(
+    SearchContext *scx, /* Pointer to search context specifying a cell use to
                          * search, an area in the coordinates of the cell's
                          * def, and a transform back to "root" coordinates.
                          */
-    int xMask;          /* All subcells are visited recursively until we
+    int xMask,          /* All subcells are visited recursively until we
                          * encounter uses whose flags, when anded with
                          * xMask, are not equal to xMask.  Func is called
                          * for these cells.  A zero mask means all cells in
                          * the root use are considered not to be expanded,
                          * and hence are passed to func.
                          */
-    int (*func)();      /* Function to apply to each qualifying cell */
-    ClientData cdarg;   /* Client data for above function */
+    int (*func)(),      /* Function to apply to each qualifying cell */
+    ClientData cdarg)   /* Client data for above function */
 {
     TreeContext context;
     TreeFilter filter;
@@ -149,11 +149,14 @@ OACellSearch(scx, xMask, func, cdarg)
  */
 
 int
-oaTreeCellSrFunc(instname, defname, llx, lly, urx, ury, cdarg)
-    char *instname;
-    char *defname;
-    int llx, lly, urx, ury;
-    ClientData cdarg;
+oaTreeCellSrFunc(
+    char *instname,
+    char *defname,
+    int llx,
+    int lly,
+    int urx,
+    int ury,
+    ClientData cdarg)
 {
     TreeContext *context = (TreeContext *)cdarg;
     TreeFilter *filter = context->tc_filter;
