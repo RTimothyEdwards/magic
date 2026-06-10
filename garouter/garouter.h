@@ -86,7 +86,7 @@ extern ClientData gaDebugID;	/* Our identity with the debugging module */
 #include "gaDebug.h"		/* Can add flags without total recompile */
 
 /* Internal procedures */
-extern GCRChannel *gaStemContainingChannel();
+extern GCRChannel *gaStemContainingChannel(CellUse *routeUse, bool doWarn, NLTermLoc *loc);
 extern GCRPin *gaStemCheckPin();
 extern int gaAlwaysOne();
 extern bool gaMazeRoute(CellUse *routeUse, NLTermLoc *terminalLoc, Point *pinPoint,

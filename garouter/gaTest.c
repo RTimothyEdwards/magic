@@ -87,9 +87,9 @@ void GAInit();
  */
 
 void
-GATest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+GATest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int n;
     typedef enum { CLRDEBUG, SETDEBUG, SHOWDEBUG} cmdType;
@@ -159,12 +159,12 @@ badCmd:
  */
 
 void
-GAGenChans(chanType, area, f)
-    int chanType;
-    Rect *area;
-    FILE *f;
+GAGenChans(
+    int chanType,
+    Rect *area,
+    FILE *f)
 {
-    extern int DBPaintPlane0(), DBPaintPlaneVert();
+    extern int DBPaintPlane0(Plane *plane, Rect *area, const PaintResultType *resultTbl, PaintUndoInfo *undo, unsigned char method), DBPaintPlaneVert();
     int gaSplitFunc(), gaSplitOut();
     static CellDef *genDef = (CellDef *) NULL;
     static CellUse *genUse = (CellUse *) NULL;
@@ -185,7 +185,7 @@ GAGenChans(chanType, area, f)
     switch (chanType)
     {
 	case CHAN_HRIVER:
-	    gaSplitPaintPlane = DBPaintPlane0;
+	    gaSplitPaintPlane = (int (*)()) DBPaintPlane0;
 	    area->r_ytop = RTR_GRIDDOWN(area->r_ytop - halfUp, RtrOrigin.p_y)
 				+ halfUp;
 	    area->r_ybot = RTR_GRIDUP(area->r_ybot + halfDown, RtrOrigin.p_y)
@@ -254,10 +254,10 @@ GAGenChans(chanType, area, f)
  */
 
 int
-gaSplitOut(tile, dinfo, f)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    FILE *f;
+gaSplitOut(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    FILE *f)
 {
     Rect r;
 
@@ -303,9 +303,9 @@ gaSplitOut(tile, dinfo, f)
  */
 
 int
-gaSplitFunc(scx, plane)
-    SearchContext *scx;
-    Plane *plane;
+gaSplitFunc(
+    SearchContext *scx,
+    Plane *plane)
 {
     int halfUp, halfDown;
     CellDef *def = scx->scx_use->cu_def;

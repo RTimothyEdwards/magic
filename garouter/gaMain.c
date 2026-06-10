@@ -258,9 +258,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-GARouteCmd(routeUse, netListName)
-    CellUse *routeUse;
-    char *netListName;
+GARouteCmd(
+    CellUse *routeUse,
+    char *netListName)
 {
     int errs = -1;
     NLNetList netList;
@@ -329,10 +329,10 @@ done:
  */
 
 int
-GARoute(list, routeUse, netList)
-    GCRChannel *list;	/* List of channels */
-    CellUse *routeUse;	/* Cell being routed */
-    NLNetList *netList;	/* List of nets to route */
+GARoute(
+    GCRChannel *list,	/* List of channels */
+    CellUse *routeUse,	/* Cell being routed */
+    NLNetList *netList)	/* List of nets to route */
 {
     int feedCount = DBWFeedbackCount, errs;
     GCRChannel *ch;
@@ -432,10 +432,10 @@ done:
  */
 
 int
-gaBuildNetList(netListName, routeUse, netList)
-    char *netListName;
-    CellUse *routeUse;
-    NLNetList *netList;
+gaBuildNetList(
+    char *netListName,
+    CellUse *routeUse,
+    NLNetList *netList)
 {
     CellDef *routeDef = routeUse->cu_def;
     int numNets;

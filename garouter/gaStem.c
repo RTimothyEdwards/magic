@@ -83,12 +83,12 @@ int gaNumSimplePaint, gaNumMazePaint, gaNumExtPaint;
 
 /* Forward declarations */
 int gaStemContainingChannelFunc();
-bool gaStemAssign();
+bool gaStemAssign(CellUse *routeUse, bool doWarn, NLTermLoc *loc, NLTerm *term, NLNet *net, NLNetList *netList);
 int gaStemGridRange();
 void gaStemPaint();
 bool gaStemNetClear();
 bool gaStemInternalFunc();
-bool gaStemInternal();
+bool gaStemInternal(CellUse *routeUse, bool doWarn, NLTermLoc *loc, NLNet *net, GCRChannel *ch, NLNetList *netList);
 bool gaStemGrow();
 
 
@@ -120,9 +120,9 @@ bool gaStemGrow();
  */
 
 void
-gaStemAssignAll(routeUse, netList)
-    CellUse *routeUse;
-    NLNetList *netList;
+gaStemAssignAll(
+    CellUse *routeUse,
+    NLNetList *netList)
 {
     TileType t;
 
@@ -165,7 +165,7 @@ gaStemAssignAll(routeUse, netList)
     gaMaxBelow = RtrContactOffset;
 
     /* Assign the stems (gaStemAssign() does the real work) */
-    RtrStemProcessAll(routeUse, netList, GAStemWarn, gaStemAssign);
+    RtrStemProcessAll(routeUse, netList, GAStemWarn, (bool (*)()) gaStemAssign);
 
     if (DebugIsSet(gaDebugID, gaDebVerbose))
     {
@@ -206,13 +206,13 @@ gaStemAssignAll(routeUse, netList)
  */
 
 bool
-gaStemAssign(routeUse, doWarn, loc, term, net, netList)
-    CellUse *routeUse;	/* Cell being routed */
-    bool doWarn;	/* If TRUE, leave feedback for each error */
-    NLTermLoc *loc;	/* Location considered */
-    NLTerm *term;	/* Terminal of which loc is a location */
-    NLNet *net;		/* Net to which it belongs */
-    NLNetList *netList;	/* Netlist (searched for blocking terminals) */
+gaStemAssign(
+    CellUse *routeUse,	/* Cell being routed */
+    bool doWarn,	/* If TRUE, leave feedback for each error */
+    NLTermLoc *loc,	/* Location considered */
+    NLTerm *term,	/* Terminal of which loc is a location */
+    NLNet *net,		/* Net to which it belongs */
+    NLNetList *netList)	/* Netlist (searched for blocking terminals) */
 {
     GCRChannel *ch;
 
@@ -276,10 +276,10 @@ fail:
  */
 
 GCRChannel *
-gaStemContainingChannel(routeUse, doWarn, loc)
-    CellUse *routeUse;	/* For errors */
-    bool doWarn;	/* If TRUE, leave feedback if error */
-    NLTermLoc *loc;	/* Find a channel for this terminal */
+gaStemContainingChannel(
+    CellUse *routeUse,	/* For errors */
+    bool doWarn,	/* If TRUE, leave feedback if error */
+    NLTermLoc *loc)	/* Find a channel for this terminal */
 {
     GCRChannel *ch;
     Rect area;
@@ -342,10 +342,10 @@ overlap:
  */
 
 int
-gaStemContainingChannelFunc(tile, dinfo, pCh)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    GCRChannel **pCh;
+gaStemContainingChannelFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    GCRChannel **pCh)
 {
     GCRChannel *ch;
 
@@ -386,8 +386,8 @@ gaStemContainingChannelFunc(tile, dinfo, pCh)
  */
 
 bool
-gaStemGrow(area)
-    Rect *area;
+gaStemGrow(
+    Rect *area)
 {
     Rect r;
     GCRChannel *ch;
@@ -445,13 +445,13 @@ gaStemGrow(area)
  */
 
 bool
-gaStemInternal(routeUse, doWarn, loc, net, ch, netList)
-    CellUse *routeUse;	/* Cell being routed */
-    bool doWarn;	/* If TRUE, leave feedback on all errors */
-    NLTermLoc *loc;	/* Terminal being processed */
-    NLNet *net;		/* Used for marking pins */
-    GCRChannel *ch;	/* Channel containing loc */
-    NLNetList *netList;	/* Netlist (searched for blocking terminals) */
+gaStemInternal(
+    CellUse *routeUse,	/* Cell being routed */
+    bool doWarn,	/* If TRUE, leave feedback on all errors */
+    NLTermLoc *loc,	/* Terminal being processed */
+    NLNet *net,		/* Used for marking pins */
+    GCRChannel *ch,	/* Channel containing loc */
+    NLNetList *netList)	/* Netlist (searched for blocking terminals) */
 {
     int min, max, start, lo, hi;
 
@@ -519,13 +519,13 @@ gaStemInternal(routeUse, doWarn, loc, net, ch, netList)
  */
 
 bool
-gaStemInternalFunc(routeUse, loc, net, ch, gridLine, netList)
-    CellUse *routeUse;
-    NLTermLoc *loc;
-    NLNet *net;
-    GCRChannel *ch;
-    int gridLine;
-    NLNetList *netList;
+gaStemInternalFunc(
+    CellUse *routeUse,
+    NLTermLoc *loc,
+    NLNet *net,
+    GCRChannel *ch,
+    int gridLine,
+    NLNetList *netList)
 {
     GCRPin *pin1, *pin2;
     NLTermLoc *loc2;
@@ -642,13 +642,13 @@ gaStemInternalFunc(routeUse, loc, net, ch, gridLine, netList)
  */
 
 GCRPin *
-gaStemCheckPin(routeUse, terminalLoc, ch, side, gridPoint, netList)
-    CellUse *routeUse;		/* Cell being routed */
-    NLTermLoc *terminalLoc;	/* Terminal */
-    GCRChannel *ch;		/* Channel whose pin we are to use */
-    int side;		/* Direction 'gridPoint' lies relative to 'loc' */
-    Point *gridPoint;		/* Crossing point to use */
-    NLNetList *netList;		/* Searched for obstructing terminals */
+gaStemCheckPin(
+    CellUse *routeUse,		/* Cell being routed */
+    NLTermLoc *terminalLoc,	/* Terminal */
+    GCRChannel *ch,		/* Channel whose pin we are to use */
+    int side,		/* Direction 'gridPoint' lies relative to 'loc' */
+    Point *gridPoint,		/* Crossing point to use */
+    NLNetList *netList)		/* Searched for obstructing terminals */
 {
     TileTypeBitMask destMask;
     GCRPin *pin;
@@ -785,11 +785,11 @@ hardway:
  */
 
 bool
-gaStemNetClear(termArea, point, side, netList)
-    Rect *termArea;	/* Area of the starting terminal */
-    Point *point;		/* Crossing point where we want to end up */
-    int side;			/* Direction of point relative to termArea */
-    NLNetList *netList;		/* Netlist to check for terminals to avoid */
+gaStemNetClear(
+    Rect *termArea,	/* Area of the starting terminal */
+    Point *point,		/* Crossing point where we want to end up */
+    int side,			/* Direction of point relative to termArea */
+    NLNetList *netList)		/* Netlist to check for terminals to avoid */
 {
     int min, max, start, type, grid;
     NLTermLoc *loc;
@@ -883,10 +883,12 @@ gaStemNetClear(termArea, point, side, netList)
  */
 
 int
-gaStemGridRange(type, r, pMinGrid, pMaxGrid, pStart)
-    int type;
-    Rect *r;
-    int *pMinGrid, *pMaxGrid, *pStart;
+gaStemGridRange(
+    int type,
+    Rect *r,
+    int *pMinGrid,
+    int *pMaxGrid,
+    int *pStart)
 {
     int min, max, start;
 
@@ -948,9 +950,9 @@ gaStemGridRange(type, r, pMinGrid, pMaxGrid, pStart)
  */
 
 void
-gaStemPaintAll(routeUse, netList)
-    CellUse *routeUse;
-    NLNetList *netList;
+gaStemPaintAll(
+    CellUse *routeUse,
+    NLNetList *netList)
 {
     NLTermLoc *loc;
     NLTerm *term;
@@ -1008,9 +1010,9 @@ out:
  */
 
 void
-gaStemPaint(routeUse, terminalLoc)
-    CellUse *routeUse;
-    NLTermLoc *terminalLoc;
+gaStemPaint(
+    CellUse *routeUse,
+    NLTermLoc *terminalLoc)
 {
     TileTypeBitMask terminalLayerMask;	/* Possible layers for stem at
 					   terminal */
