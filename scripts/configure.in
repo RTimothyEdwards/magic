@@ -1471,7 +1471,11 @@ case $target in
     ;; 
   *-emscripten*)
     AC_DEFINE(linux)
-    CFLAGS="${CFLAGS} -fPIC -Werror=implicit-function-declaration -Wno-int-conversion -Wno-implicit-int"
+    dnl emcc (clang) defaults to C23, where "()" means "(void)".  Force
+    dnl -std=gnu17 to keep the legacy "()" declarations compiling, matching
+    dnl the native gcc build.  (-std=gnu17 must be a single dash; clang
+    dnl silently ignores the "--std=" long form used in some CI scripts.)
+    CFLAGS="${CFLAGS} -std=gnu17 -fPIC -Werror=implicit-function-declaration -Wno-int-conversion"
     ;;
   *solaris*)
     AC_DEFINE(SYSV)
@@ -1854,7 +1858,10 @@ if test $usingTcl ; then
       *cygwin*)
         ;;
       *)
-        SHLIB_CFLAGS="-Wimplicit-int -fPIC"
+        dnl GCC 16 defaults to C23, where "()" means "(void)".  Magic relies on
+        dnl the older C17 semantics where "()" means "unspecified arguments".
+        dnl Force -std=gnu17 to keep the legacy declarations compiling.
+        SHLIB_CFLAGS="-std=gnu17 -Wimplicit-int -fPIC"
         ;;
     esac
   fi
