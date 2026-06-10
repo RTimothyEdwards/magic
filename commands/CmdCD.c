@@ -1138,7 +1138,7 @@ CmdCellname(
     int option;
     int locargc = cmd->tx_argc;
     char *cellname = NULL, *orient = NULL;
-    void (*func)();
+    void (*func)(char *, int, bool);
     CellDef *newDef, *cellDef;
 
     static const char * const cmdCellOption[] =
