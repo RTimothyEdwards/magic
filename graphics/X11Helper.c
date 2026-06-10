@@ -70,9 +70,9 @@ sigRetVal MapWindow();
 #define TIMEOUT	10	/* timeout period (minutes) */
 
 int
-main (argc, argv)
-    int argc;
-    char **argv;
+main(
+    int argc,
+    char **argv)
 {
     XEvent xevent;
 
@@ -126,8 +126,8 @@ main (argc, argv)
  */
 
 void
-ParseEvent (event)
-    XEvent *event;
+ParseEvent(
+    XEvent *event)
 {
     if (event->type == KeyPress)
     {
@@ -269,7 +269,8 @@ SetTimeOut()
  */
 
 sigRetVal
-TimeOut(int signo)
+TimeOut(
+    int signo)
 {
     int tmpid;
 
@@ -293,7 +294,8 @@ TimeOut(int signo)
  */
 
 sigRetVal
-MapWindow(int signo)
+MapWindow(
+    int signo)
 {
     Window window;
 
@@ -315,7 +317,9 @@ MapWindow(int signo)
  */
 
 void
-sigSetAction(int signo, sigRetVal (*handler)(int))
+sigSetAction(
+    int signo,
+    sigRetVal (*handler)(int))
 {
 #if defined(SYSV) || defined(CYGWIN)
   struct sigaction sa;

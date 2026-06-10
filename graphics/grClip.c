@@ -39,7 +39,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* Forward declaration: */
 
 extern bool GrDisjoint();
-extern void GrClipTriangle();
+extern void GrClipTriangle(Rect *r, Rect *c, bool clipped, TileType dinfo, Point *points, int *np);
 
 /* The following rectangle defines the size of the cross drawn for
  * zero-size rectangles.  This must be all on one line to keep
@@ -83,8 +83,8 @@ int grCurOutline, grCurFill, grCurColor;
 bool grDriverInformed = TRUE;
 
 void
-GrSetStuff(style)
-    int style;
+GrSetStuff(
+    int style)
 {
     grCurDStyle = style;
     grCurWMask = GrStyleTable[style].mask;
@@ -136,11 +136,11 @@ grInformDriver()
  */
 
 void
-grClipAgainst(startllr, clip)
-    LinkedRect **startllr;	/* A pointer to the pointer that heads
+grClipAgainst(
+    LinkedRect **startllr,	/* A pointer to the pointer that heads
 				 * the list .
 				 */
-    Rect *clip;		  	/* The rectangle to clip against */
+    Rect *clip)		  	/* The rectangle to clip against */
 {
     extern bool grClipAddFunc();	/* forward declaration */
     LinkedRect **llr, *lr;
@@ -185,8 +185,8 @@ bool grClipAddFunc(box, cd)
 
 
 void
-grObsBox(r)
-    Rect *r;
+grObsBox(
+    Rect *r)
 {
     LinkedRect *ob;
     LinkedRect *ar;
@@ -231,18 +231,17 @@ grObsBox(r)
  */
 
 bool
-grClipPoints(line, box, p1, p1OK, p2, p2OK)
-    Rect *line;		/* Actually a line from line->r_ll to
+grClipPoints(
+    Rect *line,		/* Actually a line from line->r_ll to
 			 * line->r_ur.  It is assumed that r_ll is to
 			 * the left of r_ur, but we don't assume that
 			 * r_ll is below r_ur.
 			 */
-    Rect *box;		/* A box to check intersections with */
-    Point *p1, *p2;	/* To be filled in with 0, 1, or 2 points
-			 * that are on the border of the box as well as
-			 * on the line.
-			 */
-    bool *p1OK, *p2OK;	/* Says if the point was filled in */
+    Rect *box,		/* A box to check intersections with */
+    Point *p1,
+    bool *p1OK,
+    Point *p2,
+    bool *p2OK)
 {
     int tmp, delx, dely;
     bool delyneg;
@@ -376,8 +375,11 @@ grClipPoints(line, box, p1, p1OK, p2, p2OK)
  */
 
 void
-GrClipLine(x1, y1, x2, y2)
-    int x1, y1, x2, y2;
+GrClipLine(
+    int x1,
+    int y1,
+    int x2,
+    int y2)
 {
     LinkedRect **ar;
     LinkedRect *ob;
@@ -527,9 +529,12 @@ deleteit: {
  */
 
 void
-grAddSegment(llx, lly, urx, ury, segments)
-    int llx, lly, urx, ury;
-    LinkedRect **segments;
+grAddSegment(
+    int llx,
+    int lly,
+    int urx,
+    int ury,
+    LinkedRect **segments)
 {
     LinkedRect *curseg;
 
@@ -571,10 +576,10 @@ grAddSegment(llx, lly, urx, ury, segments)
  */
 
 bool
-GrBoxOutline(tile, dinfo, tilesegs)
-    Tile *tile;
-    TileType dinfo;
-    LinkedRect **tilesegs;
+GrBoxOutline(
+    Tile *tile,
+    TileType dinfo,
+    LinkedRect **tilesegs)
 {
     Rect rect;
     TileType ttype;
@@ -774,7 +779,11 @@ GrBoxOutline(tile, dinfo, tilesegs)
  *---------------------------------------------------------
  */
 void
-GrBox(MagWindow *mw, Transform *trans, Tile *tile, TileType dinfo)
+GrBox(
+    MagWindow *mw,
+    Transform *trans,
+    Tile *tile,
+    TileType dinfo)
 {
     Rect r, r2, clipr;
     bool needClip, needObscure, simpleBox;
@@ -984,11 +993,11 @@ GrBox(MagWindow *mw, Transform *trans, Tile *tile, TileType dinfo)
  */
 
 void
-GrDrawFastBox(prect, scale)
-    Rect *prect;	/* The rectangle to be drawn, given in
+GrDrawFastBox(
+    Rect *prect,	/* The rectangle to be drawn, given in
 			 * screen coordinates.
 			 */
-    int scale;		/* If < 0, we reduce the cross size for
+    int scale)		/* If < 0, we reduce the cross size for
 			 * points according to the (negative) scale,
 			 * so point labels don't dominate a top-level
 			 * layout.
@@ -1156,13 +1165,13 @@ GrDrawFastBox(prect, scale)
 #define yround(d) (int)(((((d % width) << 1) >= width) ? 1 : 0) + (d / width))
 
 void
-GrClipTriangle(r, c, clipped, dinfo, points, np)
-    Rect *r;   /* Bounding box of triangle, in screen coords	*/
-    Rect *c;		/* Clipping rectangle 				*/
-    bool clipped;	/* Boolean, if bounding box is clipped		*/
-    TileType dinfo;	/* Split side and direction information		*/
-    Point *points;	/* Point array (up to 5 points) to fill		*/
-    int *np;		/* Number of points in the clipped polygon	*/
+GrClipTriangle(
+    Rect *r,   /* Bounding box of triangle, in screen coords	*/
+    Rect *c,		/* Clipping rectangle 				*/
+    bool clipped,	/* Boolean, if bounding box is clipped		*/
+    TileType dinfo,	/* Split side and direction information		*/
+    Point *points,	/* Point array (up to 5 points) to fill		*/
+    int *np)		/* Number of points in the clipped polygon	*/
 {
     if (!(dinfo & TT_SIDE))
     {
@@ -1419,9 +1428,9 @@ GrClipTriangle(r, c, clipped, dinfo, points, np)
  */
 
 void
-GrDrawTriangleEdge(r, dinfo)
-    Rect *r;   /* Bounding box of triangle, in screen coords	*/
-    TileType dinfo;
+GrDrawTriangleEdge(
+    Rect *r,   /* Bounding box of triangle, in screen coords	*/
+    TileType dinfo)
 {
     Point tpoints[5];
     int tnum, i, j;
@@ -1460,11 +1469,11 @@ GrDrawTriangleEdge(r, dinfo)
  */
 
 void
-GrDiagonal(prect, dinfo)
-    Rect *prect;	/* The rectangle to be drawn, given in
+GrDiagonal(
+    Rect *prect,	/* The rectangle to be drawn, given in
 				 * screen coordinates.
 			         */
-    TileType dinfo;	/* split and direction information */
+    TileType dinfo)	/* split and direction information */
 {
     Rect *r;
     bool needClip, needObscure;
@@ -1541,9 +1550,9 @@ GrDiagonal(prect, dinfo)
  */
 
 void
-GrFillPolygon(polyp, np)
-    Point *polyp;		/* Array of points defining polygon */
-    int np;			/* number of points in array polyp  */
+GrFillPolygon(
+    Point *polyp,		/* Array of points defining polygon */
+    int np)			/* number of points in array polyp  */
 {
     if (grFillPolygonPtr != NULL)
     {
@@ -1567,11 +1576,11 @@ GrFillPolygon(polyp, np)
  */
 
 void
-GrClipBox(prect, style)
-    Rect *prect;		/* The rectangle to be drawn, given in
+GrClipBox(
+    Rect *prect,	/* The rectangle to be drawn, given in
 				 * screen coordinates.
 			         */
-    int style;			/* The style to be used in drawing it. */
+    int style)	/* The style to be used in drawing it. */
 {
     GrSetStuff(style);
     GrFastBox(prect);
@@ -1603,11 +1612,11 @@ GrClipBox(prect, style)
  * ----------------------------------------------------------------------------
  */
 bool
-GrDisjoint(area, clipBox, func, cdarg)
-    Rect	* area;
-    Rect	* clipBox;
-    bool 	(*func) ();
-    ClientData	  cdarg;
+GrDisjoint(
+    Rect	* area,
+    Rect	* clipBox,
+    bool (*func) (),
+    ClientData cdarg)
 {
     Rect 	  ok, rArea;
     bool	  result;

@@ -66,9 +66,9 @@ int grtoglNbDiagonal = 0;
  */
 
 void
-grtoglDrawLines(lines, nb)
-    Rect lines[];
-    int nb;
+grtoglDrawLines(
+    Rect lines[],
+    int nb)
 {
 
 #ifdef OGL_SERVER_SIDE_ONLY
@@ -103,9 +103,11 @@ grtoglDrawLines(lines, nb)
  */
 
 void
-grtoglDrawLine (x1, y1, x2, y2)
-    int x1, y1;			/* Screen coordinates of first point. */
-    int x2, y2;			/* Screen coordinates of second point. */
+grtoglDrawLine(
+    int x1,
+    int y1,
+    int x2,
+    int y2)
 {
     /* Treat straight and diagonal lines separately.  Some		*/
     /* implementations of OpenGL make straight lines twice as thick	*/
@@ -143,9 +145,9 @@ grtoglDrawLine (x1, y1, x2, y2)
  */
 
 void
-grtoglFillRects(rects, nb)
-    TOGLRect rects[];
-    int nb;
+grtoglFillRects(
+    TOGLRect rects[],
+    int nb)
 {
 
 #ifdef OGL_SERVER_SIDE_ONLY
@@ -178,8 +180,8 @@ grtoglFillRects(rects, nb)
  */
 
 void
-grtoglFillRect(r)
-    Rect *r;	/* Address of a rectangle in screen
+grtoglFillRect(
+    Rect *r)	/* Address of a rectangle in screen
 			 * coordinates.
 			 */
 {
@@ -213,9 +215,9 @@ grtoglFillRect(r)
  */
 
 void
-grtoglFillPolygon(tp, np)
-    Point *tp;
-    int np;
+grtoglFillPolygon(
+    Point *tp,
+    int np)
 {
     int i;
 

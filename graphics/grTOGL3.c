@@ -61,15 +61,15 @@ typedef struct {
  */
 
 bool
-grtoglDrawGrid (prect, outline, clip)
-    Rect *prect;			/* A rectangle that forms the template
+grtoglDrawGrid(
+    Rect *prect,			/* A rectangle that forms the template
 			         * for the grid.  Note:  in order to maintain
 			         * precision for the grid, the rectangle
 			         * coordinates are specified in units of
 			         * screen coordinates multiplied by SUBPIXEL.
 			         */
-    int outline;		/* the outline style */
-    Rect *clip;			/* a clipping rectangle */
+    int outline,		/* the outline style */
+    Rect *clip)			/* a clipping rectangle */
 {
     int xsize, ysize;
     int x, y;
@@ -160,8 +160,8 @@ grtoglLoadFont()
  */
 
 void
-grtoglSetCharSize (size)
-    int size;		/* Width of characters, in pixels (6 or 8). */
+grtoglSetCharSize(
+    int size)		/* Width of characters, in pixels (6 or 8). */
 {
     toglCurrent.fontSize = size;
     switch (size)
@@ -204,10 +204,10 @@ grtoglSetCharSize (size)
  */
 
 int
-GrTOGLTextSize(text, size, r)
-    char *text;
-    int size;
-    Rect *r;
+GrTOGLTextSize(
+    char *text,
+    int size,
+    Rect *r)
 {
     Tk_FontMetrics overall;
     Tk_Font font;
@@ -252,7 +252,8 @@ GrTOGLTextSize(text, size, r)
 /* backing store contains valid data or not.				*/
 
 void
-grtoglFreeBackingStore(MagWindow *w)
+grtoglFreeBackingStore(
+    MagWindow *w)
 {
    RenderFrame *rf;
 
@@ -265,7 +266,8 @@ grtoglFreeBackingStore(MagWindow *w)
 }
 
 void
-grtoglCreateBackingStore(MagWindow *w)
+grtoglCreateBackingStore(
+    MagWindow *w)
 {
    RenderFrame *rf;
 
@@ -298,7 +300,9 @@ grtoglCreateBackingStore(MagWindow *w)
 }
 
 bool
-grtoglGetBackingStore(MagWindow *w, Rect *area)
+grtoglGetBackingStore(
+    MagWindow *w,
+    Rect *area)
 {
     RenderFrame *rf;
     unsigned int width, height;
@@ -336,7 +340,9 @@ grtoglGetBackingStore(MagWindow *w, Rect *area)
 
 
 bool
-grtoglScrollBackingStore(MagWindow *w, Point *shift)
+grtoglScrollBackingStore(
+    MagWindow *w,
+    Point *shift)
 {
     RenderFrame *rf;
     GLuint FramebufferName, RenderbufferName;
@@ -396,7 +402,9 @@ grtoglScrollBackingStore(MagWindow *w, Point *shift)
 }
 
 void
-grtoglPutBackingStore(MagWindow *w, Rect *area)
+grtoglPutBackingStore(
+    MagWindow *w,
+    Rect *area)
 {
     RenderFrame *rf;
     GLuint FramebufferName, RenderbufferName;
@@ -452,9 +460,10 @@ grtoglPutBackingStore(MagWindow *w, Rect *area)
  */
 
 int
-GrTOGLReadPixel (w, x, y)
-    MagWindow *w;
-    int x,y;		/* the location of a pixel in screen coords */
+GrTOGLReadPixel(
+    MagWindow *w,
+    int x,
+    int y)
 {
     return 0;		/* OpenGL has no such function, so return 0 */
 }
@@ -475,9 +484,9 @@ GrTOGLReadPixel (w, x, y)
  */
 
 void
-GrTOGLBitBlt(r, p)
-    Rect *r;
-    Point *p;
+GrTOGLBitBlt(
+    Rect *r,
+    Point *p)
 {
     glCopyPixels(r->r_xbot, r->r_ybot, r->r_xtop - r->r_xbot + 1,
 		r->r_ytop - r->r_ybot + 1, GL_COLOR);
@@ -518,10 +527,10 @@ myCombine(GLdouble coords[3], GLdouble *vertex_data[4],
  */
 
 void
-grtoglDrawCharacter(clist, tc, pixsize)
-    FontChar *clist;
-    unsigned char tc;
-    int pixsize;
+grtoglDrawCharacter(
+    FontChar *clist,
+    unsigned char tc,
+    int pixsize)
 {
     Point *tp;
     int np, nptotal;
@@ -596,14 +605,14 @@ grtoglDrawCharacter(clist, tc, pixsize)
  */
 
 void
-grtoglFontText(text, font, size, rotate, pos, clip, obscure)
-    char *text;			/* The text to be drawn */
-    int   font;			/* Font to use from fontList */
-    int   size;			/* Pixel size of the font */
-    int	  rotate;		/* Text rotation */
-    Point *pos;			/* Text base position */
-    Rect  *clip;		/* Clipping area */
-    LinkedRect *obscure;	/* List of obscuring areas */
+grtoglFontText(
+    char *text,			/* The text to be drawn */
+    int   font,			/* Font to use from fontList */
+    int   size,			/* Pixel size of the font */
+    int	  rotate,		/* Text rotation */
+    Point *pos,			/* Text base position */
+    Rect  *clip,		/* Clipping area */
+    LinkedRect *obscure)	/* List of obscuring areas */
 {
     char *tptr;
     Point *coffset;		/* vector to next character */
@@ -666,14 +675,13 @@ grtoglFontText(text, font, size, rotate, pos, clip, obscure)
  */
 
 void
-grtoglPutText (text, pos, clip, obscure)
-    char *text;			/* The text to be drawn. */
-    Point *pos;			/* A point located at the leftmost point of
+grtoglPutText(
+    char *text,			/* The text to be drawn. */
+    Point *pos,			/* A point located at the leftmost point of
 				 * the baseline for this string.
 				 */
-    Rect *clip;			/* A rectangle to clip against */
-    LinkedRect *obscure;	/* A list of obscuring rectangles */
-
+    Rect *clip,			/* A rectangle to clip against */
+    LinkedRect *obscure)	/* A list of obscuring rectangles */
 {
     Rect location;
     Rect overlap;
@@ -726,10 +734,9 @@ grtoglPutText (text, pos, clip, obscure)
  */
 
 void
-grTOGLGeoSub(r, area)
-Rect *r;		/* Rectangle to be subtracted from. */
-Rect *area;		/* Area to be subtracted. */
-
+grTOGLGeoSub(
+Rect *r,		/* Rectangle to be subtracted from. */
+Rect *area)		/* Area to be subtracted. */
 {
     if (r->r_xbot == area->r_xbot) r->r_xbot = area->r_xtop;
     else

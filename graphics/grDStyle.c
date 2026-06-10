@@ -102,10 +102,10 @@ GR_STYLE_LINE *GrStyleTable;
 
 
 bool
-GrDrawGlyphNum(num, xoff, yoff)
-    int num;
-    int xoff;
-    int yoff;
+GrDrawGlyphNum(
+    int num,
+    int xoff,
+    int yoff)
 {
     Point p;
 
@@ -133,8 +133,8 @@ GrDrawGlyphNum(num, xoff, yoff)
  */
 
 int
-GrGetStyleFromName(stylename)
-    char *stylename;
+GrGetStyleFromName(
+    char *stylename)
 {
     int style;
     int maxstyles = TECHBEGINSTYLES + (DBWNumStyles * 2);
@@ -196,9 +196,9 @@ GrResetStyles()
  */
 
 bool
-styleBuildDisplayStyle(line, version)
-    char *line;
-    int version;
+styleBuildDisplayStyle(
+    char *line,
+    int version)
 {
     bool res;
     int argsread;
@@ -284,9 +284,9 @@ styleBuildDisplayStyle(line, version)
  */
 
 bool
-styleBuildStipplesStyle(line, version)
-    char *line;
-    int version;
+styleBuildStipplesStyle(
+    char *line,
+    int version)
 {
     bool res;
     int ord;
@@ -360,9 +360,9 @@ styleBuildStipplesStyle(line, version)
  */
 
 bool
-GrLoadCursors(path, libPath)
-char *path;
-char *libPath;
+GrLoadCursors(
+char *path,
+char *libPath)
 {
     if (grCursorGlyphs != (GrGlyphs *) NULL)
     {
@@ -402,8 +402,8 @@ char *libPath;
  */
 
 int
-GrLoadStyles(techType, path, libPath)
-char *techType;			/* Type of styles wanted by the technology
+GrLoadStyles(
+char *techType,			/* Type of styles wanted by the technology
 				 * file (usually "std").  We tack two things
 				 * onto this name:  the type of styles
 				 * wanted by the display, and a version
@@ -411,8 +411,8 @@ char *techType;			/* Type of styles wanted by the technology
 				 * to look up the actual display styles
 				 * file.
 				 */
-char *path;
-char *libPath;
+char *path,
+char *libPath)
 {
     FILE *inp;
     int res = 0;

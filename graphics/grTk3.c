@@ -52,15 +52,15 @@
 #define GR_NUM_GRIDS 64
 
 bool
-grtkDrawGrid (prect, outline, clip)
-    Rect *prect;		/* A rectangle that forms the template
+grtkDrawGrid(
+    Rect *prect,		/* A rectangle that forms the template
 			         * for the grid.  Note:  in order to maintain
 			         * precision for the grid, the rectangle
 			         * coordinates are specified in units of
 			         * screen coordinates multiplied by SUBPIXEL.
 			         */
-    int outline;		/* the outline style */
-    Rect *clip;			/* a clipping rectangle */
+    int outline,		/* the outline style */
+    Rect *clip)			/* a clipping rectangle */
 {
     int xsize, ysize;
     int x, y;
@@ -133,8 +133,8 @@ grtkDrawGrid (prect, outline, clip)
  */
 
 void
-grtkSetCharSize (size)
-    int size;		/* Width of characters, in pixels (6 or 8). */
+grtkSetCharSize(
+    int size)		/* Width of characters, in pixels (6 or 8). */
 {
     grCurrent.fontSize = size;
     switch (size)
@@ -177,10 +177,10 @@ grtkSetCharSize (size)
  */
 
 int
-GrTkTextSize(text, size, r)
-    char *text;
-    int size;
-    Rect *r;
+GrTkTextSize(
+    char *text,
+    int size,
+    Rect *r)
 {
     Tk_FontMetrics overall;
     Tk_Font font;
@@ -233,9 +233,10 @@ GrTkTextSize(text, size, r)
  */
 
 int
-GrTkReadPixel (w, x, y)
-    MagWindow *w;
-    int x,y;		/* the location of a pixel in screen coords */
+GrTkReadPixel(
+    MagWindow *w,
+    int x,
+    int y)
 {
     XImage *image;
     unsigned long value;
@@ -265,9 +266,9 @@ GrTkReadPixel (w, x, y)
  */
 
 void
-GrTkBitBlt(r, p)
-    Rect *r;
-    Point *p;
+GrTkBitBlt(
+    Rect *r,
+    Point *p)
 {
     Window wind = grCurrent.windowid;
 
@@ -295,9 +296,9 @@ GrTkBitBlt(r, p)
  */
 
 void
-grtkRectConvert(mr, xr)
-    Rect *mr;			/* source rectangle pointer */
-    XRectangle *xr;		/* destination rectangle pointer */
+grtkRectConvert(
+    Rect *mr,			/* source rectangle pointer */
+    XRectangle *xr)		/* destination rectangle pointer */
 {
 	xr->x = mr->r_xbot;
 	xr->y = grMagicToX(mr->r_ytop);
@@ -316,14 +317,14 @@ grtkRectConvert(mr, xr)
  */
 
 void
-grtkFontText(text, font, size, rotate, pos, clip, obscure)
-    char *text;
-    int font;
-    int size;			/* pixel size of the text */
-    int rotate;			/* text rotation */
-    Point *pos;			/* text base position */
-    Rect *clip;
-    LinkedRect *obscure;
+grtkFontText(
+    char *text,
+    int font,
+    int size,			/* pixel size of the text */
+    int rotate,			/* text rotation */
+    Point *pos,			/* text base position */
+    Rect *clip,
+    LinkedRect *obscure)
 {
     char *tptr;
     FontChar *ccur, *clist;
@@ -477,14 +478,13 @@ grtkFontText(text, font, size, rotate, pos, clip, obscure)
  */
 
 void
-grtkPutText (text, pos, clip, obscure)
-    char *text;			/* The text to be drawn. */
-    Point *pos;			/* A point located at the leftmost point of
+grtkPutText(
+    char *text,			/* The text to be drawn. */
+    Point *pos,			/* A point located at the leftmost point of
 				 * the baseline for this string.
 				 */
-    Rect *clip;			/* A rectangle to clip against */
-    LinkedRect *obscure;	/* A list of obscuring rectangles */
-
+    Rect *clip,			/* A rectangle to clip against */
+    LinkedRect *obscure)	/* A list of obscuring rectangles */
 {
     Rect location;
     Rect overlap;
@@ -547,10 +547,9 @@ grtkPutText (text, pos, clip, obscure)
  */
 
 void
-grtkGeoSub(r, area)
-    Rect *r;		/* Rectangle to be subtracted from. */
-    Rect *area;		/* Area to be subtracted. */
-
+grtkGeoSub(
+    Rect *r,		/* Rectangle to be subtracted from. */
+    Rect *area)		/* Area to be subtracted. */
 {
     if (r->r_xbot == area->r_xbot) r->r_xbot = area->r_xtop;
     else

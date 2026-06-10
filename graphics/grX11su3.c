@@ -68,15 +68,15 @@ static XFontStruct *grXFonts[4];
 #define GR_NUM_GRIDS 64
 
 bool
-grx11DrawGrid (prect, outline, clip)
-    Rect *prect;			/* A rectangle that forms the template
+grx11DrawGrid(
+    Rect *prect,			/* A rectangle that forms the template
 			         * for the grid.  Note:  in order to maintain
 			         * precision for the grid, the rectangle
 			         * coordinates are specified in units of
 			         * screen coordinates multiplied by SUBPIXEL.
 			         */
-    int outline;		/* the outline style */
-    Rect *clip;			/* a clipping rectangle */
+    int outline,		/* the outline style */
+    Rect *clip)			/* a clipping rectangle */
 {
     int xsize, ysize;
     int x, y;
@@ -194,8 +194,8 @@ grx11LoadFont()
  */
 
 void
-grx11SetCharSize (size)
-    int size;		/* Width of characters, in pixels (6 or 8). */
+grx11SetCharSize(
+    int size)		/* Width of characters, in pixels (6 or 8). */
 {
     grCurrent.fontSize = size;
     switch (size)
@@ -238,10 +238,10 @@ grx11SetCharSize (size)
  */
 
 int
-GrX11TextSize(text, size, r)
-    char *text;
-    int size;
-    Rect *r;
+GrX11TextSize(
+    char *text,
+    int size,
+    Rect *r)
 {
     XCharStruct overall;
     XFontStruct *font;
@@ -292,9 +292,10 @@ GrX11TextSize(text, size, r)
  */
 
 int
-GrX11ReadPixel (w, x, y)
-    MagWindow *w;
-    int x,y;		/* the location of a pixel in screen coords */
+GrX11ReadPixel(
+    MagWindow *w,
+    int x,
+    int y)
 {
     XImage *image;
     unsigned long value;
@@ -326,9 +327,9 @@ GrX11ReadPixel (w, x, y)
  */
 
 void
-GrX11BitBlt(r, p)
-    Rect *r;
-    Point *p;
+GrX11BitBlt(
+    Rect *r,
+    Point *p)
 {
     Drawable wind = (Drawable)grCurrent.window;
 
@@ -354,7 +355,8 @@ static GC grXcopyGC = (GC)NULL;
  */
 
 void
-grx11FreeBackingStore(MagWindow *window)
+grx11FreeBackingStore(
+    MagWindow *window)
 {
     Pixmap pmap = (Pixmap)window->w_backingStore;
     if (pmap == (Pixmap)NULL) return;
@@ -380,7 +382,8 @@ grx11FreeBackingStore(MagWindow *window)
  */
 
 void
-grx11CreateBackingStore(MagWindow *w)
+grx11CreateBackingStore(
+    MagWindow *w)
 {
     Pixmap pmap;
     Window wind = (Window)w->w_grdata;
@@ -433,7 +436,9 @@ grx11CreateBackingStore(MagWindow *w)
  */
 
 bool
-grx11GetBackingStore(MagWindow *w, Rect *area)
+grx11GetBackingStore(
+    MagWindow *w,
+    Rect *area)
 {
     Pixmap pmap;
     Window wind = (Window)w->w_grdata;
@@ -482,7 +487,9 @@ grx11GetBackingStore(MagWindow *w, Rect *area)
  */
 
 bool
-grx11ScrollBackingStore(MagWindow *w, Point *shift)
+grx11ScrollBackingStore(
+    MagWindow *w,
+    Point *shift)
 {
     Pixmap pmap;
     unsigned int width, height;
@@ -541,7 +548,9 @@ grx11ScrollBackingStore(MagWindow *w, Point *shift)
  */
 
 void
-grx11PutBackingStore(MagWindow *w, Rect *area)
+grx11PutBackingStore(
+    MagWindow *w,
+    Rect *area)
 {
     Pixmap pmap = (Pixmap)w->w_backingStore;
     Window wind = (Window)w->w_grdata;
@@ -592,9 +601,9 @@ grx11PutBackingStore(MagWindow *w, Rect *area)
  */
 
 void
-grx11RectConvert(mr, xr)
-    Rect *mr;
-    XRectangle *xr;
+grx11RectConvert(
+    Rect *mr,
+    XRectangle *xr)
 {
 	xr->x = mr->r_xbot;
 	xr->y = grMagicToX(mr->r_ytop);
@@ -613,14 +622,14 @@ grx11RectConvert(mr, xr)
  */
 
 void
-grx11FontText(text, font, size, rotate, pos, clip, obscure)
-    char *text;
-    int font;
-    int size;			/* pixel size of the text */
-    int rotate;			/* text rotation */
-    Point *pos;			/* text base position */
-    Rect *clip;
-    LinkedRect *obscure;
+grx11FontText(
+    char *text,
+    int font,
+    int size,			/* pixel size of the text */
+    int rotate,			/* text rotation */
+    Point *pos,			/* text base position */
+    Rect *clip,
+    LinkedRect *obscure)
 {
     char *tptr;
     FontChar *ccur, *clist;
@@ -774,14 +783,13 @@ grx11FontText(text, font, size, rotate, pos, clip, obscure)
  */
 
 void
-grx11PutText (text, pos, clip, obscure)
-    char *text;			/* The text to be drawn. */
-    Point *pos;			/* A point located at the leftmost point of
+grx11PutText(
+    char *text,			/* The text to be drawn. */
+    Point *pos,			/* A point located at the leftmost point of
 				 * the baseline for this string.
 				 */
-    Rect *clip;			/* A rectangle to clip against */
-    LinkedRect *obscure;	/* A list of obscuring rectangles */
-
+    Rect *clip,			/* A rectangle to clip against */
+    LinkedRect *obscure)	/* A list of obscuring rectangles */
 {
     Rect location;
     Rect overlap;
@@ -842,9 +850,9 @@ grx11PutText (text, pos, clip, obscure)
  */
 
 void
-grX11suGeoSub(r, area)
-    Rect *r;		/* Rectangle to be subtracted from. */
-    Rect *area;		/* Area to be subtracted. */
+grX11suGeoSub(
+    Rect *r,		/* Rectangle to be subtracted from. */
+    Rect *area)		/* Area to be subtracted. */
 {
     if (r->r_xbot == area->r_xbot) r->r_xbot = area->r_xtop;
     else

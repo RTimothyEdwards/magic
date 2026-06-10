@@ -134,9 +134,9 @@ extern bool grx11GetCursorPos();
  */
 
 void
-grx11SetWMandC (mask, c)
-    int mask;			/* New value for write mask */
-    int c;			/* New value for current color */
+grx11SetWMandC(
+    int mask,			/* New value for write mask */
+    int c)			/* New value for current color */
 {
     static int oldC = -1;
     static int oldM = -1;
@@ -176,8 +176,8 @@ grx11SetWMandC (mask, c)
  */
 
 void
-grx11SetLineStyle (style)
-    int style;			/* New stipple pattern for lines. */
+grx11SetLineStyle(
+    int style)			/* New stipple pattern for lines. */
 {
     static int oldStyle = -1;
     LineStyle *linestyle;
@@ -271,9 +271,9 @@ grx11SetLineStyle (style)
  */
 
 void
-grx11SetSPattern (sttable, numstipples)
-    int **sttable;		/* Table of patterns */
-    int numstipples;		/* Number of stipples */
+grx11SetSPattern(
+    int **sttable,		/* Table of patterns */
+    int numstipples)		/* Number of stipples */
 {
     Pixmap p;
     int i, x, y, pat;
@@ -311,8 +311,8 @@ grx11SetSPattern (sttable, numstipples)
  */
 
 void
-grx11SetStipple (stipple)
-    int stipple;			/* The stipple number to be used. */
+grx11SetStipple(
+    int stipple)			/* The stipple number to be used. */
 {
     static int oldStip = -1;
     if (stipple == oldStip) return;
@@ -343,8 +343,8 @@ grx11SetStipple (stipple)
  */
 
 bool
-GrX11Init(dispType)
-    char *dispType;
+GrX11Init(
+    char *dispType)
 {
     int i,j;
     XVisualInfo grvisual_info, *grvisual_get, grtemplate;
@@ -965,10 +965,10 @@ grX11Stdin(
  */
 
 bool
-x11SetDisplay (dispType, outFileName, mouseFileName)
-    char *dispType;		/* arguments not used by X */
-    char *outFileName;
-    char *mouseFileName;
+x11SetDisplay(
+    char *dispType,		/* arguments not used by X */
+    char *outFileName,
+    char *mouseFileName)
 {
     int fildes[2],fildes2[2];
     char *fullname;
@@ -1147,9 +1147,9 @@ grXWStdin(
  */
 
 bool
-GrX11Create(w, name)
-    MagWindow *w;
-    char *name;
+GrX11Create(
+    MagWindow *w,
+    char *name)
 {
     Window wind;
     static int firstWindow = 1;
@@ -1279,8 +1279,8 @@ GrX11Create(w, name)
  */
 
 void
-GrX11Delete(w)
-    MagWindow *w;
+GrX11Delete(
+    MagWindow *w)
 {
     Window xw;
     HashEntry	*entry;
@@ -1308,8 +1308,8 @@ GrX11Delete(w)
  */
 
 void
-GrX11Configure(w)
-    MagWindow *w;
+GrX11Configure(
+    MagWindow *w)
 {
     XMoveResizeWindow(grXdpy,(Window) w->w_grdata,
 	    w->w_frameArea.r_xbot, grMagicToXs(w->w_frameArea.r_ytop),
@@ -1334,8 +1334,8 @@ GrX11Configure(w)
  */
 
 void
-GrX11Raise(w)
-    MagWindow *w;
+GrX11Raise(
+    MagWindow *w)
 {
     XRaiseWindow(grXdpy, (Window) w->w_grdata );
 }
@@ -1357,8 +1357,8 @@ GrX11Raise(w)
  */
 
 void
-GrX11Lower(w)
-    MagWindow *w;
+GrX11Lower(
+    MagWindow *w)
 {
     XLowerWindow(grXdpy, (Window) w->w_grdata );
 }
@@ -1381,9 +1381,9 @@ GrX11Lower(w)
  */
 
 void
-GrX11Lock(w, flag)
-    MagWindow *w;
-    bool flag;
+GrX11Lock(
+    MagWindow *w,
+    bool flag)
 {
     grSimpleLock(w, flag);
     if ( w != GR_LOCK_SCREEN )
@@ -1411,8 +1411,8 @@ GrX11Lock(w, flag)
  */
 
 void
-GrX11Unlock(w)
-    MagWindow *w;
+GrX11Unlock(
+    MagWindow *w)
 {
     GR_X_FLUSH_BATCH();
     grSimpleUnlock(w);
@@ -1432,10 +1432,9 @@ GrX11Unlock(w)
  */
 
 void
-GrX11IconUpdate(w,text)
-	MagWindow	*w;
-	char		*text;
-
+GrX11IconUpdate(
+    MagWindow *w,
+    char *text)
 {
      Window	wind = (Window)(w->w_grdata);
      XClassHint	class;

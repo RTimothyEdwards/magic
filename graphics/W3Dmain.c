@@ -84,16 +84,16 @@ bool W3Ddelete();
 /* ------------------------Low-Level Routines--------------------------------- */
 
 void
-w3dLock(w)
-    MagWindow *w;
+w3dLock(
+    MagWindow *w)
 {
     grSimpleLock(w, TRUE);
     w3dSetProjection(w);
 }
 
 void
-w3dUnlock(w)
-    MagWindow *w;
+w3dUnlock(
+    MagWindow *w)
 {
     glFlush();
     glFinish();
@@ -111,11 +111,11 @@ w3dUnlock(w)
 /* -------------------Low-Level Drawing Routines------------------------------ */
 
 void
-w3dFillEdge(bbox, r, ztop, zbot)
-    Rect *bbox;				/* tile bounding box */
-    Rect *r;
-    float ztop;
-    float zbot;
+w3dFillEdge(
+    Rect *bbox,				/* tile bounding box */
+    Rect *r,
+    float ztop,
+    float zbot)
 {
     float ztmp;
     float xbot = (float)r->r_xbot;
@@ -142,11 +142,11 @@ w3dFillEdge(bbox, r, ztop, zbot)
 }
 
 void
-w3dFillPolygon(p, np, zval, istop)
-    Point *p;
-    int np;
-    float zval;
-    bool istop;
+w3dFillPolygon(
+    Point *p,
+    int np,
+    float zval,
+    bool istop)
 {
     int i;
 
@@ -162,10 +162,10 @@ w3dFillPolygon(p, np, zval, istop)
 }
 
 void
-w3dFillTile(r, zval, istop)
-    Rect *r;
-    float zval;
-    bool istop;
+w3dFillTile(
+    Rect *r,
+    float zval,
+    bool istop)
 {
     float xbot, ybot, xtop, ytop;
 
@@ -192,8 +192,12 @@ w3dFillTile(r, zval, istop)
 }
 
 void
-w3dFillXSide(xstart, xend, yval, ztop, zbot)
-    float xstart, xend, yval, ztop, zbot;
+w3dFillXSide(
+    float xstart,
+    float xend,
+    float yval,
+    float ztop,
+    float zbot)
 {
     glBegin(GL_POLYGON);
     glVertex3f(xstart, yval, zbot);
@@ -204,8 +208,12 @@ w3dFillXSide(xstart, xend, yval, ztop, zbot)
 }
 
 void
-w3dFillYSide(xval, ystart, yend, ztop, zbot)
-    float xval, ystart, yend, ztop, zbot;
+w3dFillYSide(
+    float xval,
+    float ystart,
+    float yend,
+    float ztop,
+    float zbot)
 {
     glBegin(GL_POLYGON);
     glVertex3f(xval, ystart, zbot);
@@ -219,8 +227,13 @@ w3dFillYSide(xval, ystart, yend, ztop, zbot)
 /* counterclockwise direction with respect to the tile interior. */
 
 void
-w3dFillDiagonal(x1, y1, x2, y2, ztop, zbot)
-    float x1, y1, x2, y2, ztop, zbot;
+w3dFillDiagonal(
+    float x1,
+    float y1,
+    float x2,
+    float y2,
+    float ztop,
+    float zbot)
 {
     glBegin(GL_POLYGON);
     glVertex3f(x1, y1, zbot);
@@ -231,13 +244,13 @@ w3dFillDiagonal(x1, y1, x2, y2, ztop, zbot)
 }
 
 void
-w3dFillOps(trans, tile, dinfo, cliprect, ztop, zbot)
-    Transform *trans;
-    Tile *tile;
-    TileType dinfo;
-    Rect *cliprect;
-    float ztop;
-    float zbot;
+w3dFillOps(
+    Transform *trans,
+    Tile *tile,
+    TileType dinfo,
+    Rect *cliprect,
+    float ztop,
+    float zbot)
 {
     LinkedRect *tilesegs, *segptr;
     Rect r, r2;
@@ -381,11 +394,11 @@ w3dFillOps(trans, tile, dinfo, cliprect, ztop, zbot)
 }
 
 void
-w3dRenderVolume(tile, dinfo, trans, cliprect)
-    Tile *tile;
-    TileType dinfo;
-    Transform *trans;
-    Rect *cliprect;
+w3dRenderVolume(
+    Tile *tile,
+    TileType dinfo,
+    Transform *trans,
+    Rect *cliprect)
 {
     float zbot, ztop;
     float ftop = 0.0, fthk = 0.0;
@@ -413,11 +426,11 @@ w3dRenderVolume(tile, dinfo, trans, cliprect)
 }
 
 void
-w3dRenderCIF(tile, dinfo, layer, trans)
-    Tile *tile;
-    TileType dinfo;
-    CIFLayer *layer;
-    Transform *trans;
+w3dRenderCIF(
+    Tile *tile,
+    TileType dinfo,
+    CIFLayer *layer,
+    Transform *trans)
 {
     float zbot, ztop;
     float ftop, fthk;
@@ -468,8 +481,8 @@ w3dClear()
 /* -------------------High-Level Drawing Routines------------------------------ */
 
 void
-w3dSetProjection(w)
-    MagWindow *w;
+w3dSetProjection(
+    MagWindow *w)
 {
     W3DclientRec *crec;
     Window wind;
@@ -546,10 +559,10 @@ w3dSetProjection(w)
 /* Magic layer tile painting function */
 
 int
-w3dPaintFunc(tile, dinfo, cxp)
-    Tile *tile;			/* Tile to be displayed */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cxp;		/* From DBTreeSrTiles */
+w3dPaintFunc(
+    Tile *tile,			/* Tile to be displayed */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cxp)		/* From DBTreeSrTiles */
 {
     SearchContext *scx = cxp->tc_scx;
 
@@ -593,10 +606,10 @@ w3dPaintFunc(tile, dinfo, cxp)
 /* CIF layer tile painting function */
 
 int
-w3dCIFPaintFunc(tile, dinfo, arg)
-    Tile *tile;			/* Tile to be displayed */
-    TileType dinfo;		/* Split tile information */
-    ClientData *arg;		/* is NULL */
+w3dCIFPaintFunc(
+    Tile *tile,			/* Tile to be displayed */
+    TileType dinfo,		/* Split tile information */
+    ClientData *arg)		/* is NULL */
 {
     CIFLayer *layer = (CIFLayer *)arg;
 
@@ -648,9 +661,9 @@ w3dCIFPaintFunc(tile, dinfo, arg)
  */
 
 void
-w3dHelp(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dHelp(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     const char * const *msg;
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
@@ -679,9 +692,9 @@ w3dHelp(w, cmd)
  */
 
 void
-w3dCutBox(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dCutBox(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     bool hide = FALSE;
     int lidx = 1, num_layers;
@@ -768,9 +781,9 @@ w3dCutBox(w, cmd)
  */
 
 void
-w3dSeeLayers(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dSeeLayers(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     bool hide = FALSE;
     int lidx = 1, num_layers;
@@ -821,9 +834,9 @@ w3dSeeLayers(w, cmd)
  */
 
 void
-w3dClose(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dClose(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
@@ -844,9 +857,9 @@ w3dClose(w, cmd)
  */
 
 void
-w3dRescale(crec, scalefactor)
-    W3DclientRec *crec;
-    float scalefactor;
+w3dRescale(
+    W3DclientRec *crec,
+    float scalefactor)
 {
     crec->scale_xy /= scalefactor;
     crec->prescale_z /= scalefactor;
@@ -867,9 +880,9 @@ w3dRescale(crec, scalefactor)
  */
 
 void
-w3dToggleCIF(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dToggleCIF(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
@@ -906,9 +919,9 @@ w3dToggleCIF(w, cmd)
  */
 
 void
-w3dLevel(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dLevel(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
@@ -946,8 +959,8 @@ w3dLevel(w, cmd)
  */
 
 void
-w3drefreshFunc(mw)
-    MagWindow *mw;
+w3drefreshFunc(
+    MagWindow *mw)
 {
     W3DclientRec *crec = (W3DclientRec *) mw->w_clientData;
     Rect screenRect;
@@ -972,9 +985,9 @@ w3drefreshFunc(mw)
  */
 
 void
-w3dDefaults(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dDefaults(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
@@ -998,9 +1011,9 @@ w3dDefaults(w, cmd)
  */
 
 void
-w3dRefresh(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dRefresh(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
@@ -1022,9 +1035,9 @@ w3dRefresh(w, cmd)
  */
 
 void
-w3dView(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dView(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     bool relative = FALSE;
     int argc = cmd->tx_argc;
@@ -1094,9 +1107,9 @@ w3dView(w, cmd)
  */
 
 void
-w3dScroll(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dScroll(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     bool relative = FALSE;
     int argc = cmd->tx_argc;
@@ -1167,9 +1180,9 @@ w3dScroll(w, cmd)
  */
 
 void
-w3dZoom(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dZoom(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     bool relative = FALSE;
     int argc = cmd->tx_argc;
@@ -1244,9 +1257,9 @@ w3dZoom(w, cmd)
  */
 
 void
-w3dRenderValues(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+w3dRenderValues(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int lidx;
     CIFLayer *layer;
@@ -1329,9 +1342,9 @@ badusage:
  */
 
 void
-Set3DDefaults(mw, crec)
-    MagWindow *mw;
-    W3DclientRec *crec;
+Set3DDefaults(
+    MagWindow *mw,
+    W3DclientRec *crec)
 {
     int height, width;
     int centerx, centery;
@@ -1399,9 +1412,9 @@ Set3DDefaults(mw, crec)
  */
 
 bool
-W3DloadWindow(window, name)
-    MagWindow *window;
-    char *name;
+W3DloadWindow(
+    MagWindow *window,
+    char *name)
 {
     CellDef *newEditDef;
     CellUse *newEditUse;
@@ -1444,10 +1457,10 @@ W3DloadWindow(window, name)
  */
 
 bool
-W3Dcreate(window, argc, argv)
-    MagWindow *window;
-    int argc;
-    char *argv[];
+W3Dcreate(
+    MagWindow *window,
+    int argc,
+    char *argv[])
 {
     W3DclientRec *crec;
     Tk_Window tkwind, tktop;
@@ -1614,8 +1627,8 @@ W3Dcreate(window, argc, argv)
  */
 
 bool
-W3Ddelete(window)
-    MagWindow *window;
+W3Ddelete(
+    MagWindow *window)
 {
     W3DclientRec *cr;
     Tk_Window xw;
@@ -1647,10 +1660,10 @@ W3Ddelete(window)
  */
 
 void
-W3Dredisplay(w, rootArea, clipArea)
-    MagWindow *w;	/* The window containing the area. */
-    Rect *rootArea;	/* Ignore this---area defined by window with box */
-    Rect *clipArea;	/* Ignore this, too */
+W3Dredisplay(
+    MagWindow *w,	/* The window containing the area. */
+    Rect *rootArea,	/* Ignore this---area defined by window with box */
+    Rect *clipArea)	/* Ignore this, too */
 {
     W3DclientRec *crec;
     CellDef *cellDef;
@@ -1724,10 +1737,10 @@ W3Dredisplay(w, rootArea, clipArea)
  */
 
 void
-W3DCIFredisplay(w, rootArea, clipArea)
-    MagWindow *w;	/* The window containing the area. */
-    Rect *rootArea;	/* Ignore this---area defined by window with box */
-    Rect *clipArea;	/* Ignore this, too */
+W3DCIFredisplay(
+    MagWindow *w,	/* The window containing the area. */
+    Rect *rootArea,	/* Ignore this---area defined by window with box */
+    Rect *clipArea)	/* Ignore this, too */
 {
     W3DclientRec *crec;
     SearchContext scx;
@@ -1801,9 +1814,9 @@ W3DCIFredisplay(w, rootArea, clipArea)
  */
 
 void
-W3Dcommand(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+W3Dcommand(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int cmdNum;
 

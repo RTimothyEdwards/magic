@@ -71,9 +71,9 @@ int groglNbRects=0;
  */
 
 void
-groglDrawLines(lines, nb)
-    Rect lines[];
-    int nb;
+groglDrawLines(
+    Rect lines[],
+    int nb)
 {
     int i;
 
@@ -109,9 +109,11 @@ groglDrawLines(lines, nb)
  */
 
 void
-groglDrawLine (x1, y1, x2, y2)
-    int x1, y1;			/* Screen coordinates of first point. */
-    int x2, y2;			/* Screen coordinates of second point. */
+groglDrawLine(
+    int x1,
+    int y1,
+    int x2,
+    int y2)
 {
     if (groglNbLines == OGL_BATCH_SIZE) GR_X_FLUSH_LINES();
     groglLines[groglNbLines].r_ll.p_x = x1;
@@ -134,9 +136,9 @@ groglDrawLine (x1, y1, x2, y2)
  */
 
 void
-groglFillRects(rects, nb)
-    OGLRect rects[];
-    int nb;
+groglFillRects(
+    OGLRect rects[],
+    int nb)
 {
     int i;
 
@@ -168,8 +170,8 @@ groglFillRects(rects, nb)
  */
 
 void
-groglFillRect(r)
-    Rect *r;	/* Address of a rectangle in screen
+groglFillRect(
+    Rect *r)	/* Address of a rectangle in screen
 			 * coordinates.
 			 */
 {
@@ -203,9 +205,9 @@ groglFillRect(r)
  */
 
 void
-groglFillPolygon(tp, np)
-    Point *tp;
-    int np;
+groglFillPolygon(
+    Point *tp,
+    int np)
 {
     int i;
 

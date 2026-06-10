@@ -64,7 +64,7 @@ TOGL_CURRENT toglCurrent= {(Tk_Font)0, 0, 0, 0, 0,
  */
 extern void GrTOGLClose(), GrTOGLFlush();
 extern void GrTOGLDelete(), GrTOGLConfigure(), GrTOGLRaise(), GrTOGLLower();
-extern void GrTOGLLock(), GrTOGLUnlock(), GrTOGLIconUpdate();
+extern void GrTOGLLock(MagWindow *w, bool flag), GrTOGLUnlock(), GrTOGLIconUpdate();
 extern bool GrTOGLInit();
 extern bool GrTOGLEventPending(), GrTOGLCreate(), grtoglGetCursorPos();
 extern int  GrTOGLWindowId();
@@ -87,9 +87,9 @@ extern void toglSetProjection();
  */
 
 void
-grtoglSetWMandC (mask, c)
-    int mask;			/* New value for write mask */
-    int c;			/* New value for current color */
+grtoglSetWMandC(
+    int mask,			/* New value for write mask */
+    int c)			/* New value for current color */
 {
     static int oldColor = -1;
     static int oldMask = -1;
@@ -150,8 +150,8 @@ grtoglSetWMandC (mask, c)
  */
 
 void
-grtoglSetLineStyle (style)
-    int style;			/* New stipple pattern for lines. */
+grtoglSetLineStyle(
+    int style)			/* New stipple pattern for lines. */
 {
     static int oldStyle = -1;
     GLushort glstyle;
@@ -188,9 +188,9 @@ grtoglSetLineStyle (style)
  */
 
 void
-grtoglSetSPattern (sttable, numstipples)
-    int **sttable;			/* The table of patterns */
-    int numstipples;			/* Number of stipples */
+grtoglSetSPattern(
+    int **sttable,			/* The table of patterns */
+    int numstipples)			/* Number of stipples */
 {
     int i, j, k, n;
     GLubyte *pdata;
@@ -225,8 +225,8 @@ grtoglSetSPattern (sttable, numstipples)
  */
 
 void
-grtoglSetStipple (stipple)
-    int stipple;			/* The stipple number to be used. */
+grtoglSetStipple(
+    int stipple)			/* The stipple number to be used. */
 {
     static int oldStip = -1;
     if (stipple == oldStip) return;
@@ -402,8 +402,11 @@ static GLXPbuffer pbuffer = None;
  */
 
 void
-toglSetProjection(llx, lly, width, height)
-    int llx, lly, width, height;
+toglSetProjection(
+    int llx,
+    int lly,
+    int width,
+    int height)
 {
     if (toglCurrent.mw->w_flags & WIND_OFFSCREEN)
     {
@@ -485,9 +488,9 @@ toglSetProjection(llx, lly, width, height)
  */
 
 void
-TOGLEventProc(clientData, xevent)
-    ClientData clientData;
-    XEvent *xevent;
+TOGLEventProc(
+    ClientData clientData,
+    XEvent *xevent)
 {
     TxInputEvent *event;
     HashEntry	*entry;
@@ -979,10 +982,10 @@ toglOnScreen()
  */
 
 bool
-oglSetDisplay (dispType, outFileName, mouseFileName)
-    char *dispType;
-    char *outFileName;
-    char *mouseFileName;
+oglSetDisplay(
+    char *dispType,
+    char *outFileName,
+    char *mouseFileName)
 {
     char *planecount;
     char *fullname;
@@ -1000,8 +1003,8 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
 
     GrPixelCorrect = 0;
 
-    GrLockPtr = GrTOGLLock;
-    GrUnlockPtr = GrTOGLUnlock;
+    GrLockPtr = (void (*)())GrTOGLLock;
+    GrUnlockPtr = (void (*)())GrTOGLUnlock;
     GrInitPtr = GrTOGLInit;
     GrClosePtr = GrTOGLClose;
     GrSetCMapPtr = GrTOGLSetCMap;
@@ -1095,9 +1098,9 @@ extern void MakeWindowCommand();
  */
 
 bool
-GrTOGLCreate(w, name)
-    MagWindow *w;
-    char *name;
+GrTOGLCreate(
+    MagWindow *w,
+    char *name)
 {
     Tk_Window tkwind, tktop;
     Window wind;
@@ -1244,8 +1247,8 @@ GrTOGLCreate(w, name)
  */
 
 void
-GrTOGLDelete(w)
-    MagWindow *w;
+GrTOGLDelete(
+    MagWindow *w)
 {
     Tk_Window xw;
     HashEntry	*entry;
@@ -1274,8 +1277,8 @@ GrTOGLDelete(w)
  */
 
 void
-GrTOGLConfigure(w)
-    MagWindow *w;
+GrTOGLConfigure(
+    MagWindow *w)
 {
     if (w->w_flags & WIND_OFFSCREEN) return;
 
@@ -1302,8 +1305,8 @@ GrTOGLConfigure(w)
  */
 
 void
-GrTOGLRaise(w)
-    MagWindow *w;
+GrTOGLRaise(
+    MagWindow *w)
 {
     Tk_Window tkwind;
 
@@ -1330,8 +1333,8 @@ GrTOGLRaise(w)
  */
 
 void
-GrTOGLLower(w)
-    MagWindow *w;
+GrTOGLLower(
+    MagWindow *w)
 {
     Tk_Window tkwind;
 
@@ -1365,9 +1368,9 @@ extern void TCairoOffScreen();
 #endif
 
 void
-GrTOGLLock(w, flag)
-    MagWindow *w;
-    bool flag;
+GrTOGLLock(
+    MagWindow *w,
+    bool flag)
 {
     Window wind;
 
@@ -1421,8 +1424,8 @@ GrTOGLLock(w, flag)
  */
 
 void
-GrTOGLUnlock(w)
-    MagWindow *w;
+GrTOGLUnlock(
+    MagWindow *w)
 {
 
 #ifdef CAIRO_OFFSCREEN_RENDER
@@ -1537,9 +1540,9 @@ GrTOGLEventPending()
  */
 
 void
-GrTOGLIconUpdate(w,text)		/* See Blt code */
-    MagWindow	*w;
-    char	*text;
+GrTOGLIconUpdate(
+    MagWindow	*w,
+    char	*text)
 {
     Tk_Window	tkwind;
     Window	wind;
@@ -1592,8 +1595,8 @@ GrTOGLIconUpdate(w,text)		/* See Blt code */
  */
 
 int
-GrTOGLWindowId(tkname)
-    char *tkname;
+GrTOGLWindowId(
+    char *tkname)
 {
     Tk_Window tkwind;
     MagWindow *mw;

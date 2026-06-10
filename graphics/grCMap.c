@@ -102,11 +102,11 @@ GrResetCMap()
  */
 
 bool
-GrReadCMap(techStyle, dispType, monType, path, libPath)
-char *techStyle;		/* The type of dstyle file requested by
+GrReadCMap(
+    char *techStyle,	/* The type of dstyle file requested by
 				 * the current technology.
 				 */
-char *dispType;			/* A class of color map files for one or
+    char *dispType,	/* A class of color map files for one or
 				 * more display types.  Usually this
 				 * is defaulted to NULL, in which case the
 				 * type required by the current driver is
@@ -115,11 +115,11 @@ char *dispType;			/* A class of color map files for one or
 				 * needed at all (it's a black-and-white
 				 * display), so nothing is loaded.
 				 */
-char *monType;			/* The class of monitors being used.  Usually
+    char *monType,	/* The class of monitors being used.  Usually
 				 * given as "std".
 				 */
-char *path;			/* a search path */
-char *libPath;			/* a library search path */
+    char *path,	/* a search path */
+    char *libPath)	/* a library search path */
 
 {
     int max, red, green, blue, newmax, argc, i;
@@ -244,21 +244,21 @@ cleanup:
  */
 
 bool
-GrSaveCMap(techStyle, dispType, monType, path, libPath)
-char *techStyle;		/* The type of dstyle file requested by
+GrSaveCMap(
+    char *techStyle,	/* The type of dstyle file requested by
 				 * the current technology.
 				 */
-char *dispType;			/* A class of color map files for one or
+    char *dispType,	/* A class of color map files for one or
 				 * more display types.  Usually this
 				 * is defaulted to NULL, in which case the
 				 * type required by the current driver is
 				 * used.
 				 */
-char *monType;			/* The class of monitors being used.  Usually
+    char *monType,	/* The class of monitors being used.  Usually
 				 * given as "std".
 				 */
-char *path;			/* a search path */
-char *libPath;			/* a library search path */
+    char *path,	/* a search path */
+    char *libPath)	/* a library search path */
 
 {
     FILE *f;
@@ -319,8 +319,8 @@ char *libPath;			/* a library search path */
  */
 
 int
-GrNameToColor(colorname)
-    char *colorname;
+GrNameToColor(
+    char *colorname)
 {
     int i;
     colorEntry *ce;
@@ -351,9 +351,11 @@ GrNameToColor(colorname)
  */
 
 bool
-GrGetColor(color, red, green, blue)
-    int color;			/* Color to be read. */
-    int *red, *green, *blue;	/* Pointers to values of color elements. */
+GrGetColor(
+    int color,	/* Color to be read. */
+    int *red,
+    int *green,
+    int *blue)
 {
     colorEntry *ce;
 
@@ -381,9 +383,11 @@ GrGetColor(color, red, green, blue)
  */
 
 bool
-GrPutColor(color, red, green, blue)
-    int color;			/* Color to be changed. */
-    int red, green, blue;	/* New intensities for color. */
+GrPutColor(
+    int color,	/* Color to be changed. */
+    int red,
+    int green,
+    int blue)
 {
     colorEntry *ce;
 
@@ -425,15 +429,16 @@ GrPutColor(color, red, green, blue)
  */
 
 void
-GrPutManyColors(color, red, green, blue, opaqueBit)
-   int color;			/* A specification of colors to be modified. */
-   int red, green, blue;	/* New intensity values. */
-   int opaqueBit;		/* The opaque/transparent bit.  It is assumed
+GrPutManyColors(
+   int color,			/* A specification of colors to be modified. */
+    int red,
+    int green,
+    int blue,
+   int opaqueBit)		/* The opaque/transparent bit.  It is assumed
 				 * that the opaque layer colors or
 				 * transparent layer bits lie to the right
 				 * of the opaque/transparent bit.
 				 */
-
 {
     int i;
     int mask = color;

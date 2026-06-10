@@ -80,9 +80,9 @@ extern void grOGLWStdin(int fd, ClientData cdata); /* cb_textio_input_t (unused)
  */
 
 void
-groglSetWMandC (mask, c)
-    int mask;			/* New value for write mask */
-    int c;			/* New value for current color */
+groglSetWMandC(
+    int mask,			/* New value for write mask */
+    int c)			/* New value for current color */
 {
     static int oldMask = -1;
     static int oldColor = -1;
@@ -135,8 +135,8 @@ groglSetWMandC (mask, c)
  */
 
 void
-groglSetLineStyle (style)
-    int style;			/* New stipple pattern for lines. */
+groglSetLineStyle(
+    int style)			/* New stipple pattern for lines. */
 {
     static int oldStyle = -1;
     GLushort glstyle;
@@ -172,9 +172,9 @@ groglSetLineStyle (style)
  */
 
 void
-groglSetSPattern (sttable, numstipples)
-    int **sttable;			/* The table of patterns */
-    int numstipples;			/* Number of stipples */
+groglSetSPattern(
+    int **sttable,			/* The table of patterns */
+    int numstipples)			/* Number of stipples */
 {
     int i, j, k, n;
     GLubyte *pdata;
@@ -209,8 +209,8 @@ groglSetSPattern (sttable, numstipples)
  */
 
 void
-groglSetStipple (stipple)
-    int stipple;			/* The stipple number to be used. */
+groglSetStipple(
+    int stipple)			/* The stipple number to be used. */
 {
     static int oldStip = -1;
     if (stipple == oldStip) return;
@@ -358,7 +358,8 @@ GrOGLFlush()
 
 /*
 int
-glTransYs(int wy)
+glTransYs(
+    int wy)
 {
    int my;
    GLint vparms[4];
@@ -376,8 +377,11 @@ glTransYs(int wy)
  *----------------------------------------------------------------------
  */
 void
-oglSetProjection(llx, lly, width, height)
-    int llx, lly, width, height;
+oglSetProjection(
+    int llx,
+    int lly,
+    int width,
+    int height)
 {
     glXMakeCurrent(grXdpy, (GLXDrawable)oglCurrent.window, grXcontext);
 
@@ -612,10 +616,10 @@ pipehandler(
  */
 
 bool
-oglSetDisplay (dispType, outFileName, mouseFileName)
-    char *dispType;		/* arguments not used by X */
-    char *outFileName;
-    char *mouseFileName;
+oglSetDisplay(
+    char *dispType,		/* arguments not used by X */
+    char *outFileName,
+    char *mouseFileName)
 {
     int fildes[2], fildes2[2];
     char	*planecount;
@@ -801,9 +805,9 @@ grOGLWStdin(
  */
 
 bool
-GrOGLCreate(w, name)
-    MagWindow *w;
-    char *name;
+GrOGLCreate(
+    MagWindow *w,
+    char *name)
 {
    Window	wind;
    HashEntry	*entry;
@@ -912,8 +916,8 @@ GrOGLCreate(w, name)
  */
 
 void
-GrOGLDelete(w)
-    MagWindow *w;
+GrOGLDelete(
+    MagWindow *w)
 {
     int xw;
     HashEntry	*entry;
@@ -941,8 +945,8 @@ GrOGLDelete(w)
  */
 
 void
-GrOGLConfigure(w)
-    MagWindow *w;
+GrOGLConfigure(
+    MagWindow *w)
 {
     XMoveResizeWindow(grXdpy,(Window) w->w_grdata,
             w->w_frameArea.r_xbot, glTransYs(w->w_frameArea.r_ytop),
@@ -967,8 +971,8 @@ GrOGLConfigure(w)
  */
 
 void
-GrOGLRaise(w)
-    MagWindow *w;
+GrOGLRaise(
+    MagWindow *w)
 {
     XRaiseWindow(grXdpy, (Window) w->w_grdata );
 }
@@ -990,8 +994,8 @@ GrOGLRaise(w)
  */
 
 void
-GrOGLLower(w)
-    MagWindow *w;
+GrOGLLower(
+    MagWindow *w)
 {
     XLowerWindow(grXdpy, (Window) w->w_grdata );
 }
@@ -1013,9 +1017,9 @@ GrOGLLower(w)
  */
 
 void
-GrOGLLock(w, flag)
-    MagWindow *w;
-    bool flag;
+GrOGLLock(
+    MagWindow *w,
+    bool flag)
 {
     grSimpleLock(w, flag);
     if ( w != GR_LOCK_SCREEN )
@@ -1045,8 +1049,8 @@ GrOGLLock(w, flag)
  */
 
 void
-GrOGLUnlock(w)
-    MagWindow *w;
+GrOGLUnlock(
+    MagWindow *w)
 {
     GrOGLFlush();
     grSimpleUnlock(w);
@@ -1066,9 +1070,9 @@ GrOGLUnlock(w)
  */
 
 void
-GrOGLIconUpdate(w,text)
-	MagWindow	*w;
-	char		*text;
+GrOGLIconUpdate(
+    MagWindow *w,
+    char *text)
 {
      Window wind = (Window) w->w_grdata;
      XClassHint	class;

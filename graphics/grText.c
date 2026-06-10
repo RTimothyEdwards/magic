@@ -47,14 +47,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 bool
-GrFontText(str, style, p, font, size, rotate, clip)
-    char *str;		/* The text to be drawn. */
-    int style;		/* Display style to use for the text */
-    Point *p;		/* Point of origin */
-    int font;		/* Font to use */
-    int size;		/* Scale */
-    int rotate;		/* Rotation (in degrees) */
-    Rect *clip;		/* Clipping area */
+GrFontText(
+    char *str,		/* The text to be drawn. */
+    int style,		/* Display style to use for the text */
+    Point *p,		/* Point of origin */
+    int font,		/* Font to use */
+    int size,		/* Scale */
+    int rotate,		/* Rotation (in degrees) */
+    Rect *clip)		/* Clipping area */
 {
     Rect nClip;
     Point pstart;
@@ -106,29 +106,28 @@ GrFontText(str, style, p, font, size, rotate, clip)
  */
 
 bool
-GrPutText(str, style, p, pos, size, adjust, clip, actual)
-    char *str;		/* The text to be drawn. */
-    int style;		/* The style for drawing text; if -1 then
+GrPutText(
+    char *str,	/* The text to be drawn. */
+    int style,	/* The style for drawing text; if -1 then
 			 * the caller has already set the style
 			 * and we don't have to.
 			 */
-
-    Point *p;		/* The point to align with */
-    int pos;		/* The alignment desired (GR_NORTH,
+    Point *p,	/* The point to align with */
+    int pos,	/* The alignment desired (GR_NORTH,
 			 * GR_NORTHEAST, etc.)
 			 */
-    int size;		/* The desired size of the text
+    int size,	/* The desired size of the text
 			 * (such as GR_TEXT_MEDIUM).
 			 */
-    bool adjust;	/* TRUE means adjust the text (either by
+    bool adjust,	/* TRUE means adjust the text (either by
 			 * sliding it around or using a smaller font)
 			 * if that is necessary to make it fit into
 			 * the clipping rectangle.  FALSE means
 			 * display the text exactly as instructed,
 			 * clipping it if it doesn't fit.
 			 */
-    Rect *clip;		/* A clipping rectangle for the text */
-    Rect *actual;	/* To be filled in with the location of the
+    Rect *clip,	/* A clipping rectangle for the text */
+    Rect *actual)	/* To be filled in with the location of the
 			 * text.
 			 */
 {
@@ -315,13 +314,13 @@ GrPutText(str, style, p, pos, size, adjust, clip, actual)
  */
 
 void
-GrLabelSize(text, pos, size, area)
-    char *text;				/* Text of the label. */
-    int pos;				/* Position of the label relative
+GrLabelSize(
+    char *text,				/* Text of the label. */
+    int pos,				/* Position of the label relative
 					 * to its positioning point.
 					 */
-    int size;				/* Text size. */
-    Rect *area;				/* To be filled in with label size. */
+    int size,				/* Text size. */
+    Rect *area)				/* To be filled in with label size. */
 {
     int xoffset, yoffset;		/* Offsets due to label position. */
 

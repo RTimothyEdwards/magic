@@ -243,13 +243,12 @@ void (*GrResumePtr)() = grNullProc;
  */
 
 bool
-GrSetDisplay(type, outName, mouseName)
-char *type;			/* Name of the display type. */
-char *outName;			/* Filename used for communciation with
+GrSetDisplay(
+char *type,			/* Name of the display type. */
+char *outName,			/* Filename used for communciation with
 				 * display. */
-char *mouseName;		/* Filename used for communciation
+char *mouseName)		/* Filename used for communciation
 				 * with tablet. */
-
 {
     char **ptr;
     char *cp;
@@ -326,8 +325,9 @@ char *mouseName;		/* Filename used for communciation
  * ----------------------------------------------------------------------------
  */
 bool
-GrIsDisplay(disp1, disp2)
-    char *disp1, *disp2;
+GrIsDisplay(
+    char *disp1,
+    char *disp2)
 {
     char **ptr1, **ptr2;
     int i, j;
@@ -379,11 +379,11 @@ GrIsDisplay(disp1, disp2)
  */
 
 void
-GrGuessDisplayType(graphics, mouse, display, monitor)
-    char **graphics;		/* default device for sending out graphics */
-    char **mouse;		/* default device for reading mouse (tablet) */
-    char **display;		/* default type of device (OGL, etc...) */
-    char **monitor;		/* default type of monitor (pale, std) */
+GrGuessDisplayType(
+    char **graphics,		/* default device for sending out graphics */
+    char **mouse,		/* default device for reading mouse (tablet) */
+    char **display,		/* default type of device (OGL, etc...) */
+    char **monitor)		/* default type of monitor (pale, std) */
 {
     bool onSun;			/* Are we on a Sun? */
     bool haveX;			/* are we running under X? */
@@ -443,11 +443,11 @@ GrGuessDisplayType(graphics, mouse, display, monitor)
  */
 
 char *
-grFgets(str, n, stream, name)
-    char *str;
-    int n;
-    FILE *stream;
-    char *name;		/* The user name of the stream, for the error msg */
+grFgets(
+    char *str,
+    int n,
+    FILE *stream,
+    char *name)		/* The user name of the stream, for the error msg */
 {
     fd_set fn;
     char *newstr;

@@ -66,15 +66,15 @@ GLuint	grXBases[4];
  */
 
 bool
-groglDrawGrid (prect, outline, clip)
-    Rect *prect;			/* A rectangle that forms the template
+groglDrawGrid(
+    Rect *prect,			/* A rectangle that forms the template
 			         * for the grid.  Note:  in order to maintain
 			         * precision for the grid, the rectangle
 			         * coordinates are specified in units of
 			         * screen coordinates multiplied by SUBPIXEL.
 			         */
-    int outline;		/* the outline style */
-    Rect *clip;			/* a clipping rectangle */
+    int outline,		/* the outline style */
+    Rect *clip)			/* a clipping rectangle */
 {
     int xsize, ysize;
     int x, y;
@@ -222,8 +222,8 @@ groglLoadFont()
  */
 
 void
-groglSetCharSize (size)
-    int size;		/* Width of characters */
+groglSetCharSize(
+    int size)		/* Width of characters */
 {
     oglCurrent.fontSize = size;
 
@@ -267,10 +267,10 @@ groglSetCharSize (size)
  */
 
 int
-GrOGLTextSize(text, size, r)
-    char *text;
-    int size;
-    Rect *r;
+GrOGLTextSize(
+    char *text,
+    int size,
+    Rect *r)
 {
     XCharStruct overall;
     XFontStruct *font;
@@ -324,9 +324,10 @@ GrOGLTextSize(text, size, r)
  */
 
 int
-GrOGLReadPixel (w, x, y)
-    MagWindow *w;
-    int x,y;		/* the location of a pixel in screen coords */
+GrOGLReadPixel(
+    MagWindow *w,
+    int x,
+    int y)
 {
    return 0;
 }
@@ -347,9 +348,9 @@ GrOGLReadPixel (w, x, y)
  */
 
 void
-GrOGLBitBlt(r, p)
-    Rect *r;
-    Point *p;
+GrOGLBitBlt(
+    Rect *r,
+    Point *p)
 {
     glCopyPixels(r->r_xbot, r->r_ybot, r->r_xtop - r->r_xbot + 1,
 		r->r_ytop - r->r_ybot + 1, GL_COLOR);
@@ -390,10 +391,10 @@ myCombine(GLdouble coords[3], GLdouble *vertex_data[4],
  */
 
 void
-groglDrawCharacter(clist, tc, pixsize)
-    FontChar *clist;
-    unsigned char tc;
-    int pixsize;
+groglDrawCharacter(
+    FontChar *clist,
+    unsigned char tc,
+    int pixsize)
 {
     Point *tp;
     int np, nptotal;
@@ -468,14 +469,14 @@ groglDrawCharacter(clist, tc, pixsize)
  */
 
 void
-groglFontText(text, font, size, rotate, pos, clip, obscure)
-    char *text;			/* The text to be drawn */
-    int   font;			/* Font to use from fontList */
-    int   size;			/* Pixel size of the font */
-    int	  rotate;		/* Text rotation */
-    Point *pos;			/* Text base position */
-    Rect  *clip;		/* Clipping area */
-    LinkedRect *obscure;	/* List of obscuring areas */
+groglFontText(
+    char *text,			/* The text to be drawn */
+    int   font,			/* Font to use from fontList */
+    int   size,			/* Pixel size of the font */
+    int	  rotate,		/* Text rotation */
+    Point *pos,			/* Text base position */
+    Rect  *clip,		/* Clipping area */
+    LinkedRect *obscure)	/* List of obscuring areas */
 {
     char *tptr;
     Point *coffset;		/* vector to next character */
@@ -535,7 +536,8 @@ static GC grXcopyGC = (GC)NULL;
  */
 
 void
-groglFreeBackingStore(MagWindow *window)
+groglFreeBackingStore(
+    MagWindow *window)
 {
     Pixmap pmap = (Pixmap)window->w_backingStore;
     if (pmap == (Pixmap)NULL) return;
@@ -561,7 +563,8 @@ groglFreeBackingStore(MagWindow *window)
  */
 
 void
-groglCreateBackingStore(MagWindow *w)
+groglCreateBackingStore(
+    MagWindow *w)
 {
     Pixmap pmap;
     Window wind = (Window)w->w_grdata;
@@ -609,7 +612,9 @@ groglCreateBackingStore(MagWindow *w)
  */
 
 bool
-groglGetBackingStore(MagWindow *w, Rect *area)
+groglGetBackingStore(
+    MagWindow *w,
+    Rect *area)
 {
     Pixmap pmap;
     Window wind = (Window)w->w_grdata;
@@ -658,7 +663,9 @@ groglGetBackingStore(MagWindow *w, Rect *area)
  */
 
 bool
-groglScrollBackingStore(MagWindow *w, Point *shift)
+groglScrollBackingStore(
+    MagWindow *w,
+    Point *shift)
 {
     Pixmap pmap;
     unsigned int width, height;
@@ -717,7 +724,9 @@ groglScrollBackingStore(MagWindow *w, Point *shift)
  */
 
 void
-groglPutBackingStore(MagWindow *w, Rect *area)
+groglPutBackingStore(
+    MagWindow *w,
+    Rect *area)
 {
     Pixmap pmap = (Pixmap)w->w_backingStore;
     Window wind = (Window)w->w_grdata;
@@ -771,14 +780,13 @@ groglPutBackingStore(MagWindow *w, Rect *area)
  */
 
 void
-groglPutText (text, pos, clip, obscure)
-    char *text;			/* The text to be drawn. */
-    Point *pos;			/* A point located at the leftmost point of
+groglPutText(
+    char *text,			/* The text to be drawn. */
+    Point *pos,			/* A point located at the leftmost point of
 				 * the baseline for this string.
 				 */
-    Rect *clip;			/* A rectangle to clip against */
-    LinkedRect *obscure;	/* A list of obscuring rectangles */
-
+    Rect *clip,			/* A rectangle to clip against */
+    LinkedRect *obscure)	/* A list of obscuring rectangles */
 {
     Rect location;
     Rect overlap;
@@ -832,10 +840,9 @@ groglPutText (text, pos, clip, obscure)
  */
 
 void
-grOGLGeoSub(r, area)
-Rect *r;		/* Rectangle to be subtracted from. */
-Rect *area;		/* Area to be subtracted. */
-
+grOGLGeoSub(
+Rect *r,		/* Rectangle to be subtracted from. */
+Rect *area)		/* Area to be subtracted. */
 {
     if (r->r_xbot == area->r_xbot) r->r_xbot = area->r_xtop;
     else

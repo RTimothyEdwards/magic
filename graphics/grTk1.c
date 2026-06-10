@@ -100,7 +100,7 @@ extern bool GrTkInstalledCMap;
  */
 extern void GrTkClose(), GrTkFlush();
 extern void GrTkDelete(),GrTkConfigure(),GrTkRaise(),GrTkLower();
-extern void GrTkLock(),GrTkUnlock(),GrTkIconUpdate();
+extern void GrTkLock(MagWindow *w, bool flag),GrTkUnlock(),GrTkIconUpdate();
 extern bool GrTkInit();
 extern bool GrTkEventPending(), GrTkCreate(), grtkGetCursorPos();
 extern int  GrTkWindowId();
@@ -121,9 +121,9 @@ extern char *GrTkWindowName();
  */
 
 void
-grtkSetWMandC (mask, c)
-    long mask;			/* New value for write mask */
-    int c;			/* New value for current color */
+grtkSetWMandC(
+    long mask,			/* New value for write mask */
+    int c)			/* New value for current color */
 {
     static int oldC = -1;
     static int oldM = -1;
@@ -163,8 +163,8 @@ grtkSetWMandC (mask, c)
  */
 
 void
-grtkSetLineStyle (style)
-    int style;			/* New stipple pattern for lines. */
+grtkSetLineStyle(
+    int style)			/* New stipple pattern for lines. */
 {
     static int oldStyle = -1;
     LineStyle *linestyle;
@@ -258,9 +258,9 @@ grtkSetLineStyle (style)
  */
 
 void
-grtkSetSPattern (sttable, numstipples)
-    int **sttable;			/* The table of patterns */
-    int numstipples;			/* Number of stipples */
+grtkSetSPattern(
+    int **sttable,			/* The table of patterns */
+    int numstipples)			/* Number of stipples */
 {
     Tk_Window tkwind;
     Window xwid;
@@ -311,8 +311,8 @@ grtkSetSPattern (sttable, numstipples)
  */
 
 void
-grtkSetStipple (stipple)
-    int stipple;			/* The stipple number to be used. */
+grtkSetStipple(
+    int stipple)			/* The stipple number to be used. */
 {
     static int oldStip = -1;
     if (stipple == oldStip) return;
@@ -345,8 +345,8 @@ grtkSetStipple (stipple)
 #define visual_table_len  7
 
 bool
-GrTkInit(dispType)
-    char *dispType;
+GrTkInit(
+    char *dispType)
 {
     int i,j;
     XVisualInfo grvisual_info, *grvisual_get, grtemplate;
@@ -728,9 +728,9 @@ GrTkFlush ()
  */
 
 void
-MagicEventProc(clientData, xevent)
-    ClientData clientData;
-    XEvent *xevent;
+MagicEventProc(
+    ClientData clientData,
+    XEvent *xevent)
 {
     HashEntry	*entry;
     Tk_Window wind = (Tk_Window)clientData;
@@ -1217,10 +1217,10 @@ keys_and_buttons:
  */
 
 bool
-x11SetDisplay (dispType, outFileName, mouseFileName)
-    char *dispType;
-    char *outFileName;
-    char *mouseFileName;
+x11SetDisplay(
+    char *dispType,
+    char *outFileName,
+    char *mouseFileName)
 {
     char *planecount;
     char *fullname;
@@ -1235,8 +1235,8 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
 
     /* Set up the procedure values in the indirection table. */
 
-    GrLockPtr = GrTkLock;
-    GrUnlockPtr = GrTkUnlock;
+    GrLockPtr = (void (*)())GrTkLock;
+    GrUnlockPtr = (void (*)())GrTkUnlock;
     GrInitPtr = GrTkInit;
     GrClosePtr = GrTkClose;
     GrSetCMapPtr = GrTkSetCMap;
@@ -1321,9 +1321,9 @@ extern void MakeWindowCommand();
  */
 
 bool
-GrTkCreate(w, name)
-    MagWindow *w;
-    char *name;
+GrTkCreate(
+    MagWindow *w,
+    char *name)
 {
     Tk_Window tkwind, tktop;
     Window wind;
@@ -1545,8 +1545,8 @@ GrTkCreate(w, name)
  */
 
 void
-GrTkDelete(w)
-    MagWindow *w;
+GrTkDelete(
+    MagWindow *w)
 {
     Tk_Window xw;
     HashEntry	*entry;
@@ -1576,8 +1576,8 @@ GrTkDelete(w)
  */
 
 void
-GrTkConfigure(w)
-    MagWindow *w;
+GrTkConfigure(
+    MagWindow *w)
 {
     if (w->w_flags & WIND_OFFSCREEN) return;
 
@@ -1604,8 +1604,8 @@ GrTkConfigure(w)
  */
 
 void
-GrTkRaise(w)
-    MagWindow *w;
+GrTkRaise(
+    MagWindow *w)
 {
     Tk_Window tkwind;
 
@@ -1632,8 +1632,8 @@ GrTkRaise(w)
  */
 
 void
-GrTkLower(w)
-    MagWindow *w;
+GrTkLower(
+    MagWindow *w)
 {
     Tk_Window tkwind;
 
@@ -1660,9 +1660,9 @@ GrTkLower(w)
  */
 
 void
-GrTkLock(w, flag)
-    MagWindow *w;
-    bool flag;
+GrTkLock(
+    MagWindow *w,
+    bool flag)
 {
 
     grSimpleLock(w, flag);
@@ -1699,8 +1699,8 @@ GrTkLock(w, flag)
  */
 
 void
-GrTkUnlock(w)
-    MagWindow *w;
+GrTkUnlock(
+    MagWindow *w)
 {
     GR_TK_FLUSH_BATCH();
     grSimpleUnlock(w);
@@ -1753,9 +1753,9 @@ GrTkEventPending()
  */
 
 void
-GrTkIconUpdate(w, text)		/* See Blt code */
-    MagWindow	*w;
-    char	*text;
+GrTkIconUpdate(
+    MagWindow	*w,
+    char	*text)
 {
     Tk_Window	tkwind;
     Window	wind;
@@ -1806,8 +1806,8 @@ GrTkIconUpdate(w, text)		/* See Blt code */
  */
 
 int
-GrTkWindowId(tkname)
-    char *tkname;
+GrTkWindowId(
+    char *tkname)
 {
     Tk_Window tkwind;
     MagWindow *mw;

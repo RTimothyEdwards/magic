@@ -25,6 +25,15 @@
 #include "utils/magic.h"
 #include "utils/geometry.h"
 
+/* Forward declaration to avoid circular include with windows/windows.h */
+struct WIND_S1;
+typedef struct WIND_S1 MagWindow;
+
+/* TileType is defined in database/database.h, which sits above graphics in
+ * the include hierarchy;  repeat the (identical) typedef here so prototypes
+ * can name it without creating a circular dependency. */
+typedef int TileType;
+
 /* data structures */
 typedef struct {
     int idx, mask, color, outline, fill, stipple;
@@ -54,13 +63,13 @@ extern void (*GrLockPtr)();
 extern void (*GrUnlockPtr)();
 extern bool GrHaveLock();
 extern void GrClipTo();
-extern void GrClipBox();
+extern void GrClipBox(Rect *prect, int style);
 extern void GrClipLine();
-extern bool GrPutText();
+extern bool GrPutText(char *str, int style, Point *p, int pos, int size, bool adjust, Rect *clip, Rect *actual);
 extern void GrFillPolygon();
 extern void (*GrDrawGlyphPtr)();
 extern void (*GrBitBltPtr)();
-extern int  (*GrReadPixelPtr)();
+extern int  (*GrReadPixelPtr)(MagWindow *w, int x, int y);
 extern void (*GrFlushPtr)();
 
 /* Tablet routines */
@@ -83,8 +92,10 @@ extern bool GrDrawGlyphNum();
 #define GrFastBox(x)	GrDrawFastBox(x, 0)
 
 /* external color map routines */
-extern bool GrReadCMap(), GrSaveCMap();
-extern bool GrGetColor(), GrPutColor();
+extern bool GrReadCMap(char *techStyle, char *dispType, char *monType, char *path, char *libPath);
+extern bool GrSaveCMap(char *techStyle, char *dispType, char *monType, char *path, char *libPath);
+extern bool GrGetColor(int color, int *red, int *green, int *blue);
+extern bool GrPutColor(int color, int red, int green, int blue);
 extern int  GrNameToColor();
 extern void GrPutManyColors();
 extern void (*GrSetCMapPtr)();
@@ -139,7 +150,7 @@ extern void (*GrResumePtr)();
 #define GrResume (*GrResumePtr)
 
 /* C99 compat */
-extern void GrClipTriangle();
+extern void GrClipTriangle(Rect *r, Rect *c, bool clipped, TileType dinfo, Point *points, int *np);
 extern void GrBox();
 extern bool GrFontText();
 extern void GrDiagonal();
