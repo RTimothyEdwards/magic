@@ -126,8 +126,8 @@ DBPrintUseId(
  */
 
 void
-DBCellSetAvail(cellDef)
-    CellDef *cellDef;		/* Pointer to definition of cell we wish to
+DBCellSetAvail(
+    CellDef *cellDef)		/* Pointer to definition of cell we wish to
 				 * mark as available.
 				 */
 {
@@ -136,8 +136,8 @@ DBCellSetAvail(cellDef)
 }
 
 void
-DBCellClearAvail(cellDef)
-    CellDef *cellDef;		/* Pointer to definition of cell we wish to
+DBCellClearAvail(
+    CellDef *cellDef)		/* Pointer to definition of cell we wish to
 				 * mark as available.
 				 */
 {
@@ -168,16 +168,16 @@ DBCellClearAvail(cellDef)
  */
 
 bool
-DBCellGetModified(cellDef)
-    CellDef *cellDef;	/* Pointer to definition of cell */
+DBCellGetModified(
+    CellDef *cellDef)	/* Pointer to definition of cell */
 {
     return ((cellDef->cd_flags & CDMODIFIED) != 0);
 }
 
 void
-DBCellSetModified(cellDef, ismod)
-    CellDef *cellDef;
-    bool ismod;		/* If TRUE, mark the cell as modified; if FALSE,
+DBCellSetModified(
+    CellDef *cellDef,
+    bool ismod)		/* If TRUE, mark the cell as modified; if FALSE,
 			 * mark it as unmodified.
 			 */
 {
@@ -205,8 +205,8 @@ DBCellSetModified(cellDef, ismod)
  */
 
 void
-DBComputeUseBbox(use)
-    CellUse *use;
+DBComputeUseBbox(
+    CellUse *use)
 {
     Rect *box, *extended;
     Rect childRect, childExtend;
@@ -271,8 +271,9 @@ DBComputeUseBbox(use)
  */
 
 bool
-DBIsChild(cu1, cu2)
-    CellUse *cu1, *cu2;
+DBIsChild(
+    CellUse *cu1,
+    CellUse *cu2)
 {
     return (cu1->cu_parent == cu2->cu_def);
 }
@@ -294,9 +295,9 @@ DBIsChild(cu1, cu2)
  */
 
 void
-DBSetArray(fromCellUse, toCellUse)
-    CellUse *fromCellUse;
-    CellUse *toCellUse;
+DBSetArray(
+    CellUse *fromCellUse,
+    CellUse *toCellUse)
 {
     toCellUse->cu_xlo = fromCellUse->cu_xlo;
     toCellUse->cu_ylo = fromCellUse->cu_ylo;
@@ -323,9 +324,9 @@ DBSetArray(fromCellUse, toCellUse)
  */
 
 void
-DBSetTrans(cellUse, trans)
-    CellUse *cellUse;
-    Transform *trans;
+DBSetTrans(
+    CellUse *cellUse,
+    Transform *trans)
 {
     cellUse->cu_transform = *trans;
     DBComputeUseBbox(cellUse);
@@ -357,12 +358,15 @@ DBSetTrans(cellUse, trans)
  */
 
 void
-DBMakeArray(cellUse, rootToCell, xlo, ylo, xhi, yhi, xsep, ysep)
-    CellUse *cellUse;
-    Transform *rootToCell;
-    int xlo, ylo;
-    int xhi, yhi;
-    int xsep, ysep;
+DBMakeArray(
+    CellUse *cellUse,
+    Transform *rootToCell,
+    int xlo,
+    int ylo,
+    int xhi,
+    int yhi,
+    int xsep,
+    int ysep)
 {
     int t;
 
@@ -417,11 +421,13 @@ DBMakeArray(cellUse, rootToCell, xlo, ylo, xhi, yhi, xsep, ysep)
  */
 
 void
-DBArrayOverlap(cu, parentRect, pxlo, pxhi, pylo, pyhi)
-    CellUse *cu;	/* Pointer to cell use which may be an array */
-    Rect *parentRect;		/* Clipping rectangle cu->cu_parent coords */
-    int *pxlo, *pxhi;
-    int *pylo, *pyhi;
+DBArrayOverlap(
+    CellUse *cu,	/* Pointer to cell use which may be an array */
+    Rect *parentRect,		/* Clipping rectangle cu->cu_parent coords */
+    int *pxlo,
+    int *pxhi,
+    int *pylo,
+    int *pyhi)
 {
     int outxlo, outxhi, outylo, outyhi, t;
     int xlo, ylo, xhi, yhi, xsep, ysep;
@@ -584,8 +590,8 @@ DBArrayOverlap(cu, parentRect, pxlo, pxhi, pylo, pyhi)
 void dbReComputeBboxFunc();
 
 void
-DBReComputeBbox(cellDef)
-    CellDef *cellDef;	/* Cell def whose bounding box may have changed */
+DBReComputeBbox(
+    CellDef *cellDef)	/* Cell def whose bounding box may have changed */
 {
     extern bool DBBoundPlane();
 
@@ -593,8 +599,8 @@ DBReComputeBbox(cellDef)
 }
 
 void
-DBReComputeBboxVert(cellDef)
-    CellDef *cellDef;	/* Cell def whose bounding box may have changed */
+DBReComputeBboxVert(
+    CellDef *cellDef)	/* Cell def whose bounding box may have changed */
 {
     extern bool DBBoundPlaneVert();
 
@@ -602,10 +608,10 @@ DBReComputeBboxVert(cellDef)
 }
 
 void
-dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
-    CellDef *cellDef;	/* Cell def whose bounding box may have changed */
-    bool (*boundProc)();
-    void (*recurseProc)();
+dbReComputeBboxFunc(
+    CellDef *cellDef,	/* Cell def whose bounding box may have changed */
+    bool (*boundProc)(),
+    void (*recurseProc)())
 {
     bool degenerate;
     Rect rect, area, extended, *box;
@@ -797,11 +803,12 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
  */
 
 void
-DBComputeArrayArea(area, cellUse, x, y, prect)
-    Rect *area;		/* Area to be transformed. */
-    CellUse *cellUse;	/* Cell use whose bounding box is to be computed */
-    int x, y;		/* Indexes of array element whose box is being found */
-    Rect *prect;	/* Pointer to rectangle to be set to bounding
+DBComputeArrayArea(
+    Rect *area,		/* Area to be transformed. */
+    CellUse *cellUse,	/* Cell use whose bounding box is to be computed */
+    int x,
+    int y,
+    Rect *prect)	/* Pointer to rectangle to be set to bounding
 			 * box of the given array element, in coordinates
 			 * of the def of cellUse.
 			 */
@@ -848,12 +855,10 @@ DBComputeArrayArea(area, cellUse, x, y, prect)
  */
 
 Transform *
-DBGetArrayTransform(use, x, y)
-    CellUse *use;
-    int x, y;			/* Array indices of the desired element.
-				 * These must fall within the range of
-				 * use's array indices.
-				 */
+DBGetArrayTransform(
+    CellUse *use,
+    int x,
+    int y)
 {
     static Transform result;
     int xsep, ysep, xbase, ybase;

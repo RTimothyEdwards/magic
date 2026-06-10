@@ -49,7 +49,7 @@ extern UndoType dbUndoIDPaint, dbUndoIDSplit, dbUndoIDJoin;
 
 /* ----------------------- Forward declarations ----------------------- */
 
-Tile *dbPaintMerge();
+Tile *dbPaintMerge(Tile *tile, TileType newType, Rect *area, Plane *plane, int mergeFlags, PaintUndoInfo *undo, bool mark);
 Tile *dbMergeType();
 Tile *dbPaintMergeVert();
 
@@ -162,10 +162,10 @@ int dbPaintDebug = 0;
  */
 
 void
-dbSplitUndo(tile, splitx, undo)
-    Tile *tile;
-    int   splitx;
-    PaintUndoInfo *undo;
+dbSplitUndo(
+    Tile *tile,
+    int splitx,
+    PaintUndoInfo *undo)
 {
     splitUE *xxsup;
 
@@ -181,10 +181,10 @@ dbSplitUndo(tile, splitx, undo)
 }
 
 void
-dbJoinUndo(tile, splitx, undo)
-    Tile *tile;
-    int   splitx;
-    PaintUndoInfo *undo;
+dbJoinUndo(
+    Tile *tile,
+    int splitx,
+    PaintUndoInfo *undo)
 {
     splitUE *xxsup;
 
@@ -239,19 +239,19 @@ dbJoinUndo(tile, splitx, undo)
  */
 
 int
-DBPaintPlane0(plane, area, resultTbl, undo, method)
-    Plane *plane;		/* Plane whose paint is to be modified */
-    Rect *area;			/* Area to be changed */
-    const PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
+DBPaintPlane0(
+    Plane *plane,		/* Plane whose paint is to be modified */
+    Rect *area,			/* Area to be changed */
+    const PaintResultType *resultTbl,	/* Table, indexed by the type of tile already
 				 * present in the plane, giving the type to
 				 * which the existing tile must change as a
 				 * result of this paint operation.
 				 */
-    PaintUndoInfo *undo;	/* Record containing everything needed to
+    PaintUndoInfo *undo,	/* Record containing everything needed to
 				 * save undo entries for this operation.
 				 * If NULL, the undo package is not used.
 				 */
-    unsigned char method;	/* If PAINT_MARK, the routine marks tiles as it
+    unsigned char method)	/* If PAINT_MARK, the routine marks tiles as it
 				 * goes to avoid processing tiles twice.
 				 */
 {
@@ -735,10 +735,10 @@ done2:
  */
 
 void
-DBSplitTile(plane, point, splitx)
-    Plane *plane;
-    Point *point;
-    int splitx;
+DBSplitTile(
+    Plane *plane,
+    Point *point,
+    int splitx)
 {
     Tile *tile, *newtile, *tp;
     tile = PlaneGetHint(plane);
@@ -785,13 +785,13 @@ DBSplitTile(plane, point, splitx)
  */
 
 void
-DBFracturePlane(plane, area, resultTbl, undo)
-    Plane *plane;		/* Plane whose paint is to be modified */
-    Rect *area;	/* Area to be changed */
-    const PaintResultType *resultTbl;	/* Paint table, to pinpoint those tiles
+DBFracturePlane(
+    Plane *plane,		/* Plane whose paint is to be modified */
+    Rect *area,	/* Area to be changed */
+    const PaintResultType *resultTbl,	/* Paint table, to pinpoint those tiles
 				 * that interact with the paint type.
 				 */
-    PaintUndoInfo *undo;	/* Record containing everything needed to
+    PaintUndoInfo *undo)	/* Record containing everything needed to
 				 * save undo entries for this operation.
 				 * If NULL, the undo package is not used.
 				 */
@@ -1044,11 +1044,11 @@ done:
  */
 
 int
-DBMergeNMTiles0(plane, area, undo, mergeOnce)
-    Plane *plane;
-    Rect *area;
-    PaintUndoInfo *undo;
-    bool mergeOnce;
+DBMergeNMTiles0(
+    Plane *plane,
+    Rect *area,
+    PaintUndoInfo *undo,
+    bool mergeOnce)
 {
     Point start;
     int clipTop;
@@ -1357,9 +1357,9 @@ nmdone:
  */
 
 int
-DBDiagonalProc(oldtype, dinfo)
-    TileType oldtype;
-    DiagInfo *dinfo;
+DBDiagonalProc(
+    TileType oldtype,
+    DiagInfo *dinfo)
 {
     TileType old_n, old_s, old_e, old_w;
     TileType new_n, new_s, new_e, new_w;
@@ -1816,10 +1816,10 @@ nextrect:
  */
 
 int
-dbNMEnumFunc(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    LinkedRect **arg;
+dbNMEnumFunc(
+    Tile *tile,
+    TileType dinfo,
+    LinkedRect **arg)
 {
     LinkedRect *lr;
 
@@ -1849,9 +1849,9 @@ dbNMEnumFunc(tile, dinfo, arg)
  */
 
 void
-dbMarkClient(tile, clip)
-    Tile *tile;
-    Rect *clip;
+dbMarkClient(
+    Tile *tile,
+    Rect *clip)
 {
     if (LEFT(tile) < clip->r_xtop &&
 		RIGHT(tile) > clip->r_xbot &&
@@ -1899,14 +1899,14 @@ dbMarkClient(tile, clip)
  */
 
 Tile *
-dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
-    Tile *tile;	/* Tile to be merged with its neighbors */
-    TileType newType;	/* Type to which we will change 'tile' */
-    Rect *area;			/* Original area painted, needed for marking */
-    Plane *plane;		/* Plane on which this resides */
-    int mergeFlags;		/* Specify which directions to merge */
-    PaintUndoInfo *undo;	/* See DBPaintPlane() above */
-    bool mark;			/* Mark tiles that were processed */
+dbPaintMerge(
+    Tile *tile,	/* Tile to be merged with its neighbors */
+    TileType newType,	/* Type to which we will change 'tile' */
+    Rect *area,			/* Original area painted, needed for marking */
+    Plane *plane,		/* Plane on which this resides */
+    int mergeFlags,		/* Specify which directions to merge */
+    PaintUndoInfo *undo,	/* See DBPaintPlane() above */
+    bool mark)			/* Mark tiles that were processed */
 {
     Tile *delayed = NULL; /* delayed free to extend lifetime */
     Tile *tp, *tpLast;
@@ -2086,20 +2086,20 @@ dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
  */
 
 void
-DBPaintType(plane, area, resultTbl, client, undo, tileMask)
-    Plane *plane;		/* Plane whose paint is to be modified */
-    Rect *area;	/* Area to be changed */
-    const PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
+DBPaintType(
+    Plane *plane,		/* Plane whose paint is to be modified */
+    Rect *area,	/* Area to be changed */
+    const PaintResultType *resultTbl,	/* Table, indexed by the type of tile already
 				 * present in the plane, giving the type to
 				 * which the existing tile must change as a
 				 * result of this paint operation.
 				 */
-    ClientData client;		/* ClientData for tile	*/
-    PaintUndoInfo *undo;	/* Record containing everything needed to
+    ClientData client,		/* ClientData for tile	*/
+    PaintUndoInfo *undo,	/* Record containing everything needed to
 				 * save undo entries for this operation.
 				 * If NULL, the undo package is not used.
 				 */
-    TileTypeBitMask *tileMask;	/* Mask of un-mergable tile types */
+    TileTypeBitMask *tileMask)	/* Mask of un-mergable tile types */
 {
     Point start;
     int clipTop, mergeFlags;
@@ -2399,13 +2399,13 @@ done:
  */
 
 Tile *
-dbMergeType(tile, newType, plane, mergeFlags, undo, client)
-    Tile *tile;	/* Tile to be merged with its neighbors */
-    TileType newType;	/* Type to which we will change 'tile' */
-    Plane *plane;		/* Plane on which this resides */
-    int mergeFlags;		/* Specify which directions to merge */
-    PaintUndoInfo *undo;	/* See DBPaintPlane() above */
-    ClientData client;
+dbMergeType(
+    Tile *tile,	/* Tile to be merged with its neighbors */
+    TileType newType,	/* Type to which we will change 'tile' */
+    Plane *plane,		/* Plane on which this resides */
+    int mergeFlags,		/* Specify which directions to merge */
+    PaintUndoInfo *undo,	/* See DBPaintPlane() above */
+    ClientData client)
 {
     Tile *delayed = NULL; /* delayed free to extend lifetime */
     Tile *tp, *tpLast;
@@ -2581,15 +2581,15 @@ dbMergeType(tile, newType, plane, mergeFlags, undo, client)
  */
 
 int
-DBPaintPlaneVert(plane, area, resultTbl, undo)
-    Plane *plane;		/* Plane whose paint is to be modified */
-    Rect *area;	/* Area to be changed */
-    const PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
+DBPaintPlaneVert(
+    Plane *plane,		/* Plane whose paint is to be modified */
+    Rect *area,	/* Area to be changed */
+    const PaintResultType *resultTbl,	/* Table, indexed by the type of tile already
 				 * present in the plane, giving the type to
 				 * which the existing tile must change as a
 				 * result of this paint operation.
 				 */
-    PaintUndoInfo *undo;	/* Record containing everything needed to
+    PaintUndoInfo *undo)	/* Record containing everything needed to
 				 * save undo entries for this operation.
 				 * If NULL, the undo package is not used.
 				 */
@@ -2873,12 +2873,12 @@ done:
  */
 
 Tile *
-dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
-    Tile *tile;	/* Tile to be merged with its neighbors */
-    TileType newType;	/* Type to which we will change 'tile' */
-    Plane *plane;		/* Plane on which this resides */
-    int mergeFlags;		/* Specify which directions to merge */
-    PaintUndoInfo *undo;	/* See DBPaintPlane() above */
+dbPaintMergeVert(
+    Tile *tile,	/* Tile to be merged with its neighbors */
+    TileType newType,	/* Type to which we will change 'tile' */
+    Plane *plane,		/* Plane on which this resides */
+    int mergeFlags,		/* Specify which directions to merge */
+    PaintUndoInfo *undo)	/* See DBPaintPlane() above */
 {
     Tile *delayed = NULL; /* delayed free to extend lifetime */
     Tile *tp, *tpLast;
@@ -3040,10 +3040,10 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
 #include "utils/styles.h"
 
 void
-dbPaintShowTile(tile, undo, str)
-    Tile *tile;			/* Tile to be highlighted */
-    PaintUndoInfo *undo;	/* Cell to which tile belongs is undo->pu_def */
-    char *str;			/* Message to be displayed */
+dbPaintShowTile(
+    Tile *tile,			/* Tile to be highlighted */
+    PaintUndoInfo *undo,	/* Cell to which tile belongs is undo->pu_def */
+    char *str)			/* Message to be displayed */
 {
     char answer[100];
     Rect r;
@@ -3099,12 +3099,12 @@ dbPaintShowTile(tile, undo, str)
  */
 
 bool
-TiNMSplitY(oldtile, newtile, y, dir, undo)
-    Tile **oldtile;	/* Tile to be split */
-    Tile **newtile;	/* Tile to be generated */
-    int y;		/* Y coordinate of split */
-    int dir;		/* 1: new tile on top, 0: new tile on bottom */
-    PaintUndoInfo *undo;	/* Undo record */
+TiNMSplitY(
+    Tile **oldtile,	/* Tile to be split */
+    Tile **newtile,	/* Tile to be generated */
+    int y,		/* Y coordinate of split */
+    int dir,		/* 1: new tile on top, 0: new tile on bottom */
+    PaintUndoInfo *undo)	/* Undo record */
 {
     long tmpdx;
     int x, delx, height;
@@ -3228,12 +3228,12 @@ TiNMSplitY(oldtile, newtile, y, dir, undo)
  */
 
 bool
-TiNMSplitX(oldtile, newtile, x, dir, undo)
-    Tile **oldtile;	/* Tile to be split */
-    Tile **newtile;	/* Tile to be generated */
-    int x;		/* X coordinate of split */
-    int dir;		/* 1: new tile on right, 0: new tile on left */
-    PaintUndoInfo *undo;	/* Undo record */
+TiNMSplitX(
+    Tile **oldtile,	/* Tile to be split */
+    Tile **newtile,	/* Tile to be generated */
+    int x,		/* X coordinate of split */
+    int dir,		/* 1: new tile on right, 0: new tile on left */
+    PaintUndoInfo *undo)	/* Undo record */
 {
     long tmpdy;
     int y, dely, width;
@@ -3355,9 +3355,9 @@ TiNMSplitX(oldtile, newtile, x, dir, undo)
  */
 
 Tile *
-TiNMMergeRight(tile, plane)
-    Tile *tile;
-    Plane *plane;
+TiNMMergeRight(
+    Tile *tile,
+    Plane *plane)
 {
     Tile *delayed = NULL; /* delayed free to extend lifetime */
     TileType ttype = TiGetTypeExact(tile);
@@ -3438,9 +3438,9 @@ TiNMMergeRight(tile, plane)
  */
 
 Tile *
-TiNMMergeLeft(tile, plane)
-    Tile *tile;
-    Plane *plane;
+TiNMMergeLeft(
+    Tile *tile,
+    Plane *plane)
 {
     Tile *delayed = NULL; /* delayed free to extend lifetime */
     TileType ttype = TiGetTypeExact(tile);

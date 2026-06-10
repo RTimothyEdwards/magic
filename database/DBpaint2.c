@@ -46,10 +46,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-DBPaint (cellDef, rect, type)
-    CellDef  * cellDef;		/* CellDef to modify */
-    Rect     * rect;		/* Area to paint */
-    TileType   type;		/* Type of tile to be painted */
+DBPaint(
+    CellDef  * cellDef,		/* CellDef to modify */
+    Rect     * rect,		/* Area to paint */
+    TileType   type)		/* Type of tile to be painted */
 {
     int pNum;
     PaintUndoInfo ui;
@@ -119,10 +119,10 @@ DBPaint (cellDef, rect, type)
  */
 
 int
-dbResolveImages(tile, dinfo, cellDef)
-    Tile *tile;
-    TileType dinfo;
-    CellDef *cellDef;
+dbResolveImages(
+    Tile *tile,
+    TileType dinfo,
+    CellDef *cellDef)
 {
     Rect rect;
 
@@ -153,10 +153,10 @@ dbResolveImages(tile, dinfo, cellDef)
  */
 
 void
-DBErase (cellDef, rect, type)
-    CellDef  * cellDef;		/* Cell to modify */
-    Rect     * rect;		/* Area to paint */
-    TileType   type;		/* Type of tile to be painted */
+DBErase(
+    CellDef  * cellDef,		/* Cell to modify */
+    Rect     * rect,		/* Area to paint */
+    TileType   type)		/* Type of tile to be painted */
 {
     int pNum;
     PaintUndoInfo ui;
@@ -225,10 +225,10 @@ DBErase (cellDef, rect, type)
  */
 
 void
-DBPaintMask(cellDef, rect, mask)
-    CellDef	*cellDef;	/* CellDef to modify */
-    Rect	*rect;		/* Area to paint */
-    TileTypeBitMask *mask;	/* Mask of types to be erased */
+DBPaintMask(
+    CellDef	*cellDef,	/* CellDef to modify */
+    Rect	*rect,		/* Area to paint */
+    TileTypeBitMask *mask)	/* Mask of types to be erased */
 {
     TileType t;
 
@@ -253,11 +253,11 @@ DBPaintMask(cellDef, rect, mask)
  */
 
 void
-DBPaintValid(cellDef, rect, mask, dinfo)
-    CellDef	*cellDef;	/* CellDef to modify */
-    Rect	*rect;		/* Area to paint */
-    TileTypeBitMask *mask;	/* Mask of types to be erased */
-    TileType 	dinfo;		/* If non-zero, then rect is a triangle and
+DBPaintValid(
+    CellDef	*cellDef,	/* CellDef to modify */
+    Rect	*rect,		/* Area to paint */
+    TileTypeBitMask *mask,	/* Mask of types to be erased */
+    TileType 	dinfo)		/* If non-zero, then rect is a triangle and
 				 * dinfo contains side and direction information
 				 */
 {
@@ -331,10 +331,10 @@ DBPaintValid(cellDef, rect, mask, dinfo)
  */
 
 void
-DBEraseMask(cellDef, rect, mask)
-    CellDef	*cellDef;	/* CellDef to modify */
-    Rect	*rect;		/* Area to erase */
-    TileTypeBitMask *mask;	/* Mask of types to be erased */
+DBEraseMask(
+    CellDef	*cellDef,	/* CellDef to modify */
+    Rect	*rect,		/* Area to erase */
+    TileTypeBitMask *mask)	/* Mask of types to be erased */
 {
     TileType t;
 
@@ -363,11 +363,11 @@ DBEraseMask(cellDef, rect, mask)
  */
 
 void
-DBEraseValid(cellDef, rect, mask, dinfo)
-    CellDef	*cellDef;	/* CellDef to modify */
-    Rect	*rect;		/* Area to erase */
-    TileTypeBitMask *mask;	/* Mask of types to be erased */
-    TileType 	dinfo;		/* w/Non-Manhattan geometry, "rect" is a
+DBEraseValid(
+    CellDef	*cellDef,	/* CellDef to modify */
+    Rect	*rect,		/* Area to erase */
+    TileTypeBitMask *mask,	/* Mask of types to be erased */
+    TileType 	dinfo)		/* w/Non-Manhattan geometry, "rect" is a
 				 * triangle and dinfo holds side & direction
 				 */
 {

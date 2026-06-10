@@ -61,8 +61,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 TileType
-DBTechNameType(typename)
-    char *typename;	/* The name of the type */
+DBTechNameType(
+    char *typename)	/* The name of the type */
 {
     char *slash;
     TileType type;
@@ -121,8 +121,8 @@ DBTechNameType(typename)
 }
 
 TileType
-DBTechNameTypeExact(typename)
-    char *typename;	/* The name of the type */
+DBTechNameTypeExact(
+    char *typename)	/* The name of the type */
 {
     char *slash;
     ClientData result;
@@ -148,9 +148,9 @@ DBTechNameTypeExact(typename)
  */
 
 TileType
-DBTechNameTypes(typename, bitmask)
-    char *typename;	/* The name of the type */
-    TileTypeBitMask	*bitmask;
+DBTechNameTypes(
+    char *typename,	/* The name of the type */
+    TileTypeBitMask	*bitmask)
 {
     char *slash;
     TileType type;
@@ -223,8 +223,8 @@ DBTechNameTypes(typename, bitmask)
  */
 
 TileType
-DBTechNoisyNameType(typename)
-    char *typename;	/* The name of the type */
+DBTechNoisyNameType(
+    char *typename)	/* The name of the type */
 {
     TileType type;
 
@@ -262,8 +262,8 @@ DBTechNoisyNameType(typename)
  */
 
 int
-DBTechNamePlane(planename)
-    char *planename;	/* The name of the plane */
+DBTechNamePlane(
+    char *planename)	/* The name of the plane */
 {
     return ((spointertype) dbTechNameLookup(planename, &dbPlaneNameLists));
 }
@@ -287,8 +287,8 @@ DBTechNamePlane(planename)
  */
 
 int
-DBTechNoisyNamePlane(planename)
-    char *planename;	/* The name of the plane */
+DBTechNoisyNamePlane(
+    char *planename)	/* The name of the plane */
 {
     int pNum;
 
@@ -387,8 +387,8 @@ DBPlaneShortName(
  */
 
 PlaneMask
-DBTechTypesToPlanes(mask)
-    TileTypeBitMask *mask;
+DBTechTypesToPlanes(
+    TileTypeBitMask *mask)
 {
     TileType t;
     PlaneMask planeMask, noCellMask, retMask;
@@ -430,9 +430,9 @@ DBTechTypesToPlanes(mask)
  */
 
 void
-DBTechPrintTypes(mask, dolist)
-    TileTypeBitMask *mask;  /* Print layers defined by this mask.	*/
-    bool dolist;	    /* return as a list and don't print aliases	*/
+DBTechPrintTypes(
+    TileTypeBitMask *mask,  /* Print layers defined by this mask.	*/
+    bool dolist)	    /* return as a list and don't print aliases	*/
 {
     TileType i;
     NameList *p;
@@ -595,10 +595,10 @@ DBTechPrintTypes(mask, dolist)
  */
 
 PlaneMask
-DBTechNameMask0(layers, mask, noisy)
-    char *layers;			/* String to be parsed. */
-    TileTypeBitMask *mask;		/* Where to store the layer mask. */
-    bool noisy;				/* Whether or not to output errors */
+DBTechNameMask0(
+    char *layers,			/* String to be parsed. */
+    TileTypeBitMask *mask,		/* Where to store the layer mask. */
+    bool noisy)				/* Whether or not to output errors */
 {
     char *p, *p2, c;
     TileTypeBitMask m2;        /* Each time around the loop, we will
@@ -788,17 +788,17 @@ DBTechNameMask0(layers, mask, noisy)
 /* Wrappers for DBTechNameMask0() */
 
 PlaneMask
-DBTechNoisyNameMask(layers, mask)
-    char *layers;			/* String to be parsed. */
-    TileTypeBitMask *mask;		/* Where to store the layer mask. */
+DBTechNoisyNameMask(
+    char *layers,			/* String to be parsed. */
+    TileTypeBitMask *mask)		/* Where to store the layer mask. */
 {
     return DBTechNameMask0(layers, mask, TRUE);
 }
 
 PlaneMask
-DBTechNameMask(layers, mask)
-    char *layers;			/* String to be parsed. */
-    TileTypeBitMask *mask;		/* Where to store the layer mask. */
+DBTechNameMask(
+    char *layers,			/* String to be parsed. */
+    TileTypeBitMask *mask)		/* Where to store the layer mask. */
 {
     return DBTechNameMask0(layers, mask, FALSE);
 }

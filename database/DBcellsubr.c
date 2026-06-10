@@ -60,9 +60,9 @@ extern void dbSetPlaneTile();
  */
 
 bool
-DBDescendSubcell(use, xMask)
-    CellUse *use;
-    unsigned int xMask;
+DBDescendSubcell(
+    CellUse *use,
+    unsigned int xMask)
 {
     bool propfound;
 
@@ -125,9 +125,9 @@ DBDescendSubcell(use, xMask)
  */
 
 void
-DBCellCopyDefBody(sourceDef, destDef)
-    CellDef *sourceDef;	/* Pointer to CellDef copied from */
-    CellDef *destDef;		/* Pointer to CellDef copied to */
+DBCellCopyDefBody(
+    CellDef *sourceDef,	/* Pointer to CellDef copied from */
+    CellDef *destDef)		/* Pointer to CellDef copied to */
 {
     int i;
     int dbCopyDefFunc();
@@ -153,9 +153,9 @@ DBCellCopyDefBody(sourceDef, destDef)
 }
 
 int
-dbCopyDefFunc(use, def)
-    CellUse *use;		/* Subcell use. */
-    CellDef *def;		/* Set parent pointer in each use to this. */
+dbCopyDefFunc(
+    CellUse *use,		/* Subcell use. */
+    CellDef *def)		/* Set parent pointer in each use to this. */
 {
     use->cu_parent = def;
     return 0;
@@ -182,8 +182,8 @@ dbCopyDefFunc(use, def)
  */
 
 void
-DBCellClearDef(cellDef)
-    CellDef *cellDef;		/* Pointer to CellDef to be deleted */
+DBCellClearDef(
+    CellDef *cellDef)		/* Pointer to CellDef to be deleted */
 {
     int pNum;
     Plane *plane;
@@ -254,8 +254,8 @@ DBCellClearDef(cellDef)
  */
 
 void
-DBClearPaintPlane(plane)
-    Plane *plane;
+DBClearPaintPlane(
+    Plane *plane)
 {
     Tile *newCenterTile;
 
@@ -286,9 +286,9 @@ DBClearPaintPlane(plane)
  */
 
 void
-dbSetPlaneTile(plane, newCenterTile)
-    Plane *plane;
-    Tile *newCenterTile;
+dbSetPlaneTile(
+    Plane *plane,
+    Tile *newCenterTile)
 {
     /*
      * Set the stitches of the newly created center tile
@@ -333,8 +333,8 @@ dbSetPlaneTile(plane, newCenterTile)
  */
 
 Plane *
-DBNewPlane(body)
-    ClientData body;	/* Body of initial, central tile */
+DBNewPlane(
+    ClientData body)	/* Body of initial, central tile */
 {
     Tile *newtile;
 

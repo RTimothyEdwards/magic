@@ -107,12 +107,12 @@ struct copyLabelArg
  */
 
 int
-DBPaintPlaneWrapper(def, pNum, type, area, undo)
-    CellDef *def;
-    int pNum;
-    TileType type;
-    Rect *area;
-    PaintUndoInfo *undo;
+DBPaintPlaneWrapper(
+    CellDef *def,
+    int pNum,
+    TileType type,
+    Rect *area,
+    PaintUndoInfo *undo)
 {
     TileType loctype = type & TT_LEFTMASK;
     Rect expand;
@@ -139,12 +139,12 @@ DBPaintPlaneWrapper(def, pNum, type, area, undo)
  */
 
 int
-DBPaintPlaneMark(def, pNum, type, area, undo)
-    CellDef *def;
-    int pNum;
-    TileType type;
-    Rect *area;
-    PaintUndoInfo *undo;
+DBPaintPlaneMark(
+    CellDef *def,
+    int pNum,
+    TileType type,
+    Rect *area,
+    PaintUndoInfo *undo)
 {
     TileType loctype = type & TT_LEFTMASK;
 
@@ -160,12 +160,12 @@ DBPaintPlaneMark(def, pNum, type, area, undo)
  */
 
 int
-DBPaintPlaneXor(def, pNum, type, area, undo)
-    CellDef *def;
-    int pNum;
-    TileType type;
-    Rect *area;
-    PaintUndoInfo *undo;
+DBPaintPlaneXor(
+    CellDef *def,
+    int pNum,
+    TileType type,
+    Rect *area,
+    PaintUndoInfo *undo)
 {
     TileType loctype = type & TT_LEFTMASK;
 
@@ -188,12 +188,12 @@ DBPaintPlaneXor(def, pNum, type, area, undo)
  */
 
 int
-DBPaintPlaneActive(def, pNum, type, area, undo)
-    CellDef *def;
-    int pNum;
-    TileType type;
-    Rect *area;
-    PaintUndoInfo *undo;
+DBPaintPlaneActive(
+    CellDef *def,
+    int pNum,
+    TileType type,
+    Rect *area,
+    PaintUndoInfo *undo)
 {
     TileType loctype = type & TT_LEFTMASK;
     TileType t;
@@ -241,14 +241,14 @@ DBPaintPlaneActive(def, pNum, type, area, undo)
  */
 
 void
-DBCellCopyManhattanPaint(scx, mask, xMask, targetUse)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBCellCopyManhattanPaint(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from root cell to coords
 				 * of targetUse.
 				 */
-    TileTypeBitMask *mask;	/* Types of tiles to be yanked/stuffed */
-    int xMask;			/* Expansion state mask to be used in search */
-    CellUse *targetUse;		/* Cell into which material is to be stuffed */
+    TileTypeBitMask *mask,	/* Types of tiles to be yanked/stuffed */
+    int xMask,			/* Expansion state mask to be used in search */
+    CellUse *targetUse)		/* Cell into which material is to be stuffed */
 {
     struct copyAllArg arg;
     int dbCopyManhattanPaint();
@@ -281,14 +281,14 @@ DBCellCopyManhattanPaint(scx, mask, xMask, targetUse)
  */
 
 void
-DBCellCopyAllPaint(scx, mask, xMask, targetUse)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBCellCopyAllPaint(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from root cell to coords
 				 * of targetUse.
 				 */
-    TileTypeBitMask *mask;	/* Types of tiles to be yanked/stuffed */
-    int xMask;			/* Expansion state mask to be used in search */
-    CellUse *targetUse;		/* Cell into which material is to be stuffed */
+    TileTypeBitMask *mask,	/* Types of tiles to be yanked/stuffed */
+    int xMask,			/* Expansion state mask to be used in search */
+    CellUse *targetUse)		/* Cell into which material is to be stuffed */
 {
     TileTypeBitMask locMask;
     struct copyAllArg arg;
@@ -325,15 +325,15 @@ DBCellCopyAllPaint(scx, mask, xMask, targetUse)
  */
 
 void
-DBCellCheckCopyAllPaint(scx, mask, xMask, targetUse, func)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBCellCheckCopyAllPaint(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from root cell to coords
 				 * of targetUse.
 				 */
-    TileTypeBitMask *mask;	/* Types of tiles to be yanked/stuffed */
-    int xMask;			/* Expansion state mask to be used in search */
-    CellUse *targetUse;		/* Cell into which material is to be stuffed */
-    void (*func)();		/* Function to call on tile split error */
+    TileTypeBitMask *mask,	/* Types of tiles to be yanked/stuffed */
+    int xMask,			/* Expansion state mask to be used in search */
+    CellUse *targetUse,		/* Cell into which material is to be stuffed */
+    void (*func)())		/* Function to call on tile split error */
 {
     TileTypeBitMask locMask;
     struct copyAllArg arg;
@@ -413,10 +413,10 @@ dbCopyMaskHintPlaneFunc(Tile *tile,
  */
 
 int
-dbCopyMaskHintsFunc(key, proprec, puds)
-    char *key;
-    PropertyRecord *proprec;
-    struct propUseDefStruct *puds;
+dbCopyMaskHintsFunc(
+    char *key,
+    PropertyRecord *proprec,
+    struct propUseDefStruct *puds)
 {
     CellDef *dest = puds->puds_dest;
     Transform *trans = puds->puds_trans;
@@ -480,10 +480,10 @@ dbCopyMaskHintsFunc(key, proprec, puds)
  *-----------------------------------------------------------------------------
  */
 void
-DBCellCopyMaskHints(child, parent, transform)
-    CellUse *child;
-    CellDef *parent;
-    Transform *transform;
+DBCellCopyMaskHints(
+    CellUse *child,
+    CellDef *parent,
+    Transform *transform)
 {
     struct propUseDefStruct puds;
 
@@ -514,9 +514,9 @@ DBCellCopyMaskHints(child, parent, transform)
  *-----------------------------------------------------------------------------
  */
 int
-dbFlatCopyMaskHintsFunc(scx, def)
-    SearchContext *scx;
-    CellDef *def;
+dbFlatCopyMaskHintsFunc(
+    SearchContext *scx,
+    CellDef *def)
 {
     struct propUseDefStruct puds;
     CellUse *use = scx->scx_use;
@@ -548,13 +548,13 @@ dbFlatCopyMaskHintsFunc(scx, def)
  *-----------------------------------------------------------------------------
  */
 void
-DBFlatCopyMaskHints(scx, xMask, targetUse)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBFlatCopyMaskHints(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from root cell to coords
 				 * of targetUse.
 				 */
-    int xMask;			/* Expansion state mask to be used in search */
-    CellUse *targetUse;		/* Cell into which properties will be added */
+    int xMask,			/* Expansion state mask to be used in search */
+    CellUse *targetUse)		/* Cell into which properties will be added */
 {
     DBTreeSrCells(scx, xMask, dbFlatCopyMaskHintsFunc, (ClientData)targetUse->cu_def);
 }
@@ -577,13 +577,13 @@ DBFlatCopyMaskHints(scx, xMask, targetUse)
  */
 
 void
-DBFlattenInPlace(use, dest, xMask, dolabels, toplabels, doclear)
-    CellUse *use;		/* Cell use to flatten */
-    CellUse *dest;		/* Cell use to flatten into */
-    int xMask;			/* Search mask for flattening */
-    bool dolabels;		/* Option to flatten labels */
-    bool toplabels;		/* Option to selectively flatten top-level labels */
-    bool doclear;		/* Delete the original use if TRUE */
+DBFlattenInPlace(
+    CellUse *use,		/* Cell use to flatten */
+    CellUse *dest,		/* Cell use to flatten into */
+    int xMask,			/* Search mask for flattening */
+    bool dolabels,		/* Option to flatten labels */
+    bool toplabels,		/* Option to selectively flatten top-level labels */
+    bool doclear)		/* Delete the original use if TRUE */
 {
     Label *lab;
     SearchContext scx;
@@ -737,12 +737,12 @@ struct dbFlattenAllData {
  */
 
 int
-dbCellFlattenCellsFunc(scx, clientData)
-    SearchContext *scx;	/* Pointer to search context containing
+dbCellFlattenCellsFunc(
+    SearchContext *scx,	/* Pointer to search context containing
 			 * ptr to cell use to be copied,
 			 * and transform to the target def.
 			 */
-    ClientData clientData;	/* Data passed to client function */
+    ClientData clientData)	/* Data passed to client function */
 {
     CellUse *use, *dest;
     int xMask;
@@ -778,17 +778,17 @@ dbCellFlattenCellsFunc(scx, clientData)
  */
 
 void
-DBCellFlattenAllCells(scx, dest, xMask, dolabels, toplabels)
-    SearchContext *scx;		/* Describes root cell to search and transform
+DBCellFlattenAllCells(
+    SearchContext *scx,		/* Describes root cell to search and transform
 				 * from root cell to coords of targetUse.
 				 */
-    CellUse *dest;		/* CellUse to flatten into (usually EditCellUse) */
-    int xMask;			/* Expansion state mask to be passed to
+    CellUse *dest,		/* CellUse to flatten into (usually EditCellUse) */
+    int xMask,			/* Expansion state mask to be passed to
 				 * the flattening routine that determines
 				 * whether to do a shallow or deep flattening.
 				 */
-    bool dolabels;		/* Option to flatten labels */
-    bool toplabels;		/* Option to selectively flatten top-level labels */
+    bool dolabels,		/* Option to flatten labels */
+    bool toplabels)		/* Option to selectively flatten top-level labels */
 {
     int dbCellFlattenCellsFunc();
     struct dbFlattenAllData fad;
@@ -839,12 +839,12 @@ struct dbCopySubData {
  */
 
 Plane *
-DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
-    SearchContext *scx;
-    TileType subType;			/* Substrate paint type */
-    TileTypeBitMask *notSubMask;	/* Mask of types that are not substrate */
-    TileTypeBitMask *subShieldMask;	/* Mask of types that shield substrate */
-    CellDef *targetDef;
+DBCellGenerateSubstrate(
+    SearchContext *scx,
+    TileType subType,			/* Substrate paint type */
+    TileTypeBitMask *notSubMask,	/* Mask of types that are not substrate */
+    TileTypeBitMask *subShieldMask,	/* Mask of types that shield substrate */
+    CellDef *targetDef)
 {
     struct dbCopySubData csd;
     Plane *tempPlane;
@@ -930,11 +930,11 @@ DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
  */
 
 Plane *
-DBCellGenerateSimpleSubstrate(scx, subType, notSubMask, targetDef)
-    SearchContext *scx;
-    TileType subType;			/* Substrate paint type */
-    TileTypeBitMask *notSubMask;	/* Mask of types that are not substrate */
-    CellDef *targetDef;
+DBCellGenerateSimpleSubstrate(
+    SearchContext *scx,
+    TileType subType,			/* Substrate paint type */
+    TileTypeBitMask *notSubMask,	/* Mask of types that are not substrate */
+    CellDef *targetDef)
 {
     struct dbCopySubData csd;
     Plane *tempPlane;
@@ -991,10 +991,10 @@ DBCellGenerateSimpleSubstrate(scx, subType, notSubMask, targetDef)
  */
 
 int
-dbEraseSubFunc(tile, dinfo, cxp)
-    Tile *tile;			/* Pointer to source tile with shield type */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cxp;		/* Context from DBTreeSrTiles */
+dbEraseSubFunc(
+    Tile *tile,			/* Pointer to source tile with shield type */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cxp)		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx;
     Rect sourceRect, targetRect;
@@ -1037,10 +1037,10 @@ dbEraseSubFunc(tile, dinfo, cxp)
  */
 
 int
-dbPaintSubFunc(tile, dinfo, cxp)
-    Tile *tile;			/* Pointer to source tile with shield type */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cxp;		/* Context from DBTreeSrTiles */
+dbPaintSubFunc(
+    Tile *tile,			/* Pointer to source tile with shield type */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cxp)		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx;
     Rect sourceRect, targetRect;
@@ -1084,10 +1084,10 @@ dbPaintSubFunc(tile, dinfo, cxp)
  */
 
 int
-dbEraseNonSub(tile, dinfo, cxp)
-    Tile *tile;			/* Pointer to tile to erase from target */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cxp;		/* Context from DBTreeSrTiles */
+dbEraseNonSub(
+    Tile *tile,			/* Pointer to tile to erase from target */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cxp)		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx;
     Rect sourceRect, targetRect;
@@ -1131,10 +1131,10 @@ dbEraseNonSub(tile, dinfo, cxp)
  */
 
 int
-dbCopySubFunc(tile, dinfo, csd)
-    Tile *tile;			/* Pointer to tile to erase from target */
-    TileType dinfo;		/* Split tile information */
-    struct dbCopySubData *csd;	/* Client data */
+dbCopySubFunc(
+    Tile *tile,			/* Pointer to tile to erase from target */
+    TileType dinfo,		/* Split tile information */
+    struct dbCopySubData *csd)	/* Client data */
 {
     Rect rect;
     int pNum;
@@ -1181,15 +1181,15 @@ dbCopySubFunc(tile, dinfo, csd)
  */
 
 void
-DBCellCopyAllLabels(scx, mask, xMask, targetUse, pArea)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBCellCopyAllLabels(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from root cell to coords
 				 * of targetUse.
 				 */
-    TileTypeBitMask *mask;	/* Only labels of these types are copied */
-    int xMask;			/* Expansion state mask to be used in search */
-    CellUse *targetUse;		/* Cell into which labels are to be stuffed */
-    Rect *pArea;		/* If non-NULL, points to a box that will be
+    TileTypeBitMask *mask,	/* Only labels of these types are copied */
+    int xMask,			/* Expansion state mask to be used in search */
+    CellUse *targetUse,		/* Cell into which labels are to be stuffed */
+    Rect *pArea)		/* If non-NULL, points to a box that will be
 				 * filled in with bbox (in targetUse coords)
 				 * of all labels copied.  Will be degenerate
 				 * if nothing was copied.
@@ -1217,11 +1217,11 @@ DBCellCopyAllLabels(scx, mask, xMask, targetUse, pArea)
 
     /*ARGSUSED*/
 int
-dbCopyAllLabels(scx, lab, tpath, arg)
-    SearchContext *scx;
-    Label *lab;
-    TerminalPath *tpath;
-    struct copyLabelArg *arg;
+dbCopyAllLabels(
+    SearchContext *scx,
+    Label *lab,
+    TerminalPath *tpath,
+    struct copyLabelArg *arg)
 {
     Rect labTargetRect;
     Point labOffset;
@@ -1284,20 +1284,20 @@ dbCopyAllLabels(scx, lab, tpath, arg)
  */
 
 void
-DBCellCopyGlobLabels(scx, mask, xMask, targetUse, pArea, globmatch)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBCellCopyGlobLabels(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from root cell to coords
 				 * of targetUse.
 				 */
-    TileTypeBitMask *mask;	/* Only labels of these types are copied */
-    int xMask;			/* Expansion state mask to be used in search */
-    CellUse *targetUse;		/* Cell into which labels are to be stuffed */
-    Rect *pArea;		/* If non-NULL, points to a box that will be
+    TileTypeBitMask *mask,	/* Only labels of these types are copied */
+    int xMask,			/* Expansion state mask to be used in search */
+    CellUse *targetUse,		/* Cell into which labels are to be stuffed */
+    Rect *pArea,		/* If non-NULL, points to a box that will be
 				 * filled in with bbox (in targetUse coords)
 				 * of all labels copied.  Will be degenerate
 				 * if nothing was copied.
 				 */
-    char *globmatch;		/* If non-NULL, only labels matching this
+    char *globmatch)		/* If non-NULL, only labels matching this
 				 * string by glob-style matching are copied.
 				 */
 {
@@ -1340,14 +1340,14 @@ DBCellCopyGlobLabels(scx, mask, xMask, targetUse, pArea, globmatch)
  */
 
 void
-DBCellCopyPaint(scx, mask, xMask, targetUse)
-    SearchContext *scx;		/* Describes cell to search, area to
+DBCellCopyPaint(
+    SearchContext *scx,		/* Describes cell to search, area to
 				 * copy, transform from cell to coords
 				 * of targetUse.
 				 */
-    TileTypeBitMask *mask;	/* Types of tiles to be yanked/stuffed */
-    int xMask;			/* Expansion state mask to be used in search */
-    CellUse *targetUse;		/* Cell into which material is to be stuffed */
+    TileTypeBitMask *mask,	/* Types of tiles to be yanked/stuffed */
+    int xMask,			/* Expansion state mask to be used in search */
+    CellUse *targetUse)		/* Cell into which material is to be stuffed */
 {
     int pNum;
     PlaneMask planeMask;
@@ -1404,15 +1404,15 @@ DBCellCopyPaint(scx, mask, xMask, targetUse)
  */
 
 void
-DBCellCopyLabels(scx, mask, xMask, targetUse, pArea)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBCellCopyLabels(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from root cell to coords
 				 * of targetUse.
 				 */
-    TileTypeBitMask *mask;	/* Only labels of these types are copied */
-    int xMask;			/* Expansion state mask to be used in search */
-    CellUse *targetUse;		/* Cell into which labels are to be stuffed */
-    Rect *pArea;		/* If non-NULL, points to rectangle to be
+    TileTypeBitMask *mask,	/* Only labels of these types are copied */
+    int xMask,			/* Expansion state mask to be used in search */
+    CellUse *targetUse,		/* Cell into which labels are to be stuffed */
+    Rect *pArea)		/* If non-NULL, points to rectangle to be
 				 * filled in with bbox (in targetUse coords)
 				 * of all labels copied.  Will be degenerate
 				 * if no labels are copied.
@@ -1467,10 +1467,10 @@ DBCellCopyLabels(scx, mask, xMask, targetUse, pArea)
  ***/
 
 int
-dbCopyManhattanPaint(tile, dinfo, cxp)
-    Tile *tile;			/* Pointer to tile to copy */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cxp;		/* Context from DBTreeSrTiles */
+dbCopyManhattanPaint(
+    Tile *tile,			/* Pointer to tile to copy */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cxp)		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx = cxp->tc_scx;
     struct copyAllArg *arg;
@@ -1515,10 +1515,10 @@ dbCopyManhattanPaint(tile, dinfo, cxp)
  ***/
 
 int
-dbCopyAllPaint(tile, dinfo, cxp)
-    Tile *tile;			/* Pointer to tile to copy */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cxp;		/* Context from DBTreeSrTiles */
+dbCopyAllPaint(
+    Tile *tile,			/* Pointer to tile to copy */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cxp)		/* Context from DBTreeSrTiles */
 {
     SearchContext *scx = cxp->tc_scx;
     struct copyAllArg *arg;
@@ -1727,19 +1727,19 @@ splitdone:
  */
 
 void
-DBCellCopyAllCells(scx, xMask, targetUse, pArea)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBCellCopyAllCells(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from root cell to coords
 				 * of targetUse.
 				 */
-    CellUse *targetUse;		/* Cell into which material is to be stuffed */
-    int xMask;			/* Expansion state mask to be used in
+    int xMask,			/* Expansion state mask to be used in
 				 * searching.  Cells not expanded according
 				 * to this mask are copied.  To copy everything
 				 * in the subtree under scx->scx_use without
 				 * regard to expansion, pass a mask of 0.
 				 */
-    Rect *pArea;		/* If non-NULL, points to a rectangle to be
+    CellUse *targetUse,		/* Cell into which material is to be stuffed */
+    Rect *pArea)		/* If non-NULL, points to a rectangle to be
 				 * filled in with bbox (in targetUse coords)
 				 * of all cells copied.  Will be degenerate
 				 * if nothing was copied.
@@ -1788,13 +1788,13 @@ DBCellCopyAllCells(scx, xMask, targetUse, pArea)
  */
 
 void
-DBCellCopyCells(scx, targetUse, pArea)
-    SearchContext *scx;		/* Describes root cell to search, area to
+DBCellCopyCells(
+    SearchContext *scx,		/* Describes root cell to search, area to
 				 * copy, transform from coords of
 				 * scx->scx_use->cu_def to coords of targetUse.
 				 */
-    CellUse *targetUse;		/* Cell into which material is to be stuffed */
-    Rect *pArea;		/* If non-NULL, points to rectangle to be
+    CellUse *targetUse,		/* Cell into which material is to be stuffed */
+    Rect *pArea)		/* If non-NULL, points to rectangle to be
 				 * filled in with bbox (in targetUse coords)
 				 * of all cells copied.  Will be degenerate
 				 * if nothing was copied.
@@ -1833,12 +1833,12 @@ DBCellCopyCells(scx, targetUse, pArea)
  */
 
 int
-dbCellCopyCellsFunc(scx, arg)
-    SearchContext *scx;	/* Pointer to search context containing
+dbCellCopyCellsFunc(
+    SearchContext *scx,	/* Pointer to search context containing
 					 * ptr to cell use to be copied,
 					 * and transform to the target def.
 					 */
-    struct copyAllArg *arg;	/* Client data from caller */
+    struct copyAllArg *arg)	/* Client data from caller */
 {
     CellUse *use, *newUse;
     CellDef *def;
@@ -1957,8 +1957,8 @@ DBNewPaintTable(newTable))[NT][NT]
  */
 
 IntProc
-DBNewPaintPlane(newProc)
-    int (*newProc)();		/* Address of new procedure */
+DBNewPaintPlane(
+    int (*newProc)())		/* Address of new procedure */
 {
     int (*oldProc)() = dbCurPaintPlane;
     dbCurPaintPlane = newProc;

@@ -68,10 +68,10 @@ struct expandArg
  */
 
 void
-DBExpand(cellUse, expandMask, expandType)
-    CellUse *cellUse;
-    int expandMask;
-    int expandType;
+DBExpand(
+    CellUse *cellUse,
+    int expandMask,
+    int expandType)
 {
     CellDef *def;
     bool expandFlag, expandTest;
@@ -138,15 +138,15 @@ DBExpand(cellUse, expandMask, expandType)
  */
 
 void
-DBExpandAll(rootUse, rootRect, expandMask, expandType, func, cdarg)
-    CellUse *rootUse;	/* Root cell use from which search begins */
-    Rect *rootRect;	/* Area to be expanded, in root coordinates */
-    int expandMask;	/* Window mask in which cell is to be expanded */
-    int expandType;	/* DB_EXPAND, DB_UNEXPAND, DB_EXPAND_TOGGLE */
-    int (*func)();	/* Function to call for each cell whose expansion
+DBExpandAll(
+    CellUse *rootUse,	/* Root cell use from which search begins */
+    Rect *rootRect,	/* Area to be expanded, in root coordinates */
+    int expandMask,	/* Window mask in which cell is to be expanded */
+    int expandType,	/* DB_EXPAND, DB_UNEXPAND, DB_EXPAND_TOGGLE */
+    int (*func)(),	/* Function to call for each cell whose expansion
 			 * status is modified.  NULL means don't call anyone.
 			 */
-    ClientData cdarg;	/* Argument to pass to func. */
+    ClientData cdarg)	/* Argument to pass to func. */
 {
     int dbExpandFunc();
     SearchContext scontext;
@@ -179,13 +179,13 @@ DBExpandAll(rootUse, rootRect, expandMask, expandType, func, cdarg)
  */
 
 int
-dbExpandFunc(scx, arg)
-    SearchContext *scx;	/* Pointer to search context containing
+dbExpandFunc(
+    SearchContext *scx,	/* Pointer to search context containing
 					 * child use, search area in coor-
 					 * dinates of the child use, and
 					 * transform back to "root".
 					 */
-    struct expandArg *arg;	/* Client data from caller */
+    struct expandArg *arg)	/* Client data from caller */
 {
     CellUse *childUse = scx->scx_use;
     int n = DBLambda[1];
@@ -273,10 +273,10 @@ dbExpandFunc(scx, arg)
  */
 
 CellDef *
-DBCellReadArea(rootUse, rootRect, halt_on_error)
-    CellUse *rootUse;	/* Root cell use from which search begins */
-    Rect *rootRect;	/* Area to be read, in root coordinates */
-    bool halt_on_error;	/* If TRUE, failure to find a cell causes a halt */
+DBCellReadArea(
+    CellUse *rootUse,	/* Root cell use from which search begins */
+    Rect *rootRect,	/* Area to be read, in root coordinates */
+    bool halt_on_error)	/* If TRUE, failure to find a cell causes a halt */
 {
     int dbReadAreaFunc();
     SearchContext scontext;
@@ -292,13 +292,13 @@ DBCellReadArea(rootUse, rootRect, halt_on_error)
 }
 
 int
-dbReadAreaFunc(scx, err_ptr)
-    SearchContext *scx;	/* Pointer to context specifying
+dbReadAreaFunc(
+    SearchContext *scx,	/* Pointer to context specifying
 					 * the cell use to be read in, and
 					 * an area to be recursively read in
 					 * coordinates of the cell use's def.
 					 */
-    CellDef  **err_ptr;	/* If non-NULL, failure to find a cell causes a halt
+    CellDef  **err_ptr)	/* If non-NULL, failure to find a cell causes a halt
 			 * and the CellDef in error is returned in err_def.
 			 * If NULL, failure to find a cell still causes a
 			 * halt but no information is passed back to the

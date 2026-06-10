@@ -70,9 +70,9 @@ Stack *dbConnectStack = (Stack *)NULL;
  */
 
 TileType
-DBTransformDiagonal(oldtype, trans)
-    TileType oldtype;
-    Transform *trans;
+DBTransformDiagonal(
+    TileType oldtype,
+    Transform *trans)
 {
     TileType dinfo;
     int o1, o2, o3, dir, side;
@@ -105,9 +105,9 @@ DBTransformDiagonal(oldtype, trans)
  */
 
 TileType
-DBInvTransformDiagonal(oldtype, trans)
-    TileType oldtype;
-    Transform *trans;
+DBInvTransformDiagonal(
+    TileType oldtype,
+    Transform *trans)
 {
     TileType dinfo;
     int o1, o2, o3;
@@ -168,32 +168,31 @@ DBInvTransformDiagonal(oldtype, trans)
  */
 
 int
-DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
-    CellDef *def;		/* Cell definition in which to carry out
+DBSrConnect(
+    CellDef *def,		/* Cell definition in which to carry out
 				 * the connectivity search.  Only paint
 				 * in this definition is considered.
 				 */
-    Rect *startArea;		/* Area to search for an initial tile.  Only
+    Rect *startArea,		/* Area to search for an initial tile.  Only
 				 * tiles OVERLAPPING the area are considered.
 				 * This area should have positive x and y
 				 * dimensions.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles of one of these types are used
+    TileTypeBitMask *mask,	/* Only tiles of one of these types are used
 				 * as initial tiles.
 				 */
-    TileTypeBitMask *connect;	/* Pointer to a table indicating what tile
+    TileTypeBitMask *connect,	/* Pointer to a table indicating what tile
 				 * types connect to what other tile types.
 				 * Each entry gives a mask of types that
 				 * connect to tiles of a given type.
 				 */
-    Rect *bounds;		/* Area, in coords of scx->scx_use->cu_def,
+    Rect *bounds,		/* Area, in coords of scx->scx_use->cu_def,
 				 * that limits the search:  only tiles
 				 * overalapping this area will be returned.
 				 * Use TiPlaneRect to search everywhere.
 				 */
-    int (*func)();		/* Function to apply at each connected tile. */
-    ClientData clientData;	/* Client data for above function. */
-
+    int (*func)(),		/* Function to apply at each connected tile. */
+    ClientData clientData)	/* Client data for above function. */
 {
     struct conSrArg csa;
     int startPlane, result;
@@ -262,32 +261,31 @@ dbSrConnectStartFunc(
 /* caller.								*/
 
 int
-DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
-    CellDef *def;		/* Cell definition in which to carry out
+DBSrConnectOnePass(
+    CellDef *def,		/* Cell definition in which to carry out
 				 * the connectivity search.  Only paint
 				 * in this definition is considered.
 				 */
-    Rect *startArea;		/* Area to search for an initial tile.  Only
+    Rect *startArea,		/* Area to search for an initial tile.  Only
 				 * tiles OVERLAPPING the area are considered.
 				 * This area should have positive x and y
 				 * dimensions.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles of one of these types are used
+    TileTypeBitMask *mask,	/* Only tiles of one of these types are used
 				 * as initial tiles.
 				 */
-    TileTypeBitMask *connect;	/* Pointer to a table indicating what tile
+    TileTypeBitMask *connect,	/* Pointer to a table indicating what tile
 				 * types connect to what other tile types.
 				 * Each entry gives a mask of types that
 				 * connect to tiles of a given type.
 				 */
-    Rect *bounds;		/* Area, in coords of scx->scx_use->cu_def,
+    Rect *bounds,		/* Area, in coords of scx->scx_use->cu_def,
 				 * that limits the search:  only tiles
 				 * overalapping this area will be returned.
 				 * Use TiPlaneRect to search everywhere.
 				 */
-    int (*func)();		/* Function to apply at each connected tile. */
-    ClientData clientData;	/* Client data for above function. */
-
+    int (*func)(),		/* Function to apply at each connected tile. */
+    ClientData clientData)	/* Client data for above function. */
 {
     struct conSrArg csa;
     int startPlane, result;
@@ -345,10 +343,10 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
  */
 
 int
-dbcFindTileFunc(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    ClientData arg;
+dbcFindTileFunc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData arg)
 {
     TileAndDinfo *tad = (TileAndDinfo *)arg;
 
@@ -673,11 +671,10 @@ donesides:
 /** @typedef cb_database_srpaintnmarea_t */
 /** @typedef cb_database_srpaintarea_t */
 int
-dbcUnconnectFunc(tile, dinfo, clientData)
-    Tile *tile;				/* Current tile	*/
-    TileType dinfo;			/* Split tile information, unused */
-    ClientData clientData;		/* Unused. */
-
+dbcUnconnectFunc(
+    Tile *tile,				/* Current tile	*/
+    TileType dinfo,			/* Split tile information, unused */
+    ClientData clientData)		/* Unused. */
 {
     return 1;
 }
@@ -707,11 +704,11 @@ dbcUnconnectFunc(tile, dinfo, clientData)
  */
 
 int
-dbcConnectLabelFunc(scx, lab, tpath, csa2)
-    SearchContext *scx;
-    Label *lab;
-    TerminalPath *tpath;
-    struct conSrArg2 *csa2;
+dbcConnectLabelFunc(
+    SearchContext *scx,
+    Label *lab,
+    TerminalPath *tpath,
+    struct conSrArg2 *csa2)
 {
     CellDef *def = csa2->csa2_use->cu_def;
     Rect r;
@@ -889,10 +886,10 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
  */
 
 int
-dbcConnectFunc(tile, dinfo, cx)
-    Tile *tile;			/* Tile found. */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cx;		/* Describes context of search.  The client
+dbcConnectFunc(
+    Tile *tile,			/* Tile found. */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cx)		/* Describes context of search.  The client
 				 * data is a pointer to a conSrArg2 record
 				 * containing various required information.
 				 */
@@ -1087,8 +1084,8 @@ dbcConnectFunc(tile, dinfo, cx)
  */
 
 void
-DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
-    SearchContext *scx;			/* Describes starting area.  The
+DBTreeCopyConnect(
+    SearchContext *scx,			/* Describes starting area.  The
 					 * scx_use field gives the root of
 					 * the hierarchy to search, and the
 					 * scx_area field gives the starting
@@ -1096,27 +1093,27 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 					 * this area.  The transform is from
 					 * coords of scx_use to destUse.
 					 */
-    TileTypeBitMask *mask;		/* Tile types to start from in area. */
-    int xMask;				/* Information must be expanded in all
+    TileTypeBitMask *mask,		/* Tile types to start from in area. */
+    int xMask,				/* Information must be expanded in all
 					 * of the windows indicated by this
 					 * mask.  Use 0 to consider all info
 					 * regardless of expansion.
 					 */
-    TileTypeBitMask *connect;		/* Points to table that defines what
+    TileTypeBitMask *connect,		/* Points to table that defines what
 					 * each tile type is considered to
 					 * connect to.  Use DBConnectTbl as
 					 * a default.
 					 */
-    Rect *area;				/* The resulting information is
+    Rect *area,				/* The resulting information is
 					 * clipped to this area.  Pass
 					 * TiPlaneRect to get everything.
 					 */
-    unsigned char doLabels;		/* If SEL_DO_LABELS, copy connected labels
+    unsigned char doLabels,		/* If SEL_DO_LABELS, copy connected labels
 					 * and paint.  If SEL_NO_LABELS, copy only
 					 * connected paint.  If SEL_SIMPLE_LABELS,
 					 * copy only root of labels in subcircuits.
 					 */
-    CellUse *destUse;			/* Result use in which to place
+    CellUse *destUse)			/* Result use in which to place
 					 * anything connected to material of
 					 * type mask in area of rootUse.
 					 */

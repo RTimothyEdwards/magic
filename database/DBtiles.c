@@ -374,28 +374,28 @@ DBTestNMInteract(Rect *rect1,
 #define IGNORE_RIGHT 2
 
 int
-DBSrPaintNMArea(hintTile, plane, ttype, rect, mask, func, arg)
-    Tile *hintTile;		/* Tile at which to begin search, if not NULL.
+DBSrPaintNMArea(
+    Tile *hintTile,		/* Tile at which to begin search, if not NULL.
 				 * If this is NULL, use the hint tile supplied
 				 * with plane.
 				 */
-    Plane *plane;		/* Plane in which tiles lie.  This is used to
+    Plane *plane,		/* Plane in which tiles lie.  This is used to
 				 * provide a hint tile in case hintTile == NULL.
 				 * The hint tile in the plane is updated to be
 				 * the last tile visited in the area
 				 * enumeration, if plane is non-NULL.
 				 */
-    TileType ttype;		/* Information about the non-manhattan area to
+    TileType ttype,		/* Information about the non-manhattan area to
 			 	 * search; zero if area is manhattan.
 			 	 */
-    Rect *rect;			/* Area to search.  This area should not be
+    Rect *rect,			/* Area to search.  This area should not be
 				 * degenerate.  Tiles must OVERLAP the area.
 				 */
-    TileTypeBitMask *mask;	/* Mask of those paint tiles to be passed to
+    TileTypeBitMask *mask,	/* Mask of those paint tiles to be passed to
 				 * func.
 				 */
-    int (*func)();		/* Function to apply at each tile */
-    ClientData arg;		/* Additional argument to pass to (*func)() */
+    int (*func)(),		/* Function to apply at each tile */
+    ClientData arg)		/* Additional argument to pass to (*func)() */
 {
     Point start;
     Tile *tp, *tpnew;
@@ -518,25 +518,25 @@ enum_next:
  */
 
 int
-DBSrPaintArea(hintTile, plane, rect, mask, func, arg)
-    Tile *hintTile;		/* Tile at which to begin search, if not NULL.
+DBSrPaintArea(
+    Tile *hintTile,		/* Tile at which to begin search, if not NULL.
 				 * If this is NULL, use the hint tile supplied
 				 * with plane.
 				 */
-    Plane *plane;	/* Plane in which tiles lie.  This is used to
+    Plane *plane,	/* Plane in which tiles lie.  This is used to
 				 * provide a hint tile in case hintTile == NULL.
 				 * The hint tile in the plane is updated to be
 				 * the last tile visited in the area
 				 * enumeration.
 				 */
-    Rect *rect;	/* Area to search.  This area should not be
+    Rect *rect,	/* Area to search.  This area should not be
 				 * degenerate.  Tiles must OVERLAP the area.
 				 */
-    TileTypeBitMask *mask;	/* Mask of those paint tiles to be passed to
+    TileTypeBitMask *mask,	/* Mask of those paint tiles to be passed to
 				 * func.
 				 */
-    int (*func)();		/* Function to apply at each tile */
-    ClientData arg;		/* Additional argument to pass to (*func)() */
+    int (*func)(),		/* Function to apply at each tile */
+    ClientData arg)		/* Additional argument to pass to (*func)() */
 {
     Point start;
     Tile *tp, *tpnew;
@@ -672,28 +672,28 @@ enumerate:
  */
 
 int
-DBSrPaintClient(hintTile, plane, rect, mask, client, func, arg)
-    Tile *hintTile;		/* Tile at which to begin search, if not NULL.
+DBSrPaintClient(
+    Tile *hintTile,		/* Tile at which to begin search, if not NULL.
 				 * If this is NULL, use the hint tile supplied
 				 * with plane.
 				 */
-    Plane *plane;	/* Plane in which tiles lie.  This is used to
+    Plane *plane,	/* Plane in which tiles lie.  This is used to
 				 * provide a hint tile in case hintTile == NULL.
 				 * The hint tile in the plane is updated to be
 				 * the last tile visited in the area
 				 * enumeration.
 				 */
-    Rect *rect;	/* Area to search.  This area should not be
+    Rect *rect,	/* Area to search.  This area should not be
 				 * degenerate.  Tiles must OVERLAP the area.
 				 */
-    TileTypeBitMask *mask;	/* Mask of those paint tiles to be passed to
+    TileTypeBitMask *mask,	/* Mask of those paint tiles to be passed to
 				 * func.
 				 */
-    ClientData client;		/* The ti_client field of each tile must
+    ClientData client,		/* The ti_client field of each tile must
 				 * match this.
 				 */
-    int (*func)();		/* Function to apply at each tile */
-    ClientData arg;		/* Additional argument to pass to (*func)() */
+    int (*func)(),		/* Function to apply at each tile */
+    ClientData arg)		/* Additional argument to pass to (*func)() */
 {
     Point start;
     Tile *tp, *tpnew;
@@ -817,9 +817,9 @@ enumerate:
  */
 
 void
-DBResetTilePlane(plane, cdata)
-    Plane *plane;	/* Plane whose tiles are to be reset */
-    ClientData cdata;
+DBResetTilePlane(
+    Plane *plane,	/* Plane whose tiles are to be reset */
+    ClientData cdata)
 {
     Tile *tp, *tpnew;
     const Rect *rect = &TiPlaneRect;
@@ -890,9 +890,9 @@ enumerate:
  */
 
 void
-DBResetTilePlaneSpecial(plane, cdata)
-    Plane *plane;	/* Plane whose tiles are to be reset */
-    ClientData cdata;
+DBResetTilePlaneSpecial(
+    Plane *plane,	/* Plane whose tiles are to be reset */
+    ClientData cdata)
 {
     Tile *tp, *tpnew;
     const Rect *rect = &TiPlaneRect;
@@ -976,8 +976,8 @@ enumerate:
  */
 
 void
-DBFreePaintPlane(plane)
-    Plane *plane;	/* Plane whose storage is to be freed */
+DBFreePaintPlane(
+    Plane *plane)	/* Plane whose storage is to be freed */
 {
     Tile *tp, *tpnew;
     const Rect *rect = &TiPlaneRect;
@@ -1046,8 +1046,8 @@ enumerate:
  */
 
 void
-DBClearCellPlane(def)
-    CellDef *def;
+DBClearCellPlane(
+    CellDef *def)
 {
     int dbDeleteCellUse();	/* Forward reference */
 
@@ -1142,11 +1142,11 @@ int dbDeleteCellUse(CellUse *use, ClientData arg)
  */
 
 int
-DBCheckMaxHStrips(plane, area, proc, cdata)
-    Plane *plane;	/* Search this plane */
-    Rect *area;		/* Process all tiles in this area */
-    int (*proc)();	/* Filter procedure: see above */
-    ClientData cdata;	/* Passed to (*proc)() */
+DBCheckMaxHStrips(
+    Plane *plane,	/* Search this plane */
+    Rect *area,		/* Process all tiles in this area */
+    int (*proc)(),	/* Filter procedure: see above */
+    ClientData cdata)	/* Passed to (*proc)() */
 {
     struct dbCheck dbc;
 
@@ -1165,10 +1165,10 @@ DBCheckMaxHStrips(plane, area, proc, cdata)
  */
 
 int
-dbCheckMaxHFunc(tile, dinfo, dbc)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct dbCheck *dbc;
+dbCheckMaxHFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct dbCheck *dbc)
 {
     Tile *tp;
 
@@ -1235,11 +1235,11 @@ dbCheckMaxHFunc(tile, dinfo, dbc)
  */
 
 int
-DBCheckMaxVStrips(plane, area, proc, cdata)
-    Plane *plane;	/* Search this plane */
-    Rect *area;		/* Process all tiles in this area */
-    int (*proc)();	/* Filter procedure: see above */
-    ClientData cdata;	/* Passed to (*proc)() */
+DBCheckMaxVStrips(
+    Plane *plane,	/* Search this plane */
+    Rect *area,		/* Process all tiles in this area */
+    int (*proc)(),	/* Filter procedure: see above */
+    ClientData cdata)	/* Passed to (*proc)() */
 {
     struct dbCheck dbc;
 
@@ -1258,10 +1258,10 @@ DBCheckMaxVStrips(plane, area, proc, cdata)
  */
 
 int
-dbCheckMaxVFunc(tile, dinfo, dbc)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct dbCheck *dbc;
+dbCheckMaxVFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct dbCheck *dbc)
 {
     Tile *tp;
 

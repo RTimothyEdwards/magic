@@ -25,6 +25,15 @@
 #ifndef _MAGIC__DATABASE__DATABASE_H
 #define _MAGIC__DATABASE__DATABASE_H
 
+/* Forward declaration to avoid circular include with windows/windows.h */
+struct WIND_S1;
+typedef struct WIND_S1 MagWindow;
+
+/* Forward declaration so prototypes can refer to FontChar without pulling
+ * in database/fonts.h (which depends on this header). */
+struct fontchar;
+typedef struct fontchar FontChar;
+
 #ifndef _MAGIC__TILES__TILE_H
 #include "tiles/tile.h"
 #endif
@@ -784,7 +793,7 @@ typedef struct
 extern void DBPaint();
 extern void DBErase();
 extern int  DBSrPaintArea();
-extern int  DBPaintPlane0();
+extern int  DBPaintPlane0(Plane *plane, Rect *area, const PaintResultType *resultTbl, PaintUndoInfo *undo, unsigned char method);
 extern int  DBPaintPlaneActive();
 extern int  DBPaintPlaneWrapper();
 extern int  DBPaintPlaneMark();
@@ -804,20 +813,20 @@ extern int DBNMPaintPlane0();
 #define DBNMPaintPlane(a, b, c, d, e)  DBNMPaintPlane0(a, b, c, d, e, PAINT_NORMAL)
 
     /* I/O */
-extern bool DBCellRead();
+extern bool DBCellRead(CellDef *cellDef, bool ignoreTech, bool dereference, int *errptr);
 extern bool DBTestOpen();
 extern char *DBGetTech();
 extern bool DBCellWrite();
-extern CellDef *DBCellReadArea();
+extern CellDef *DBCellReadArea(CellUse *rootUse, Rect *rootRect, bool halt_on_error);
 extern void DBFileRecovery();
-extern bool DBWriteBackup();
-extern bool DBReadBackup();
+extern bool DBWriteBackup(char *filename, bool archive, bool doforall);
+extern bool DBReadBackup(char *name, bool archive, bool usederef);
 extern void DBRemoveBackup();
 extern void DBPathSubstitute();
 
     /* Labels */
-extern Label *DBPutLabel();
-extern Label *DBPutFontLabel();
+extern Label *DBPutLabel(CellDef *cellDef, Rect *rect, int align, char *text, TileType type, unsigned short flags, unsigned int port);
+extern Label *DBPutFontLabel(CellDef *cellDef, Rect *rect, int font, int size, int rot, Point *offset, int align, char *text, TileType type, unsigned short flags, unsigned int port);
 extern void DBFontLabelSetBBox();
 extern bool DBEraseGlobLabel();
 extern bool DBEraseLabel();
@@ -856,9 +865,9 @@ extern void DBTechInitConnect();
 
     /* Cell symbol table */
 extern void DBCellInit();
-extern void DBCellPrint();
-extern void DBUsePrint();
-extern void DBTopPrint();
+extern void DBCellPrint(char *CellName, int who, bool dolist);
+extern void DBUsePrint(char *CellName, int who, bool dolist);
+extern void DBTopPrint(MagWindow *mw, bool dolist);
 extern CellDef *DBCellLookDef();
 extern CellDef *DBCellNewDef();
 extern CellDef *DBCellDefAlloc();
@@ -869,10 +878,10 @@ extern int DBCellSrDefs();
 extern CellUse *DBCellNewUse();
 extern bool DBCellDeleteUse();
 extern CellUse *DBCellFindDup();
-extern void DBLockUse();
+extern void DBLockUse(char *UseName, bool bval);
 extern void DBUnlockUse();
-extern void DBOrientUse();
-extern void DBAbutmentUse();
+extern void DBOrientUse(char *UseName, bool dodef);
+extern void DBAbutmentUse(char *UseName, bool dolist);
 
     /* Cell selection */
 extern CellUse *DBSelectCell();
@@ -935,24 +944,24 @@ extern bool DBIsAncestor();
 extern void DBCellSetAvail();
 extern void DBCellClearAvail();
 extern bool DBCellGetModified();
-extern void DBCellSetModified();
+extern void DBCellSetModified(CellDef *cellDef, bool ismod);
 extern void DBFixMismatch();
-extern void DBTreeCopyConnect();
+extern void DBTreeCopyConnect(SearchContext *scx, TileTypeBitMask *mask, int xMask, TileTypeBitMask *connect, Rect *area, unsigned char doLabels, CellUse *destUse);
 extern void DBSeeTypesAll();
 extern void DBUpdateStamps();
 extern void DBEnumerateTypes();
 extern Plane *DBNewPlane();
 extern bool DBDescendSubcell();
 extern void DBCellCopyMaskHints();
-extern void DBFlattenInPlace();
-extern void DBCellFlattenAllCells();
+extern void DBFlattenInPlace(CellUse *use, CellUse *dest, int xMask, bool dolabels, bool toplabels, bool doclear);
+extern void DBCellFlattenAllCells(SearchContext *scx, CellUse *dest, int xMask, bool dolabels, bool toplabels);
 
 extern PaintResultType (*DBNewPaintTable())[TT_MAXTYPES][TT_MAXTYPES];
 typedef int (*IntProc)();
 IntProc DBNewPaintPlane();
 
     /* Diagnostic */
-extern void DBTechPrintTypes();
+extern void DBTechPrintTypes(TileTypeBitMask *mask, bool dolist);
 extern void DBTechPrintCanonicalType();
 
     /* Deallocation */
@@ -973,7 +982,7 @@ extern void DBPropClearAll();
 extern int DBTreeSrTiles();
 extern int DBTreeSrUniqueTiles();
 extern int DBNoTreeSrTiles();
-extern int DBTreeSrLabels();
+extern int DBTreeSrLabels(SearchContext *scx, TileTypeBitMask * mask, int xMask, TerminalPath *tpath, unsigned char flags, int (*func)(), ClientData cdarg);
 extern int DBTreeSrCells();
 extern int DBSrRoots();
 extern int DBCellEnum();
@@ -990,15 +999,15 @@ extern int dbSrConnectStartFunc(Tile *tile, TileType dinfo, ClientData clientDat
 extern void DBEraseValid();
 extern void DBPaintValid();
 extern void DBTreeCountPaint();
-extern void DBOpenOnly();
-extern int  DBLoadFont();
+extern void DBOpenOnly(CellDef *cellDef, char *name, bool setFileName, int *errptr);
+extern int  DBLoadFont(char *fontfile, float scale);
 extern int  DBNameToFont();
-extern int  DBFontChar();
+extern int  DBFontChar(int font, char ccode, FontChar **clist, Point    **coffset, Rect     **cbbox);
 extern void DBFontInitCurves();
 extern void DBUndoEraseLabel();
 extern void DBUndoPutLabel();
-extern bool DBCellRename();
-extern bool DBCellDelete();
+extern bool DBCellRename(char *cellname, char *newname, bool doforce);
+extern bool DBCellDelete(char *cellname, bool force);
 extern int  DBCellSrArea();
 extern int  DBSrCellPlaneArea(BPlane *plane, const Rect *rect, int (*func)(), ClientData arg);
 extern int  DBMoveCell();
@@ -1012,7 +1021,7 @@ extern bool DBScalePoint();
 extern int  DBScaleCell();
 extern TileType DBTechNameTypes();
 extern void DBTreeFindUse();
-extern void DBGenerateUniqueIds();
+extern void DBGenerateUniqueIds(CellDef *def, bool warn);
 extern void DBSelectionUniqueIds();
 extern TileType DBInvTransformDiagonal();
 extern bool DBIsSubcircuit();
@@ -1028,7 +1037,7 @@ extern int  DBSrCellUses();
 extern TileType DBTechNameTypeExact();
 extern void dbInstanceUnplace();
 extern int  dbIsPrimary();
-extern void dbTechMatchResidues();
+extern void dbTechMatchResidues(TileTypeBitMask *inMask, TileTypeBitMask *outMask, bool contactsOnly);
 extern void DBUndoInit();
 extern void DBResetTilePlane();
 extern void DBResetTilePlaneSpecial();
@@ -1038,12 +1047,12 @@ extern int  DBSrConnect();
 extern char *dbFgets();
 extern void DBAdjustLabelsNew();
 extern bool DBScaleValue();
-extern int  DBMergeNMTiles0();
+extern int  DBMergeNMTiles0(Plane *plane, Rect *area, PaintUndoInfo *undo, bool mergeOnce);
 extern int  DBSearchLabel();
 extern int  dbCellUniqueTileSrFunc();
 extern void DBWDrawFontLabel();
 extern void DBCellCopyManhattanPaint();
-extern bool dbScalePlane();
+extern bool dbScalePlane(Plane *oldplane, Plane *newplane, int pnum, int scalen, int scaled, bool doCIF);
 extern int  DBPaintPlaneVert();
 
 /* -------------------------- Layer locking ------------------------------*/

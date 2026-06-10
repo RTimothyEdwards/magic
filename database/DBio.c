@@ -112,12 +112,12 @@ static char *DBbackupFile = (char *)NULL;
 
 /* Forward declarations */
 char *dbFgets();
-FILETYPE dbReadOpen();
+FILETYPE dbReadOpen(CellDef *cellDef, bool setFileName, bool dereference, int *errptr);
 int DBFileOffset;
 bool dbReadLabels();
 bool dbReadElements();
 bool dbReadProperties();
-bool dbReadUse();
+bool dbReadUse(CellDef *cellDef, char *line, int len, FILETYPE f, int scalen, int scaled, bool dereference, HashTable *dbUseTable);
 
 #ifdef MAGIC_WRAPPER
 /* Used to make a tag callback after loading a techfile */
@@ -136,8 +136,8 @@ extern int TagCallback();
  */
 
 static int
-file_is_not_writeable(name)
-    char *name;
+file_is_not_writeable(
+    char *name)
 {
     struct stat sbuf;
 
@@ -170,7 +170,9 @@ file_is_not_writeable(name)
 }
 
 static int
-path_is_dir(const char *dirname, const char *filename)
+path_is_dir(
+    const char *dirname,
+    const char *filename)
 {
     struct stat statbuf;
     char path[PATH_MAX];
@@ -221,11 +223,11 @@ typedef struct _linkedDirent {
  */
 
 char *
-DBSearchForTech(techname, techroot, pathroot, level)
-    char *techname;
-    char *techroot;	/* techname without the ".tech" suffix */
-    char *pathroot;
-    int level;
+DBSearchForTech(
+    char *techname,
+    char *techroot,	/* techname without the ".tech" suffix */
+    char *pathroot,
+    int level)
 {
     char *newpath, *found, *dptr;
     struct dirent *tdent;
@@ -338,9 +340,9 @@ DBSearchForTech(techname, techroot, pathroot, level)
  */
 
 int
-DBAddStandardCellPaths(pathptr, level)
-   char *pathptr;
-   int level;
+DBAddStandardCellPaths(
+    char *pathptr,
+    int level)
 {
     int paths = 0;
     struct dirent *tdent;
@@ -520,10 +522,10 @@ DBAddStandardCellPaths(pathptr, level)
  */
 
 bool
-dbCellReadDef(f, cellDef, ignoreTech, dereference)
-    FILETYPE f;		/* The file, already opened by the caller */
-    CellDef *cellDef;	/* Pointer to definition of cell to be read in */
-    bool ignoreTech;	/* If FALSE then the technology of the file MUST
+dbCellReadDef(
+    FILETYPE f,		/* The file, already opened by the caller */
+    CellDef *cellDef,	/* Pointer to definition of cell to be read in */
+    bool ignoreTech,	/* If FALSE then the technology of the file MUST
 			 * match the current technology, or else the
 			 * subroutine will return an error condition
 			 * without reading anything.  If TRUE, a
@@ -531,7 +533,7 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 			 * names do not match, but an attempt will be
 			 * made to read the file anyway.
 			 */
-    bool dereference;	/* If TRUE, ignore path references in the input */
+    bool dereference)	/* If TRUE, ignore path references in the input */
 {
     int cellStamp = 0, rectCount = 0, rectReport = 10000;
     char line[2048], tech[50], layername[50];
@@ -1111,8 +1113,8 @@ DBRemoveBackup()
  */
 
 void
-DBFileRecovery(filename)
-    char *filename;
+DBFileRecovery(
+    char *filename)
 {
     DIR *cwd;
     struct direct *dp;
@@ -1232,10 +1234,10 @@ DBFileRecovery(filename)
  */
 
 bool
-DBReadBackup(name, archive, usederef)
-    char *name;		/* Name of the backup file */
-    bool archive;	/* TRUE if this is an archive file */
-    bool usederef;	/* If TRUE, then dereference all cells */
+DBReadBackup(
+    char *name,		/* Name of the backup file */
+    bool archive,	/* TRUE if this is an archive file */
+    bool usederef)	/* If TRUE, then dereference all cells */
 {
     FILETYPE f;
     static const char *filetypes[] = {"archive", "backup", 0};
@@ -1358,9 +1360,9 @@ DBReadBackup(name, archive, usederef)
  */
 
 bool
-DBCellRead(cellDef, ignoreTech, dereference, errptr)
-    CellDef *cellDef;	/* Pointer to definition of cell to be read in */
-    bool ignoreTech;	/* If FALSE then the technology of the file MUST
+DBCellRead(
+    CellDef *cellDef,	/* Pointer to definition of cell to be read in */
+    bool ignoreTech,	/* If FALSE then the technology of the file MUST
 			 * match the current technology, or else the
 			 * subroutine will return an error condition
 			 * without reading anything.  If TRUE, a
@@ -1368,8 +1370,8 @@ DBCellRead(cellDef, ignoreTech, dereference, errptr)
 			 * names do not match, but an attempt will be
 			 * made to read the file anyway.
 			 */
-    bool dereference;	/* If TRUE then ignore path argument to cellDef */
-    int *errptr;	/* Copy of errno set by file reading routine
+    bool dereference,	/* If TRUE then ignore path argument to cellDef */
+    int *errptr)	/* Copy of errno set by file reading routine
 			 * is placed here, unless NULL.
 			 */
 {
@@ -1444,16 +1446,16 @@ DBCellRead(cellDef, ignoreTech, dereference, errptr)
  */
 
 FILETYPE
-dbReadOpen(cellDef, setFileName, dereference, errptr)
-    CellDef *cellDef;	/* Def being read */
-    bool setFileName;	/* If TRUE then cellDef->cd_file should be updated
+dbReadOpen(
+    CellDef *cellDef,	/* Def being read */
+    bool setFileName,	/* If TRUE then cellDef->cd_file should be updated
 			 * to point to the name of the file from which the
 			 * cell was loaded.
 			 */
-    bool dereference;	/* If dereferencing, try search paths first, and
+    bool dereference,	/* If dereferencing, try search paths first, and
 			 * only if that fails, try the value in cd_file.
 			 */
-    int *errptr;	/* Pointer to int to hold error value */
+    int *errptr)	/* Pointer to int to hold error value */
 {
     FILETYPE f = NULL;
     int fd;
@@ -1678,14 +1680,14 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
  */
 
 void
-DBOpenOnly(cellDef, name, setFileName, errptr)
-    CellDef *cellDef;	/* Def being read */
-    char *name;		/* Name if specified, or NULL */
-    bool setFileName;	/* If TRUE then cellDef->cd_file should be updated
+DBOpenOnly(
+    CellDef *cellDef,	/* Def being read */
+    char *name,		/* Name if specified, or NULL */
+    bool setFileName,	/* If TRUE then cellDef->cd_file should be updated
 			 * to point to the name of the file from which the
 			 * cell was loaded.
 			 */
-    int *errptr;	/* Pointer to int to hold error value */
+    int *errptr)	/* Pointer to int to hold error value */
 {
     dbReadOpen(cellDef, setFileName, FALSE, errptr);
 }
@@ -1707,9 +1709,9 @@ DBOpenOnly(cellDef, name, setFileName, errptr)
  */
 
 bool
-DBTestOpen(name, fullPath)
-    char *name;
-    char **fullPath;
+DBTestOpen(
+    char *name,
+    char **fullPath)
 {
     FILETYPE f;
 
@@ -1747,15 +1749,15 @@ DBTestOpen(name, fullPath)
  */
 
 bool
-dbReadUse(cellDef, line, len, f, scalen, scaled, dereference, dbUseTable)
-    CellDef *cellDef;	/* Cell whose cells are being read */
-    char *line;		/* Line containing "use ..." */
-    int len;		/* Size of buffer pointed to by line */
-    FILETYPE f;		/* Input file */
-    int scalen;		/* Multiply values in file by this */
-    int scaled;		/* Divide values in file by this */
-    bool dereference;	/* If TRUE, ignore path references */
-    HashTable *dbUseTable;  /* Hash table of instances seen in this file */
+dbReadUse(
+    CellDef *cellDef,	/* Cell whose cells are being read */
+    char *line,		/* Line containing "use ..." */
+    int len,		/* Size of buffer pointed to by line */
+    FILETYPE f,		/* Input file */
+    int scalen,		/* Multiply values in file by this */
+    int scaled,		/* Divide values in file by this */
+    bool dereference,	/* If TRUE, ignore path references */
+    HashTable *dbUseTable)  /* Hash table of instances seen in this file */
 {
     int xlo, xhi, ylo, yhi, xsep, ysep, childStamp;
     int absa, absb, absd, abse, nconv;
@@ -2396,13 +2398,13 @@ nextLine:
  */
 
 bool
-dbReadProperties(cellDef, line, len, f, scalen, scaled)
-    CellDef *cellDef;	/* Cell whose properties are being read */
-    char *line;		/* Line containing << properties >> */
-    int len;		/* Size of buffer pointed to by line */
-    FILETYPE f;		/* Input file */
-    int scalen;		/* Scale up by this factor */
-    int scaled;		/* Scale down by this factor */
+dbReadProperties(
+    CellDef *cellDef,	/* Cell whose properties are being read */
+    char *line,		/* Line containing << properties >> */
+    int len,		/* Size of buffer pointed to by line */
+    FILETYPE f,		/* Input file */
+    int scalen,		/* Scale up by this factor */
+    int scaled)		/* Scale down by this factor */
 {
     char propertytype[32], propertyname[128], propertyvalue[2049];
     PropertyRecord *proprec;
@@ -2892,13 +2894,13 @@ nextproperty:
  */
 
 bool
-dbReadElements(cellDef, line, len, f, scalen, scaled)
-    CellDef *cellDef;	/* Cell whose elements are being read */
-    char *line;		/* Line containing << elements >> */
-    int len;		/* Size of buffer pointed to by line */
-    FILETYPE f;		/* Input file */
-    int scalen;		/* Scale up by this factor */
-    int scaled;		/* Scale down by this factor */
+dbReadElements(
+    CellDef *cellDef,	/* Cell whose elements are being read */
+    char *line,		/* Line containing << elements >> */
+    int len,		/* Size of buffer pointed to by line */
+    FILETYPE f,		/* Input file */
+    int scalen,		/* Scale up by this factor */
+    int scaled)		/* Scale down by this factor */
 {
     char elementname[128], styles[1024], *text, flags[100];
     int istyle, ntok;
@@ -3066,13 +3068,13 @@ nextelement:
  */
 
 bool
-dbReadLabels(cellDef, line, len, f, scalen, scaled)
-    CellDef *cellDef;	/* Cell whose labels are being read */
-    char *line;		/* Line containing << labels >> */
-    int len;		/* Size of buffer pointed to by line */
-    FILETYPE f;		/* Input file */
-    int scalen;		/* Scale up by this factor */
-    int scaled;		/* Scale down by this factor */
+dbReadLabels(
+    CellDef *cellDef,	/* Cell whose labels are being read */
+    char *line,		/* Line containing << labels >> */
+    int len,		/* Size of buffer pointed to by line */
+    FILETYPE f,		/* Input file */
+    int scalen,		/* Scale up by this factor */
+    int scaled)		/* Scale down by this factor */
 {
     char layername[50], text[1024], port_use[50], port_class[50], port_shape[50];
     TileType type;
@@ -3385,10 +3387,10 @@ nextlabel:
  */
 
 char *
-dbFgets(line, len, f)
-    char *line;
-    int len;
-    FILETYPE f;
+dbFgets(
+    char *line,
+    int len,
+    FILETYPE f)
 {
     char *cs;
     int l;
@@ -3430,8 +3432,8 @@ dbFgets(line, len, f)
  */
 
 int
-DBCellFindScale(cellDef)
-    CellDef *cellDef;
+DBCellFindScale(
+    CellDef *cellDef)
 {
     int dbFindGCFFunc(), dbFindCellGCFFunc(), dbFindPropGCFFunc();
     TileType type;
@@ -3508,10 +3510,10 @@ DBCellFindScale(cellDef)
  */
 
 int
-dbFindGCFFunc(tile, dinfo, ggcf)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    int *ggcf;
+dbFindGCFFunc(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    int *ggcf)
 {
     Rect r;
 
@@ -3548,9 +3550,9 @@ dbFindGCFFunc(tile, dinfo, ggcf)
  */
 
 int
-dbFindCellGCFFunc(cellUse, ggcf)
-    CellUse *cellUse;	/* Cell use whose "call" is to be written to a file	*/
-    int *ggcf;		/* Greatest common denominator for all geometry		*/
+dbFindCellGCFFunc(
+    CellUse *cellUse,	/* Cell use whose "call" is to be written to a file	*/
+    int *ggcf)		/* Greatest common denominator for all geometry		*/
 {
     Transform *t;
     Rect *b;
@@ -3605,10 +3607,10 @@ dbFindCellGCFFunc(cellUse, ggcf)
  */
 
 int
-dbFindPropGCFFunc(key, proprec, ggcf)
-    char *key;
-    PropertyRecord *proprec;
-    int *ggcf;		/* Client data */
+dbFindPropGCFFunc(
+    char *key,
+    PropertyRecord *proprec,
+    int *ggcf)		/* Client data */
 {
     int value, n;
 
@@ -3652,7 +3654,9 @@ dbFindPropGCFFunc(key, proprec, ggcf)
  */
 
 int
-cucompare(const void *one, const void *two)
+cucompare(
+    const void *one,
+    const void *two)
 {
     CellUse *use1, *use2;
     char *s1, *s2;
@@ -3692,9 +3696,9 @@ struct cellUseList {
  */
 
 int
-dbGetUseFunc(cellUse, useRec)
-    CellUse *cellUse;	/* Cell use whose "call" is to be written to a file */
-    struct cellUseList *useRec;
+dbGetUseFunc(
+    CellUse *cellUse,	/* Cell use whose "call" is to be written to a file */
+    struct cellUseList *useRec)
 {
     useRec->useList[useRec->idx] = cellUse;
     useRec->idx++;
@@ -3720,9 +3724,9 @@ dbGetUseFunc(cellUse, useRec)
  */
 
 int
-dbCountUseFunc(cellUse, count)
-    CellUse *cellUse;	/* Cell use whose "call" is to be written to a file */
-    int *count;
+dbCountUseFunc(
+    CellUse *cellUse,	/* Cell use whose "call" is to be written to a file */
+    int *count)
 {
     (*count)++;
     return 0;
@@ -3754,7 +3758,9 @@ struct keyValuePair {
  */
 
 int
-keycompare(const void *one, const void *two)
+keycompare(
+    const void *one,
+    const void *two)
 {
     int cval;
     struct keyValuePair *kv1 = *((struct keyValuePair **)one);
@@ -3792,10 +3798,10 @@ struct cellPropList {
  */
 
 int
-dbGetPropFunc(key, proprec, propRec)
-    char *key;
-    PropertyRecord *proprec;
-    struct cellPropList *propRec;
+dbGetPropFunc(
+    char *key,
+    PropertyRecord *proprec,
+    struct cellPropList *propRec)
 {
     propRec->keyValueList[propRec->idx] =
 		(struct keyValuePair *)mallocMagic(sizeof(struct keyValuePair));
@@ -3824,10 +3830,10 @@ dbGetPropFunc(key, proprec, propRec)
  */
 
 int
-dbCountPropFunc(key, proprec, count)
-    char *key;
-    PropertyRecord *proprec;
-    int *count;		/* Client data */
+dbCountPropFunc(
+    char *key,
+    PropertyRecord *proprec,
+    int *count)		/* Client data */
 {
     (*count)++;
     return 0;
@@ -3875,9 +3881,9 @@ typedef struct _pwfrec {
  */
 
 bool
-DBCellWriteFile(cellDef, f)
-    CellDef *cellDef;	/* Pointer to definition of cell to be written out */
-    FILE *f;		/* The FILE to write to */
+DBCellWriteFile(
+    CellDef *cellDef,	/* Pointer to definition of cell to be written out */
+    FILE *f)		/* The FILE to write to */
 {
     int dbWritePaintFunc(), dbWriteCellFunc(), dbWritePropFunc();
     int dbClearCellFunc();
@@ -4220,10 +4226,10 @@ dbWritePropPaintFunc(Tile *tile,
  */
 
 int
-dbWritePropFunc(key, proprec, cdata)
-    char *key;
-    PropertyRecord *proprec;
-    ClientData cdata;
+dbWritePropFunc(
+    char *key,
+    PropertyRecord *proprec,
+    ClientData cdata)
 {
     pwfrec *pwf = (pwfrec *)cdata;
     FILE *f = pwf->pwf_file;
@@ -4329,9 +4335,9 @@ dbWritePropFunc(key, proprec, cdata)
  */
 
 bool
-DBCellWriteCommandFile(cellDef, f)
-    CellDef *cellDef;	/* Pointer to definition of cell to be written out */
-    FILE *f;		/* The FILE to write to */
+DBCellWriteCommandFile(
+    CellDef *cellDef,	/* Pointer to definition of cell to be written out */
+    FILE *f)		/* The FILE to write to */
 {
     int dbWritePaintCommandsFunc();
     int dbWriteUseCommandsFunc();
@@ -4552,10 +4558,10 @@ ioerror:
  */
 
 int
-dbWritePaintCommandsFunc(tile, dinfo, cdarg)
-    Tile *tile;
-    TileType dinfo;
-    ClientData cdarg;
+dbWritePaintCommandsFunc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData cdarg)
 {
     char pstring[256];
     struct writeArg *arg = (struct writeArg *) cdarg;
@@ -4623,9 +4629,9 @@ dbWritePaintCommandsFunc(tile, dinfo, cdarg)
  */
 
 int
-dbWriteUseCommandsFunc(cellUse, cdarg)
-    CellUse *cellUse;
-    ClientData cdarg;
+dbWriteUseCommandsFunc(
+    CellUse *cellUse,
+    ClientData cdarg)
 {
     struct writeArg *arg = (struct writeArg *) cdarg;
     FILE *f = arg->wa_file;
@@ -4695,10 +4701,10 @@ dbWritePropCommandPaintFunc(Tile *tile,
  */
 
 int
-dbWritePropCommandsFunc(key, proprec, cdarg)
-    char *key;
-    PropertyRecord *proprec;
-    ClientData cdarg;
+dbWritePropCommandsFunc(
+    char *key,
+    PropertyRecord *proprec,
+    ClientData cdarg)
 {
     struct writeArg *arg = (struct writeArg *) cdarg;
     char *escstr, *p, *v, *value;
@@ -4807,9 +4813,9 @@ dbWritePropCommandsFunc(key, proprec, cdarg)
  */
 
 bool
-DBCellWrite(cellDef, fileName)
-    CellDef *cellDef;	/* Pointer to definition of cell to be written out */
-    char *fileName;	/* If not NULL, name of file to write.  If NULL,
+DBCellWrite(
+    CellDef *cellDef,	/* Pointer to definition of cell to be written out */
+    char *fileName)	/* If not NULL, name of file to write.  If NULL,
 			 * the name associated with the CellDef is used
 			 */
 {
@@ -5137,10 +5143,10 @@ cleanup:
  */
 
 int
-dbWritePaintFunc(tile, dinfo, cdarg)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    ClientData cdarg;
+dbWritePaintFunc(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    ClientData cdarg)
 {
     char pstring[256];
     struct writeArg *arg = (struct writeArg *) cdarg;
@@ -5222,9 +5228,9 @@ dbWritePaintFunc(tile, dinfo, cdarg)
  */
 
 int
-dbClearCellFunc(cellUse, cdarg)
-    CellUse *cellUse;	/* Cell use */
-    ClientData cdarg;	/* Not used */
+dbClearCellFunc(
+    CellUse *cellUse,	/* Cell use */
+    ClientData cdarg)	/* Not used */
 {
     cellUse->cu_def->cd_flags &= ~CDVISITED;
     return 0;
@@ -5255,10 +5261,10 @@ dbClearCellFunc(cellUse, cdarg)
  */
 
 void
-DBPathSubstitute(pathstart, cstring, cellDef)
-    char *pathstart;
-    char *cstring;
-    CellDef *cellDef;
+DBPathSubstitute(
+    char *pathstart,
+    char *cstring,
+    CellDef *cellDef)
 {
     bool subbed = FALSE;
 #ifdef MAGIC_WRAPPER
@@ -5347,9 +5353,9 @@ DBPathSubstitute(pathstart, cstring, cellDef)
  */
 
 int
-dbWriteCellFunc(cellUse, cdarg)
-    CellUse *cellUse;	/* Cell use whose "call" is to be written to a file */
-    ClientData cdarg;
+dbWriteCellFunc(
+    CellUse *cellUse,	/* Cell use whose "call" is to be written to a file */
+    ClientData cdarg)
 {
     struct writeArg *arg = (struct writeArg *) cdarg;
     Transform *t;
@@ -5461,8 +5467,8 @@ dbWriteCellFunc(cellUse, cdarg)
  */
 
 char *
-DBGetTech(cellName)
-    char *cellName;			/* Name of cell whose technology
+DBGetTech(
+    char *cellName)			/* Name of cell whose technology
 					 * is desired.
 					 */
 {
@@ -5491,7 +5497,7 @@ ret:
 }
 
 /* File and flags record used to hold information for dbWriteBackupFunc()
- * in DBWriteBackup()
+ * in DBWriteBackup().
  */
 
 typedef struct _fileAndFlags {
@@ -5532,10 +5538,10 @@ typedef struct _fileAndFlags {
  */
 
 bool
-DBWriteBackup(filename, archive, doforall)
-    char *filename;
-    bool archive;
-    bool doforall;
+DBWriteBackup(
+    char *filename,
+    bool archive,
+    bool doforall)
 {
     FILE *f;
     int fd, pid;
@@ -5657,9 +5663,9 @@ DBWriteBackup(filename, archive, doforall)
  */
 
 int
-dbWriteBackupFunc(def, clientData)
-    CellDef *def;	/* Pointer to CellDef to be saved */
-    ClientData clientData;
+dbWriteBackupFunc(
+    CellDef *def,	/* Pointer to CellDef to be saved */
+    ClientData clientData)
 {
     char *name = def->cd_file;
     int result, save_flags;
@@ -5693,9 +5699,9 @@ dbWriteBackupFunc(def, clientData)
  */
 
 int
-dbCheckModifiedCellsFunc(def, cdata)
-    CellDef *def;	/* Pointer to CellDef to be saved */
-    ClientData cdata;	/* Unused */
+dbCheckModifiedCellsFunc(
+    CellDef *def,	/* Pointer to CellDef to be saved */
+    ClientData cdata)	/* Unused */
 {
     if (def->cd_flags & (CDINTERNAL | CDNOEDIT | CDNOTFOUND)) return 0;
     else if (!(def->cd_flags & CDAVAILABLE)) return 0;

@@ -57,7 +57,8 @@ struct searchArg
 int dbCellDebug = 0;
 
 void
-dbInstanceUnplace(CellUse *use)
+dbInstanceUnplace(
+    CellUse *use)
 {
     ASSERT(use != (CellUse *) NULL, "dbInstanceUnplace");
 
@@ -93,11 +94,11 @@ dbInstanceUnplace(CellUse *use)
  */
 
 CellUse *
-DBCellFindDup(use, parent)
-    CellUse *use;		/* Use that is about to be placed in parent.
+DBCellFindDup(
+    CellUse *use,		/* Use that is about to be placed in parent.
 				 * Is it a duplicate?
 				 */
-    CellDef *parent;		/* Parent definiton:  does it already have
+    CellDef *parent)		/* Parent definiton:  does it already have
 				 * something identical to use?
 				 */
 {
@@ -185,9 +186,9 @@ DBCellFindDup(use, parent)
  */
 
 void
-DBPlaceCell (use, def)
-    CellUse   * use;	/* new celluse to add to subcell tile plane */
-    CellDef   * def;    /* parent cell's definition */
+DBPlaceCell(
+    CellUse   * use,	/* new celluse to add to subcell tile plane */
+    CellDef   * def)    /* parent cell's definition */
 {
     Rect             rect;    /* argument to DBSrCellPlaneArea(), placeCellFunc() */
     BPlane          *bplane;  /* argument to DBSrCellPlaneArea(), placeCellFunc() */
@@ -219,9 +220,9 @@ DBPlaceCell (use, def)
 /* this does not mean that anything in the parent cell has changed.	*/
 
 void
-DBPlaceCellNoModify (use, def)
-    CellUse   * use;	/* new celluse to add to subcell tile plane */
-    CellDef   * def;    /* parent cell's definition */
+DBPlaceCellNoModify(
+    CellUse   * use,	/* new celluse to add to subcell tile plane */
+    CellDef   * def)    /* parent cell's definition */
 {
     Rect             rect;    /* argument to DBSrCellPlaneArea(), placeCellFunc() */
     BPlane          *bplane;  /* argument to DBSrCellPlaneArea(), placeCellFunc() */
@@ -264,8 +265,8 @@ DBPlaceCellNoModify (use, def)
  */
 
 void
-DBDeleteCell (use)
-    CellUse * use;
+DBDeleteCell(
+    CellUse * use)
 {
     ASSERT(use != (CellUse *) NULL, "DBDeleteCell");
 
@@ -302,8 +303,8 @@ DBDeleteCell (use)
  */
 
 void
-DBDeleteCellNoModify (use)
-    CellUse * use;
+DBDeleteCellNoModify(
+    CellUse * use)
 {
     ASSERT(use != (CellUse *) NULL, "DBDeleteCell");
 

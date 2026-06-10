@@ -60,7 +60,7 @@ Rule dbSavedRules[NT];
 
 /* Forward declarations */
 
-extern void dbTechBitTypeInit();
+extern void dbTechBitTypeInit(TileType *bitToType, int n, int pNum, bool composeFlag);
 
 bool dbTechAddPaintErase();
 bool dbTechSaveCompose();
@@ -279,10 +279,11 @@ DBTechInitCompose()
  */
 
 void
-dbTechBitTypeInit(bitToType, n, pNum, composeFlag)
-    TileType *bitToType;
-    int n, pNum;
-    bool composeFlag;
+dbTechBitTypeInit(
+    TileType *bitToType,
+    int n,
+    int pNum,
+    bool composeFlag)
 {
     int i, j;
     TileType have, type;
@@ -305,8 +306,8 @@ dbTechBitTypeInit(bitToType, n, pNum, composeFlag)
 /* Returns nonzero if exactly one bit set */
 
 int
-dbIsPrimary(n)
-    int n;
+dbIsPrimary(
+    int n)
 {
     int bitCount;
 
@@ -349,10 +350,10 @@ dbIsPrimary(n)
 
     /*ARGSUSED*/
 bool
-DBTechAddCompose(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBTechAddCompose(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     TileType type, r, s;
     int pNum, ruleType, i;
@@ -459,11 +460,11 @@ DBTechAddCompose(sectionName, argc, argv)
  */
 
 bool
-dbTechSaveCompose(ruleType, t, argc, argv)
-    int ruleType;
-    TileType t;
-    int argc;
-    char *argv[];
+dbTechSaveCompose(
+    int ruleType,
+    TileType t,
+    int argc,
+    char *argv[])
 {
     TileType r, s;
     Rule *rp;
@@ -545,10 +546,10 @@ dbTechSaveCompose(ruleType, t, argc, argv)
  */
 
 bool
-dbTechCheckImages(t, r, s)
-    TileType t;			/* Type that is composed */
-    TileType r;	/* First constituent */
-    TileType s;			/* Second constituent */
+dbTechCheckImages(
+    TileType t,			/* Type that is composed */
+    TileType r,	/* First constituent */
+    TileType s)			/* Second constituent */
 {
     int pNum;
     PlaneMask pMask;
@@ -591,11 +592,11 @@ dbTechCheckImages(t, r, s)
  */
 
 bool
-dbTechAddPaintErase(type, sectionName, argc, argv)
-    int type;
-    char *sectionName;
-    int argc;
-    char *argv[];
+dbTechAddPaintErase(
+    int type,
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     int pNum;
     PlaneMask pMask, rMask;
@@ -711,8 +712,8 @@ dbTechAddPaintErase(type, sectionName, argc, argv)
  */
 
 void
-dbTechCheckPaint(where)
-    char *where;	/* If non-null, print this as header */
+dbTechCheckPaint(
+    char *where)	/* If non-null, print this as header */
 {
     TileType have, t, result;
     bool printedHeader = FALSE;
@@ -764,10 +765,10 @@ dbTechCheckPaint(where)
  */
 
 void
-dbTechPrintPaint(where, doPaint, contactsOnly)
-    char *where;	/* If non-null, print this as header */
-    bool doPaint;	/* TRUE -> print paint tables, FALSE -> print erase */
-    bool contactsOnly;
+dbTechPrintPaint(
+    char *where,	/* If non-null, print this as header */
+    bool doPaint,	/* TRUE -> print paint tables, FALSE -> print erase */
+    bool contactsOnly)
 {
     TileType have, paint, erase, result;
     int plane;

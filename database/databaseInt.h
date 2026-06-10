@@ -203,7 +203,7 @@ extern void DBUndoEraseLabel();
 extern void DBUndoCellUse();
 extern void DBStampMismatch();
 extern void DBFlagMismatches();
-extern void DBTechAddNameToType();
+extern void DBTechAddNameToType(char *newname, TileType ttype, bool canonical);
 
 extern void dbComputeBbox();
 extern void dbFreeCellPlane();
