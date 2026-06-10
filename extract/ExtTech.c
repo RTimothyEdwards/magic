@@ -275,8 +275,8 @@ static const keydesc devTable[] = {
  */
 
 bool
-ExtCompareStyle(stylename)
-    char *stylename;
+ExtCompareStyle(
+    char *stylename)
 {
     ExtKeep *style;
 
@@ -335,15 +335,14 @@ ExtCompareStyle(stylename)
  */
 
 bool
-ExtGetDevInfo(idx, devnameptr, devtypeptr, s_rclassptr, d_rclassptr,
-		sub_rclassptr, subnameptr)
-    int idx;
-    char **devnameptr;	    /* Name of extracted device model */
-    TileType *devtypeptr;   /* Magic tile type of device */
-    short *s_rclassptr;	    /* Source (1st terminal) type only */
-    short *d_rclassptr;	    /* Drain (2nd terminal) type only */
-    short *sub_rclassptr;
-    char **subnameptr;
+ExtGetDevInfo(
+    int idx,
+    char **devnameptr,	    /* Name of extracted device model */
+    TileType *devtypeptr,   /* Magic tile type of device */
+    short *s_rclassptr,	    /* Source (1st terminal) type only */
+    short *d_rclassptr,	    /* Drain (2nd terminal) type only */
+    short *sub_rclassptr,
+    char **subnameptr)
 {
     TileType t;
     TileTypeBitMask *rmask, *tmask;
@@ -477,8 +476,8 @@ ExtGetDevInfo(idx, devnameptr, devtypeptr, s_rclassptr, d_rclassptr,
  */
 
 TileType
-extGetDevType(devname)
-    char *devname;
+extGetDevType(
+    char *devname)
 {
     TileType t;
     ExtDevice *devptr;
@@ -503,8 +502,8 @@ extGetDevType(devname)
  */
 
 int
-ExtGetGateTypesMask(mask)
-    TileTypeBitMask *mask;
+ExtGetGateTypesMask(
+    TileTypeBitMask *mask)
 {
     TileType ttype;
 
@@ -540,8 +539,8 @@ ExtGetGateTypesMask(mask)
  */
 
 int
-ExtGetDiffTypesMask(mask)
-    TileTypeBitMask *mask;
+ExtGetDiffTypesMask(
+    TileTypeBitMask *mask)
 {
     TileType ttype;
 
@@ -573,9 +572,10 @@ ExtGetDiffTypesMask(mask)
  */
 
 void
-ExtGetZAxis(tile, height, thick)
-    Tile *tile;
-    float *height, *thick;
+ExtGetZAxis(
+    Tile *tile,
+    float *height,
+    float *thick)
 {
     TileType ttype;
 
@@ -610,8 +610,8 @@ ExtGetZAxis(tile, height, thick)
  */
 
 void
-ExtPrintPath(dolist)
-    bool dolist;
+ExtPrintPath(
+    bool dolist)
 {
     if (ExtLocalPath == NULL)
     {
@@ -659,8 +659,8 @@ ExtPrintPath(dolist)
  */
 
 void
-ExtSetPath(path)
-    char *path;
+ExtSetPath(
+    char *path)
 {
     if (path != NULL)
     {
@@ -692,10 +692,10 @@ ExtSetPath(path)
  */
 
 void
-ExtPrintStyle(dolist, doforall, docurrent)
-    bool dolist;
-    bool doforall;
-    bool docurrent;
+ExtPrintStyle(
+    bool dolist,
+    bool doforall,
+    bool docurrent)
 {
     ExtKeep *style;
 
@@ -759,8 +759,8 @@ ExtPrintStyle(dolist, doforall, docurrent)
  */
 
 void
-ExtSetStyle(name)
-    char *name;
+ExtSetStyle(
+    char *name)
 {
     ExtKeep *style, *match;
     int length;
@@ -826,8 +826,8 @@ extTechStyleAlloc()
  */
 
 void
-extTechStyleInit(style)
-    ExtStyle *style;
+extTechStyleInit(
+    ExtStyle *style)
 {
     TileType r, s;
 
@@ -1017,8 +1017,8 @@ extTechStyleNew()
  */
 
 CapValue
-aToCap(str)
-    char *str;
+aToCap(
+    char *str)
 {
     CapValue capVal;
     if (sscanf(str, "%lf", &capVal) != 1) {
@@ -1044,8 +1044,8 @@ aToCap(str)
  */
 
 ResValue
-aToRes(str)
-    char *str;
+aToRes(
+    char *str)
 {
     ResValue resVal;
     if (sscanf(str, "%d", &resVal) != 1) {
@@ -1072,8 +1072,8 @@ aToRes(str)
  * ----------------------------------------------------------------------------
  */
 void
-ExtLoadStyle(stylename)
-   char *stylename;
+ExtLoadStyle(
+    char *stylename)
 {
     SectionID invext;
 
@@ -1177,9 +1177,9 @@ ExtTechInit()
  */
 
 void
-ExtTechSimpleAreaCap(argc, argv)
-    int  argc;
-    char *argv[];
+ExtTechSimpleAreaCap(
+    int argc,
+    char *argv[])
 {
     TileType s, t;
     TileTypeBitMask types, subtypes, shields;
@@ -1355,9 +1355,9 @@ ExtTechSimpleAreaCap(argc, argv)
  */
 
 void
-ExtTechSimplePerimCap(argc, argv)
-    int  argc;
-    char *argv[];
+ExtTechSimplePerimCap(
+    int argc,
+    char *argv[])
 {
     TileType r, s, t;
     TileTypeBitMask types, nottypes, subtypes, shields;
@@ -1541,9 +1541,9 @@ ExtTechSimplePerimCap(argc, argv)
  */
 
 void
-ExtTechSimpleSidewallCap(argc, argv)
-    int   argc;
-    char *argv[];
+ExtTechSimpleSidewallCap(
+    int argc,
+    char *argv[])
 {
     /* Like ExtTechLine, but with near = types2 and far = types1 */
 
@@ -1626,8 +1626,8 @@ ExtTechSimpleSidewallCap(argc, argv)
  */
 
 void
-ExtTechSimpleOverlapCap(argv)
-    char *argv[];
+ExtTechSimpleOverlapCap(
+    char *argv[])
 {
     TileType s, t;
     TileTypeBitMask types1, types2, shields;
@@ -1724,8 +1724,8 @@ ExtTechSimpleOverlapCap(argv)
  */
 
 void
-ExtTechSimpleSideOverlapCap(argv)
-    char *argv[];
+ExtTechSimpleSideOverlapCap(
+    char *argv[])
 {
     TileType r, s, t;
     TileTypeBitMask types, nottypes, ov, notov, shields;
@@ -1981,10 +1981,10 @@ ExtTechSimpleSideOverlapCap(argv)
 
     /*ARGSUSED*/
 bool
-ExtTechLine(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+ExtTechLine(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     int n, l, i, j, size, val, p1, p2, p3, nterm, iterm, class;
     PlaneMask pshield, pov;
@@ -3575,8 +3575,8 @@ ExtTechFinal()
 
 
 void
-extTechFinalStyle(style)
-    ExtStyle *style;
+extTechFinalStyle(
+    ExtStyle *style)
 {
     TileTypeBitMask maskBits;
     TileType r, s, t;
@@ -3944,9 +3944,9 @@ zinit:
  */
 
 void
-ExtTechScale(scalen, scaled)
-    int scalen;			/* Scale numerator */
-    int scaled;			/* Scale denominator */
+ExtTechScale(
+    int scalen,			/* Scale numerator */
+    int scaled)			/* Scale denominator */
 {
     ExtStyle *style = ExtCurStyle;
     EdgeCap *ec;

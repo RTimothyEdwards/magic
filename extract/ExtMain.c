@@ -88,10 +88,10 @@ Stack *extDefStack;
 int extDefInitFunc(CellDef *, ClientData);	/* UNUSED */
 void extDefPush();
 void extDefIncremental();
-void extParents();
+void extParents(CellUse *use, bool doExtract);
 void extDefParentFunc();
 void extDefParentAreaFunc();
-void extExtractStack();
+void extExtractStack(Stack *stack, bool doExtract, CellDef *rootDef);
 
 bool extContainsGeometry();
 int extContainsCellFunc(CellUse *use, ClientData cdata); /* cb_database_srcellplanearea_t (const CellUse *allButUse) */
@@ -173,9 +173,9 @@ ExtInit()
  */
 
 int
-extIsUsedFunc(use, clientData)
-    CellUse *use;
-    ClientData clientData;	/* unused */
+extIsUsedFunc(
+    CellUse *use,
+    ClientData clientData)	/* unused */
 {
     CellDef *def = use->cu_def;
 
@@ -197,10 +197,10 @@ extIsUsedFunc(use, clientData)
  */
 
 int
-extEnumFunc(tile, dinfo, clientdata)
-    Tile	*tile;		/* (unused) */
-    TileType	dinfo;		/* (unused) */
-    ClientData	clientdata;	/* (unused) */
+extEnumFunc(
+    Tile	*tile,		/* (unused) */
+    TileType	dinfo,		/* (unused) */
+    ClientData	clientdata)	/* (unused) */
 {
     return 1;
 }
@@ -212,9 +212,9 @@ extEnumFunc(tile, dinfo, clientdata)
  */
 
 int
-extDefListFunc(use, defList)
-    CellUse *use;
-    LinkedDef **defList;
+extDefListFunc(
+    CellUse *use,
+    LinkedDef **defList)
 {
     CellDef *def = use->cu_def;
     LinkedDef *newLD;
@@ -270,9 +270,9 @@ extDefListFunc(use, defList)
  */
 
 int
-extDefListFuncIncremental(use, defList)
-    CellUse *use;
-    LinkedDef **defList;
+extDefListFuncIncremental(
+    CellUse *use,
+    LinkedDef **defList)
 {
     CellDef *def = use->cu_def;
     LinkedDef *newLD;
@@ -346,8 +346,8 @@ extDefListFuncIncremental(use, defList)
  */
 
 void
-ExtAll(rootUse)
-    CellUse *rootUse;
+ExtAll(
+    CellUse *rootUse)
 {
     LinkedDef *defList = NULL;
     CellDef *err_def;
@@ -397,9 +397,9 @@ ExtAll(rootUse)
  */
 /*ARGSUSED*/
 int
-extDefInitFunc(def, cdata)
-    CellDef *def;
-    ClientData cdata;	/* UNUSED */
+extDefInitFunc(
+    CellDef *def,
+    ClientData cdata)	/* UNUSED */
 {
     def->cd_client = (ClientData) 0;
     return (0);
@@ -411,8 +411,8 @@ extDefInitFunc(def, cdata)
  */
 
 void
-extDefPush(defList)
-    LinkedDef *defList;
+extDefPush(
+    LinkedDef *defList)
 {
     while (defList != NULL)
     {
@@ -452,9 +452,9 @@ extDefPush(defList)
  */
 
 void
-ExtUnique(rootUse, option)
-    CellUse *rootUse;
-    int option;
+ExtUnique(
+    CellUse *rootUse,
+    int option)
 {
     CellDef *def, *err_def;
     LinkedDef *defList = NULL;
@@ -545,23 +545,23 @@ ExtUnique(rootUse, option)
  */
 
 void
-ExtParents(use)
-    CellUse *use;
+ExtParents(
+    CellUse *use)
 {
     extParents(use, TRUE);
 }
 
 void
-ExtShowParents(use)
-    CellUse *use;
+ExtShowParents(
+    CellUse *use)
 {
     extParents(use, FALSE);
 }
 
 void
-extParents(use, doExtract)
-    CellUse *use;
-    bool doExtract;	/* If TRUE, we extract; if FALSE, we print */
+extParents(
+    CellUse *use,
+    bool doExtract)	/* If TRUE, we extract; if FALSE, we print */
 {
     LinkedDef *defList = NULL;
     CellDef *def;
@@ -632,8 +632,8 @@ extParents(use, doExtract)
  */
 
 void
-extDefParentFunc(def)
-    CellDef *def;
+extDefParentFunc(
+    CellDef *def)
 {
     CellUse *parent;
 
@@ -667,10 +667,10 @@ extDefParentFunc(def)
  */
 
 void
-ExtParentArea(use, changedArea, doExtract)
-    CellUse *use;	/* Use->cu_def changed; extract its affected parents */
-    Rect *changedArea;	/* Area changed in use->cu_def coordinates */
-    bool doExtract;	/* If TRUE, we extract; if FALSE, we just print names
+ExtParentArea(
+    CellUse *use,	/* Use->cu_def changed; extract its affected parents */
+    Rect *changedArea,	/* Area changed in use->cu_def coordinates */
+    bool doExtract)	/* If TRUE, we extract; if FALSE, we just print names
 			 * of the cells we would extract.
 			 */
 {
@@ -704,11 +704,11 @@ ExtParentArea(use, changedArea, doExtract)
  */
 
 void
-extDefParentAreaFunc(def, baseDef, allButUse, area)
-    CellDef *def;
-    CellDef *baseDef;
-    CellUse *allButUse;
-    Rect *area;
+extDefParentAreaFunc(
+    CellDef *def,
+    CellDef *baseDef,
+    CellUse *allButUse,
+    Rect *area)
 {
     int x, y, xoff, yoff;
     CellUse *parent;
@@ -758,10 +758,10 @@ extDefParentAreaFunc(def, baseDef, allButUse, area)
  */
 
 void
-ExtractOneCell(def, outName, doLength)
-    CellDef *def;       /* Cell being extracted */
-    char *outName;      /* Name of output file; if NULL, derive from def name */
-    bool doLength;      /* If TRUE, extract pathlengths from drivers to
+ExtractOneCell(
+    CellDef *def,       /* Cell being extracted */
+    char *outName,      /* Name of output file; if NULL, derive from def name */
+    bool doLength)      /* If TRUE, extract pathlengths from drivers to
                          * receivers (the names are stored in ExtLength.c).
                          * Should only be TRUE for the root cell in a
                          * hierarchy.
@@ -842,10 +842,10 @@ ExtractOneCell(def, outName, doLength)
 /* ------------------------------------------------------------------------- */
 
 bool
-extContainsGeometry(def, allButUse, area)
-    CellDef *def;
-    CellUse *allButUse;
-    Rect *area;
+extContainsGeometry(
+    CellDef *def,
+    CellUse *allButUse,
+    Rect *area)
 {
     int extContainsPaintFunc();
     int pNum;
@@ -904,8 +904,8 @@ extContainsPaintFunc(
  */
 
 void
-ExtIncremental(rootUse)
-    CellUse *rootUse;
+ExtIncremental(
+    CellUse *rootUse)
 {
     LinkedDef *defList = NULL;
     CellDef *err_def;
@@ -954,8 +954,8 @@ ExtIncremental(rootUse)
  */
 
 bool
-extTimestampMisMatch(def)
-    CellDef *def;
+extTimestampMisMatch(
+    CellDef *def)
 {
     char line[256];
     FILE *extFile;
@@ -1002,10 +1002,10 @@ closeit:
  */
 
 void
-extExtractStack(stack, doExtract, rootDef)
-    Stack *stack;
-    bool doExtract;
-    CellDef *rootDef;
+extExtractStack(
+    Stack *stack,
+    bool doExtract,
+    CellDef *rootDef)
 {
     int errorcnt = 0, warnings = 0;
     bool first = TRUE;

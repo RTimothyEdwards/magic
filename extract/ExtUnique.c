@@ -80,9 +80,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-extUniqueCell(def, option)
-    CellDef *def;
-    int option;
+extUniqueCell(
+    CellDef *def,
+    int option)
 {
     NodeRegion *nodeList;
     LabRegion *lregList, *lastreg, processedLabel;
@@ -95,7 +95,7 @@ extUniqueCell(def, option)
     int nwarn;
     bool isabstract;
 
-    NodeRegion *extFindNodes();	    /* Forward reference */
+    NodeRegion *extFindNodes(CellDef *def, Rect *clipArea, bool subonly);	    /* Forward reference */
 
     nwarn = 0;
 
@@ -201,12 +201,13 @@ extUniqueCell(def, option)
 }
 
 int
-extMakeUnique(def, ll, lreg, lregList, labelHash, option)
-    CellDef *def;
-    LabelList *ll;
-    LabRegion *lreg, *lregList;
-    HashTable *labelHash;
-    int option;
+extMakeUnique(
+    CellDef *def,
+    LabelList *ll,
+    LabRegion *lreg,
+    LabRegion *lregList,
+    HashTable *labelHash,
+    int option)
 {
     static char *badmesg =
     "Non-global label \"%s\" attached to more than one unconnected node: %s";
@@ -366,7 +367,8 @@ makeUnique:
  */
 
 void
-ExtRevertUniqueCell(CellDef *def)
+ExtRevertUniqueCell(
+    CellDef *def)
 {
     Label *lab, *tlab;
     char *uptr;

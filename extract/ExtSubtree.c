@@ -90,7 +90,7 @@ bool extFirstPass;
 ExtTree *extSubList = (ExtTree *) NULL;
 
 /* Forward declarations of filter functions */
-char *extSubtreeTileToNode();
+char *extSubtreeTileToNode(Tile *tp, TileType dinfo, int pNum, ExtTree *et, HierExtractArg *ha, bool doHard);
 int extSubtreeFunc();
 int extSubstrateFunc();
 int extConnFindFunc();
@@ -115,9 +115,9 @@ void extSubtreeHardSearch();
  */
 
 int
-extClearUseFlags(use, clientData)
-    CellUse *use;
-    ClientData clientData;
+extClearUseFlags(
+    CellUse *use,
+    ClientData clientData)
 {
     use->cu_flags &= ~CU_SUB_EXTRACTED;
     return 0;
@@ -161,10 +161,10 @@ extClearUseFlags(use, clientData)
 #define	RECTAREA(r)	(((r)->r_xtop-(r)->r_xbot) * ((r)->r_ytop-(r)->r_ybot))
 
 void
-extSubtree(parentUse, reg, f)
-    CellUse *parentUse;
-    NodeRegion *reg;		/* Node regions of the parent cell */
-    FILE *f;
+extSubtree(
+    CellUse *parentUse,
+    NodeRegion *reg,		/* Node regions of the parent cell */
+    FILE *f)
 {
     int extSubtreeInterFunc();
     CellDef *def = parentUse->cu_def;
@@ -200,7 +200,7 @@ extSubtree(parentUse, reg, f)
     ha.ha_outf = f;
     ha.ha_parentUse = parentUse;
     ha.ha_parentReg = reg;
-    ha.ha_nodename = extSubtreeTileToNode;
+    ha.ha_nodename = (char *(*)()) extSubtreeTileToNode;
     ha.ha_interArea = GeoNullRect;
     ha.ha_cumFlat.et_use = extYuseCum;
     HashInit(&ha.ha_connHash, 32, 0);
@@ -361,10 +361,10 @@ done:
 
 #ifdef	exactinteractions
 int
-extSubtreeCopyPlane(tile, dinfo, plane)
-    Tile *tile;
-    TileType dinfo;
-    Plane *plane;
+extSubtreeCopyPlane(
+    Tile *tile,
+    TileType dinfo,
+    Plane *plane)
 {
     Rect r;
 
@@ -375,10 +375,10 @@ extSubtreeCopyPlane(tile, dinfo, plane)
 }
 
 int
-extSubtreeShrinkPlane(tile, dinfo, plane)
-    Tile *tile;
-    TileType dinfo;
-    Plane *plane;
+extSubtreeShrinkPlane(
+    Tile *tile,
+    TileType dinfo,
+    Plane *plane)
 {
     Rect r;
 
@@ -392,10 +392,10 @@ extSubtreeShrinkPlane(tile, dinfo, plane)
 }
 
 int
-extSubtreeInterFunc(tile, dinfo, ha)
-    Tile *tile;
-    TileType dinfo;
-    HierExtractArg *ha;
+extSubtreeInterFunc(
+    Tile *tile,
+    TileType dinfo,
+    HierExtractArg *ha)
 {
     TITORECT(tile, &ha->ha_interArea);
     ha->ha_clipArea = ha->ha_interArea;
@@ -450,8 +450,8 @@ extSubtreeInterFunc(tile, dinfo, ha)
  */
 
 void
-extSubtreeInteraction(ha)
-    HierExtractArg *ha;	/* Context for hierarchical extraction */
+extSubtreeInteraction(
+    HierExtractArg *ha)	/* Context for hierarchical extraction */
 {
     CellDef *oneDef, *cumDef = ha->ha_cumFlat.et_use->cu_def;
     ExtTree *oneFlat, *nextFlat;
@@ -638,8 +638,8 @@ extSubtreeInteraction(ha)
  */
 
 void
-extSubtreeAdjustInit(ha)
-    HierExtractArg *ha;
+extSubtreeAdjustInit(
+    HierExtractArg *ha)
 {
     NodeRegion *np;
     NodeName *nn;
@@ -690,8 +690,8 @@ extSubtreeAdjustInit(ha)
  */
 
 void
-extSubtreeOutputCoupling(ha)
-    HierExtractArg *ha;
+extSubtreeOutputCoupling(
+    HierExtractArg *ha)
 {
     CapValue cap;
     CoupleKey *ck;
@@ -736,10 +736,10 @@ extSubtreeOutputCoupling(ha)
  */
 
 int
-extFoundProc(tile, dinfo, clientData)
-    Tile *tile;
-    TileType dinfo;
-    ClientData clientData;
+extFoundProc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientData)
 {
     return 1;
 }
@@ -767,9 +767,9 @@ extFoundProc(tile, dinfo, clientData)
  */
 
 int
-extSubtreeFunc(scx, ha)
-    SearchContext *scx;
-    HierExtractArg *ha;
+extSubtreeFunc(
+    SearchContext *scx,
+    HierExtractArg *ha)
 {
     CellUse *cumUse = ha->ha_cumFlat.et_use;
     CellUse *use = scx->scx_use;
@@ -985,9 +985,9 @@ extSubtreeFunc(scx, ha)
  */
 
 int
-extSubstrateFunc(scx, ha)
-    SearchContext *scx;
-    HierExtractArg *ha;
+extSubstrateFunc(
+    SearchContext *scx,
+    HierExtractArg *ha)
 {
     CellUse *use = scx->scx_use;
     int x, y;
@@ -1065,13 +1065,13 @@ extSubstrateFunc(scx, ha)
  */
 
 char *
-extSubtreeTileToNode(tp, dinfo, pNum, et, ha, doHard)
-    Tile *tp;		/* Tile whose node name is to be found */
-    TileType dinfo;	/* Split tile information */
-    int pNum;		/* Plane of the tile */
-    ExtTree *et;	/* Yank buffer to search */
-    HierExtractArg *ha;	/* Extraction context */
-    bool doHard;	/* If TRUE, we look up this node's name the hard way
+extSubtreeTileToNode(
+    Tile *tp,		/* Tile whose node name is to be found */
+    TileType dinfo,	/* Split tile information */
+    int pNum,		/* Plane of the tile */
+    ExtTree *et,	/* Yank buffer to search */
+    HierExtractArg *ha,	/* Extraction context */
+    bool doHard)	/* If TRUE, we look up this node's name the hard way
 			 * if we can't find it any other way; otherwise, we
 			 * return NULL if we can't find the node's name.
 			 */
@@ -1175,10 +1175,10 @@ extSubtreeTileToNode(tp, dinfo, pNum, et, ha, doHard)
  */
 
 int
-extConnFindFunc(tp, dinfo, preg)
-    Tile *tp;
-    TileType dinfo;	// Unused, but needs to be handled
-    LabRegion **preg;
+extConnFindFunc(
+    Tile *tp,
+    TileType dinfo,	// Unused, but needs to be handled
+    LabRegion **preg)
 {
     if (extHasRegion(tp, CLIENTDEFAULT))
     {
@@ -1220,12 +1220,12 @@ extConnFindFunc(tp, dinfo, preg)
  */
 
 LabRegion *
-extSubtreeHardNode(tp, dinfo, pNum, et, ha)
-    Tile *tp;
-    TileType dinfo;
-    int pNum;
-    ExtTree *et;
-    HierExtractArg *ha;
+extSubtreeHardNode(
+    Tile *tp,
+    TileType dinfo,
+    int pNum,
+    ExtTree *et,
+    HierExtractArg *ha)
 {
     LabRegion *lreg = (LabRegion *) ExtGetRegion(tp, dinfo);
     CellDef *def = et->et_use->cu_def;
@@ -1301,9 +1301,9 @@ extSubtreeHardNode(tp, dinfo, pNum, et, ha)
  */
 
 void
-extSubtreeHardSearch(et, arg)
-    ExtTree *et;
-    HardWay *arg;
+extSubtreeHardSearch(
+    ExtTree *et,
+    HardWay *arg)
 {
     HierExtractArg *ha = arg->hw_ha;
     ExtTree *oneFlat;
@@ -1352,13 +1352,14 @@ extSubtreeHardSearch(et, arg)
  */
 
 int
-extSubtreeHardUseFunc(use, trans, x, y, arg)
-    CellUse *use;	/* Use that is the root of the subtree being searched */
-    Transform *trans;	/* Transform from coordinates of use->cu_def to those
+extSubtreeHardUseFunc(
+    CellUse *use,	/* Use that is the root of the subtree being searched */
+    Transform *trans,	/* Transform from coordinates of use->cu_def to those
 			 * in use->cu_parent, for the array element (x, y).
 			 */
-    int x, y;		/* Indices of this array element */
-    HardWay *arg;	/* Context passed down to filter functions */
+    int x,
+    int y,
+    HardWay *arg)	/* Context passed down to filter functions */
 {
     SearchContext scx;
     Transform tinv;

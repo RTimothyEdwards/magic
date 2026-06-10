@@ -93,12 +93,12 @@ extern bool ExtTechLine();
 extern void ExtTechInit();
 extern void ExtTechFinal();
 extern void ExtSetStyle();
-extern void ExtPrintStyle();
+extern void ExtPrintStyle(bool dolist, bool doforall, bool docurrent);
 extern void ExtSetPath();
-extern void ExtPrintPath();
+extern void ExtPrintPath(bool dolist);
 extern void ExtRevertSubstrate();
-extern Plane *ExtCell();
-extern void ExtractOneCell();
+extern Plane *ExtCell(CellDef *def, char *outName, bool isTop);
+extern void ExtractOneCell(CellDef *def, char *outName, bool doLength);
 
 extern int ExtGetGateTypesMask();
 extern int ExtGetDiffTypesMask();

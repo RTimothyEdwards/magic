@@ -60,8 +60,8 @@ ExtTree *extArrayPrimary;	/* Primary array element */
 /* Forward declarations */
 int extArrayFunc();
 int extArrayPrimaryFunc(), extArrayInterFunc();
-char *extArrayRange();
-char *extArrayTileToNode();
+char *extArrayRange(char *dstp, int lo, int hi, bool prevRange, bool followRange);
+char *extArrayTileToNode(Tile *tp, TileType dinfo, int pNum, ExtTree *et, HierExtractArg *ha, bool doHard);
 LabRegion *extArrayHardNode();
 char *extArrayNodeName();
 
@@ -85,9 +85,9 @@ void extArrayHardSearch();
  */
 
 void
-extOutputGeneratedLabels(parentUse, f)
-    CellUse *parentUse;
-    FILE *f;
+extOutputGeneratedLabels(
+    CellUse *parentUse,
+    FILE *f)
 {
     CellDef *parentDef;
     Label *lab;
@@ -147,9 +147,9 @@ extOutputGeneratedLabels(parentUse, f)
  */
 
 void
-extArray(parentUse, f)
-    CellUse *parentUse;
-    FILE *f;
+extArray(
+    CellUse *parentUse,
+    FILE *f)
 {
     SearchContext scx;
     HierExtractArg ha;
@@ -161,7 +161,7 @@ extArray(parentUse, f)
      */
     ha.ha_outf = f;
     ha.ha_parentUse = parentUse;
-    ha.ha_nodename = extArrayTileToNode;
+    ha.ha_nodename = (char *(*)()) extArrayTileToNode;
     ha.ha_cumFlat.et_use = extYuseCum;
     HashInit(&ha.ha_connHash, 32, 0);
 
@@ -232,9 +232,9 @@ extArray(parentUse, f)
  */
 
 int
-extArrayFunc(scx, ha)
-    SearchContext *scx;	/* Describes first element of array */
-    HierExtractArg *ha;	/* Extraction context */
+extArrayFunc(
+    SearchContext *scx,	/* Describes first element of array */
+    HierExtractArg *ha)	/* Extraction context */
 {
     int xsep, ysep;	/* X, Y separation in parent coordinates */
     int xsize, ysize;	/* X, Y sizes in parent coordinates */
@@ -358,9 +358,9 @@ extArrayFunc(scx, ha)
  */
 
 void
-extArrayProcess(ha, primary)
-    HierExtractArg *ha;
-    Rect *primary;	/* Area guaranteed to contain only the primary
+extArrayProcess(
+    HierExtractArg *ha,
+    Rect *primary)	/* Area guaranteed to contain only the primary
 			 * element of the array, against which we will
 			 * extract all other elements that overlap the
 			 * area 'ha->ha_interArea'.
@@ -421,13 +421,14 @@ done:
  */
 
 int
-extArrayPrimaryFunc(use, trans, x, y, ha)
-    CellUse *use;	/* Use of which this is an array element */
-    Transform *trans;	/* Transform from coordinates of use->cu_def to those
+extArrayPrimaryFunc(
+    CellUse *use,	/* Use of which this is an array element */
+    Transform *trans,	/* Transform from coordinates of use->cu_def to those
 			 * in use->cu_parent, for the array element (x, y).
 			 */
-    int x, y;		/* X, Y indices of this array element */
-    HierExtractArg *ha;
+    int x,
+    int y,
+    HierExtractArg *ha)
 {
     CellDef *primDef;
     HierYank hy;
@@ -493,13 +494,14 @@ extArrayPrimaryFunc(use, trans, x, y, ha)
  */
 
 int
-extArrayInterFunc(use, trans, x, y, ha)
-    CellUse *use;	/* Use of which this is an array element */
-    Transform *trans;	/* Transform from use->cu_def to use->cu_parent
+extArrayInterFunc(
+    CellUse *use,	/* Use of which this is an array element */
+    Transform *trans,	/* Transform from use->cu_def to use->cu_parent
 			 * coordinates, for the array element (x, y).
 			 */
-    int x, y;		/* X, Y of this array element in use->cu_def coords */
-    HierExtractArg *ha;
+    int x,
+    int y,
+    HierExtractArg *ha)
 {
     CellUse *cumUse = ha->ha_cumFlat.et_use;
     CellDef *cumDef = cumUse->cu_def;
@@ -654,9 +656,10 @@ extArrayInterFunc(use, trans, x, y, ha)
 }
 
 void
-extArrayAdjust(ha, et1, et2)
-    HierExtractArg *ha;
-    ExtTree *et1, *et2;
+extArrayAdjust(
+    HierExtractArg *ha,
+    ExtTree *et1,
+    ExtTree *et2)
 {
     CapValue cap;	/* value of capacitance WAS: int */
     NodeRegion *np;
@@ -707,10 +710,11 @@ extArrayAdjust(ha, et1, et2)
 }
 
 char *
-extArrayNodeName(np, ha, et1, et2)
-    NodeRegion *np;
-    HierExtractArg *ha;
-    ExtTree *et1, *et2;
+extArrayNodeName(
+    NodeRegion *np,
+    HierExtractArg *ha,
+    ExtTree *et1,
+    ExtTree *et2)
 {
     Tile *tp;
     TileType dinfo;
@@ -769,13 +773,13 @@ extArrayNodeName(np, ha, et1, et2)
  */
 
 char *
-extArrayTileToNode(tp, dinfo, pNum, et, ha, doHard)
-    Tile *tp;
-    TileType dinfo;
-    int pNum;
-    ExtTree *et;
-    HierExtractArg *ha;
-    bool doHard;	/* If TRUE, we look up this node's name the hard way
+extArrayTileToNode(
+    Tile *tp,
+    TileType dinfo,
+    int pNum,
+    ExtTree *et,
+    HierExtractArg *ha,
+    bool doHard)	/* If TRUE, we look up this node's name the hard way
 			 * if we can't find it any other way; otherwise, we
 			 * return NULL if we can't find the node's name.
 			 */
@@ -885,11 +889,12 @@ done:
  */
 
 char *
-extArrayRange(dstp, lo, hi, prevRange, followRange)
-    char *dstp;
-    int lo, hi;
-    bool prevRange;	/* TRUE if preceded by a range */
-    bool followRange;	/* TRUE if followed by a range */
+extArrayRange(
+    char *dstp,
+    int lo,
+    int hi,
+    bool prevRange,	/* TRUE if preceded by a range */
+    bool followRange)	/* TRUE if followed by a range */
 {
     if (!prevRange) *dstp++ = '[';
     if (hi < lo)
@@ -936,12 +941,12 @@ extArrayRange(dstp, lo, hi, prevRange, followRange)
  */
 
 LabRegion *
-extArrayHardNode(tp, dinfo, pNum, def, ha)
-    Tile *tp;
-    TileType dinfo;
-    int pNum;
-    CellDef *def;
-    HierExtractArg *ha;
+extArrayHardNode(
+    Tile *tp,
+    TileType dinfo,
+    int pNum,
+    CellDef *def,
+    HierExtractArg *ha)
 {
     TileType type;
     char labelBuf[4096];
@@ -1010,11 +1015,11 @@ extArrayHardNode(tp, dinfo, pNum, def, ha)
  */
 
 void
-extArrayHardSearch(def, arg, scx, proc)
-    CellDef *def;
-    HardWay *arg;
-    SearchContext *scx;
-    int (*proc)();
+extArrayHardSearch(
+    CellDef *def,
+    HardWay *arg,
+    SearchContext *scx,
+    int (*proc)())
 {
     Transform tinv;
 

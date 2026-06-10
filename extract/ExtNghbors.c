@@ -71,11 +71,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-ExtFindNeighbors(tile, dinfo, tilePlaneNum, arg)
-    Tile *tile;
-    TileType dinfo;
-    int tilePlaneNum;
-    FindRegion *arg;
+ExtFindNeighbors(
+    Tile *tile,
+    TileType dinfo,
+    int tilePlaneNum,
+    FindRegion *arg)
 {
     TileTypeBitMask *connTo = arg->fra_connectsTo;
     Tile *tp;
@@ -376,10 +376,10 @@ fail:
  */
 
 int
-extNbrPushFunc(tile, dinfo, pla)
-    Tile *tile;
-    TileType dinfo;
-    PlaneAndArea *pla;
+extNbrPushFunc(
+    Tile *tile,
+    TileType dinfo,
+    PlaneAndArea *pla)
 {
     Rect *tileArea;
     Rect r;

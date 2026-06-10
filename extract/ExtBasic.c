@@ -154,7 +154,7 @@ void extTermAPFunc();
 
 int extAnnularTileFunc(Tile *, TileType, int, FindRegion *);	/* UNUSED */
 int extResistorTileFunc(Tile *, TileType, int, FindRegion *);	/* UNUSED */
-int extSpecialPerimFunc();
+int extSpecialPerimFunc(Boundary *bp, bool sense);
 
 void extFindDuplicateLabels();
 void extOutputDevices();
@@ -170,10 +170,10 @@ bool extLabType();
 /* that is not in the topmost def of the search.		*/
 
 int
-extFoundFunc(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;	// Unused
-    TreeContext *cxp;
+extFoundFunc(
+    Tile *tile,
+    TileType dinfo,	// Unused
+    TreeContext *cxp)
 {
     CellDef *def = (CellDef *)cxp->tc_filter->tf_arg;
     return (def == cxp->tc_scx->scx_use->cu_def) ? 0 : 1;
@@ -213,11 +213,11 @@ extFoundFunc(tile, dinfo, cxp)
  */
 
 NodeRegion *
-extBasic(def, outFile)
-    CellDef *def;	/* Cell being extracted */
-    FILE *outFile;	/* Output file */
+extBasic(
+    CellDef *def,	/* Cell being extracted */
+    FILE *outFile)	/* Output file */
 {
-    NodeRegion *nodeList, *extFindNodes();
+    NodeRegion *nodeList, *extFindNodes(CellDef *def, Rect *clipArea, bool subonly);
     bool coupleInitialized = FALSE;
     TransRegion *transList, *reg;
     HashTable extCoupleHash;
@@ -620,8 +620,8 @@ extBasic(def, outFile)
  */
 
 void
-extSetResist(reg)
-    NodeRegion *reg;
+extSetResist(
+    NodeRegion *reg)
 {
     int n, perim;
     dlong area;
@@ -678,9 +678,9 @@ extSetResist(reg)
  */
 
 void
-extOutputNodes(nodeList, outFile)
-    NodeRegion *nodeList;	/* Nodes */
-    FILE *outFile;		/* Output file */
+extOutputNodes(
+    NodeRegion *nodeList,	/* Nodes */
+    FILE *outFile)		/* Output file */
 {
     ResValue rround = ExtCurStyle->exts_resistScale / 2;
     CapValue finC;
@@ -883,8 +883,8 @@ extOutputNodes(nodeList, outFile)
  */
  
 char *
-extSubsName(node)
-    LabRegion *node;
+extSubsName(
+    LabRegion *node)
 {
     char *subsName;
 
@@ -939,9 +939,9 @@ extSubsName(node)
  */
 
 void
-extMakeNodeNumPrint(buf, lreg)
-    char *buf;
-    LabRegion *lreg;
+extMakeNodeNumPrint(
+    char *buf,
+    LabRegion *lreg)
 {
     int plane = lreg->lreg_pnum;
     Point *p = &lreg->lreg_ll;
@@ -990,8 +990,8 @@ extMakeNodeNumPrint(buf, lreg)
  */
 
 char *
-extNodeName(node)
-    LabRegion *node;
+extNodeName(
+    LabRegion *node)
 {
     static char namebuf[256];	/* Big enough to hold a generated nodename */
     LabelList *ll;
@@ -1026,9 +1026,9 @@ extNodeName(node)
  */
 
 void
-extFindDuplicateLabels(def, nreg)
-    CellDef *def;
-    NodeRegion *nreg;
+extFindDuplicateLabels(
+    CellDef *def,
+    NodeRegion *nreg)
 {
     static char *badmesg =
 	"Label \"%s\" attached to more than one unconnected node: %s";
@@ -1112,9 +1112,9 @@ extFindDuplicateLabels(def, nreg)
  */
 
 void
-ExtSortTerminals(tran, ll)
-    struct transRec  *tran;
-    LabelList *ll;
+ExtSortTerminals(
+    struct transRec *tran,
+    LabelList *ll)
 {
     int		nsd, changed;
     TermTilePos	*p1, *p2;
@@ -1204,8 +1204,9 @@ ExtSortTerminals(tran, ll)
  */
 
 bool
-extComputeCapLW(rlengthptr, rwidthptr)
-   int *rlengthptr, *rwidthptr;
+extComputeCapLW(
+    int *rlengthptr,
+    int *rwidthptr)
 {
     LinkedBoundary *lb;
     Rect bbox;
@@ -1256,10 +1257,11 @@ extComputeCapLW(rlengthptr, rwidthptr)
  */
 
 void
-extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
-   int *rlengthptr, *rwidthptr;
-   int numregions;
-   float chop;
+extComputeEffectiveLW(
+    int *rlengthptr,
+    int *rwidthptr,
+    int numregions,
+    float chop)
 {
     int i, j, p, jmax;
     LinkedBoundary *lb, *lb2;
@@ -1578,8 +1580,8 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
  */
 
 void
-extSeparateBounds(nterm)
-    int nterm;			/* last terminal (# terminals - 1) */
+extSeparateBounds(
+    int nterm)			/* last terminal (# terminals - 1) */
 {
     Rect lbrect;
     LinkedBoundary *lb, *lbstart, *lbend, *lblast, *lbnext;
@@ -1694,10 +1696,10 @@ extSeparateBounds(nterm)
  */
 
 void
-extOutputParameters(def, transList, outFile)
-    CellDef *def;		/* Cell being extracted */
-    TransRegion *transList;	/* Transistor regions built up in first pass */
-    FILE *outFile;		/* Output file */
+extOutputParameters(
+    CellDef *def,		/* Cell being extracted */
+    TransRegion *transList,	/* Transistor regions built up in first pass */
+    FILE *outFile)		/* Output file */
 {
     ParamList *plist;
     TransRegion *reg;
@@ -1842,14 +1844,14 @@ extOutputParameters(def, transList, outFile)
  */
 
 void
-extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
-    TransRegion *reg;
-    ExtDevice *devptr;
-    FILE *outFile;
-    int length;
-    int width;
-    int *areavec;
-    int *perimvec;
+extOutputDevParams(
+    TransRegion *reg,
+    ExtDevice *devptr,
+    FILE *outFile,
+    int length,
+    int width,
+    int *areavec,
+    int *perimvec)
 {
     ParamList *chkParam;
     HashEntry *he;
@@ -2057,10 +2059,10 @@ typedef struct _extareaperimdata {
  */
 
 ExtDevice *
-extDevFindParamMatch(devptr, length, width)
-    ExtDevice *devptr;
-    int length;		/* Computed effective length of device */
-    int width;		/* Computed effective width of device */
+extDevFindParamMatch(
+    ExtDevice *devptr,
+    int length,		/* Computed effective length of device */
+    int width)		/* Computed effective width of device */
 {
     ExtDevice *newdevptr, *nextdev;
     int i;
@@ -2206,11 +2208,11 @@ extDevFindParamMatch(devptr, length, width)
  */
 /*ARGSUSED*/
 int
-extSDTileFunc(tile, dinfo, pNum, arg)
-    Tile *tile;
-    TileType dinfo;	/* UNUSED */
-    int pNum;
-    FindRegion *arg;	/* UNUSED */
+extSDTileFunc(
+    Tile *tile,
+    TileType dinfo,	/* UNUSED */
+    int pNum,
+    FindRegion *arg)	/* UNUSED */
 {
     LinkedTile *newdevtile;
 
@@ -2238,10 +2240,10 @@ extSDTileFunc(tile, dinfo, pNum, arg)
  * ----------------------------------------------------------------------------
  */
 int
-extTransFindTermArea(tile, dinfo, eapd)
-    Tile *tile;
-    TileType dinfo;
-    ExtAreaPerimData *eapd;
+extTransFindTermArea(
+    Tile *tile,
+    TileType dinfo,
+    ExtAreaPerimData *eapd)
 {
     extEnumTerminal(tile, dinfo, DBConnectTbl, extTermAPFunc, (ClientData)eapd);
     return 1;
@@ -2279,10 +2281,10 @@ extTransFindTermArea(tile, dinfo, eapd)
  */
 
 void
-extOutputDevices(def, transList, outFile)
-    CellDef *def;		/* Cell being extracted */
-    TransRegion *transList;	/* Transistor regions built up in first pass */
-    FILE *outFile;		/* Output file */
+extOutputDevices(
+    CellDef *def,		/* Cell being extracted */
+    TransRegion *transList,	/* Transistor regions built up in first pass */
+    FILE *outFile)		/* Output file */
 {
     NodeRegion *node, *subsNode;
     TransRegion *reg;
@@ -3308,13 +3310,13 @@ typedef struct _node_type {
 } NodeAndType;
 
 int
-extTransFindSubs(tile, dinfo, mask, def, sn, layerptr)
-    Tile *tile;
-    TileType dinfo;
-    TileTypeBitMask *mask;
-    CellDef *def;
-    NodeRegion **sn;
-    TileType *layerptr;
+extTransFindSubs(
+    Tile *tile,
+    TileType dinfo,
+    TileTypeBitMask *mask,
+    CellDef *def,
+    NodeRegion **sn,
+    TileType *layerptr)
 {
     Rect tileArea, tileAreaPlus;
     int pNum;
@@ -3357,10 +3359,10 @@ extTransFindSubs(tile, dinfo, mask, def, sn, layerptr)
 }
 
 int
-extTransFindSubsFunc1(tile, dinfo, noderecptr)
-    Tile *tile;
-    TileType dinfo;
-    NodeAndType *noderecptr;
+extTransFindSubsFunc1(
+    Tile *tile,
+    TileType dinfo,
+    NodeAndType *noderecptr)
 {
     TileType type;
 
@@ -3392,12 +3394,12 @@ extTransFindSubsFunc1(tile, dinfo, noderecptr)
 }
 
 int
-extTransFindId(tile, dinfo, mask, def, idtypeptr)
-    Tile *tile;
-    TileType dinfo;
-    TileTypeBitMask *mask;
-    CellDef *def;
-    TileType *idtypeptr;
+extTransFindId(
+    Tile *tile,
+    TileType dinfo,
+    TileTypeBitMask *mask,
+    CellDef *def,
+    TileType *idtypeptr)
 {
     TileType type;
     Rect tileArea;
@@ -3420,10 +3422,10 @@ extTransFindId(tile, dinfo, mask, def, idtypeptr)
 }
 
 int
-extTransFindIdFunc1(tile, dinfo, idtypeptr)
-    Tile *tile;
-    TileType dinfo;
-    TileType *idtypeptr;
+extTransFindIdFunc1(
+    Tile *tile,
+    TileType dinfo,
+    TileType *idtypeptr)
 {
     /*
      * ID Layer found overlapping device area, so return 1 to halt search.
@@ -3454,9 +3456,9 @@ extTransFindIdFunc1(tile, dinfo, idtypeptr)
  */
 
 ExtDevice *
-extDevFindMatch(deventry, t)
-    ExtDevice *deventry;
-    TileType t;
+extDevFindMatch(
+    ExtDevice *deventry,
+    TileType t)
 {
     ExtDevice *devptr;
     int i, j, k, matchflags;
@@ -3539,11 +3541,11 @@ extDevFindMatch(deventry, t)
  */
 
 int
-extTransTileFunc(tile, dinfo, pNum, arg)
-    Tile *tile;
-    TileType dinfo;
-    int pNum;
-    FindRegion *arg;
+extTransTileFunc(
+    Tile *tile,
+    TileType dinfo,
+    int pNum,
+    FindRegion *arg)
 {
     TileTypeBitMask mask, cmask, *smask;
     TileType loctype, idlayer, sublayer;
@@ -3755,9 +3757,9 @@ extTransTileFunc(tile, dinfo, pNum, arg)
  */
 
 void
-extAddSharedDevice(eapd, node)
-    ExtAreaPerimData *eapd;
-    NodeRegion *node;
+extAddSharedDevice(
+    ExtAreaPerimData *eapd,
+    NodeRegion *node)
 {
     ExtNodeList *nl, *newnl;
 
@@ -3797,10 +3799,10 @@ extAddSharedDevice(eapd, node)
  */
 
 void
-extTermAPFunc(tile, dinfo,  eapd)
-    Tile *tile;		/* Tile extending a device terminal */
-    TileType dinfo;	/* Split tile information */
-    ExtAreaPerimData *eapd;	/* Area and perimeter totals for terminal */
+extTermAPFunc(
+    Tile *tile,		/* Tile extending a device terminal */
+    TileType dinfo,	/* Split tile information */
+    ExtAreaPerimData *eapd)	/* Area and perimeter totals for terminal */
 {
     TileType type, tpdi;
     Tile *tp;
@@ -3946,9 +3948,9 @@ extTermAPFunc(tile, dinfo,  eapd)
 
 /*ARGSUSED*/
 int
-extTransPerimFunc(bp, cdata)
-    Boundary *bp;
-    ClientData cdata;	/* UNUSED */
+extTransPerimFunc(
+    Boundary *bp,
+    ClientData cdata)	/* UNUSED */
 {
     TileType tinside, toutside, dinfo;
     Tile *tile;
@@ -4226,11 +4228,11 @@ extTransPerimFunc(bp, cdata)
 
 /*ARGSUSED*/
 int
-extAnnularTileFunc(tile, dinfo, pNum, arg)
-    Tile *tile;
-    TileType dinfo;
-    int pNum;
-    FindRegion *arg;	/* UNUSED */
+extAnnularTileFunc(
+    Tile *tile,
+    TileType dinfo,
+    int pNum,
+    FindRegion *arg)	/* UNUSED */
 {
     TileTypeBitMask mask;
     TileType loctype;
@@ -4248,7 +4250,7 @@ extAnnularTileFunc(tile, dinfo, pNum, arg)
 
     mask = ExtCurStyle->exts_deviceConn[loctype];
     TTMaskCom(&mask);
-    extEnumTilePerim(tile, dinfo, &mask, pNum, extSpecialPerimFunc, (ClientData) TRUE);
+    extEnumTilePerim(tile, dinfo, &mask, pNum, (int (*)())extSpecialPerimFunc, (ClientData) TRUE);
     return (0);
 }
 
@@ -4278,11 +4280,11 @@ extAnnularTileFunc(tile, dinfo, pNum, arg)
 
 /*ARGSUSED*/
 int
-extResistorTileFunc(tile, dinfo, pNum, arg)
-    Tile *tile;
-    TileType dinfo;
-    int pNum;
-    FindRegion *arg;	/* UNUSED */
+extResistorTileFunc(
+    Tile *tile,
+    TileType dinfo,
+    int pNum,
+    FindRegion *arg)	/* UNUSED */
 {
     TileTypeBitMask mask;
     TileType loctype;
@@ -4309,7 +4311,7 @@ extResistorTileFunc(tile, dinfo, pNum, arg)
 	TTMaskSetMask(&mask, &devptr->exts_deviceSDTypes[0]);
 	TTMaskCom(&mask);
 
-	extEnumTilePerim(tile, dinfo, &mask, pNum, extSpecialPerimFunc, (ClientData)FALSE);
+	extEnumTilePerim(tile, dinfo, &mask, pNum, (int (*)())extSpecialPerimFunc, (ClientData)FALSE);
 
 	if (extSpecialBounds[0] != NULL) break;
 	devptr = devptr->exts_next;
@@ -4326,9 +4328,9 @@ extResistorTileFunc(tile, dinfo, pNum, arg)
 /*----------------------------------------------------------------------*/
 
 int
-extSpecialPerimFunc(bp, sense)
-    Boundary *bp;
-    bool sense;
+extSpecialPerimFunc(
+    Boundary *bp,
+    bool sense)
 {
     TileType tinside, toutside, termdinfo;
     NodeRegion *termNode;
@@ -4586,17 +4588,17 @@ extSpecialPerimFunc(bp, sense)
  */
 
 void
-extTransOutTerminal(lreg, ll, whichTerm, len, area, perim, shared, outFile)
-    LabRegion *lreg;		/* Node connected to terminal */
-    LabelList *ll;	/* Gate's label list */
-    int whichTerm;		/* Which terminal we are processing.  The gate
+extTransOutTerminal(
+    LabRegion *lreg,		/* Node connected to terminal */
+    LabelList *ll,	/* Gate's label list */
+    int whichTerm,		/* Which terminal we are processing.  The gate
 				 * is indicated by LL_GATEATTR.
 				 */
-    int len;			/* Length of perimeter along terminal */
-    int area;			/* Total area of terminal */
-    int perim;			/* Total perimeter of terminal (includes len) */
-    int shared;			/* Number of devices sharing the terminal */
-    FILE *outFile;		/* Output file */
+    int len,			/* Length of perimeter along terminal */
+    int area,			/* Total area of terminal */
+    int perim,			/* Total perimeter of terminal (includes len) */
+    int shared,			/* Number of devices sharing the terminal */
+    FILE *outFile)		/* Output file */
 {
     char *cp;
     int n;
@@ -4652,10 +4654,10 @@ extTransOutTerminal(lreg, ll, whichTerm, len, area, perim, shared, outFile)
  */
 
 void
-extTransBad(def, tp, mesg)
-    CellDef *def;
-    Tile *tp;
-    char *mesg;
+extTransBad(
+    CellDef *def,
+    Tile *tp,
+    char *mesg)
 {
     Rect r;
 
@@ -4686,9 +4688,9 @@ extTransBad(def, tp, mesg)
  */
 
 bool
-extLabType(text, typeMask)
-    char *text;
-    int typeMask;
+extLabType(
+    char *text,
+    int typeMask)
 {
     if (*text == '\0')
 	return (FALSE);
@@ -4905,11 +4907,11 @@ Tile *extNodeToTile(np, et, dinfo)
  */
 
 void
-extSetNodeNum(reg, plane, tile, dinfo)
-    LabRegion *reg;
-    int plane;
-    Tile *tile;
-    TileType dinfo;
+extSetNodeNum(
+    LabRegion *reg,
+    int plane,
+    Tile *tile,
+    TileType dinfo)
 {
     TileType type;
 
@@ -4973,10 +4975,10 @@ extSetNodeNum(reg, plane, tile, dinfo)
  */
 
 ExtRegion *
-extTransFirst(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    FindRegion *arg;
+extTransFirst(
+    Tile *tile,
+    TileType dinfo,
+    FindRegion *arg)
 {
     TransRegion *reg;
 
@@ -5006,11 +5008,11 @@ extTransFirst(tile, dinfo, arg)
 
     /*ARGSUSED*/
 int
-extTransEach(tile, dinfo, pNum, arg)
-    Tile *tile;
-    TileType dinfo;	/* unused, should be handled */
-    int pNum;
-    FindRegion *arg;
+extTransEach(
+    Tile *tile,
+    TileType dinfo,	/* unused, should be handled */
+    int pNum,
+    FindRegion *arg)
 {
     TransRegion *reg = (TransRegion *) arg->fra_region;
     int area = TILEAREA(tile);
@@ -5054,12 +5056,12 @@ Stack *extNodeStack = NULL;
 Rect *extNodeClipArea = NULL;
 
 NodeRegion *
-extFindNodes(def, clipArea, subonly)
-    CellDef *def;	/* Def whose nodes are being found */
-    Rect *clipArea;	/* If non-NULL, ignore perimeter and area that extend
+extFindNodes(
+    CellDef *def,	/* Def whose nodes are being found */
+    Rect *clipArea,	/* If non-NULL, ignore perimeter and area that extend
 			 * outside this rectangle.
 			 */
-    bool subonly;	/* If true, only find the substrate node, and return */
+    bool subonly)	/* If true, only find the substrate node, and return */
 {
     int extNodeAreaFunc();
     int extSubsFunc();
@@ -5208,10 +5210,10 @@ extFindNodes(def, clipArea, subonly)
 }
 
 int
-extSubsFunc(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    FindRegion *arg;
+extSubsFunc(
+    Tile *tile,
+    TileType dinfo,
+    FindRegion *arg)
 {
     int pNum;
     Rect tileArea;
@@ -5245,10 +5247,10 @@ extSubsFunc(tile, dinfo, arg)
 }
 
 int
-extSubsFunc2(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;	// Unused
-    FindRegion *arg;
+extSubsFunc2(
+    Tile *tile,
+    TileType dinfo,	// Unused
+    FindRegion *arg)
 {
     int pNum;
     Rect tileArea;
@@ -5285,20 +5287,20 @@ extSubsFunc2(tile, dinfo, arg)
 }
 
 int
-extSubsFunc3(tile, dinfo, clientdata)
-    Tile *tile;			/* (unused) */
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+extSubsFunc3(
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     /* Stops the search because something that was not space was found */
     return 1;
 }
 
 int
-extNodeAreaFunc(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    FindRegion *arg;
+extNodeAreaFunc(
+    Tile *tile,
+    TileType dinfo,
+    FindRegion *arg)
 {
     int tilePlaneNum, pNum, len, resistClass, n, nclasses;
     dlong area;
@@ -5761,9 +5763,9 @@ donesides:
  */
 
 void
-extSetCapValue(he, value)
-    HashEntry *he;
-    CapValue value;
+extSetCapValue(
+    HashEntry *he,
+    CapValue value)
 {
     if (HashGetValue(he) == NULL)
 	HashSetValue(he, (CapValue *) mallocMagic(sizeof(CapValue)));
@@ -5771,8 +5773,8 @@ extSetCapValue(he, value)
 }
 
 CapValue
-extGetCapValue(he)
-    HashEntry *he;
+extGetCapValue(
+    HashEntry *he)
 {
     if (HashGetValue(he) == NULL)
 	extSetCapValue(he, (CapValue) 0);
@@ -5795,8 +5797,8 @@ extGetCapValue(he)
  */
 
 void
-extCapHashKill(ht)
-    HashTable *ht;
+extCapHashKill(
+    HashTable *ht)
 {
     HashSearch hs;
     HashEntry *he;
