@@ -82,12 +82,12 @@ int     rtrFNum; /* Says which list is active */
  */
 
 void
-RtrChannelError(ch, col, track, msg, net)
-    GCRChannel *ch;	/* Channel where error occurred. */
-    int col;		/* Column where error occurred. */
-    int track;		/* Track where error occurred. */
-    char *msg;		/* Message identifying error. */
-    NLNet *net;		/* Net where error occurred */
+RtrChannelError(
+    GCRChannel *ch,	/* Channel where error occurred. */
+    int col,		/* Column where error occurred. */
+    int track,		/* Track where error occurred. */
+    char *msg,		/* Message identifying error. */
+    NLNet *net)		/* Net where error occurred */
 {
     Rect box;
     Point old, new;
@@ -170,9 +170,9 @@ rtrFBClear()
  */
 
 void
-rtrFBAdd(r, t)
-    Rect * r;
-    char * t;
+rtrFBAdd(
+    Rect * r,
+    char * t)
 {
     RtrFB * new;
 
@@ -201,8 +201,8 @@ rtrFBAdd(r, t)
  */
 
 void
-RtrFBPaint(num)
-    int num;	/* Selects which list to use */
+RtrFBPaint(
+    int num)	/* Selects which list to use */
 {
     RtrFB *temp;
 

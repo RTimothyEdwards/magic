@@ -44,8 +44,8 @@ extern void CmdIRouterTest(), CmdMZRouterTest();
  */
 
 int
-Tclroute_Init(interp)
-    Tcl_Interp *interp;
+Tclroute_Init(
+    Tcl_Interp *interp)
 {
     SectionID invsec;
 

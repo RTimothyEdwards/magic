@@ -79,8 +79,8 @@ void rtrPinShow(GCRPin *);
  */
 
 void
-RtrPinsInit(ch)
-    GCRChannel *ch;
+RtrPinsInit(
+    GCRChannel *ch)
 {
     rtrPinArrayInit(ch, GEO_NORTH, ch->gcr_tPins, ch->gcr_length);
     rtrPinArrayInit(ch, GEO_SOUTH, ch->gcr_bPins, ch->gcr_length);
@@ -89,11 +89,11 @@ RtrPinsInit(ch)
 }
 
 int
-rtrPinArrayInit(ch, side, pins, nPins)
-    GCRChannel *ch;
-    int side;
-    GCRPin *pins;
-    int nPins;
+rtrPinArrayInit(
+    GCRChannel *ch,
+    int side,
+    GCRPin *pins,
+    int nPins)
 {
     GCRPin *pin, *linked;
     GCRChannel *adjacent;
@@ -212,10 +212,10 @@ rtrPinArrayInit(ch, side, pins, nPins)
  */
 
 GCRPin *
-RtrPointToPin(ch, side, point)
-    GCRChannel *ch;	/* The channel containing the point */
-    int side;			/* Side of ch that point lies on */
-    Point *point;	/* The point to be converted to a pin */
+RtrPointToPin(
+    GCRChannel *ch,	/* The channel containing the point */
+    int side,			/* Side of ch that point lies on */
+    Point *point)	/* The point to be converted to a pin */
 {
     int coord;
 
@@ -286,8 +286,8 @@ RtrPointToPin(ch, side, point)
  */
 
 bool
-RtrPinsBlock(ch)
-    GCRChannel *ch;
+RtrPinsBlock(
+    GCRChannel *ch)
 {
     bool changed;
 
@@ -305,13 +305,13 @@ RtrPinsBlock(ch)
 }
 
 bool
-rtrPinArrayBlock(ch, pins, opins, nPins)
-    GCRChannel *ch;	/* Channel pins belong to */
-    GCRPin *pins;	/* Processing this side of channel */
-    GCRPin *opins;	/* Pins on opposite side; used only if ch is a
+rtrPinArrayBlock(
+    GCRChannel *ch,	/* Channel pins belong to */
+    GCRPin *pins,	/* Processing this side of channel */
+    GCRPin *opins,	/* Pins on opposite side; used only if ch is a
 			 * river-routing channel.
 			 */
-    int nPins;		/* Number of internal pins (not counting pins[0]) */
+    int nPins)		/* Number of internal pins (not counting pins[0]) */
 {
     bool changed, isRiver = (ch->gcr_type != CHAN_NORMAL);
     GCRPin *pin, *opin, *linked;
@@ -364,8 +364,8 @@ rtrPinArrayBlock(ch, pins, opins, nPins)
  */
 
 void
-RtrPinsLink(ch)
-    GCRChannel *ch;
+RtrPinsLink(
+    GCRChannel *ch)
 {
     rtrPinArrayLink(ch->gcr_tPins, ch->gcr_length);
     rtrPinArrayLink(ch->gcr_bPins, ch->gcr_length);
@@ -374,9 +374,9 @@ RtrPinsLink(ch)
 }
 
 int
-rtrPinArrayLink(pins, nPins)
-    GCRPin *pins;
-    int nPins;
+rtrPinArrayLink(
+    GCRPin *pins,
+    int nPins)
 {
     GCRPin *pin, *lastPin, *lastValid;
 
@@ -465,8 +465,8 @@ void rtrPinShow(pin)
  */
 
 void
-RtrPinsFixStems(ch)
-    GCRChannel *ch;
+RtrPinsFixStems(
+    GCRChannel *ch)
 {
     rtrPinArrayFixStems(ch->gcr_tPins, ch->gcr_length);
     rtrPinArrayFixStems(ch->gcr_bPins, ch->gcr_length);
@@ -475,9 +475,9 @@ RtrPinsFixStems(ch)
 }
 
 int
-rtrPinArrayFixStems(pins, nPins)
-    GCRPin *pins;
-    int nPins;
+rtrPinArrayFixStems(
+    GCRPin *pins,
+    int nPins)
 {
     GCRPin *pin, *lastPin;
 

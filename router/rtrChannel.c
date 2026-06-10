@@ -89,9 +89,9 @@ extern void rtrChannelObstaclePins();
  */
 
 void
-RtrChannelRoute(ch, pCount)
-    GCRChannel *ch;
-    int *pCount;
+RtrChannelRoute(
+    GCRChannel *ch,
+    int *pCount)
 {
     GCRChannel *flipped, *flipped_again, *copy;
     int errs1, errs2;
@@ -214,11 +214,11 @@ bottom:
  */
 
 void
-RtrChannelBounds(loc, pLength, pWidth, origin)
-    Rect *loc;		/* Area the channel is to occupy */
-    int *pLength;	/* Filled in with # columns in channel */
-    int *pWidth;	/* Filled in with # rows in channel */
-    Point *origin;	/* Filled in with coords of (0,0) grid point
+RtrChannelBounds(
+    Rect *loc,		/* Area the channel is to occupy */
+    int *pLength,	/* Filled in with # columns in channel */
+    int *pWidth,	/* Filled in with # rows in channel */
+    Point *origin)	/* Filled in with coords of (0,0) grid point
 			 * (one grid line below and to left of first
 			 * usable grid point)
 			 */
@@ -285,9 +285,9 @@ RtrChannelBounds(loc, pLength, pWidth, origin)
  */
 
 void
-RtrChannelObstacles(use, ch)
-    CellUse *use;
-    GCRChannel * ch;
+RtrChannelObstacles(
+    CellUse *use,
+    GCRChannel * ch)
 {
     int l, w, up = RtrSubcellSepUp, down = RtrSubcellSepDown;
     TileTypeBitMask allObs;
@@ -342,8 +342,8 @@ RtrChannelObstacles(use, ch)
  */
 
 void
-rtrChannelObstaclePins(ch)
-    GCRChannel *ch;
+rtrChannelObstaclePins(
+    GCRChannel *ch)
 {
     short **res;
     int row, col, end;
@@ -412,10 +412,10 @@ rtrChannelObstaclePins(ch)
  */
 
 int
-rtrChannelObstacleMark(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    TreeContext *cxp;
+rtrChannelObstacleMark(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    TreeContext *cxp)
 {
     short **mcol, *mrow, *mrowend, mask;
     GCRChannel *ch = (GCRChannel *) cxp->tc_filter->tf_arg;
@@ -514,8 +514,8 @@ rtrChannelObstacleMark(tile, dinfo, cxp)
  */
 
 void
-RtrChannelDensity(ch)
-    GCRChannel *ch;
+RtrChannelDensity(
+    GCRChannel *ch)
 {
     short *hdens, *vdens, *rptr;
     int col, density;
@@ -587,8 +587,8 @@ RtrChannelDensity(ch)
  */
 
 void
-RtrChannelCleanObstacles(ch)
-    GCRChannel *ch;
+RtrChannelCleanObstacles(
+    GCRChannel *ch)
 {
     short *rptr;
     int row, rtop;

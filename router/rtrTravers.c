@@ -114,32 +114,31 @@ struct	rtrTileStack
  */
 
 int
-rtrSrTraverse(def, startArea, mask, connect, bounds, func, clientData)
-    CellDef *def;		/* Cell definition in which to carry out
+rtrSrTraverse(
+    CellDef *def,		/* Cell definition in which to carry out
 				 * the connectivity search.  Only paint
 				 * in this definition is considered.
 				 */
-    Rect *startArea;		/* Area to search for an initial tile.  Only
+    Rect *startArea,		/* Area to search for an initial tile.  Only
 				 * tiles OVERLAPPING the area are considered.
 				 * This area should have positive x and y
 				 * dimensions.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles of one of these types are used
+    TileTypeBitMask *mask,	/* Only tiles of one of these types are used
 				 * as initial tiles.
 				 */
-    TileTypeBitMask *connect;	/* Pointer to a table indicating what tile
+    TileTypeBitMask *connect,	/* Pointer to a table indicating what tile
 				 * types connect to what other tile types.
 				 * Each entry gives a mask of types that
 				 * connect to tiles of a given type.
 				 */
-    Rect *bounds;		/* Area, in coords of scx->scx_use->cu_def,
+    Rect *bounds,		/* Area, in coords of scx->scx_use->cu_def,
 				 * that limits the search:  only tiles
 				 * overalapping this area will be returned.
 				 * Use TiPlaneRect to search everywhere.
 				 */
-    int (*func)();		/* Function to apply at each connected tile. */
-    ClientData clientData;	/* Client data for above function. */
-
+    int (*func)(),		/* Function to apply at each connected tile. */
+    ClientData clientData)	/* Client data for above function. */
 {
     struct conSrArg csa;
     struct rtrTileStack ts;
@@ -199,10 +198,10 @@ rtrSrTraverse(def, startArea, mask, connect, bounds, func, clientData)
 }
 
 int
-rtrSrTraverseStartFunc(tile, dinfo, tad)
-    Tile *tile;			/* This will be the starting tile. */
-    TileType dinfo;		/* Split tile information (unused) */
-    TileAndDinfo *tad;		/* We store tile's address here. */
+rtrSrTraverseStartFunc(
+    Tile *tile,			/* This will be the starting tile. */
+    TileType dinfo,		/* Split tile information (unused) */
+    TileAndDinfo *tad)		/* We store tile's address here. */
 {
 
     /* Simplified approach to split tiles:  Use split tiles with one
@@ -257,10 +256,10 @@ rtrSrTraverseStartFunc(tile, dinfo, tad)
 #define IGNORE_BOTTOM	8
 
 int
-rtrSrTraverseFunc(tile, dinfo, ts)
-    Tile *tile;			/* Tile that is connected. */
-    TileType dinfo;		/* Split tile information (unused) */
-    struct rtrTileStack *ts;	/* Contains information about the search. */
+rtrSrTraverseFunc(
+    Tile *tile,			/* Tile that is connected. */
+    TileType dinfo,		/* Split tile information (unused) */
+    struct rtrTileStack *ts)	/* Contains information about the search. */
 {
     Tile *t2;
     Rect tileArea;
@@ -451,10 +450,10 @@ rtrSrTraverseFunc(tile, dinfo, ts)
  */
 
 int
-rtrExamineTile(tile, dinfo, cdata)
-    Tile *tile;
-    TileType dinfo;
-    ClientData cdata;
+rtrExamineTile(
+    Tile *tile,
+    TileType dinfo,
+    ClientData cdata)
 {
     TileType ttype;
 
@@ -496,10 +495,10 @@ rtrExamineTile(tile, dinfo, cdata)
  */
 
 int
-rtrExamineStack(tile, dinfo, ts)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct rtrTileStack *ts;
+rtrExamineStack(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct rtrTileStack *ts)
 {
     int i;
     Tile *tp[3];

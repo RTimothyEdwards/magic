@@ -76,9 +76,9 @@ bool RtrMazeStems = FALSE;	/* Set by default to original behavior */
  */
 
 void
-CmdGARouterTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdGARouterTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     GATest(w, cmd);
 }
@@ -103,9 +103,9 @@ CmdGARouterTest(w, cmd)
  */
 
 void
-CmdGRouterTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdGRouterTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     GlTest(w, cmd);
 }
@@ -130,9 +130,9 @@ CmdGRouterTest(w, cmd)
  */
 
 void
-CmdIRouterTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdIRouterTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     IRTest(w, cmd);
 }
@@ -157,9 +157,9 @@ CmdIRouterTest(w, cmd)
  */
 
 void
-CmdMZRouterTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdMZRouterTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     MZTest(w, cmd);
 }
@@ -188,9 +188,9 @@ CmdMZRouterTest(w, cmd)
  */
 
 void
-CmdChannel(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdChannel(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect newBox;
     CellDef *def, *RtrDecomposeName();
@@ -227,10 +227,10 @@ CmdChannel(w, cmd)
 }
 
 int
-cmdChannelFunc(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+cmdChannelFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     Rect area, rootArea;
 
@@ -258,9 +258,9 @@ cmdChannelFunc(tile, dinfo, clientdata)
  */
 
 void
-CmdGaRoute(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdGaRoute(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     typedef enum { CHANNEL, GEN, HELP, NOWARN, RESET, ROUTE, WARN } cmdType;
     static char *chanTypeName[] = { "NORMAL", "HRIVER", "VRIVER" };
@@ -459,9 +459,9 @@ badChanCmd:
  */
 
 void
-CmdIRoute(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdIRoute(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     IRCommand(w,cmd);
 
@@ -506,9 +506,9 @@ CmdIRoute(w, cmd)
 #define	ROUTERMAZESTEMS	19
 
 void
-CmdRoute(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdRoute(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option;
     GCRChannel *ch;
@@ -782,9 +782,9 @@ usage2:
  */
 
 void
-CmdSeeFlags(w, cmd)
-    MagWindow * w;
-    TxCommand *cmd;
+CmdSeeFlags(
+    MagWindow * w,
+    TxCommand *cmd)
 {
     Rect      rootRect;
     Point     point;

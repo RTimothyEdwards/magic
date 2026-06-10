@@ -26,6 +26,16 @@
 #include "database/database.h"
 #include "utils/geometry.h"
 
+/* Forward declaration to avoid pulling in utils/netlist.h */
+struct nlNetList;
+typedef struct nlNetList NLNetList;
+struct nlTermLoc;
+typedef struct nlTermLoc NLTermLoc;
+struct nlTerm;
+typedef struct nlTerm NLTerm;
+struct nlNet;
+typedef struct nlNet NLNet;
+
 /* Masks of directions */
 #define	DIRTOMASK(d)		(1 << (d))
 #define	DIRMASKHASDIR(m, d)	((m) & DIRTOMASK(d))
@@ -185,9 +195,9 @@ extern void RtrMilestoneDone();
 extern void RtrChannelDensity();
 extern void RtrChannelRoute();
 extern void RtrChannelCleanObstacles();
-extern void RtrStemProcessAll();
+extern void RtrStemProcessAll(CellUse *use, NLNetList *netList, bool doWarn, bool (*func)());
 extern void RtrPaintBack();
-extern bool RtrStemAssignExt();
+extern bool RtrStemAssignExt(CellUse *use, bool doWarn, NLTermLoc *loc, NLTerm *term, NLNet *net);
 extern void RtrPinsInit();
 extern void RtrHazards();
 extern void RtrPinsLink();

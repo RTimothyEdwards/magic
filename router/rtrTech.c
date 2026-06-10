@@ -129,10 +129,10 @@ RtrTechInit()
  */
 
 bool
-RtrTechLine(sectionName, argc, argv)
-    char *sectionName;			/* Name of this section. */
-    int argc;				/* Number of fields on line. */
-    char *argv[];			/* Values of fields. */
+RtrTechLine(
+    char *sectionName,			/* Name of this section. */
+    int argc,				/* Number of fields on line. */
+    char *argv[])			/* Values of fields. */
 {
     TileTypeBitMask mask;
     int type, width, i, distance;
@@ -403,8 +403,9 @@ RtrTechFinal()
  */
 
 int
-RtrTechScale(scaled, scalen)
-    int scaled, scalen;
+RtrTechScale(
+    int scaled,
+    int scalen)
 {
     int i;
 
