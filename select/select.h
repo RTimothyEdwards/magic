@@ -50,8 +50,8 @@ extern int SelEnumLabelsMirror();
 
 /* Procedures to operate on the selection. */
 
-extern void SelectDelete();
-extern void SelectDeleteUses();
+extern void SelectDelete(char *msg, bool do_clear);
+extern void SelectDeleteUses(char *msg, bool do_clear);
 extern void SelectCopy();
 extern void SelectTransform();
 extern void SelectExpand();

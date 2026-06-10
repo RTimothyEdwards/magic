@@ -83,9 +83,9 @@ static Plane *selRedisplayPlane;
  */
 
 void
-SelRedisplay(window, plane)
-    MagWindow *window;		/* Window in which to redisplay. */
-    Plane *plane;		/* Non-space tiles on this plane indicate
+SelRedisplay(
+    MagWindow *window,		/* Window in which to redisplay. */
+    Plane *plane)		/* Non-space tiles on this plane indicate
 				 * which areas must have their highlights
 				 * redrawn.
 				 */
@@ -195,7 +195,10 @@ SelRedisplay(window, plane)
  */
 
 int
-selAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
+selAlways1(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)
 {
     return 1;
 }
@@ -206,10 +209,10 @@ selAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
  */
 
 int
-selRedisplayFunc(tile, dinfo, window)
-    Tile *tile;			/* Tile to be drawn on highlight layer. */
-    TileType dinfo;		/* Split tile information */
-    MagWindow *window;		/* Window in which to redisplay. */
+selRedisplayFunc(
+    Tile *tile,			/* Tile to be drawn on highlight layer. */
+    TileType dinfo,		/* Split tile information */
+    MagWindow *window)		/* Window in which to redisplay. */
 {
     Rect area, edge, screenEdge, tmpr;
     Tile *neighbor;
@@ -307,9 +310,9 @@ searchleft:
  */
 
 int
-selRedisplayCellFunc(scx, window)
-    SearchContext *scx;		/* Describes cell found. */
-    MagWindow *window;		/* Window in which to redisplay. */
+selRedisplayCellFunc(
+    SearchContext *scx,		/* Describes cell found. */
+    MagWindow *window)		/* Window in which to redisplay. */
 {
     Rect tmp, screen, bbox;
     Point p;
@@ -392,11 +395,11 @@ selRedisplayCellFunc(scx, window)
  */
 
 void
-SelSetDisplay(selectUse, displayRoot)
-    CellUse *selectUse;		/* Cell whose contents are to be
+SelSetDisplay(
+    CellUse *selectUse,		/* Cell whose contents are to be
 				 * highlighted.
 				 */
-    CellDef *displayRoot;	/* Cell definition on top of whose contents
+    CellDef *displayRoot)	/* Cell definition on top of whose contents
 				 * the highlights are to be displayed.  Must
 				 * be the root cell of a window.  May be NULL
 				 * to turn off selection displaying.
@@ -423,11 +426,11 @@ typedef struct {
 } FeedLayerData;
 
 void
-SelCopyToFeedback(celldef, seluse, style, text)
-    CellDef *celldef;		/* Cell def to hold feedback */
-    CellUse *seluse;		/* Cell use holding selection */
-    int style;			/* Style to use for feedback */
-    char *text;			/* Text to attach to feedback */
+SelCopyToFeedback(
+    CellDef *celldef,		/* Cell def to hold feedback */
+    CellUse *seluse,		/* Cell use holding selection */
+    int style,			/* Style to use for feedback */
+    char *text)			/* Text to attach to feedback */
 {
     int selFeedbackFunc();	/* Forward reference */
     int i;
@@ -459,10 +462,10 @@ SelCopyToFeedback(celldef, seluse, style, text)
 /*----------------------------------------------------------------------*/
 
 int
-selFeedbackFunc(tile, dinfo, fld)
-    Tile *tile;
-    TileType dinfo;
-    FeedLayerData *fld;
+selFeedbackFunc(
+    Tile *tile,
+    TileType dinfo,
+    FeedLayerData *fld)
 {
     Rect area;
 

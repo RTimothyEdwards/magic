@@ -96,13 +96,13 @@ static StretchArea *selStretchList;	/* List of areas to paint. */
  */
 
 void
-SelectDelete(msg, do_clear)
-    char *msg;		/* Some information to print in error messages.
+SelectDelete(
+    char *msg,		/* Some information to print in error messages.
 			 * For example, if called as part of a move procedure,
 			 * supply "moved".  This will appear in messages of
 			 * the form "only edit cell information was moved".
 			 */
-    bool do_clear;	/* If TRUE, clear the select def before returning. */
+    bool do_clear)	/* If TRUE, clear the select def before returning. */
 {
     bool nonEdit;
     Rect editArea;
@@ -169,13 +169,13 @@ SelectDelete(msg, do_clear)
  */
 
 void
-SelectDeleteUses(msg, do_clear)
-    char *msg;		/* Some information to print in error messages.
+SelectDeleteUses(
+    char *msg,		/* Some information to print in error messages.
 			 * For example, if called as part of a move procedure,
 			 * supply "moved".  This will appear in messages of
 			 * the form "only edit cell information was moved".
 			 */
-    bool do_clear;	/* If TRUE, clear the select def before returning. */
+    bool do_clear)	/* If TRUE, clear the select def before returning. */
 {
     bool nonEdit;
     Rect editArea;
@@ -207,9 +207,9 @@ SelectDeleteUses(msg, do_clear)
 /* Search function to delete paint. */
 
 int
-selDelPaintFunc(rect, type)
-    Rect *rect;			/* Area of paint, in root coords. */
-    TileType type;		/* Type of paint to delete. */
+selDelPaintFunc(
+    Rect *rect,			/* Area of paint, in root coords. */
+    TileType type)		/* Type of paint to delete. */
 {
     Rect editRect;
     TileTypeBitMask tmask;
@@ -238,9 +238,9 @@ selDelPaintFunc(rect, type)
 
     /* ARGSUSED */
 int
-selDelCellFunc(selUse, use)
-    CellUse *selUse;		/* Not used. */
-    CellUse *use;		/* What to delete. */
+selDelCellFunc(
+    CellUse *selUse,		/* Not used. */
+    CellUse *use)		/* What to delete. */
 {
     if (use->cu_flags & CU_LOCKED) return 0;
 
@@ -256,8 +256,8 @@ selDelCellFunc(selUse, use)
  * the selection can differ from the edit cell in this regard. */
 
 int
-selDelLabelFunc(label)
-    Label *label;		/* Label to delete. */
+selDelLabelFunc(
+    Label *label)		/* Label to delete. */
 {
     DBEraseLabelsByContent(EditCellUse->cu_def, &label->lab_rect, -1,
 		label->lab_text);
@@ -283,8 +283,8 @@ selDelLabelFunc(label)
  */
 
 void
-SelectCopy(transform)
-    Transform *transform;	/* How to displace the copy relative
+SelectCopy(
+    Transform *transform)	/* How to displace the copy relative
 				 * to the original.  This displacement
 				 * is given in root coordinates.
 				 */
@@ -410,10 +410,10 @@ typedef struct _shortsearchdata {
  */
 
 int
-selShortTileProc(tile, dinfo, ssd)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ShortSearchData *ssd;
+selShortTileProc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ShortSearchData *ssd)
 {
     const int curr = (int)TiGetClientINT(tile);
     if (curr < ssd->cost)
@@ -448,11 +448,11 @@ selShortTileProc(tile, dinfo, ssd)
  */
 
 int
-selShortFindReverse(rlist, tile, pnum, fdir)
-   ExtRectList **rlist;
-   Tile *tile;
-   int pnum;
-   int fdir;
+selShortFindReverse(
+    ExtRectList **rlist,
+    Tile *tile,
+    int pnum,
+    int fdir)
 {
     Tile *tp, *mintp;
     ExtRectList *newrrec;
@@ -711,11 +711,11 @@ ShortData *NewSD(cost, tile, type, pnum)
  */
 
 int
-selShortProcessTile(tile, cost, fdir, mask)
-    Tile *tile;
-    int cost;
-    int fdir;
-    TileTypeBitMask *mask;
+selShortProcessTile(
+    Tile *tile,
+    int cost,
+    int fdir,
+    TileTypeBitMask *mask)
 {
     TileType ttype;
 
@@ -789,11 +789,11 @@ selShortProcessTile(tile, cost, fdir, mask)
  */
 
 void
-selShortFindForward(srctile, srctype, srcpnum, desttile)
-    Tile *srctile;
-    TileType srctype;
-    int srcpnum;
-    Tile *desttile;
+selShortFindForward(
+    Tile *srctile,
+    TileType srctype,
+    int srcpnum,
+    Tile *desttile)
 {
     TileType type;
     TileTypeBitMask *lmask;
@@ -938,7 +938,9 @@ donesrch:
  */
 
 ExtRectList *
-SelectShort(char *lab1, char *lab2)
+SelectShort(
+    char *lab1,
+    char *lab2)
 {
     Label *selLabel, *srclab = NULL, *destlab = NULL;
     Tile *srctile, *desttile;
@@ -1052,8 +1054,8 @@ SelectShort(char *lab1, char *lab2)
  */
 
 void
-selTransTo2(transform)
-    Transform *transform;	/* How to transform stuff before copying
+selTransTo2(
+    Transform *transform)	/* How to transform stuff before copying
 				 * it to Select2Def.
 				 */
 {
@@ -1076,10 +1078,10 @@ selTransTo2(transform)
 /* Search function to copy paint.  Always return 1 to keep the search alive. */
 
 int
-selTransPaintFunc(rect, type, transform)
-    Rect *rect;			/* Area of paint. */
-    TileType type;		/* Type of paint. */
-    Transform *transform;	/* How to change coords before painting. */
+selTransPaintFunc(
+    Rect *rect,			/* Area of paint. */
+    TileType type,		/* Type of paint. */
+    Transform *transform)	/* How to change coords before painting. */
 {
     Rect newarea;
     TileType loctype;
@@ -1105,12 +1107,12 @@ selTransPaintFunc(rect, type, transform)
 
     /* ARGSUSED */
 int
-selTransCellFunc(selUse, realUse, realTrans, transform)
-    CellUse *selUse;		/* Use from selection. */
-    CellUse *realUse;		/* Corresponding use from layout (used to
+selTransCellFunc(
+    CellUse *selUse,		/* Use from selection. */
+    CellUse *realUse,		/* Corresponding use from layout (used to
 				 * get id). */
-    Transform *realTrans;	/* Transform for realUse (ignored). */
-    Transform *transform;	/* How to change coords of selUse before
+    Transform *realTrans,	/* Transform for realUse (ignored). */
+    Transform *transform)	/* How to change coords of selUse before
 				 * copying.
 				 */
 {
@@ -1142,13 +1144,13 @@ selTransCellFunc(selUse, realUse, realTrans, transform)
 
     /* ARGSUSED */
 int
-selTransLabelFunc(label, cellUse, defTransform, transform)
-    Label *label;		/* Label to copy.  This points to label
+selTransLabelFunc(
+    Label *label,		/* Label to copy.  This points to label
 				 * in cellDef.
 				 */
-    CellUse *cellUse;		/* (unused) */
-    Transform *defTransform;	/* Transform from cellDef to root. */
-    Transform *transform;	/* How to modify coords before copying to
+    CellUse *cellUse,		/* (unused) */
+    Transform *defTransform,	/* Transform from cellDef to root. */
+    Transform *transform)	/* How to modify coords before copying to
 				 * Select2Def.
 				 */
 {
@@ -1192,8 +1194,8 @@ selTransLabelFunc(label, cellUse, defTransform, transform)
  */
 
 void
-SelectTransform(transform)
-    Transform *transform;		/* How to displace the selection.
+SelectTransform(
+    Transform *transform)		/* How to displace the selection.
 					 * The transform is in root (user-
 					 * visible) coordinates.
 					 */
@@ -1246,15 +1248,15 @@ typedef struct selExpData {
  */
 
 void
-SelectExpand(mask, expandType, rootBox)
-    int mask;			/* Bits of this word indicate which
+SelectExpand(
+    int mask,			/* Bits of this word indicate which
 				 * windows the selected cells will be
 				 * expanded in.
 				 */
-    int expandType;		/* Operation to perform:  Expand,
+    int expandType,		/* Operation to perform:  Expand,
 				 * unexpand, or expand toggle.
 				 */
-    Rect *rootBox;		/* Area of root box, if selecting by
+    Rect *rootBox)		/* Area of root box, if selecting by
 				 * cursor box area.
 				 */
 {
@@ -1285,11 +1287,11 @@ SelectExpand(mask, expandType, rootBox)
 
     /* ARGSUSED */
 int
-selExpandFunc(selUse, use, transform, sed)
-    CellUse *selUse;		/* Use from selection. */
-    CellUse *use;		/* Use to expand (in actual layout). */
-    Transform *transform;	/* Not used. */
-    SelExpData *sed;		/* Information for expansion */
+selExpandFunc(
+    CellUse *selUse,		/* Use from selection. */
+    CellUse *use,		/* Use to expand (in actual layout). */
+    Transform *transform,	/* Not used. */
+    SelExpData *sed)		/* Information for expansion */
 {
     int expandType = sed->sed_type;
     int mask = sed->sed_mask;
@@ -1420,8 +1422,8 @@ selExpandFunc(selUse, use, transform, sed)
  */
 
 void
-SelectArray(arrayInfo)
-    ArrayInfo *arrayInfo;	/* Describes desired shape of array, all in
+SelectArray(
+    ArrayInfo *arrayInfo)	/* Describes desired shape of array, all in
 				 * root coordinates.
 				 */
 {
@@ -1457,10 +1459,10 @@ SelectArray(arrayInfo)
  */
 
 int
-selArrayPFunc(rect, type, arrayInfo)
-    Rect *rect;			/* Rectangle to be arrayed. */
-    TileType type;		/* Type of tile. */
-    ArrayInfo *arrayInfo;	/* How to array. */
+selArrayPFunc(
+    Rect *rect,			/* Rectangle to be arrayed. */
+    TileType type,		/* Type of tile. */
+    ArrayInfo *arrayInfo)	/* How to array. */
 {
     int y, nx, ny;
     Rect current;
@@ -1493,11 +1495,11 @@ selArrayPFunc(rect, type, arrayInfo)
 
     /* ARGSUSED */
 int
-selArrayCFunc(selUse, use, transform, arrayInfo)
-    CellUse *selUse;		/* Use from selection (not used). */
-    CellUse *use;		/* Use to be copied and arrayed. */
-    Transform *transform;	/* Transform from use->cu_def to root. */
-    ArrayInfo *arrayInfo;	/* Array characteristics desired. */
+selArrayCFunc(
+    CellUse *selUse,		/* Use from selection (not used). */
+    CellUse *use,		/* Use to be copied and arrayed. */
+    Transform *transform,	/* Transform from use->cu_def to root. */
+    ArrayInfo *arrayInfo)	/* Array characteristics desired. */
 {
     CellUse *newUse;
     Transform tinv, newTrans;
@@ -1551,11 +1553,11 @@ selArrayCFunc(selUse, use, transform, arrayInfo)
 
     /* ARGSUSED */
 int
-selArrayLFunc(label, use, transform, arrayInfo)
-    Label *label;		/* Label to be copied and replicated. */
-    CellUse *use;		/* (unused) */
-    Transform *transform;	/* Transform from coords of def to root. */
-    ArrayInfo *arrayInfo;	/* How to replicate. */
+selArrayLFunc(
+    Label *label,		/* Label to be copied and replicated. */
+    CellUse *use,		/* (unused) */
+    Transform *transform,	/* Transform from coords of def to root. */
+    ArrayInfo *arrayInfo)	/* How to replicate. */
 {
     int y, nx, ny, rootJust, rootRotate;
     Point rootOffset;
@@ -1631,9 +1633,9 @@ selArrayLFunc(label, use, transform, arrayInfo)
  */
 
 void
-SelectStretch(x, y)
-    int x;			/* Amount to move in the x-direction. */
-    int y;			/* Amount to move in the y-direction.  Must
+SelectStretch(
+    int x,			/* Amount to move in the x-direction. */
+    int y)			/* Amount to move in the y-direction.  Must
 				 * be zero if x is non-zero.
 				 */
 {
@@ -1746,10 +1748,10 @@ SelectStretch(x, y)
  */
 
 int
-selStretchEraseFunc(tile, dinfo, plane)
-    Tile *tile;			/* Tile being moved in a stretch operation. */
-    TileType dinfo;		/* Split tile information */
-    int *plane;			/* Plane of tiles being searched */
+selStretchEraseFunc(
+    Tile *tile,			/* Tile being moved in a stretch operation. */
+    TileType dinfo,		/* Split tile information */
+    int *plane)			/* Plane of tiles being searched */
 {
     Rect area, editArea;
     int planeNum;
@@ -1881,10 +1883,10 @@ selStretchEraseFunc(tile, dinfo, plane)
 }
 
 int
-selStretchEraseFunc2(tile, dinfo, pa)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    planeAndArea *pa;
+selStretchEraseFunc2(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    planeAndArea *pa)
 {
     TileType type = TT_SPACE;
 
@@ -1924,10 +1926,10 @@ selStretchEraseFunc2(tile, dinfo, pa)
  */
 
 int
-selStretchFillFunc(tile, dinfo, plane)
-    Tile *tile;			/* Tile in the old selection. */
-    TileType dinfo;		/* Split tile information (unused) */
-    int *plane;			/* Plane of tile being searched */
+selStretchFillFunc(
+    Tile *tile,			/* Tile in the old selection. */
+    TileType dinfo,		/* Split tile information (unused) */
+    int *plane)			/* Plane of tile being searched */
 {
     Rect area;
     extern int selStretchFillFunc2();
@@ -1993,12 +1995,12 @@ selStretchFillFunc(tile, dinfo, plane)
  */
 
 int
-selStretchFillFunc2(tile, dinfo, area)
-    Tile *tile;				/* Space tile that borders selected
+selStretchFillFunc2(
+    Tile *tile,				/* Space tile that borders selected
 					 * paint.
 					 */
-    TileType dinfo;			/* Split tile information (unused) */
-    Rect *area;				/* A one-unit wide strip along the
+    TileType dinfo,			/* Split tile information (unused) */
+    Rect *area)				/* A one-unit wide strip along the
 					 * border (i.e. the area in which
 					 * we're interested in space).
 					 */
@@ -2042,12 +2044,12 @@ selStretchFillFunc2(tile, dinfo, area)
  */
 
 int
-selStretchFillFunc3(tile, dinfo, area)
-    Tile *tile;			/* Tile of edit material that's about to
+selStretchFillFunc3(
+    Tile *tile,			/* Tile of edit material that's about to
 				 * be left behind selection.
 				 */
-    TileType dinfo;		/* Split tile information (unused) */
-    Rect *area;			/* The border area we're interested in,
+    TileType dinfo,		/* Split tile information (unused) */
+    Rect *area)			/* The border area we're interested in,
 				 * in root coords.
 				 */
 {
@@ -2180,8 +2182,8 @@ selStretchFillFunc3(tile, dinfo, area)
  */
 
 void
-SelectDump(scx)
-    SearchContext *scx;			/* Describes the cell from which
+SelectDump(
+    SearchContext *scx)			/* Describes the cell from which
 					 * material is to be copied, the
 					 * area to copy, and the transform
 					 * to root coordinates in the edit
