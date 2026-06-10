@@ -38,7 +38,7 @@
 #define	TX_MAXARGS	200
 #define TX_MAX_CMDLEN	2048
 
-typedef struct {		/* A command -- either a button push or
+typedef struct TxCommand_ {	/* A command -- either a button push or
 				 * a textual command.
 				 */
     Point tx_p;			/* The location of the pointing device
