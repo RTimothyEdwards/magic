@@ -2,15 +2,15 @@ name: CI-wasm
 
 # Builds the Magic WebAssembly target (both the non-TCL and TCL variants)
 # on every push and pull request as a CI check. **Publishing** only happens
-# when a release tag of the form v<x.y.z>... is pushed — that gate is the
-# manual release trigger:
+# when a release tag of the form <x.y.z>... (optionally v-prefixed) is
+# pushed — the same tag that triggers the AppImage release workflows:
 #
 #   # bump magic/VERSION, commit, push to default branch
-#   git tag v8.3.638
-#   git push origin v8.3.638
+#   git tag 8.3.638
+#   git push origin 8.3.638
 #
-# The tag name (minus the leading "v") provides the base; the workflow appends
-# the commit date and short SHA: v8.3.799 → 8.3.799020261231+git01234cde.
+# The tag name (minus any leading "v") provides the base; the workflow appends
+# the commit date and short SHA: 8.3.799 → 8.3.799020261231+git01234cde.
 # Forks publish under their own namespace via the @<owner>/ scope.
 
 on:
@@ -162,11 +162,12 @@ jobs:
           done
 
       # The release gate. We publish a new npm version only when a tag of the
-      # shape v<x.y.z>... is pushed.
+      # shape <x.y.z>... (optionally v-prefixed) is pushed, matching the
+      # AppImage release workflows so one tag releases everything.
       #
       # Version scheme (per dmiles' recommendation):
       #   {MAJOR}.{MINOR}.{PATCH}0{YYYYMMDD}+git{SHORT_SHA}
-      # e.g. v8.3.799 pushed on 2026-12-31 → 8.3.799020261231+git01234cde
+      # e.g. 8.3.799 pushed on 2026-12-31 → 8.3.799020261231+git01234cde
       #
       # The leading zero between PATCH and date keeps the number readable and
       # ensures correct numeric ordering: 799020261231 < 800020261231.
@@ -180,7 +181,7 @@ jobs:
           date=$(git show -s --format=%cs | tr -d '-')
           hash=$(git show -s --format=%h)
           if [ "${{ github.event_name }}" = "push" ] && \
-             echo "${{ github.ref }}" | grep -Eq '^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+'; then
+             echo "${{ github.ref }}" | grep -Eq '^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+'; then
             tag="${GITHUB_REF#refs/tags/}"
             base="${tag#v}"
             echo "publish=true"                              >> "$GITHUB_OUTPUT"
