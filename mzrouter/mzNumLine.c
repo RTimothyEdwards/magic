@@ -64,9 +64,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-mzNLInit(nL, size)
-    NumberLine *nL;
-    int size;	/*initial size of number line */
+mzNLInit(
+    NumberLine *nL,
+    int size)	/*initial size of number line */
 {
     int *entries;
     size = MAX(size, 2);
@@ -101,9 +101,9 @@ mzNLInit(nL, size)
  */
 
 void
-mzNLInsert(nL,x)
-    NumberLine *nL;
-    int x;		/* new point */
+mzNLInsert(
+    NumberLine *nL,
+    int x)		/* new point */
 {
 
     int lowI, highI;
@@ -205,9 +205,9 @@ mzNLInsert(nL,x)
  */
 
 int *
-mzNLGetContainingInterval(nL,x)
-    NumberLine *nL;
-    int x;		/* new point */
+mzNLGetContainingInterval(
+    NumberLine *nL,
+    int x)		/* new point */
 {
 
     int lowI, highI;
@@ -256,8 +256,8 @@ mzNLGetContainingInterval(nL,x)
  */
 
 void
-mzNLClear(nL)
-    NumberLine *nL;
+mzNLClear(
+    NumberLine *nL)
 {
 
     nL->nl_entries[0] = MINFINITY;

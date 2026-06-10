@@ -59,7 +59,10 @@ extern bool mzAddInitialContacts();
  */
 
 int
-mzFindSamenodeFunc(Tile *tile, TileType dinfo, Point *point)
+mzFindSamenodeFunc(
+    Tile *tile,
+    TileType dinfo,
+    Point *point)
 {
     *point = tile->ti_ll;
     return 1;
@@ -88,8 +91,8 @@ mzFindSamenodeFunc(Tile *tile, TileType dinfo, Point *point)
 #define EC_ALL_DIRECTIONS  (EC_RIGHT | EC_LEFT | EC_UP | EC_DOWN)
 
 bool
-mzStart(term)
-    ColoredRect *term;
+mzStart(
+    ColoredRect *term)
 {
     RouteLayer *rL;
     RouteContact *rC;
@@ -204,13 +207,13 @@ mzStart(term)
  * ----------------------------------------------------------------------------
  */
 bool
-mzExtendInitPath(path, rL, point, cost, length, directions)
-    RoutePath *path;	/* Initial Path, being extended */
-    RouteLayer *rL;     /* routelayer of new point */
-    Point point;	/* new point for  initPath */
-    dlong cost;		/* cost of new segment */
-    int length;		/* length of path (excluding new segment) */
-    int directions;	/* directions to extend init path in */
+mzExtendInitPath(
+    RoutePath *path,	/* Initial Path, being extended */
+    RouteLayer *rL,     /* routelayer of new point */
+    Point point,	/* new point for  initPath */
+    dlong cost,		/* cost of new segment */
+    int length,		/* length of path (excluding new segment) */
+    int directions)	/* directions to extend init path in */
 {
     Tile *tp;
     bool returnCode = TRUE;
@@ -321,9 +324,9 @@ mzExtendInitPath(path, rL, point, cost, length, directions)
  */
 
 bool
-mzAddInitialContacts(rL, point)
-    RouteLayer *rL;     /* routelayer of initial point */
-    Point point;	/* initial point */
+mzAddInitialContacts(
+    RouteLayer *rL,     /* routelayer of initial point */
+    Point point)	/* initial point */
 {
     List *cL;
     Tile *tp;
