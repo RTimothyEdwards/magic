@@ -51,10 +51,10 @@ int lispInFile;			/* global variable used within the lisp
  *------------------------------------------------------------------------
  */
 void
-LispEvaluate (argc, argv, inFile)
-     int argc;
-     char **argv;
-     int inFile;
+LispEvaluate(
+    int argc,
+    char **argv,
+    int inFile)
 {
   extern Sexp *LispMainFrame;
   extern LispObj *LispMainFrameObj;
@@ -172,8 +172,8 @@ LispInit ()
  */
 
 void
-LispSetTech (s)
-     char *s;
+LispSetTech(
+    char *s)
 {
   extern Sexp *LispMainFrame;
   extern LispObj *LispMainFrameObj;
@@ -209,8 +209,8 @@ LispSetTech (s)
  */
 
 void
-LispSetEdit (s)
-     char *s;
+LispSetEdit(
+    char *s)
 {
   extern Sexp *LispMainFrame;
   extern LispObj *LispMainFrameObj;

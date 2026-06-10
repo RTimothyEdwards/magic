@@ -51,10 +51,10 @@
  */
 
 LispObj *
-LispLoad (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispLoad(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   extern int LispEchoResult;
   LispObj *l, *inp, *res;
@@ -234,10 +234,10 @@ LispLoad (name,s,f)
  */
 
 LispObj *
-LispWrite (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispWrite(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   FILE *fp;
   LispObj *l;
@@ -281,10 +281,10 @@ LispWrite (name,s,f)
  */
 
 LispObj *
-LispSpawn (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispSpawn(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   int pid;
@@ -357,10 +357,10 @@ LispSpawn (name,s,f)
  */
 
 LispObj *
-LispWait (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispWait(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   int stat;

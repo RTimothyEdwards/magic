@@ -61,10 +61,10 @@ static LispObj *_internal_list;
  */
 
 LispObj *
-LispGetbox (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispGetbox(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   Rect editbox;
   Rect rootBox;
@@ -116,10 +116,10 @@ LispGetbox (name,s,f)
  */
 
 LispObj *
-LispGetPoint (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispGetPoint(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   MagWindow *w;
   char buf[128];
@@ -169,10 +169,10 @@ LispGetPoint (name,s,f)
  *-----------------------------------------------------------------------------
  */
 static int
-lispprinttile (tile, dinfo, cxp)
-     Tile *tile;
-     TileType dinfo;	/* (unused) */
-     TreeContext *cxp;
+lispprinttile(
+     Tile *tile,
+     TileType dinfo,	/* (unused) */
+     TreeContext *cxp)
 {
   TileType type;
   Transform tt;
@@ -210,10 +210,10 @@ lispprinttile (tile, dinfo, cxp)
 
 
 LispObj *
-LispGetPaint (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispGetPaint(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   SearchContext scx;
   TileTypeBitMask mask;
@@ -285,10 +285,10 @@ LispGetPaint (name,s,f)
  */
 
 LispObj *
-LispGetSelPaint (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispGetSelPaint(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   SearchContext scx;
   TileTypeBitMask mask;
@@ -341,11 +341,11 @@ LispGetSelPaint (name,s,f)
  *-----------------------------------------------------------------------------
  */
 static int
-lispprintlabel (scx, label, tpath, cdarg)
-     SearchContext *scx;
-     Label *label;
-     TerminalPath *tpath;
-     ClientData cdarg;
+lispprintlabel(
+    SearchContext *scx,
+    Label *label,
+    TerminalPath *tpath,
+    ClientData cdarg)
 {
   LispObj *l;
   Rect sourceRect, targetRect;
@@ -391,10 +391,10 @@ lispprintlabel (scx, label, tpath, cdarg)
 }
 
 LispObj *
-LispGetLabel (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispGetLabel(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   SearchContext scx;
   TileTypeBitMask mask;
@@ -458,10 +458,10 @@ LispGetLabel (name,s,f)
  */
 
 LispObj *
-LispGetSelLabel (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispGetSelLabel(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   SearchContext scx;
   TileTypeBitMask mask;
@@ -532,10 +532,10 @@ int lispprintcell (use,cdarg)
 
 
 LispObj *
-LispGetCellNames (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispGetCellNames(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   static char cellbuffer[1024];
   LispObj *l;
@@ -573,10 +573,10 @@ LispGetCellNames (name,s,f)
  */
 
 LispObj *
-LispEvalMagic (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispEvalMagic(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || LTYPE(ARG1(s)) != S_SYM || ARG2P(s)) {

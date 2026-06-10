@@ -40,9 +40,10 @@
 */
 static
 void
-LispBufPrintName (s,t,flag)
-     char *s, *t;
-     int flag;
+LispBufPrintName(
+    char *s,
+    char *t,
+    int flag)
 {
   int i,j, spc;
   i=0;
@@ -85,9 +86,9 @@ static HashTable PrintTable, GenTable;
 static int num_refs;
 
 static void
-_LispPrint (fp,l)
-     FILE *fp;
-     LispObj *l;
+_LispPrint(
+    FILE *fp,
+    LispObj *l)
 {
   HashEntry *h;
   int i;
@@ -192,8 +193,8 @@ done:
 
 
 static void
-_LispGenTable (l)
-     LispObj *l;
+_LispGenTable(
+    LispObj *l)
 {
   HashEntry *h;
   int i;
@@ -250,9 +251,9 @@ _LispGenTable (l)
 
 
 void
-LispPrint (fp, l)
-     FILE *fp;
-     LispObj *l;
+LispPrint(
+    FILE *fp,
+    LispObj *l)
 {
   HashEntry *h;
   HashSearch hs;
@@ -292,9 +293,9 @@ LispPrint (fp, l)
  */
 
 void
-LispPrintType (fp,l)
-     FILE *fp;
-     LispObj *l;
+LispPrintType(
+    FILE *fp,
+    LispObj *l)
 {
   switch (LTYPE(l)) {
   case S_INT:

@@ -45,10 +45,10 @@
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispStrCat (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispStrCat(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
 
@@ -82,10 +82,10 @@ LispStrCat (name,s,f)
  */
 
 LispObj *
-LispSymbolToString (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispSymbolToString(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || LTYPE(ARG1(s)) != S_SYM || ARG2P(s)) {
@@ -117,10 +117,10 @@ LispSymbolToString (name,s,f)
  */
 
 LispObj *
-LispStringToSymbol (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispStringToSymbol(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || LTYPE(ARG1(s)) != S_STRING || ARG2P(s)) {
@@ -151,10 +151,10 @@ LispStringToSymbol (name,s,f)
  */
 
 LispObj *
-LispNumberToString (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispNumberToString(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   char buf[128];
@@ -192,10 +192,10 @@ LispNumberToString (name,s,f)
  */
 
 LispObj *
-LispStringToNumber (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispStringToNumber(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   char *str;
@@ -254,10 +254,10 @@ LispStringToNumber (name,s,f)
  */
 
 LispObj *
-LispStringLength (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispStringLength(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || LTYPE(ARG1(s)) != S_STRING || ARG2P(s)) {
@@ -291,10 +291,10 @@ LispStringLength (name,s,f)
  */
 
 LispObj *
-LispStringCompare (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispStringCompare(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || !ARG2P(s) || LTYPE(ARG1(s)) != S_STRING ||
@@ -326,10 +326,10 @@ LispStringCompare (name,s,f)
  */
 
 LispObj *
-LispStringRef (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispStringRef(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || !ARG2P(s) || LTYPE(ARG1(s)) != S_STRING ||
@@ -365,10 +365,10 @@ LispStringRef (name,s,f)
  */
 
 LispObj *
-LispStringSet (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispStringSet(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
 
@@ -406,10 +406,10 @@ LispStringSet (name,s,f)
  */
 
 LispObj *
-LispSubString (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispSubString(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
 

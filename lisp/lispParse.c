@@ -56,8 +56,8 @@
    strip whitespace from left: returns new string pointer
 */
 static char *
-stripleft (s)
-     char *s;
+stripleft(
+    char *s)
 {
   while (*s && IsSpace (*s))
     s++;
@@ -115,8 +115,8 @@ char *LispNewString (s)
  */
 
 int
-LispStringId (s)
-     char *s;
+LispStringId(
+    char *s)
 {
   int i;
   HashEntry *h;
@@ -146,9 +146,9 @@ LispStringId (s)
  */
 
 LispObj *
-LispAtomParse (pstr,quoted)
-     int quoted;
-     char **pstr;
+LispAtomParse(
+    char **pstr,
+    int quoted)
 {
   char *str = *pstr;
   char *q, c;
@@ -286,8 +286,8 @@ LispAtomParse (pstr,quoted)
  */
 
 Sexp *
-LispIParse (pstr)
-     char **pstr;
+LispIParse(
+    char **pstr)
 {
   char *str = *pstr;
   Sexp *s;
@@ -395,8 +395,8 @@ LispIParse (pstr)
  */
 
 LispObj *
-LispParseString (str)
-     char *str;
+LispParseString(
+    char *str)
 {
   LispObj *l;
 

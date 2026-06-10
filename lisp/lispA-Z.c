@@ -57,10 +57,10 @@
  */
 
 LispObj *
-LispIsBool (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispIsBool(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *r;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -91,10 +91,10 @@ LispIsBool (name,s,f)
  */
 
 LispObj *
-LispIsSym (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispIsSym(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *r;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -124,10 +124,10 @@ LispIsSym (name,s,f)
  */
 
 LispObj *
-LispIsNumber (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispIsNumber(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *r;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -159,10 +159,10 @@ LispIsNumber (name,s,f)
  */
 
 LispObj *
-LispIsString (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispIsString(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *r;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -194,10 +194,10 @@ LispIsString (name,s,f)
  */
 
 LispObj *
-LispIsProc (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispIsProc(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *r;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -231,10 +231,10 @@ LispIsProc (name,s,f)
  */
 
 LispObj *
-LispIsList (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispIsList(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *r;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -276,10 +276,10 @@ LispIsList (name,s,f)
  */
 
 LispObj *
-LispIsPair (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispIsPair(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *r;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -306,9 +306,9 @@ LispIsPair (name,s,f)
 
 static
 int
-EqualObjects (l1,l2)
-     LispObj *l1;
-     LispObj *l2;
+EqualObjects(
+    LispObj *l1,
+    LispObj *l2)
 {
   if (LTYPE(l1) != LTYPE(l2)) return 0;
   switch (LTYPE(l1)) {
@@ -363,10 +363,10 @@ EqualObjects (l1,l2)
  */
 
 LispObj *
-LispEqv (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispEqv(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || !ARG2P(s) || ARG3P(s)) {
@@ -408,10 +408,10 @@ LispEqv (name,s,f)
  */
 
 LispObj *
-LispCar (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispCar(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   if (!ARG1P(s) || LTYPE(ARG1(s)) != S_LIST || !LLIST(ARG1(s)) || ARG2P(s)) {
     TxPrintf ("Usage: (%s pair)\n",name);
@@ -438,10 +438,10 @@ LispCar (name,s,f)
  */
 
 LispObj *
-LispCdr (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispCdr(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   if (!ARG1P(s) || LTYPE(ARG1(s)) != S_LIST || !LLIST(ARG1(s)) || ARG2P(s)) {
     TxPrintf ("Usage: (%s pair)\n",name);
@@ -468,10 +468,10 @@ LispCdr (name,s,f)
  */
 
 LispObj *
-LispCons (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispCons(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   Sexp *t;
@@ -507,10 +507,10 @@ LispCons (name,s,f)
  */
 
 LispObj *
-LispNull (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispNull(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -542,10 +542,10 @@ LispNull (name,s,f)
  */
 
 LispObj *
-LispList (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispList(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   l = LispNewObj ();
@@ -572,10 +572,10 @@ LispList (name,s,f)
  */
 
 LispObj *
-LispLength (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispLength(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   int len;
@@ -634,10 +634,10 @@ LispLength (name,s,f)
  */
 
 LispObj *
-LispDefine (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispDefine(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
 
@@ -671,10 +671,10 @@ LispDefine (name,s,f)
  */
 
 LispObj *
-LispSetBang (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispSetBang(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
 
@@ -711,10 +711,10 @@ LispSetBang (name,s,f)
  */
 
 LispObj *
-LispLet (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispLet(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *body, *l;
   Sexp *frame, *saved;
@@ -784,10 +784,10 @@ LispLet (name,s,f)
  */
 
 LispObj *
-LispLetRec (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispLetRec(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *body, *l;
   Sexp *frame, *saved;
@@ -857,10 +857,10 @@ LispLetRec (name,s,f)
  */
 
 LispObj *
-LispLetStar (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispLetStar(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *body, *l;
   Sexp *frame, *saved;
@@ -935,10 +935,10 @@ LispLetStar (name,s,f)
  */
 
 LispObj *
-LispSetCarBang (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispSetCarBang(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
 
@@ -968,10 +968,10 @@ LispSetCarBang (name,s,f)
  */
 
 LispObj *
-LispSetCdrBang (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispSetCdrBang(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
 
@@ -1015,10 +1015,10 @@ LispSetCdrBang (name,s,f)
  */
 
 LispObj *
-Lispeval (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+Lispeval(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   if (!ARG1P(s) || ARG2P(s)) {
     TxPrintf ("Usage: (%s obj)\n", name);
@@ -1045,10 +1045,10 @@ Lispeval (name,s,f)
  */
 
 LispObj *
-LispQuote (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispQuote(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   if (!ARG1P(s) || ARG2P(s)) {
     TxPrintf ("Usage: (%s obj)\n",name);
@@ -1087,10 +1087,10 @@ LispQuote (name,s,f)
  */
 
 LispObj *
-LispIf (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispIf(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   if (!ARG1P(s) || !ARG2P(s) || !ARG3P(s) || LTYPE(ARG1(s)) != S_BOOL
       || ARG4P(s)) {
@@ -1124,10 +1124,10 @@ LispIf (name,s,f)
  */
 
 LispObj *
-LispCond (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispCond(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   LispObj *m;
@@ -1219,10 +1219,10 @@ LispCond (name,s,f)
  */
 
 LispObj *
-LispBegin (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispBegin(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l, *m;
   Sexp *saved;
@@ -1292,10 +1292,10 @@ LispBegin (name,s,f)
  */
 
 LispObj *
-Lispapply (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+Lispapply(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   if (!ARG1P(s) || !ARG2P(s) || LTYPE(ARG2(s)) != S_LIST ||
       (LTYPE(ARG1(s)) != S_LAMBDA && LTYPE(ARG1(s)) != S_LAMBDA_BUILTIN &&
@@ -1330,10 +1330,10 @@ Lispapply (name,s,f)
  */
 
 LispObj *
-LispLambda (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispLambda(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   Sexp *s1;
@@ -1427,10 +1427,10 @@ LispLambda (name,s,f)
  */
 
 LispObj *
-LispDisplayObj (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispDisplayObj(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -1468,10 +1468,10 @@ LispDisplayObj (name,s,f)
  */
 
 LispObj *
-LispPrintObj (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispPrintObj(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   if (!ARG1P(s) || ARG2P(s)) {
@@ -1503,10 +1503,10 @@ LispPrintObj (name,s,f)
  */
 
 LispObj *
-LispError (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispError(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   int i,j;
   char *str;
@@ -1547,10 +1547,10 @@ LispError (name,s,f)
  */
 
 LispObj *
-LispShowFrame (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispShowFrame(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
 

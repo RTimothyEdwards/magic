@@ -45,10 +45,10 @@
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispAdd (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispAdd(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   double d;
@@ -88,10 +88,10 @@ LispAdd (name,s,f)
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispSub (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispSub(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   double d;
@@ -135,10 +135,10 @@ LispSub (name,s,f)
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispMult (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispMult(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   double d;
@@ -177,10 +177,10 @@ LispMult (name,s,f)
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispDiv (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispDiv(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   double d;
@@ -236,10 +236,10 @@ LispDiv (name,s,f)
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispTruncate (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispTruncate(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   double d;
@@ -273,10 +273,10 @@ LispTruncate (name,s,f)
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispZeroQ (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispZeroQ(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   double d;
@@ -310,10 +310,10 @@ LispZeroQ (name,s,f)
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispPositiveQ (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispPositiveQ(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   double d;
@@ -347,10 +347,10 @@ LispPositiveQ (name,s,f)
  *-----------------------------------------------------------------------------
  */
 LispObj *
-LispNegativeQ (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispNegativeQ(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   double d;

@@ -58,8 +58,8 @@ StackNew ()
 
 static
 void
-StackFree (t)
-     TRACE *t;
+StackFree(
+    TRACE *t)
 {
   t->n = freeQ;
   freeQ = t;
@@ -82,8 +82,8 @@ StackFree (t)
  */
 
 void
-LispStackPush (name)
-     char *name;
+LispStackPush(
+    char *name)
 {
   TRACE *t;
   t = StackNew();
