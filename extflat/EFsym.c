@@ -94,8 +94,8 @@ efSymInit()
  */
 
 bool
-efSymAddFile(name)
-    char *name;
+efSymAddFile(
+    char *name)
 {
     char line[1024], *cp;
     int lineNum;
@@ -140,8 +140,8 @@ efSymAddFile(name)
  */
 
 bool
-efSymAdd(str)
-    char *str;
+efSymAdd(
+    char *str)
 {
     HashEntry *he;
     char *value;
@@ -191,9 +191,9 @@ efSymAdd(str)
  */
 
 bool
-efSymLook(name, pValue)
-    char *name;
-    int *pValue;
+efSymLook(
+    char *name,
+    int *pValue)
 {
     HashEntry *he;
 

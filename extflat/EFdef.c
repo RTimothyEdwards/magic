@@ -95,8 +95,8 @@ EFInit()
  */
 
 void
-EFDone(func)
-    int (*func)();
+EFDone(
+    int (*func)())
 {
     Connection *conn;
     HashSearch hs;
@@ -204,8 +204,8 @@ EFDone(func)
  */
 
 Def *
-efDefLook(name)
-    char *name;
+efDefLook(
+    char *name)
 {
     HashEntry *he;
 
@@ -233,8 +233,8 @@ efDefLook(name)
  */
 
 Def *
-efDefNew(name)
-    char *name;
+efDefNew(
+    char *name)
 {
     HashEntry *he;
     Def *newdef;

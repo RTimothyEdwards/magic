@@ -90,9 +90,9 @@ bool efDevKilled();
  */
 
 int
-EFVisitSubcircuits(subProc, cdata)
-    int (*subProc)();
-    ClientData cdata;
+EFVisitSubcircuits(
+    int (*subProc)(),
+    ClientData cdata)
 {
     CallArg ca;
     HierContext *hc;
@@ -129,9 +129,9 @@ EFVisitSubcircuits(subProc, cdata)
  */
 
 int
-efVisitSubcircuits(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efVisitSubcircuits(
+    HierContext *hc,
+    CallArg *ca)
 {
     /* Look for children of this def which are defined	*/
     /* as subcircuits via the DEF_SUBCIRCUIT flag.	*/
@@ -172,10 +172,10 @@ efVisitSubcircuits(hc, ca)
  */
 
 void
-EFGetLengthAndWidth(dev, lptr, wptr)
-    Dev *dev;
-    int *lptr;
-    int *wptr;
+EFGetLengthAndWidth(
+    Dev *dev,
+    int *lptr,
+    int *wptr)
 {
     DevTerm *gate, *source, *drain;
     int area, perim, l, w;
@@ -300,9 +300,9 @@ EFVisitDevs(
  */
 
 int
-efVisitDevs(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efVisitDevs(
+    HierContext *hc,
+    CallArg *ca)
 {
     Def *def = hc->hc_use->use_def;
     Dev *dev;
@@ -355,9 +355,9 @@ efVisitDevs(hc, ca)
  */
 
 bool
-efDevKilled(dev, prefix)
-    Dev *dev;
-    HierName *prefix;
+efDevKilled(
+    Dev *dev,
+    HierName *prefix)
 {
     HierName *suffix;
     HashEntry *he;
@@ -399,9 +399,10 @@ efDevKilled(dev, prefix)
  */
 
 void
-efDevFixLW(attrs, pL, pW)
-    char *attrs;
-    int *pL, *pW;
+efDevFixLW(
+    char *attrs,
+    int *pL,
+    int *pW)
 {
     char *cp, *ep;
     char attrName, savec;
@@ -512,9 +513,9 @@ extern int efVisitSingleResist(HierContext *hc, const char *name1, const char *n
                                Connection *res, ClientData cdata); /* @typedef cb_extflat_hiersrarray_t (CallArg*) */
 
 int
-efVisitResists(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efVisitResists(
+    HierContext *hc,
+    CallArg *ca)
 {
     Def *def = hc->hc_use->use_def;
     Connection *res;
@@ -626,9 +627,9 @@ efVisitSingleResist(
  */
 
 int
-EFVisitCaps(capProc, cdata)
-    int (*capProc)();
-    ClientData cdata;
+EFVisitCaps(
+    int (*capProc)(),
+    ClientData cdata)
 {
     HashSearch hs;
     HashEntry *he;
@@ -682,9 +683,9 @@ EFVisitCaps(capProc, cdata)
  */
 
 int
-EFVisitNodes(nodeProc, cdata)
-    int (*nodeProc)();
-    ClientData cdata;
+EFVisitNodes(
+    int (*nodeProc)(),
+    ClientData cdata)
 {
     EFNode *node;
     EFNodeName *nn;
@@ -780,8 +781,8 @@ EFVisitNodes(nodeProc, cdata)
  */
 
 int
-EFNodeResist(node)
-    EFNode *node;
+EFNodeResist(
+    EFNode *node)
 {
     int n, perim, area;
     float s, fperim;
@@ -829,9 +830,11 @@ EFNodeResist(node)
  */
 
 bool
-EFLookDist(hn1, hn2, pMinDist, pMaxDist)
-    HierName *hn1, *hn2;
-    int *pMinDist, *pMaxDist;
+EFLookDist(
+    HierName *hn1,
+    HierName *hn2,
+    int *pMinDist,
+    int *pMaxDist)
 {
     Distance distKey, *dist;
     HashEntry *he;
@@ -875,9 +878,9 @@ EFLookDist(hn1, hn2, pMinDist, pMaxDist)
  */
 
 void
-EFHNOut(hierName, outf)
-    HierName *hierName;
-    FILE *outf;
+EFHNOut(
+    HierName *hierName,
+    FILE *outf)
 {
     bool trimGlob, trimLocal, convComma, convBrackets;
     char *cp, c;
@@ -923,9 +926,9 @@ EFHNOut(hierName, outf)
 }
 
 void
-efHNOutPrefix(hierName, outf)
-    HierName *hierName;
-    FILE *outf;
+efHNOutPrefix(
+    HierName *hierName,
+    FILE *outf)
 {
     char *cp, c;
 

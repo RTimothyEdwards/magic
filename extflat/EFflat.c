@@ -101,9 +101,9 @@ int efAddOneConn(HierContext *hc, char *name1, char *name2, Connection *conn, in
  */
 
 void
-EFFlatBuild(name, flags)
-    char *name;		/* Name of root def being flattened */
-    int flags;		/* Say what to flatten; see above */
+EFFlatBuild(
+    char *name,		/* Name of root def being flattened */
+    int flags)		/* Say what to flatten; see above */
 {
     efFlatRootDef = efDefLook(name);
     if (efHNStats) efHNPrintSizes("before building flattened table");
@@ -180,9 +180,9 @@ EFFlatBuild(name, flags)
 /*----------------------------------------------------------------------*/
 
 HierContext *
-EFFlatBuildOneLevel(def, flags)
-    Def *def;		/* root def being flattened */
-    int flags;
+EFFlatBuildOneLevel(
+    Def *def,		/* root def being flattened */
+    int flags)
 {
     int usecount, savecount;
     Use *use;
@@ -262,8 +262,8 @@ EFFlatBuildOneLevel(def, flags)
  */
 
 void
-EFFlatDone(func)
-    int (*func)();
+EFFlatDone(
+    int (*func)())
 {
 #ifdef	MALLOCTRACE
     /* Hash table statistics */
@@ -317,9 +317,9 @@ EFFlatDone(func)
  */
 
 int
-efFlatNodes(hc, clientData)
-    HierContext *hc;
-    ClientData clientData;
+efFlatNodes(
+    HierContext *hc,
+    ClientData clientData)
 {
     int flags = (int)CD2INT(clientData);
     int hierflags = 0;
@@ -382,8 +382,8 @@ efFlatNodes(hc, clientData)
  */
 
 int
-efFlatNodesStdCell(hc)
-    HierContext *hc;
+efFlatNodesStdCell(
+    HierContext *hc)
 {
     if (!(hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT))
     {
@@ -402,9 +402,9 @@ efFlatNodesStdCell(hc)
 }
 
 int
-efFlatNodesDeviceless(hc, cdata)
-    HierContext *hc;
-    ClientData cdata;
+efFlatNodesDeviceless(
+    HierContext *hc,
+    ClientData cdata)
 {
     int *usecount = (int *)cdata;
     int newcount;
@@ -874,8 +874,9 @@ efFlatGlobError(
 }
 
 bool
-efFlatGlobCmp(hierName1, hierName2)
-    HierName *hierName1, *hierName2;
+efFlatGlobCmp(
+    HierName *hierName1,
+    HierName *hierName2)
 {
     if (hierName1 == hierName2)
 	return FALSE;
@@ -887,8 +888,8 @@ efFlatGlobCmp(hierName1, hierName2)
 }
 
 char *
-efFlatGlobCopy(hierName)
-    HierName *hierName;
+efFlatGlobCopy(
+    HierName *hierName)
 {
     HierName *hNew;
     int size;
@@ -905,8 +906,8 @@ efFlatGlobCopy(hierName)
 }
 
 int
-efFlatGlobHash(hierName)
-    HierName *hierName;
+efFlatGlobHash(
+    HierName *hierName)
 {
     return hierName->hn_hash;
 }
@@ -931,8 +932,8 @@ efFlatGlobHash(hierName)
  */
 
 int
-efFlatKills(hc)
-    HierContext *hc;
+efFlatKills(
+    HierContext *hc)
 {
     Def *def = hc->hc_use->use_def;
     HashEntry *he;
@@ -976,8 +977,8 @@ efFlatKills(hc)
 
 
 int
-efFlatCapsDeviceless(hc)
-    HierContext *hc;
+efFlatCapsDeviceless(
+    HierContext *hc)
 {
     Connection *conn;
     int newcount;
@@ -1040,8 +1041,8 @@ efFlatCapsDeviceless(hc)
  */
 
 int
-efFlatCaps(hc)
-    HierContext *hc;
+efFlatCaps(
+    HierContext *hc)
 {
     Connection *conn;
 
@@ -1156,8 +1157,8 @@ efFlatSingleCap(
  */
 
 int
-efFlatDists(hc)
-    HierContext *hc;
+efFlatDists(
+    HierContext *hc)
 {
     Distance *dist, *distFlat, distKey;
     HashEntry *he, *heFlat;
@@ -1227,9 +1228,9 @@ HashEntry *he;
  *
  */
 void
-CapHashSetValue(he, c)
-HashEntry *he;
-double c;
+CapHashSetValue(
+HashEntry *he,
+double c)
 {
 	EFCapValue *capp = (EFCapValue *)HashGetValue(he);
 	if(capp == NULL) {

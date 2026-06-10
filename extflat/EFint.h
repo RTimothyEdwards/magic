@@ -319,12 +319,12 @@ extern void CapHashSetValue();
 	    that some ANSI C compilers introduce */
 
 extern DevParam *efGetDeviceParams();
-extern void efBuildNode();
+extern void efBuildNode(Def *def, bool isSubsnode, bool isDevSubsnode, bool isExtNode, char *nodeName, double nodeCap, int x, int y, char *layerName, char **av, int ac);
 extern void efConnectionFreeLinkedList(Connection *conn);
 extern void efConnPointFreeLinkedList(ConnectionPoint *conn);
 extern void efBuildConnect();
 extern void efBuildMerge();
-extern void efBuildResistor();
+extern void efBuildResistor(Def *def, char *nodeName1, char *nodeName2, float resistance);
 extern void efBuildCap();
 extern HierContext *EFFlatBuildOneLevel();
 
