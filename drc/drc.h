@@ -259,8 +259,8 @@ extern void drcPrintError();
 extern int drcIncludeArea();
 extern int drcExactOverlapTile();
 extern void drcInitRulesTbl();
-extern void drcAssign();
-extern void drcCifAssign();
+extern void drcAssign(DRCCookie *cookie, int dist, DRCCookie *next, TileTypeBitMask *mask, TileTypeBitMask *corner, int why, int cdist, unsigned short flags, int planeto, int planefrom);
+extern void drcCifAssign(DRCCookie *cookie, int dist, DRCCookie *next, TileTypeBitMask *mask, TileTypeBitMask *corner, int tag, int cdist, unsigned short flags, int planeto, int planefrom);
 extern int drcWhyCreate();
 
 /*
@@ -290,17 +290,17 @@ extern void DRCContinuous();
 extern void DRCCheckThis();
 extern void DRCRemovePending();
 extern void DRCPrintRulesTable();
-extern bool DRCWhy();
+extern bool DRCWhy(bool dolist, CellUse *use, Rect *area, bool findonly);
 extern void DRCPrintStats();
 extern void DRCCheck();
-extern DRCCountList *DRCCount();
+extern DRCCountList *DRCCount(CellUse *use, Rect *area, bool recurse);
 extern int  DRCFind();
 extern void DRCCatchUp();
 extern int  DRCFindInteractions();
 extern int  DRCBasicCheck();
 extern void DRCOffGridError();
 
-extern void DRCPrintStyle();
+extern void DRCPrintStyle(bool dolist, bool doforall, bool docurrent);
 extern void DRCSetStyle();
 extern void DRCLoadStyle();
 
@@ -315,7 +315,7 @@ extern void drcCifCheck();
 extern void drcCifFinal();
 extern void drcCheckAngles();
 extern void drcCheckArea();
-extern int  drcCheckMaxwidth();
+extern int  drcCheckMaxwidth(Tile *starttile, struct drcClientData *arg, DRCCookie *cptr, bool both);
 extern void drcCheckRectSize();
 extern void drcCheckOffGrid();
 extern int  LowestMaskBit();

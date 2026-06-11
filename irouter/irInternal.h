@@ -48,7 +48,7 @@ extern RouteType *irFindRouteType();
 extern RouteLayer *irFindRouteLayer();
 extern RouteContact *irFindRouteContact();
 
-extern char *irRepeatChar();
+extern char *irRepeatChar(int n, char c);
 
 /* ------------------------ Data Global to IRouter ------------------- */
 extern MazeParameters *irMazeParms;

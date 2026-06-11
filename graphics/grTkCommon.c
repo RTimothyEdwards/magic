@@ -140,8 +140,8 @@ grTkFreeFonts()
  */
 
 void
-grTkFreeCursors(glyphs)
-    GrGlyphs *glyphs;
+grTkFreeCursors(
+    GrGlyphs *glyphs)
 {
     int i;
     for (i = 0; i < glyphs->gr_num; i++)
@@ -169,8 +169,8 @@ typedef struct {
 } CursorCache;
 
 void
-grTkDefineCursor(glyphs)
-    GrGlyphs *glyphs;
+grTkDefineCursor(
+    GrGlyphs *glyphs)
 {
     char *fgname, *bgname;
     int glyphnum;
@@ -308,8 +308,8 @@ grTkDefineCursor(glyphs)
  */
 
 char *
-GrTkWindowName(mw)
-    MagWindow *mw;
+GrTkWindowName(
+    MagWindow *mw)
 {
     Tk_Window tkwind;
     char *tkname;
@@ -332,7 +332,8 @@ GrTkWindowName(mw)
  */
 
 void
-grtkFreeBackingStore(MagWindow *window)
+grtkFreeBackingStore(
+    MagWindow *window)
 {
     Pixmap pmap = (Pixmap)window->w_backingStore;
     if (pmap == (Pixmap)NULL) return;
@@ -357,7 +358,8 @@ grtkFreeBackingStore(MagWindow *window)
  */
 
 void
-grtkCreateBackingStore(MagWindow *w)
+grtkCreateBackingStore(
+    MagWindow *w)
 {
     Pixmap pmap;
     Tk_Window tkwind = (Tk_Window)w->w_grdata;
@@ -399,7 +401,9 @@ grtkCreateBackingStore(MagWindow *w)
  */
 
 bool
-grtkGetBackingStore(MagWindow *w, Rect *area)
+grtkGetBackingStore(
+    MagWindow *w,
+    Rect *area)
 {
     Pixmap pmap;
     Tk_Window tkwind = (Tk_Window)w->w_grdata;
@@ -466,7 +470,9 @@ grtkGetBackingStore(MagWindow *w, Rect *area)
  */
 
 bool
-grtkScrollBackingStore(MagWindow *w, Point *shift)
+grtkScrollBackingStore(
+    MagWindow *w,
+    Point *shift)
 {
     Pixmap pmap;
     Tk_Window tkwind = (Tk_Window)w->w_grdata;
@@ -531,7 +537,9 @@ grtkScrollBackingStore(MagWindow *w, Point *shift)
  */
 
 void
-grtkPutBackingStore(MagWindow *w, Rect *area)
+grtkPutBackingStore(
+    MagWindow *w,
+    Rect *area)
 {
     Pixmap pmap = (Pixmap)w->w_backingStore;
     Tk_Window tkwind = (Tk_Window)w->w_grdata;
@@ -615,8 +623,8 @@ grtkPutBackingStore(MagWindow *w, Rect *area)
  */
 
 char *
-GrTkGetColorByName(name)
-    char *name;
+GrTkGetColorByName(
+    char *name)
 {
     Tk_Window tkwind = Tk_MainWindow(magicinterp);
     int style, red, green, blue;
@@ -896,12 +904,12 @@ ImgLayerCreate(interp, name, argc, argv, typePtr, master, clientDataPtr)
  */
 
 static int
-ImgLayerConfigureMaster(masterPtr, objc, objv, flags)
-    LayerMaster *masterPtr;	/* Pointer to data structure describing
+ImgLayerConfigureMaster(
+    LayerMaster *masterPtr,	/* Pointer to data structure describing
 				 * overall pixmap image to (reconfigure). */
-    int objc;			/* Number of entries in objv. */
-    Tcl_Obj *const objv[];	/* Pairs of configuration options for image. */
-    int flags;			/* Flags to pass to Tk_ConfigureWidget,
+    int objc,			/* Number of entries in objv. */
+    Tcl_Obj *const objv[],	/* Pairs of configuration options for image. */
+    int flags)			/* Flags to pass to Tk_ConfigureWidget,
 				 * such as TK_CONFIG_ARGV_ONLY. */
 {
     LayerInstance *instancePtr;
@@ -963,8 +971,8 @@ ImgLayerConfigureMaster(masterPtr, objc, objv, flags)
  */
 
 void
-grDrawOffScreenBox(rect)
-    Rect *rect;
+grDrawOffScreenBox(
+    Rect *rect)
 {
     (*grDrawLinePtr)(rect->r_xbot, rect->r_ytop - 1, rect->r_xtop - 1,
 			rect->r_ytop - 1);
@@ -1003,8 +1011,8 @@ grDrawOffScreenBox(rect)
 #define LAYER_LAYOUT	3
 
 static void
-ImgLayerConfigureInstance(instancePtr)
-    LayerInstance *instancePtr;	/* Instance to reconfigure. */
+ImgLayerConfigureInstance(
+    LayerInstance *instancePtr)	/* Instance to reconfigure. */
 {
     LayerMaster *masterPtr = instancePtr->masterPtr;
     XGCValues gcValues;
@@ -1241,11 +1249,11 @@ error:
  */
 
 static int
-ImgLayerCmd(clientData, interp, objc, objv)
-    ClientData clientData;	/* Information about the image master. */
-    Tcl_Interp *interp;		/* Current interpreter. */
-    int objc;			/* Number of arguments. */
-    Tcl_Obj *const objv[];	/* Argument objects. */
+ImgLayerCmd(
+    ClientData clientData,	/* Information about the image master. */
+    Tcl_Interp *interp,		/* Current interpreter. */
+    int objc,			/* Number of arguments. */
+    Tcl_Obj *const objv[])	/* Argument objects. */
 {
     static char *layerOptions[] = {"cget", "configure", (char *) NULL};
     LayerMaster *masterPtr = (LayerMaster *) clientData;
@@ -1310,10 +1318,10 @@ ImgLayerCmd(clientData, interp, objc, objv)
  */
 
 static ClientData
-ImgLayerGet(tkwin, masterData)
-    Tk_Window tkwin;		/* Window in which the instance will be
+ImgLayerGet(
+    Tk_Window tkwin,		/* Window in which the instance will be
 				 * used. */
-    ClientData masterData;	/* Pointer to our master structure for the
+    ClientData masterData)	/* Pointer to our master structure for the
 				 * image. */
 {
     LayerMaster *masterPtr = (LayerMaster *) masterData;
@@ -1376,17 +1384,17 @@ ImgLayerGet(tkwin, masterData)
  */
 
 static void
-ImgLayerDisplay(clientData, display, drawable, imageX, imageY, width,
-	height, drawableX, drawableY)
-    ClientData clientData;	/* Pointer to LayerInstance structure for
+ImgLayerDisplay(
+    ClientData clientData,	/* Pointer to LayerInstance structure for
 				 * for instance to be displayed. */
-    Display *display;		/* Display on which to draw image. */
-    Drawable drawable;		/* Pixmap or window in which to draw image. */
-    int imageX, imageY;		/* Upper-left corner of region within image
-				 * to draw. */
-    int width, height;		/* Dimensions of region within image to draw. */
-    int drawableX, drawableY;	/* Coordinates within drawable that
-				 * correspond to imageX and imageY. */
+    Display *display,		/* Display on which to draw image. */
+    Drawable drawable,		/* Pixmap or window in which to draw image. */
+    int imageX,
+    int imageY,
+    int width,
+    int height,
+    int drawableX,
+    int drawableY)
 {
     LayerInstance *instancePtr = (LayerInstance *) clientData;
 
@@ -1420,10 +1428,10 @@ ImgLayerDisplay(clientData, display, drawable, imageX, imageY, width,
  */
 
 static void
-ImgLayerFree(clientData, display)
-    ClientData clientData;	/* Pointer to LayerInstance structure for
+ImgLayerFree(
+    ClientData clientData,	/* Pointer to LayerInstance structure for
 				 * for instance to be displayed. */
-    Display *display;		/* Display containing window that used image. */
+    Display *display)		/* Display containing window that used image. */
 {
     LayerInstance *instancePtr = (LayerInstance *) clientData;
     LayerInstance *prevPtr;
@@ -1479,8 +1487,8 @@ ImgLayerFree(clientData, display)
  */
 
 static void
-ImgLayerDelete(masterData)
-    ClientData masterData;	/* Pointer to BitmapMaster structure for
+ImgLayerDelete(
+    ClientData masterData)	/* Pointer to BitmapMaster structure for
 				 * image.  Must not have any more instances. */
 {
     LayerMaster *masterPtr = (LayerMaster *) masterData;
@@ -1515,8 +1523,8 @@ ImgLayerDelete(masterData)
  */
 
 static void
-ImgLayerCmdDeletedProc(clientData)
-    ClientData clientData;	/* Pointer to BitmapMaster structure for
+ImgLayerCmdDeletedProc(
+    ClientData clientData)	/* Pointer to BitmapMaster structure for
 				 * image. */
 {
     LayerMaster *masterPtr = (LayerMaster *) clientData;
@@ -1542,7 +1550,8 @@ ImgLayerCmdDeletedProc(clientData)
  */
 
 void
-RegisterTkCommands(Tcl_Interp *interp)
+RegisterTkCommands(
+    Tcl_Interp *interp)
 {
     Tcl_CreateCommand(interp, "magic::magiccolor",
 		(Tcl_CmdProc *)_magic_magiccolor, (ClientData)NULL,

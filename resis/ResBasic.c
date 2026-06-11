@@ -44,9 +44,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-resMakePortBreakpoints(tile, list)
-    Tile 	*tile;
-    resNode	**list;
+resMakePortBreakpoints(
+    Tile *tile,
+    resNode **list)
 {
     int		x, y;
     resNode	*resptr;
@@ -95,10 +95,10 @@ resMakePortBreakpoints(tile, list)
  */
 
 void
-ResStartTile(tile, x, y)
-    Tile 	*tile;
-    int		x, y;
-
+ResStartTile(
+    Tile *tile,
+    int x,
+    int y)
 {
     resNode	*resptr;
 
@@ -135,9 +135,9 @@ ResStartTile(tile, x, y)
 #define IGNORE_BOTTOM	8
 
 bool
-ResEachTile(tile, devNodeTable)
-    Tile 	*tile;			/* Tile being processed */
-    HashTable	*devNodeTable;		/* Table of tiles connected to devices */
+ResEachTile(
+    Tile 	*tile,			/* Tile being processed */
+    HashTable	*devNodeTable)		/* Table of tiles connected to devices */
 {
     Tile 	*tp;
     resNode	*resptr;

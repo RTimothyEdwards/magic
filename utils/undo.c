@@ -228,11 +228,11 @@ extern void undoMemTruncate();
  */
 
 bool
-UndoInit(logFileName, mode)
-    char *logFileName;	/* Name of log file.  This may contain tilde
+UndoInit(
+    char *logFileName,	/* Name of log file.  This may contain tilde
 			 * abbreviations.
 			 */
-    char *mode;		/* Mode for opening.  Must be "r", "rw", or "w" */
+    char *mode)		/* Mode for opening.  Must be "r", "rw", or "w" */
 {
     UndoDisableCount = 0;
     undoLogTail = NULL;
@@ -330,13 +330,14 @@ UndoInit(logFileName, mode)
  */
 
 UndoType
-UndoAddClient(init, done, readEvent, writeEvent, forwEvent, backEvent, name)
-    void (*init)();
-    void (*done)();
-    UndoEvent *(*readEvent)();
-    int (*writeEvent)();
-    void (*forwEvent)(), (*backEvent)();
-    char *name;
+UndoAddClient(
+    void (*init)(),
+    void (*done)(),
+    UndoEvent * (*readEvent)(),
+    int (*writeEvent)(),
+    void (*forwEvent)(),
+    void (*backEvent)(),
+    char *name)
 {
     if (undoNumClients >= MAXUNDOCLIENTS)
 	return ((UndoType) -1);
@@ -464,9 +465,9 @@ UndoEnable()
  */
 
 UndoEvent *
-UndoNewEvent(clientType, size)
-    UndoType clientType;	/* Type of event to allocate */
-    unsigned int size;		/* Number of bytes of client data to allocate */
+UndoNewEvent(
+    UndoType clientType,	/* Type of event to allocate */
+    unsigned int size)		/* Number of bytes of client data to allocate */
 {
     internalUndoEvent *iup;
     int usize;
@@ -567,8 +568,8 @@ UndoNext()
  */
 
 int
-UndoBackward(n)
-    int n;		/* Number of events to unplay */
+UndoBackward(
+    int n)		/* Number of events to unplay */
 {
     internalUndoEvent *iup;
     int client, count;
@@ -649,8 +650,8 @@ UndoBackward(n)
  */
 
 int
-UndoForward(n)
-    int n;		/* Number of events to replay */
+UndoForward(
+    int n)		/* Number of events to replay */
 {
     internalUndoEvent *iup;
     int count, client;
@@ -729,8 +730,8 @@ done:
  */
 
 internalUndoEvent *
-undoGetForw(iup)
-    internalUndoEvent *iup;
+undoGetForw(
+    internalUndoEvent *iup)
 {
     if (iup != (internalUndoEvent *) NULL)
     {
@@ -775,8 +776,8 @@ undoGetForw(iup)
  */
 
 internalUndoEvent *
-undoGetBack(iup)
-    internalUndoEvent *iup;
+undoGetBack(
+    internalUndoEvent *iup)
 {
     if (iup == (internalUndoEvent *) NULL) return (iup);
     if (iup->iue_back != (internalUndoEvent *) NULL) return (iup->iue_back);
@@ -913,8 +914,8 @@ undoMemTruncate()
  */
 
 void
-undoPrintEvent(iup)
-    internalUndoEvent *iup;
+undoPrintEvent(
+    internalUndoEvent *iup)
 {
     char *client_name;
     if (iup->iue_type < 0)
@@ -930,9 +931,9 @@ undoPrintEvent(iup)
 /* the end of the stack.  Otherwise, print the next n events.		*/
 
 void
-undoPrintForw(iup, n)
-    internalUndoEvent *iup;
-    int n;
+undoPrintForw(
+    internalUndoEvent *iup,
+    int n)
 {
     int i = 0;
 
@@ -953,9 +954,9 @@ undoPrintForw(iup, n)
 /* the beginning of the stack.  Otherwise, print the previous n events.	*/
 
 void
-undoPrintBack(iup, n)
-    internalUndoEvent *iup;
-    int n;
+undoPrintBack(
+    internalUndoEvent *iup,
+    int n)
 {
     int i = 0;
 
@@ -977,8 +978,8 @@ undoPrintBack(iup, n)
 /* and n = 0 (backward).						*/
 
 void
-UndoStackTrace(n)
-    int n;
+UndoStackTrace(
+    int n)
 {
     if (n < 0)
        undoPrintBack(undoLogCur, -(n + 1));

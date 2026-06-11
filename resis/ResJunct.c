@@ -48,12 +48,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-ResNewTermDevice(tile, tp, n, xj, yj, direction, PendingList)
-    Tile 	*tile, *tp;
-    int 	n;			/* Terminal index */
-    int		xj, yj;			/* Location of connection */
-    int		direction;		/* Direction of current */
-    resNode	**PendingList;
+ResNewTermDevice(
+    Tile *tile,
+    Tile *tp,
+    int 	n,			/* Terminal index */
+    int xj,
+    int yj,
+    int		direction,		/* Direction of current */
+    resNode	**PendingList)
 {
     resNode	*resptr = NULL;
     resDevice	*resDev;
@@ -132,10 +134,13 @@ ResNewTermDevice(tile, tp, n, xj, yj, direction, PendingList)
  */
 
 void
-ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
-    Tile 	*tile, *tp;
-    int 	xj, yj, direction;
-    resNode	**PendingList;
+ResNewSubDevice(
+    Tile *tile,
+    Tile *tp,
+    int xj,
+    int yj,
+    int direction,
+    resNode **PendingList)
 {
     resNode	*resptr;
     resDevice	*resDev;
@@ -185,10 +190,12 @@ ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
  */
 
 void
-ResProcessJunction(tile, tp, xj, yj, NodeList)
-    Tile 	*tile, *tp;
-    int		xj, yj;
-    resNode	**NodeList;
+ResProcessJunction(
+    Tile *tile,
+    Tile *tp,
+    int xj,
+    int yj,
+    resNode **NodeList)
 {
     ResJunction *junction;
     resNode	*resptr;

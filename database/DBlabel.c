@@ -43,7 +43,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "commands/commands.h"
 #include "textio/textio.h"
 
-static TileType DBPickLabelLayer(/* CellDef *def, Label *lab, bool doCalma */);
+static TileType DBPickLabelLayer(CellDef *def, Label *lab, bool doCalma);
 
 /* Globally-accessible font information */
 
@@ -68,8 +68,8 @@ int DBNumFonts = 0;
  */
 
 bool
-DBIsSubcircuit(cellDef)
-    CellDef *cellDef;
+DBIsSubcircuit(
+    CellDef *cellDef)
 {
     Label *lab;
 
@@ -94,14 +94,14 @@ DBIsSubcircuit(cellDef)
  */
 
 Label *
-DBPutLabel(cellDef, rect, align, text, type, flags, port)
-    CellDef *cellDef;
-    Rect *rect;
-    int align;
-    char *text;
-    TileType type;
-    unsigned short flags;
-    unsigned int port;
+DBPutLabel(
+    CellDef *cellDef,
+    Rect *rect,
+    int align,
+    char *text,
+    TileType type,
+    unsigned short flags,
+    unsigned int port)
 {
     /* Draw text in a standard X11 font */
     return DBPutFontLabel(cellDef, rect, -1, 0, 0, &GeoOrigin,
@@ -132,21 +132,21 @@ DBPutLabel(cellDef, rect, align, text, type, flags, port)
  * ----------------------------------------------------------------------------
  */
 Label *
-DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags, port)
-    CellDef *cellDef;	/* Cell in which label is placed */
-    Rect *rect;		/* Location of label; see above for description */
-    int font;		/* A vector outline font to use, or -1 for X11 font */
-    int size;		/* Scale of vector font relative to the database (x8) */
-    int rot;		/* Rotate of the vector font in degrees */
-    Point *offset;	/* Offset of the font from the point of origin */
-    int align;		/* Orientation/alignment of text.  If this is < 0,
+DBPutFontLabel(
+    CellDef *cellDef,	/* Cell in which label is placed */
+    Rect *rect,		/* Location of label; see above for description */
+    int font,		/* A vector outline font to use, or -1 for X11 font */
+    int size,		/* Scale of vector font relative to the database (x8) */
+    int rot,		/* Rotate of the vector font in degrees */
+    Point *offset,	/* Offset of the font from the point of origin */
+    int align,		/* Orientation/alignment of text.  If this is < 0,
 			 * an orientation will be picked to keep the text
 			 * inside the cell boundary.
 			 */
-    char *text;		/* Pointer to actual text of label */
-    TileType type;	/* Type of tile to be labelled */
-    unsigned short flags; /* Label flags */
-    unsigned int port;	/* Port index (if label is a port, per the flags) */
+    char *text,		/* Pointer to actual text of label */
+    TileType type,	/* Type of tile to be labelled */
+    unsigned short flags, /* Label flags */
+    unsigned int port)	/* Port index (if label is a port, per the flags) */
 {
     Label *lab;
     int len, x1, x2, y1, y2, tmp, labx, laby;
@@ -262,17 +262,17 @@ DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags,
  */
 
 bool
-DBEraseGlobLabel(cellDef, area, mask, areaReturn, globmatch)
-    CellDef *cellDef;		/* Cell being modified */
-    Rect *area;			/* Area from which labels are to be erased.
+DBEraseGlobLabel(
+    CellDef *cellDef,		/* Cell being modified */
+    Rect *area,			/* Area from which labels are to be erased.
 				 * This may be a point; any labels touching
 				 * or overlapping it are erased.
 				 */
-    TileTypeBitMask *mask;	/* Mask of types from which labels are to
+    TileTypeBitMask *mask,	/* Mask of types from which labels are to
 				 * be erased.
 				 */
-    Rect *areaReturn;		/* Expand this with label bounding box */
-    char *globmatch;		/* If non-NULL, do glob-style matching of
+    Rect *areaReturn,		/* Expand this with label bounding box */
+    char *globmatch)		/* If non-NULL, do glob-style matching of
 				 * any label against this string.
 				 */
 {
@@ -353,16 +353,16 @@ DBEraseGlobLabel(cellDef, area, mask, areaReturn, globmatch)
  */
 
 bool
-DBEraseLabel(cellDef, area, mask, areaReturn)
-    CellDef *cellDef;		/* Cell being modified */
-    Rect *area;			/* Area from which labels are to be erased.
+DBEraseLabel(
+    CellDef *cellDef,		/* Cell being modified */
+    Rect *area,			/* Area from which labels are to be erased.
 				 * This may be a point; any labels touching
 				 * or overlapping it are erased.
 				 */
-    TileTypeBitMask *mask;	/* Mask of types from which labels are to
+    TileTypeBitMask *mask,	/* Mask of types from which labels are to
 				 * be erased.
 				 */
-    Rect *areaReturn;		/* Expand this with label bounding box */
+    Rect *areaReturn)		/* Expand this with label bounding box */
 {
     return DBEraseGlobLabel(cellDef, area, mask, areaReturn, NULL);
 }
@@ -385,15 +385,15 @@ DBEraseLabel(cellDef, area, mask, areaReturn)
  */
 
 Label *
-DBCheckLabelsByContent(def, rect, type, text)
-    CellDef *def;		/* Where to look for label to delete. */
-    Rect *rect;			/* Coordinates of label.  If NULL, then
+DBCheckLabelsByContent(
+    CellDef *def,		/* Where to look for label to delete. */
+    Rect *rect,			/* Coordinates of label.  If NULL, then
 				 * labels are searched regardless of coords.
 				 */
-    TileType type;		/* Layer label is attached to.  If < 0, then
+    TileType type,		/* Layer label is attached to.  If < 0, then
 				 * labels are searched regardless of type.
 				 */
-    char *text;			/* Text associated with label.  If NULL, then
+    char *text)			/* Text associated with label.  If NULL, then
 				 * labels are searched regardless of text.
 				 */
 {
@@ -430,15 +430,15 @@ DBCheckLabelsByContent(def, rect, type, text)
  */
 
 void
-DBEraseLabelsByContent(def, rect, type, text)
-    CellDef *def;		/* Where to look for label to delete. */
-    Rect *rect;			/* Coordinates of label.  If NULL, then
+DBEraseLabelsByContent(
+    CellDef *def,		/* Where to look for label to delete. */
+    Rect *rect,			/* Coordinates of label.  If NULL, then
 				 * labels are deleted regardless of coords.
 				 */
-    TileType type;		/* Layer label is attached to.  If < 0, then
+    TileType type,		/* Layer label is attached to.  If < 0, then
 				 * labels are deleted regardless of type.
 				 */
-    char *text;			/* Text associated with label.  If NULL, then
+    char *text)			/* Text associated with label.  If NULL, then
 				 * labels are deleted regardless of text.
 				 */
 {
@@ -493,9 +493,9 @@ DBEraseLabelsByContent(def, rect, type, text)
  */
 
 void
-DBRemoveLabel(def, refLab)
-    CellDef *def;		/* Where to look for label to delete. */
-    Label *refLab;
+DBRemoveLabel(
+    CellDef *def,		/* Where to look for label to delete. */
+    Label *refLab)
 {
     Label *lab, *labPrev;
 
@@ -544,12 +544,12 @@ DBRemoveLabel(def, refLab)
  */
 
 void
-DBReOrientLabel(cellDef, area, newPos)
-    CellDef *cellDef;		/* Cell whose labels are to be modified. */
-    Rect *area;			/* All labels touching this area have their
+DBReOrientLabel(
+    CellDef *cellDef,		/* Cell whose labels are to be modified. */
+    Rect *area,			/* All labels touching this area have their
 				 * text positions changed.
 				 */
-    int newPos;			/* New text positions for all labels in
+    int newPos)			/* New text positions for all labels in
 				 * the area, for example, GEO_NORTH.
 				 */
 {
@@ -584,10 +584,10 @@ DBReOrientLabel(cellDef, area, newPos)
  */
 
 int
-dbGetLabelArea(tile, dinfo, area)
-    Tile *tile;		/* Tile found. */
-    TileType dinfo;	/* Split tile information (unused) */
-    Rect *area;		/* Area to be modified. */
+dbGetLabelArea(
+    Tile *tile,		/* Tile found. */
+    TileType dinfo,	/* Split tile information (unused) */
+    Rect *area)		/* Area to be modified. */
 {
     Rect r;
     
@@ -617,10 +617,10 @@ dbGetLabelArea(tile, dinfo, area)
  */
 
 int
-dbLabelNotEmpty(tile, dinfo, clientData)
-    Tile *tile;		/* Tile found. */
-    TileType dinfo;	/* Split tile information (unused) */
-    ClientData clientData;	/* (unused) */
+dbLabelNotEmpty(
+    Tile *tile,		/* Tile found. */
+    TileType dinfo,	/* Split tile information (unused) */
+    ClientData clientData)	/* (unused) */
 {
     return 1;
 }
@@ -648,9 +648,9 @@ dbLabelNotEmpty(tile, dinfo, clientData)
  */
 
 void
-DBAdjustLabels(def, area)
-    CellDef *def;		/* Cell whose paint was changed. */
-    Rect *area;			/* Area where paint was modified. */
+DBAdjustLabels(
+    CellDef *def,		/* Cell whose paint was changed. */
+    Rect *area)			/* Area where paint was modified. */
 {
     Label *lab;
     TileType newType;
@@ -759,9 +759,9 @@ DBAdjustLabels(def, area)
  */
 
 void
-DBAdjustLabelsNew(def, area)
-    CellDef *def;	/* Cell whose paint was changed. */
-    Rect *area;		/* Area where paint was modified. */
+DBAdjustLabelsNew(
+    CellDef *def,	/* Cell whose paint was changed. */
+    Rect *area)		/* Area where paint was modified. */
 {
     Label *lab, *labPrev;
     TileType newType;
@@ -863,10 +863,10 @@ TileTypeBitMask *dbAdjustPlaneTypes;	/* Mask of all types in current
 					 * plane being searched.
 					 */
 TileType
-DBPickLabelLayer(def, lab, doCalma)
-    CellDef *def;		/* Cell definition containing label. */
-    Label *lab;			/* Label for which a home must be found. */
-    bool doCalma;        	/* if TRUE, use rules for GDS and LEF */
+DBPickLabelLayer(
+    CellDef *def,		/* Cell definition containing label. */
+    Label *lab,			/* Label for which a home must be found. */
+    bool doCalma)        	/* if TRUE, use rules for GDS and LEF */
 {
     TileTypeBitMask types[3], types2[3];
     Rect check1, check2;
@@ -1116,10 +1116,10 @@ DBPickLabelLayer(def, lab, doCalma)
  */
 
 int
-dbPickFunc1(tile, dinfo, mask)
-    Tile *tile;			/* Tile found. */
-    TileType dinfo;		/* Split tile information */
-    TileTypeBitMask *mask;	/* Mask to be modified. */
+dbPickFunc1(
+    Tile *tile,			/* Tile found. */
+    TileType dinfo,		/* Split tile information */
+    TileTypeBitMask *mask)	/* Mask to be modified. */
 {
     TileType type;
 
@@ -1143,10 +1143,10 @@ dbPickFunc1(tile, dinfo, mask)
  */
 
 int
-dbPickFunc2(tile, dinfo, mask)
-    Tile *tile;			/* Tile found. */
-    TileType dinfo;		/* Split tile information */
-    TileTypeBitMask *mask;	/* Mask to be modified. */
+dbPickFunc2(
+    Tile *tile,			/* Tile found. */
+    TileType dinfo,		/* Split tile information */
+    TileTypeBitMask *mask)	/* Mask to be modified. */
 {
     TileType type;
     TileTypeBitMask tmp, *rMask;
@@ -1230,9 +1230,9 @@ DBFontInitCurves()
  */
 
 void
-CalcBezierPoints(fp, bp)
-    FontPath *fp;		/* Pointer to last point of closed path */
-    FontPath *bp;		/* Pointer to 1st of 3 bezier control points */
+CalcBezierPoints(
+    FontPath *fp,		/* Pointer to last point of closed path */
+    FontPath *bp)		/* Pointer to 1st of 3 bezier control points */
 {
     FontPath *newPath, *curPath;
     Point *beginPath, *ctrl1, *ctrl2, *endPath;
@@ -1286,8 +1286,8 @@ CalcBezierPoints(fp, bp)
  */
 
 char *
-dbGetToken(ff)
-    FILE *ff;
+dbGetToken(
+    FILE *ff)
 {
     static char line[512];
     static char *lineptr = NULL;
@@ -1351,8 +1351,8 @@ dbGetToken(ff)
  */
 
 void
-DBFontLabelSetBBox(label)
-    Label *label;
+DBFontLabelSetBBox(
+    Label *label)
 {
     char *tptr;
     Point *coffset, rcenter;
@@ -1511,12 +1511,12 @@ DBFontLabelSetBBox(label)
  */
 
 int
-DBFontChar(font, ccode, clist, coffset, cbbox)
-    int font;		/* Index of font */
-    char ccode;		/* ASCII character code */
-    FontChar **clist;	/* Return vector list here */
-    Point    **coffset; /* Return position offset here */
-    Rect     **cbbox;	/* Return bounding box here */
+DBFontChar(
+    int font,		/* Index of font */
+    char ccode,		/* ASCII character code */
+    FontChar **clist,	/* Return vector list here */
+    Point    **coffset, /* Return position offset here */
+    Rect     **cbbox)	/* Return bounding box here */
 {
 
     if (font < 0 || font >= DBNumFonts) return - 1;
@@ -1548,8 +1548,8 @@ DBFontChar(font, ccode, clist, coffset, cbbox)
  */
 
 int
-DBNameToFont(name)
-    char *name;
+DBNameToFont(
+    char *name)
 {
     int i;
     for (i = 0; i < DBNumFonts; i++)
@@ -1585,9 +1585,9 @@ DBNameToFont(name)
 #define NUMBUF 16
 
 int
-DBLoadFont(fontfile, scale)
-    char *fontfile;
-    float scale;
+DBLoadFont(
+    char *fontfile,
+    float scale)
 {
     FILE *ff;
     const char * const ascii_names[] = {

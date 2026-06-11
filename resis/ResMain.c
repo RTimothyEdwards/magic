@@ -144,8 +144,8 @@ ResGetReCell()
  *------------------------------------------------------------------------
  */
 void
-ResDissolveContacts(contacts)
-    ResContactPoint *contacts;
+ResDissolveContacts(
+    ResContactPoint *contacts)
 {
     TileType t, conttype;
     Tile *tp;
@@ -226,8 +226,8 @@ typedef struct driversinkdata {
  */
 
 void
-ResMakeDriverSinkPorts(def)
-    CellDef *def;
+ResMakeDriverSinkPorts(
+    CellDef *def)
 {
     Plane	*plane;
     Rect	*rect;
@@ -359,10 +359,10 @@ ResMakeDriverSinkPorts(def)
  */
 
 int
-ResAddPortFunc(tile, dinfo, dsd)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    DriverSinkData *dsd;	/* Data for driver or sink */
+ResAddPortFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    DriverSinkData *dsd)	/* Data for driver or sink */
 {
     resPort *rp;
     resInfo *pX;
@@ -432,9 +432,9 @@ typedef struct reslabeldata {
  */
 
 void
-ResMakeLabelPorts(def, resisdata)
-    CellDef 	*def;
-    ResisData   *resisdata;
+ResMakeLabelPorts(
+    CellDef *def,
+    ResisData *resisdata)
 {
     Plane	*plane;
     TileTypeBitMask mask;
@@ -526,10 +526,10 @@ ResMakeLabelPorts(def, resisdata)
  */
 
 int
-ResAddLabelFunc(tile, dinfo, rld)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ResLabelData *rld;		/* Label and node data */
+ResAddLabelFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ResLabelData *rld)		/* Label and node data */
 {
     resPort *rp;
     resInfo *pX;
@@ -586,8 +586,8 @@ ResAddLabelFunc(tile, dinfo, rld)
  */
 
 void
-ResFindNewContactTiles(contacts)
-    ResContactPoint *contacts;
+ResFindNewContactTiles(
+    ResContactPoint *contacts)
 {
     int pNum;
     Tile *tile;
@@ -697,10 +697,10 @@ ResFindNewContactTiles(contacts)
  */
 
 int
-ResProcessTiles(resisdata, origin, devNodeTable)
-    ResisData	*resisdata;
-    Point	*origin;
-    HashTable	*devNodeTable;
+ResProcessTiles(
+    ResisData *resisdata,
+    Point *origin,
+    HashTable *devNodeTable)
 {
     Tile 	*startTile;
     int 	tilenum, merged;
@@ -841,9 +841,9 @@ ResProcessTiles(resisdata, origin, devNodeTable)
  */
 
 void
-ResCalcPerimOverlap(tile, dev)
-    Tile	*tile;
-    ResDevTile	*dev;
+ResCalcPerimOverlap(
+    Tile *tile,
+    ResDevTile *dev)
 {
     Tile	    *tp;
     int		    t1;
@@ -902,10 +902,10 @@ ResCalcPerimOverlap(tile, dev)
  */
 
 int
-resMakeDevFunc(tile, dinfo, cx)
-    Tile	*tile;
-    TileType	dinfo;
-    TreeContext *cx;
+resMakeDevFunc(
+    Tile *tile,
+    TileType dinfo,
+    TreeContext *cx)
 {
     ResDevTile	*thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
     Rect	devArea;
@@ -971,10 +971,10 @@ resMakeDevFunc(tile, dinfo, cx)
 #define IGNORE_BOTTOM	8
 
 int
-resExpandDevFunc(tile, dinfo, cx)
-    Tile	*tile;
-    TileType	dinfo;		/* Split tile information (unused) */
-    TreeContext *cx;
+resExpandDevFunc(
+    Tile	*tile,
+    TileType	dinfo,		/* Split tile information (unused) */
+    TreeContext *cx)
 {
     ResDevTile	    *thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
     static Stack    *devExtentsStack = NULL;
@@ -1132,10 +1132,10 @@ resExpandDevFunc(tile, dinfo, cx)
  */
 
 int
-ResShaveContacts(tile, dinfo, def)
-    Tile *tile;
-    TileType dinfo;	/* (unused, see comment below) */
-    CellDef *def;
+ResShaveContacts(
+    Tile *tile,
+    TileType dinfo,	/* (unused, see comment below) */
+    CellDef *def)
 {
     TileType ttype;
     TileTypeBitMask *rmask;
@@ -1194,10 +1194,10 @@ ResShaveContacts(tile, dinfo, def)
  */
 
 bool
-ResExtractNet(node, resisdata, cellname)
-    ResExtNode		*node;
-    ResisData		*resisdata;
-    char		*cellname;
+ResExtractNet(
+    ResExtNode *node,
+    ResisData *resisdata,
+    char *cellname)
 {
     SearchContext 	scx;
     TileTypeBitMask	FirstTileMask;
@@ -1595,10 +1595,10 @@ ResCleanUpEverything()
  */
 
 int
-ResGetTileFunc(tile, dinfo, tpptr)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    Tile **tpptr;
+ResGetTileFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    Tile **tpptr)
 {
     /* To simplify processing, if a split tile does not have TT_SPACE
      * on either side, then only the left side is processed.
@@ -1641,9 +1641,9 @@ ResGetTileFunc(tile, dinfo, tpptr)
  */
 
 Tile *
-FindStartTile(resisdata, SourcePoint)
-    ResisData		*resisdata;
-    Point		*SourcePoint;
+FindStartTile(
+    ResisData *resisdata,
+    Point *SourcePoint)
 {
     Point	workingPoint;
     Tile	*tile, *tp;
@@ -2054,9 +2054,9 @@ FindStartTile(resisdata, SourcePoint)
  */
 
 resDevice *
-ResGetDevice(pt, type)
-    Point	*pt;
-    TileType	type;
+ResGetDevice(
+    Point *pt,
+    TileType type)
 {
     Point   workingPoint;
     Tile    *tile;

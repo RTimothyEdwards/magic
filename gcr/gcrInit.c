@@ -69,8 +69,8 @@ void gcrLinkPin();
  */
 
 void
-gcrSetEndDist(ch)
-    GCRChannel *ch;	/* The channel to be routed */
+gcrSetEndDist(
+    GCRChannel *ch)	/* The channel to be routed */
 {
     int rightTotal, multiTotal;
     GCRNet *net;
@@ -118,8 +118,8 @@ gcrSetEndDist(ch)
  */
 
 void
-gcrBuildNets(ch)
-    GCRChannel	* ch;
+gcrBuildNets(
+    GCRChannel	* ch)
 {
     HashTable ht;
     int i;
@@ -165,10 +165,10 @@ gcrBuildNets(ch)
  */
 
 void
-gcrLinkPin(pin, ht, ch)
-    GCRPin *pin;
-    HashTable *ht;
-    GCRChannel *ch;
+gcrLinkPin(
+    GCRPin *pin,
+    HashTable *ht,
+    GCRChannel *ch)
 {
     GCRNet *net;
     GCRNet *gcrNewNet();
@@ -231,8 +231,8 @@ gcrLinkPin(pin, ht, ch)
  */
 
 void
-gcrUnlinkPin(pin)
-    GCRPin *pin;
+gcrUnlinkPin(
+    GCRPin *pin)
 {
     GCRNet *net;
 
@@ -268,8 +268,8 @@ gcrUnlinkPin(pin)
  */
 
 int
-gcrDensity(ch)
-    GCRChannel *ch;
+gcrDensity(
+    GCRChannel *ch)
 {
     int density, i, last, maxVal;
     unsigned lenWds;
@@ -340,9 +340,9 @@ gcrDensity(ch)
  */
 
 void
-gcrInitCol(ch, edgeArray)
-    GCRChannel *ch;
-    GCRPin *edgeArray;	/* Nets at left edge of channel if non-NULL */
+gcrInitCol(
+    GCRChannel *ch,
+    GCRPin *edgeArray)	/* Nets at left edge of channel if non-NULL */
 {
     GCRNet *net;
     GCRColEl *col;

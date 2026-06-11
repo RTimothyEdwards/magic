@@ -52,11 +52,11 @@ bool ResCalcEastWest();
  */
 
 bool
-ResCalcTileResistance(tile, info, pendingList, doneList)
-    Tile 	*tile;
-    resInfo 	*info;
-    resNode	**pendingList, **doneList;
-
+ResCalcTileResistance(
+    Tile *tile,
+    resInfo *info,
+    resNode **pendingList,
+    resNode **doneList)
 {
     int 	MaxX = MINFINITY, MinX = INFINITY;
     int		MaxY = MINFINITY, MinY = INFINITY;
@@ -119,10 +119,11 @@ ResCalcTileResistance(tile, info, pendingList, doneList)
  */
 
 bool
-ResCalcEastWest(tile, pendingList, doneList, resList)
-    Tile	*tile;
-    resNode	**pendingList, **doneList;
-    resResistor	**resList;
+ResCalcEastWest(
+    Tile *tile,
+    resNode **pendingList,
+    resNode **doneList,
+    resResistor **resList)
 {
     int 	count, height;
     bool	merged;
@@ -331,10 +332,11 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
  */
 
 bool
-ResCalcNorthSouth(tile, pendingList, doneList, resList)
-    Tile	*tile;
-    resNode	**pendingList, **doneList;
-    resResistor	**resList;
+ResCalcNorthSouth(
+    Tile *tile,
+    resNode **pendingList,
+    resNode **doneList,
+    resResistor **resList)
 {
     int 	count, width;
     bool	merged;
@@ -544,11 +546,11 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
  */
 
 bool
-ResCalcNearDevice(tile, pendingList, doneList, resList)
-    Tile	*tile;
-    resNode	**pendingList, **doneList;
-    resResistor	**resList;
-
+ResCalcNearDevice(
+    Tile *tile,
+    resNode **pendingList,
+    resNode **doneList,
+    resResistor **resList)
 {
     bool 	merged;
     int		devcount, devedge, deltax, deltay;
@@ -853,10 +855,10 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
  */
 
 void
-ResDoContacts(contact, nodes, resList)
-    ResContactPoint	*contact;
-    resNode		**nodes;
-    resResistor		**resList;
+ResDoContacts(
+    ResContactPoint *contact,
+    resNode **nodes,
+    resResistor **resList)
 {
     resNode	 *resptr;
     cElement	 *ccell;
@@ -1136,7 +1138,9 @@ SplitList(
  */
 
 Breakpoint *
-MergeSortBreaks(Breakpoint *list, int xsort)
+MergeSortBreaks(
+    Breakpoint *list,
+    int xsort)
 {
     Breakpoint *a, *b;
 
@@ -1172,9 +1176,9 @@ MergeSortBreaks(Breakpoint *list, int xsort)
  */
 
 int
-ResSortBreaks(masterlist, xsort)
-    Breakpoint	**masterlist;
-    int		xsort;
+ResSortBreaks(
+    Breakpoint **masterlist,
+    int xsort)
 {
     Breakpoint	*p1, *p2, *p3, *p4;
     bool	changed;

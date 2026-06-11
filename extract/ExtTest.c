@@ -105,9 +105,9 @@ void extShowConnect(char *, TileTypeBitMask *, FILE *);
  */
 
 void
-ExtractTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+ExtractTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     extern long extSubtreeTotalArea;
     extern long extSubtreeInteractionArea;
@@ -316,10 +316,10 @@ ExtractTest(w, cmd)
 }
 
 int
-extShowInter(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+extShowInter(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     Rect r;
 
@@ -351,8 +351,8 @@ extShowInter(tile, dinfo, clientdata)
  */
 
 void
-extShowTech(name)
-    char *name;
+extShowTech(
+    char *name)
 {
     FILE *out;
     TileType t, s;
@@ -489,10 +489,10 @@ extShowTech(name)
 }
 
 void
-extShowTrans(name, mask, out)
-    char *name;
-    TileTypeBitMask *mask;
-    FILE *out;
+extShowTrans(
+    char *name,
+    TileTypeBitMask *mask,
+    FILE *out)
 {
     TileType t;
 
@@ -518,10 +518,10 @@ extShowTrans(name, mask, out)
 }
 
 void
-extShowConnect(hdr, connectsTo, out)
-    char *hdr;
-    TileTypeBitMask *connectsTo;
-    FILE *out;
+extShowConnect(
+    char *hdr,
+    TileTypeBitMask *connectsTo,
+    FILE *out)
 {
     TileType t;
 
@@ -536,9 +536,9 @@ extShowConnect(hdr, connectsTo, out)
 }
 
 void
-extShowMask(m, out)
-    TileTypeBitMask *m;
-    FILE *out;
+extShowMask(
+    TileTypeBitMask *m,
+    FILE *out)
 {
     TileType t;
     bool first = TRUE;
@@ -554,9 +554,9 @@ extShowMask(m, out)
 }
 
 void
-extShowPlanes(m, out)
-    PlaneMask m;
-    FILE *out;
+extShowPlanes(
+    PlaneMask m,
+    FILE *out)
 {
     int pNum;
     bool first = TRUE;
@@ -589,9 +589,9 @@ extShowPlanes(m, out)
  */
 
 void
-extDispInit(def, w)
-    CellDef *def;
-    MagWindow *w;
+extDispInit(
+    CellDef *def,
+    MagWindow *w)
 {
     extDebugWindow = w;
     extCellDef = def;
@@ -618,9 +618,9 @@ extDispInit(def, w)
  */
 
 void
-extShowEdge(s, bp)
-    char *s;
-    Boundary *bp;
+extShowEdge(
+    char *s,
+    Boundary *bp)
 {
     Rect extScreenRect, edgeRect;
     int style = STYLE_PURPLE1;
@@ -679,10 +679,10 @@ extShowEdge(s, bp)
  */
 
 void
-extShowTile(tile, s, style_index)
-    Tile *tile;
-    char *s;
-    int style_index;
+extShowTile(
+    Tile *tile,
+    char *s,
+    int style_index)
 {
     Rect tileRect;
     static int styles[] = { STYLE_PALEHIGHLIGHTS, STYLE_DOTTEDHIGHLIGHTS };
@@ -697,9 +697,9 @@ extShowTile(tile, s, style_index)
 }
 
 bool
-extShowRect(r, style)
-    Rect *r;
-    int style;
+extShowRect(
+    Rect *r,
+    int style)
 {
     Rect extScreenRect;
 
@@ -731,10 +731,10 @@ extMore()
 }
 
 void
-extNewYank(name, puse, pdef)
-    char *name;
-    CellUse **puse;
-    CellDef **pdef;
+extNewYank(
+    char *name,
+    CellUse **puse,
+    CellDef **pdef)
 {
     DBNewYank(name, puse, pdef);
 }
@@ -746,8 +746,8 @@ extNewYank(name, puse, pdef)
  */
 
 void
-ExtDumpCapsToFile(f)
-    FILE *f;
+ExtDumpCapsToFile(
+    FILE *f)
 {
     TileType t, s, r;
     EdgeCap *e;
@@ -1093,8 +1093,8 @@ ExtDumpCapsToFile(f)
  */
 
 void
-ExtDumpCaps(filename)
-    char *filename;
+ExtDumpCaps(
+    char *filename)
 {
     TileType t, s, r;
     EdgeCap *e;

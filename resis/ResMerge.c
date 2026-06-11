@@ -42,9 +42,8 @@ extern void ResFixBreakPoint();
  */
 
 void
-ResDoneWithNode(resptr)
-    resNode *resptr;
-
+ResDoneWithNode(
+    resNode *resptr)
 {
     int		status;
     resNode	*resptr2;
@@ -136,10 +135,12 @@ ResDoneWithNode(resptr)
  */
 
 void
-ResFixRes(resptr, resptr2, resptr3, elimResis, newResis)
-    resNode *resptr, *resptr2, *resptr3;
-    resResistor *elimResis, *newResis;
-
+ResFixRes(
+    resNode *resptr,
+    resNode *resptr2,
+    resNode *resptr3,
+    resResistor *elimResis,
+    resResistor *newResis)
 {
     resElement  *thisREl;
 
@@ -182,9 +183,9 @@ ResFixRes(resptr, resptr2, resptr3, elimResis, newResis)
  */
 
 void
-ResFixParallel(elimResis, newResis)
-    resResistor *elimResis, *newResis;
-
+ResFixParallel(
+    resResistor *elimResis,
+    resResistor *newResis)
 {
     if ((newResis->rr_value + elimResis->rr_value) != 0)
     {
@@ -218,9 +219,8 @@ ResFixParallel(elimResis, newResis)
  */
 
 int
-ResSeriesCheck(resptr)
-    resNode	*resptr;
-
+ResSeriesCheck(
+    resNode *resptr)
 {
     resResistor	*rr1,*rr2;
     resNode	*resptr2, *resptr3;
@@ -403,8 +403,8 @@ ResSeriesCheck(resptr)
  */
 
 int
-ResParallelCheck(resptr)
-    resNode	*resptr;
+ResParallelCheck(
+    resNode *resptr)
 {
     resResistor	*r1, *r2;
     resNode	*resptr2, *resptr3;
@@ -521,9 +521,8 @@ ResParallelCheck(resptr)
  */
 
 int
-ResTriangleCheck(resptr)
-    resNode	*resptr;
-
+ResTriangleCheck(
+    resNode *resptr)
 {
     resResistor	*rr1, *rr2, *rr3;
     int		status = UNTOUCHED;
@@ -849,9 +848,11 @@ ResTriangleCheck(resptr)
  */
 
 void
-ResMergeNodes(node1, node2, pendingList, doneList)
-    resNode *node1, *node2;
-    resNode **pendingList, **doneList;
+ResMergeNodes(
+    resNode *node1,
+    resNode *node2,
+    resNode **pendingList,
+    resNode **doneList)
 {
     resElement	*workingRes, *tRes;
     tElement	*workingDev, *tDev;
@@ -1021,10 +1022,9 @@ ResMergeNodes(node1, node2, pendingList, doneList)
  */
 
 void
-ResDeleteResPointer(node, resistor)
-    resNode	*node;
-    resResistor	*resistor;
-
+ResDeleteResPointer(
+    resNode *node,
+    resResistor *resistor)
 {
     resElement	*rcell1, *rcell2;
     int		notfound = TRUE;
@@ -1071,9 +1071,9 @@ ResDeleteResPointer(node, resistor)
  */
 
 void
-ResEliminateResistor(resistor, homelist)
-    resResistor *resistor, **homelist;
-
+ResEliminateResistor(
+    resResistor *resistor,
+    resResistor **homelist)
 {
     if (resistor->rr_lastResistor == NULL)
      	*homelist = resistor->rr_nextResistor;
@@ -1108,11 +1108,11 @@ ResEliminateResistor(resistor, homelist)
  */
 
 void
-ResCleanNode(resptr, info, homelist1, homelist2)
-    resNode *resptr;
-    int	    info;
-    resNode **homelist1;
-    resNode **homelist2;
+ResCleanNode(
+    resNode *resptr,
+    int info,
+    resNode **homelist1,
+    resNode **homelist2)
 {
     resElement *rcell;
     cElement *ccell;
@@ -1193,10 +1193,10 @@ ResCleanNode(resptr, info, homelist1, homelist2)
  */
 
 void
-ResFixBreakPoint(sourcelist, origNode, newNode)
-    Breakpoint	**sourcelist;
-    resNode	*origNode, *newNode;
-
+ResFixBreakPoint(
+    Breakpoint **sourcelist,
+    resNode *origNode,
+    resNode *newNode)
 {
     Breakpoint	*bp, *bp2, *bp3, *bp4;
     int		alreadypresent;

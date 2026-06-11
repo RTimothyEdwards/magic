@@ -56,9 +56,9 @@ int debugNumClients = 0;
  */
 
 ClientData
-DebugAddClient(name, maxflags)
-    const char *name;
-    int maxflags;
+DebugAddClient(
+    const char *name,
+    int maxflags)
 {
     struct debugClient *dc;
 
@@ -112,9 +112,9 @@ DebugAddClient(name, maxflags)
  */
 
 int
-DebugAddFlag(clientID, name)
-    ClientData clientID;	/* Client identifier from DebugAddClient */
-    const char *name;		/* Name of debugging flag */
+DebugAddFlag(
+    ClientData clientID,	/* Client identifier from DebugAddClient */
+    const char *name)		/* Name of debugging flag */
 {
     int id = (int) CD2INT(clientID);
     struct debugClient *dc;
@@ -156,8 +156,8 @@ DebugAddFlag(clientID, name)
  */
 
 void
-DebugShow(clientID)
-    ClientData clientID;
+DebugShow(
+    ClientData clientID)
 {
     int id = (int) CD2INT(clientID);
     struct debugClient *dc;
@@ -195,11 +195,11 @@ DebugShow(clientID)
  */
 
 void
-DebugSet(clientID, argc, argv, value)
-    ClientData clientID;
-    int argc;
-    char *argv[];
-    bool value;
+DebugSet(
+    ClientData clientID,
+    int argc,
+    char *argv[],
+    int value)
 {
     bool badFlag = FALSE;
     int id = (int) CD2INT(clientID);

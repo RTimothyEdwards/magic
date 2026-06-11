@@ -82,8 +82,8 @@ void plowGenRect();
  */
 
 void
-PlowRandomTest(def)
-    CellDef *def;
+PlowRandomTest(
+    CellDef *def)
 {
 #ifdef	notdef
     static char *tempgood = "/tmp/PlowGoodaXXXXX";
@@ -189,7 +189,10 @@ PlowRandomTest(def)
  */
 
 int
-plowFindFirstError(Tile *tile, TileType dinfo, ClientData clientdata)
+plowFindFirstError(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)
 {
     return (1);
 }
@@ -215,9 +218,9 @@ plowFindFirstError(Tile *tile, TileType dinfo, ClientData clientdata)
  */
 
 void
-plowGenRect(bbox, r)
-    Rect *bbox;	/* Bounding box of the cell being plowed */
-    Rect *r;		/* Fill in this rectangle */
+plowGenRect(
+    Rect *bbox,	/* Bounding box of the cell being plowed */
+    Rect *r)		/* Fill in this rectangle */
 {
     int temp;
 
@@ -259,8 +262,9 @@ plowGenRect(bbox, r)
  */
 
 int
-plowGenRandom(lo, hi)
-    int lo, hi;		/* Inclusive bounds for the integer we'll generate */
+plowGenRandom(
+    int lo,
+    int hi)
 {
     int range = hi - lo + 1;
 #if defined(SYSV) || defined(EMSCRIPTEN)
@@ -290,9 +294,9 @@ plowGenRandom(lo, hi)
  */
 
 bool
-plowFileDiff(file1, file2)
-    char *file1;
-    char *file2;
+plowFileDiff(
+    char *file1,
+    char *file2)
 {
     char b1[BUFSIZ], b2[BUFSIZ];
     int f1 = -1, f2 = -1;

@@ -54,8 +54,8 @@ bool gcrOverCellHoriz();
  */
 
 bool
-gcrRiverRoute(ch)
-    GCRChannel *ch;
+gcrRiverRoute(
+    GCRChannel *ch)
 {
     switch (ch->gcr_type)
     {
@@ -99,8 +99,8 @@ gcrRiverRoute(ch)
 	((pin)->gcr_pId != (GCRNet *) 0 && (pin)->gcr_pId != (GCRNet *) -1)
 
 bool
-gcrOverCellHoriz(ch)
-    GCRChannel *ch;
+gcrOverCellHoriz(
+    GCRChannel *ch)
 {
     short **result = ch->gcr_result;
     int col, row;
@@ -139,8 +139,8 @@ gcrOverCellHoriz(ch)
 }
 
 bool
-gcrOverCellVert(ch)
-    GCRChannel *ch;
+gcrOverCellVert(
+    GCRChannel *ch)
 {
     short **result = ch->gcr_result;
     int col, row;

@@ -176,8 +176,8 @@ FD_OrSet(
 
 /* A bitmask find max bit set operation */
 int
-FD_MaxFd(fdmask)
-    const fd_set *fdmask;
+FD_MaxFd(
+    const fd_set *fdmask)
 {
     int fd;
     for (fd = FD_SETSIZE-1; fd >= 0; fd--) /* backwards */
@@ -1841,11 +1841,11 @@ txCommandsInit(void)
  */
 
 bool
-TxLispDispatch (argc,argv,trace, inFile)
-     int argc;
-     char **argv;
-     int trace;
-     int inFile;
+TxLispDispatch(
+    int argc,
+    char **argv,
+    int trace,
+    int inFile)
 {
   TxCommand *cmd = lisp_cur_cmd;
   int i,j,k;

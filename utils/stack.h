@@ -54,7 +54,7 @@ ClientData StackLook();
 void StackPush();
 void StackFree();
 void StackEnum();
-void StackCopy();
+void StackCopy(Stack *src, Stack **dest, bool copystr);
 
 #define	stackBodyEmpty(st)	((st)->st_ptr <= (st)->st_body->sb_data)
 

@@ -131,11 +131,11 @@ bool RtrComputeJogs();
  */
 
 void
-RtrStemProcessAll(use, netList, doWarn, func)
-    CellUse *use;
-    NLNetList *netList;
-    bool doWarn;
-    bool (*func)();
+RtrStemProcessAll(
+    CellUse *use,
+    NLNetList *netList,
+    bool doWarn,
+    bool (*func)())
 {
     NLTermLoc *loc, *locFirst, *locPrev, *locNext;
     Rect errArea;
@@ -236,12 +236,12 @@ out:
  */
 
 bool
-RtrStemAssignExt(use, doWarn, loc, term, net)
-    CellUse *use;	/* Cell being routed (for feedback) */
-    bool doWarn;	/* If TRUE, leave feedback for each bad loc */
-    NLTermLoc *loc;	/* Location being assigned */
-    NLTerm *term;	/* For nterm_name */
-    NLNet *net;		/* For marking pin */
+RtrStemAssignExt(
+    CellUse *use,	/* Cell being routed (for feedback) */
+    bool doWarn,	/* If TRUE, leave feedback for each bad loc */
+    NLTermLoc *loc,	/* Location being assigned */
+    NLTerm *term,	/* For nterm_name */
+    NLNet *net)		/* For marking pin */
 {
     TileType type = loc->nloc_label->lab_type;
     int dirMask, termWidth, pins;
@@ -403,7 +403,10 @@ fail:
 /* Routine to expand rectangle into touching tiles of a label's type. */
 
 int
-rtrStemExpandFunc(Tile *t, TileType dinfo, TreeContext *cxp)
+rtrStemExpandFunc(
+    Tile *t,
+    TileType dinfo,
+    TreeContext *cxp)
 {
     SearchContext *scx = cxp->tc_scx;
     Rect rsrc;
@@ -465,10 +468,10 @@ rtrStemExpandFunc(Tile *t, TileType dinfo, TreeContext *cxp)
  */
 
 GCRPin *
-rtrStemTip(loc, si, use)
-    NLTermLoc *loc;	/* Location whose stem tip is being found */
-    StemInfo *si;		/* Stem information */
-    CellUse *use;
+rtrStemTip(
+    NLTermLoc *loc,	/* Location whose stem tip is being found */
+    StemInfo *si,		/* Stem information */
+    CellUse *use)
 {
     Point plo, phi;
     int *lo, *hi;
@@ -546,11 +549,11 @@ rtrAbort(Tile *tile,
  */
 
 GCRPin *
-rtrStemTryPin(loc, dir, p, use)
-    NLTermLoc *loc;	/* Try to assign the GCRPin for p to this loc */
-    int dir;		/* Direction away from loc that p lies */
-    Point *p;		/* Crossing point to try */
-    CellUse *use;
+rtrStemTryPin(
+    NLTermLoc *loc,	/* Try to assign the GCRPin for p to this loc */
+    int dir,		/* Direction away from loc that p lies */
+    Point *p,		/* Crossing point to try */
+    CellUse *use)
 {
     Point pSearch;
     GCRChannel *ch;
@@ -651,11 +654,11 @@ rtrStemTryPin(loc, dir, p, use)
  */
 
 bool
-rtrTreeSrArea(loc, dir, p, use)
-    NLTermLoc *loc;	/* Terminal location under consideration */
-    int dir;		/* Direction away from loc that p lies */
-    Point *p;		/* Point at channel boundary */
-    CellUse *use;	/* Parent cell use */
+rtrTreeSrArea(
+    NLTermLoc *loc,	/* Terminal location under consideration */
+    int dir,		/* Direction away from loc that p lies */
+    Point *p,		/* Point at channel boundary */
+    CellUse *use)	/* Parent cell use */
 {
     Rect tmp, tmp1, tmp2;
     Point contact, jog, start;
@@ -719,11 +722,11 @@ rtrTreeSrArea(loc, dir, p, use)
 }
 
 bool
-rtrSrArea(dir,use,tmp,delta)
-    int	dir;
-    CellUse *use;
-    Rect *tmp;
-    int delta;
+rtrSrArea(
+    int dir,
+    CellUse *use,
+    Rect *tmp,
+    int delta)
 {
     SearchContext scx;
     TileTypeBitMask r1mask, r2mask;
@@ -821,10 +824,10 @@ rtrSrArea(dir,use,tmp,delta)
  */
 
 void
-rtrStemRange(loc, dir, si)
-    NLTermLoc *loc;	/* Terminal we're trying to find a stem for */
-    int dir;		/* Direction away from loc that we're searching */
-    StemInfo *si;	/* Fill this in if this direction looks best so far */
+rtrStemRange(
+    NLTermLoc *loc,	/* Terminal we're trying to find a stem for */
+    int dir,		/* Direction away from loc that we're searching */
+    StemInfo *si)	/* Fill this in if this direction looks best so far */
 {
     Rect *area = &loc->nloc_rect;
     Point start, near, center;
@@ -899,9 +902,10 @@ rtrStemRange(loc, dir, si)
  */
 
 int
-rtrStemContactLine(lo, hi, origin)
-    int lo, hi;		/* Bottom and top, or left and right of terminal */
-    int origin;		/* Coordinate of routing grid origin */
+rtrStemContactLine(
+    int lo,
+    int hi,
+    int origin)		/* Coordinate of routing grid origin */
 {
     int center;
 
@@ -936,10 +940,10 @@ rtrStemContactLine(lo, hi, origin)
  */
 
 GCRChannel *
-rtrStemSearch(center, dir, point)
-    Point *center;
-    int dir;
-    Point *point;
+rtrStemSearch(
+    Point *center,
+    int dir,
+    Point *point)
 {
     Tile *tile;
     GCRChannel *ch;
@@ -1012,9 +1016,9 @@ rtrStemSearch(center, dir, point)
  */
 
 bool
-RtrStemPaintExt(use, loc)
-    CellUse *use;
-    NLTermLoc *loc;	/* Terminal whose stem is to be painted */
+RtrStemPaintExt(
+    CellUse *use,
+    NLTermLoc *loc)	/* Terminal whose stem is to be painted */
 {
     TileTypeBitMask startMask;	/* Possible layers for first part of stem */
     TileTypeBitMask finalMask;	/* Possible layers for last part of stem */
@@ -1135,18 +1139,18 @@ failure:
  */
 
 bool
-rtrStemMask(routeUse, loc, flags, startMask, finalMask)
-    CellUse *routeUse;		/* Cell being routed */
-    NLTermLoc *loc;		/* Terminal */
-    int flags;			/* Blockage flags in the channel at the
+rtrStemMask(
+    CellUse *routeUse,		/* Cell being routed */
+    NLTermLoc *loc,		/* Terminal */
+    int flags,			/* Blockage flags in the channel at the
 				 * crossing point.  If a layer is marked
 				 * as blocked in these flags, it is excluded
 				 * from finalMask since the channel router
 				 * will not have used it for routing a
 				 * signal.
 				 */
-    TileTypeBitMask *startMask;	/* Possible types for terminal */
-    TileTypeBitMask *finalMask;	/* Possible types for stem tip */
+    TileTypeBitMask *startMask,	/* Possible types for terminal */
+    TileTypeBitMask *finalMask)	/* Possible types for stem tip */
 {
     Rect tmp;
 
@@ -1193,9 +1197,11 @@ rtrStemMask(routeUse, loc, flags, startMask, finalMask)
 }
 
 int
-rtrStemTypes(startMask, finalMask, startType, finalType)
-    TileTypeBitMask *startMask, *finalMask;
-    TileType *startType, *finalType;
+rtrStemTypes(
+    TileTypeBitMask *startMask,
+    TileTypeBitMask *finalMask,
+    TileType *startType,
+    TileType *finalType)
 {
     if (!TTMaskHasType(finalMask, RtrMetalType))
     {
@@ -1240,20 +1246,20 @@ rtrStemTypes(startMask, finalMask, startType, finalType)
  */
 
 bool
-RtrComputeJogs(loc, stem, dir, contact, jog, start, width)
-    NLTermLoc *loc;	/* Terminal whose stem is to be painted */
-    Point *stem;		/* Point intersecting channel*/
-    int dir;
-    Point *contact;		/* A second grid point, where a contact can
+RtrComputeJogs(
+    NLTermLoc *loc,	/* Terminal whose stem is to be painted */
+    Point *stem,		/* Point intersecting channel*/
+    int dir,
+    Point *contact,		/* A second grid point, where a contact can
 				 * be placed if necessary.  This is a the
 				 * nearest grid crossing to crossing outside
 				 * the channel.
 				 */
-    Point *jog;			/* Where the stem crosses the first usable
+    Point *jog,			/* Where the stem crosses the first usable
 				 * grid line as it runs out from the cell.
 				 */
-    Point *start;		/* Somewhere along terminal area */
-    int width;
+    Point *start,		/* Somewhere along terminal area */
+    int width)
 {
     Rect *area;
     area = &loc->nloc_rect;

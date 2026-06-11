@@ -217,8 +217,8 @@ DBFixMismatch()
  */
 
 void
-DBUpdateStamps(def)
-    CellDef *def;
+DBUpdateStamps(
+    CellDef *def)
 {
     extern int dbStampFunc();
     extern time_t time();
@@ -240,9 +240,9 @@ DBUpdateStamps(def)
 
 /*ARGSUSED*/
 int
-dbStampFunc(cellDef, cdata)
-    CellDef *cellDef;
-    ClientData cdata;	/* UNUSED */
+dbStampFunc(
+    CellDef *cellDef,
+    ClientData cdata)	/* UNUSED */
 {
     CellUse *cu;
     CellDef *cd;
@@ -291,7 +291,7 @@ dbStampFunc(cellDef, cdata)
 	cd = cu->cu_parent;
 	if (cd == NULL) continue;
 	cd->cd_flags |= CDSTAMPSCHANGED;
-	(void) dbStampFunc(cd);
+	(void) dbStampFunc(cd, (ClientData) NULL);
     }
     return 0;
 }
@@ -328,9 +328,9 @@ dbStampFunc(cellDef, cdata)
  */
 
 void
-DBStampMismatch(cellDef, wrongArea)
-    CellDef *cellDef;
-    Rect *wrongArea;			/* Guess of cell's bounding box that
+DBStampMismatch(
+    CellDef *cellDef,
+    Rect *wrongArea)			/* Guess of cell's bounding box that
 					 * was wrong.
 					 */
 {
@@ -349,8 +349,8 @@ DBStampMismatch(cellDef, wrongArea)
  */
 
 void
-DBFlagMismatches(checkDef)
-    CellDef *checkDef;
+DBFlagMismatches(
+    CellDef *checkDef)
 {
     CellUse *parentUse;
 

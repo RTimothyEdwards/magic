@@ -87,10 +87,10 @@ void glCrossTakePin();
  */
 
 void
-glCrossMark(rootUse, path, pNetId)
-    CellUse *rootUse;	/* For error feedback if non-NULL */
-    GlPoint *path;	/* Path linked via gl_path pointers */
-    NetId *pNetId;	/* Net and segment identifier; netid_seg is updated */
+glCrossMark(
+    CellUse *rootUse,	/* For error feedback if non-NULL */
+    GlPoint *path,	/* Path linked via gl_path pointers */
+    NetId *pNetId)	/* Net and segment identifier; netid_seg is updated */
 {
     GCRPin *srcPin, *dstPin;
     GlPoint *rp;
@@ -161,10 +161,10 @@ glCrossMark(rootUse, path, pNetId)
  */
 
 void
-glCrossTakePin(rootUse, pin, netid)
-    CellUse *rootUse;	/* For error feedback if non-NULL */
-    GCRPin *pin;	/* Pin to take */
-    NetId netid;	/* Identifier to assign */
+glCrossTakePin(
+    CellUse *rootUse,	/* For error feedback if non-NULL */
+    GCRPin *pin,	/* Pin to take */
+    NetId netid)	/* Identifier to assign */
 {
     char c[2048+64], name1[1024], name2[1024];
     Rect r;
@@ -236,8 +236,8 @@ glCrossTakePin(rootUse, pin, netid)
  */
 
 void
-glCrossUnreserve(net)
-    NLNet *net;
+glCrossUnreserve(
+    NLNet *net)
 {
     NLTermLoc *loc;
     NLTerm *term;
@@ -289,11 +289,11 @@ glCrossUnreserve(net)
  */
 
 int
-glCrossEnum(inPt, tp, func, cdata)
-    GlPoint *inPt;	/* Top of heap point being expanded */
-    Tile *tp;			/* Tile adjacent to inPt->gl_tile */
-    int (*func)();		/* Called for each crossing */
-    ClientData cdata;		/* Passed to (*func)() */
+glCrossEnum(
+    GlPoint *inPt,	/* Top of heap point being expanded */
+    Tile *tp,			/* Tile adjacent to inPt->gl_tile */
+    int (*func)(),		/* Called for each crossing */
+    ClientData cdata)		/* Passed to (*func)() */
 {
     int outSide, origin, lo, hi, max, start, n, nhi;
     GCRChannel *ch = inPt->gl_pin->gcr_ch;
@@ -468,11 +468,11 @@ glCrossEnum(inPt, tp, func, cdata)
  */
 
 GlPoint *
-glCrossAdjust(lookAhead, path)
-    GlPoint *lookAhead;	/* Normally, lookAhead->gl_path == path, except on the
+glCrossAdjust(
+    GlPoint *lookAhead,	/* Normally, lookAhead->gl_path == path, except on the
 			 * initial call, in which case lookAhead == NULL.
 			 */
-    GlPoint *path;	/* Adjust crossings along this path */
+    GlPoint *path)	/* Adjust crossings along this path */
 {
     GlPoint *newPath, *newRest;
     GCRPin *linkedPin, *pin;
@@ -571,11 +571,11 @@ glCrossAdjust(lookAhead, path)
 
     /*ARGSUSED*/
 int
-glCrossChoose(newRest, tp, pin, newPath)
-    GlPoint *newRest;	/* Portion of path already assigned */
-    Tile *tp;		/* UNUSED */
-    GCRPin *pin;	/* Pin on boundary of tp being considered */
-    GlPoint *newPath;		/* Update newPath->gl_pin, newPath->gl_cost */
+glCrossChoose(
+    GlPoint *newRest,	/* Portion of path already assigned */
+    Tile *tp,		/* UNUSED */
+    GCRPin *pin,	/* Pin on boundary of tp being considered */
+    GlPoint *newPath)		/* Update newPath->gl_pin, newPath->gl_cost */
 {
     GCRPin *savePin;
     int cost;
@@ -629,10 +629,10 @@ glCrossChoose(newRest, tp, pin, newPath)
  */
 
 int
-glCrossCost(lookAhead, exitPt, entryPt)
-    GlPoint *lookAhead;
-    GlPoint *exitPt;
-    GlPoint *entryPt;
+glCrossCost(
+    GlPoint *lookAhead,
+    GlPoint *exitPt,
+    GlPoint *entryPt)
 {
     GCRPin *entryPin, *exitPin, *otherPin;
     GCRPin *opposite;

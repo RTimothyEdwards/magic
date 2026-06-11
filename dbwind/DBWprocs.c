@@ -81,10 +81,10 @@ static int (*dbwButtonHandler)() = NULL;
  */
 
 bool
-DBWcreate(window, argc, argv)
-    MagWindow *window;
-    int argc;
-    char *argv[];
+DBWcreate(
+    MagWindow *window,
+    int argc,
+    char *argv[])
 {
     int bitMask, newBitMask, expand;
     DBWclientRec *crec;
@@ -171,8 +171,8 @@ DBWcreate(window, argc, argv)
  */
 
 bool
-DBWdelete(window)
-    MagWindow *window;
+DBWdelete(
+    MagWindow *window)
 {
     DBWclientRec *cr;
 
@@ -207,9 +207,9 @@ DBWdelete(window)
  */
 
 int
-dbwLoadFunc(w, clientData)
-    MagWindow *w;		/* A window found in the search. */
-    MagWindow *clientData;	/* Window to ignore (passed as ClientData). */
+dbwLoadFunc(
+    MagWindow *w,		/* A window found in the search. */
+    MagWindow *clientData)	/* Window to ignore (passed as ClientData). */
 {
     if (w == clientData) return 0;
     if (((CellUse *) w->w_surfaceID)->cu_def == EditRootDef)
@@ -237,8 +237,8 @@ dbwLoadFunc(w, clientData)
  */
 
 void
-DBWreload(name)
-    char *name;
+DBWreload(
+    char *name)
 {
     int dbwReloadFunc();
 
@@ -247,9 +247,9 @@ DBWreload(name)
 }
 
 int
-dbwReloadFunc(w, name)
-    MagWindow *w;
-    char *name;
+dbwReloadFunc(
+    MagWindow *w,
+    char *name)
 {
     DBWloadWindow(w, name, DBW_LOAD_IGNORE_TECH);
     return (0);
@@ -283,10 +283,10 @@ dbwReloadFunc(w, name)
  */
 
 void
-DBWloadWindow(window, name, flags)
-    MagWindow *window;		/* Identifies window to which cell is to be bound */
-    char *name;			/* Name of new cell to be bound to this window */
-    unsigned char flags;	/* See flags below */
+DBWloadWindow(
+    MagWindow *window,		/* Identifies window to which cell is to be bound */
+    char *name,			/* Name of new cell to be bound to this window */
+    unsigned char flags)	/* See flags below */
 {
     CellDef *newEditDef, *deleteDef;
     CellUse *newEditUse;
@@ -623,9 +623,9 @@ DBWloadWindow(window, name, flags)
  */
 
 int
-UnexpandFunc(use, windowMask)
-    CellUse *use;		/* Use that was just unexpanded. */
-    int windowMask;		/* Window where it was unexpanded. */
+UnexpandFunc(
+    CellUse *use,		/* Use that was just unexpanded. */
+    int windowMask)		/* Window where it was unexpanded. */
 {
     if (use->cu_parent == NULL) return 0;
     DBWAreaChanged(use->cu_parent, &use->cu_bbox, windowMask,
@@ -980,9 +980,9 @@ DBWPrintCIFSqValue(int value,	/* value to print, in internal units */
  */
 
 void
-DBWcommands(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+DBWcommands(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int cmdNum;
 

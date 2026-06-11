@@ -72,9 +72,9 @@ int plowTooFar;			/* # times we reduced plow size */
  */
 
 void
-plowQueueInit(bbox, dist)
-    Rect *bbox;	/* Bounding box for the cell being plowed */
-    int dist;	/* Distance the plow moves */
+plowQueueInit(
+    Rect *bbox,	/* Bounding box for the cell being plowed */
+    int dist)	/* Distance the plow moves */
 {
     Edge **pptr, **pend;
     int pNum;
@@ -151,8 +151,8 @@ plowQueueDone()
 			      && (e1)->e_rtype == (e2)->e_rtype)
 
 int
-plowQueueAdd(eadd)
-    Edge *eadd;	/* Edge added to queue.  We assume that
+plowQueueAdd(
+    Edge *eadd)	/* Edge added to queue.  We assume that
 				 * e_ltype and e_rtype have been set to
 				 * the types on the LHS and RHS of this
 				 * edge, respectively.
@@ -455,8 +455,8 @@ done:
  */
 
 bool
-plowQueueLeftmost(edge)
-    Edge *edge;
+plowQueueLeftmost(
+    Edge *edge)
 {
     Edge *enew, **pp, **plast;
     int pNum;
@@ -530,8 +530,8 @@ plowQueueLeftmost(edge)
  */
 
 bool
-plowQueueRightmost(edge)
-    Edge *edge;
+plowQueueRightmost(
+    Edge *edge)
 {
     Edge *enew, **pp, **plast;
     int pNum;

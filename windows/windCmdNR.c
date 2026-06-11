@@ -64,9 +64,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-windOpenCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windOpenCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect area;
     Point frame;
@@ -111,9 +111,9 @@ windOpenCmd(w, cmd)
  */
 
 void
-windOverCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windOverCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc != 1)
     {
@@ -148,9 +148,9 @@ windOverCmd(w, cmd)
  */
 
 void
-windPauseCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windPauseCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int i;
     static char ssline[TX_MAX_CMDLEN];
@@ -200,9 +200,9 @@ const char * const actTable[] =
  */
 
 void
-windPushbuttonCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windPushbuttonCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int but, act;
     static TxCommand txcmd;
@@ -259,9 +259,9 @@ badusage:
  */
 
 void
-windQuitCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windQuitCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     clientRec *cr;
     bool checkfirst = TRUE;
@@ -332,9 +332,9 @@ windQuitCmd(w, cmd)
  */
 
 void
-windRedoCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windRedoCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int count;
 
@@ -406,9 +406,9 @@ windRedoCmd(w, cmd)
  */
 
 void
-windRedrawCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windRedrawCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
    WindAreaChanged((MagWindow *) NULL, (Rect *) NULL);
 }
@@ -432,9 +432,9 @@ windRedrawCmd(w, cmd)
  */
 
 void
-windResetCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windResetCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc != 1)
     {

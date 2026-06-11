@@ -50,8 +50,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 RouteType *
-irFindRouteType(type)
-    TileType type;
+irFindRouteType(
+    TileType type)
 {
     RouteType *rT;
 
@@ -80,8 +80,8 @@ irFindRouteType(type)
  */
 
 RouteLayer *
-irFindRouteLayer(type)
-    TileType type;
+irFindRouteLayer(
+    TileType type)
 {
     RouteLayer *rL;
 
@@ -110,8 +110,8 @@ irFindRouteLayer(type)
  */
 
 RouteContact *
-irFindRouteContact(type)
-    TileType type;
+irFindRouteContact(
+    TileType type)
 {
     RouteContact *rC;
 
@@ -149,9 +149,9 @@ irFindRouteContact(type)
 char RepeatString[100];
 
 char *
-irRepeatChar(n,c)
-    int n;
-    char c;
+irRepeatChar(
+    int n,
+    char c)
 {
     int i;
     for(i=0; i<n; i++)

@@ -86,9 +86,9 @@ Point RtrOrigin = { 0, 0 };
  */
 
 void
-Route(routeUse, routeArea)
-    CellUse *routeUse;
-    Rect *routeArea;
+Route(
+    CellUse *routeUse,
+    Rect *routeArea)
 {
     CellDef *channelDef;
     int errs, numNets;
@@ -171,13 +171,13 @@ done:
  */
 
 int
-rtrMakeChannel(tile, dinfo, clipBox)
-    Tile *tile;		/* Potential channel tile; we create a channel whose
+rtrMakeChannel(
+    Tile *tile,		/* Potential channel tile; we create a channel whose
 			 * area is equal to that of this tile if the type of
 			 * this tile is TT_SPACE.
 			 */
-    TileType dinfo;	/* Split tile information (unused) */
-    Rect *clipBox;	/* If non-NULL, clip the channel area to this box */
+    TileType dinfo,	/* Split tile information (unused) */
+    Rect *clipBox)	/* If non-NULL, clip the channel area to this box */
 {
     int length, width;
     HashEntry *entry;
@@ -256,8 +256,8 @@ RtrRunStats()
 }
 
 void
-RtrMilestoneStart(event)
-    char *event;
+RtrMilestoneStart(
+    char *event)
 {
     rtrMilestoneName = event;
     TxPrintf("%s: ", event);

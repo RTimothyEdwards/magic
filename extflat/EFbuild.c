@@ -140,18 +140,18 @@ extern float locScale;
  */
 
 void
-efBuildNode(def, isSubsnode, isDevSubsnode, isExtNode, nodeName, nodeCap,
-		x, y, layerName, av, ac)
-    Def *def;		/* Def to which this connection is to be added */
-    bool isSubsnode;	/* TRUE if the node is the global substrate */
-    bool isDevSubsnode;	/* TRUE if the node is a device body connection */
-    bool isExtNode;	/* TRUE if this was a "node" or "substrate" in .ext */
-    char *nodeName;	/* One of the names for this node */
-    double nodeCap;	/* Capacitance of this node to ground */
-    int x; int y;	/* Location of a point inside this node */
-    char *layerName;	/* Name of tile type */
-    char **av;		/* Pairs of area, perimeter strings */
-    int ac;		/* Number of strings in av */
+efBuildNode(
+    Def *def,		/* Def to which this connection is to be added */
+    bool isSubsnode,	/* TRUE if the node is the global substrate */
+    bool isDevSubsnode,	/* TRUE if the node is a device body connection */
+    bool isExtNode,	/* TRUE if this was a "node" or "substrate" in .ext */
+    char *nodeName,	/* One of the names for this node */
+    double nodeCap,	/* Capacitance of this node to ground */
+    int x,
+    int y,		/* Location of a point inside this node */
+    char *layerName,	/* Name of tile type */
+    char **av,		/* Pairs of area, perimeter strings */
+    int ac)		/* Number of strings in av */
 {
     EFNodeName *newname;
     EFNode *newnode;
@@ -333,10 +333,10 @@ efBuildNode(def, isSubsnode, isDevSubsnode, isExtNode, nodeName, nodeCap,
  */
 
 void
-efAdjustSubCap(def, nodeName, nodeCapAdjust)
-    Def *def;			/* Def to which this connection is to be added */
-    char *nodeName;		/* One of the names for this node */
-    double nodeCapAdjust;	/* Substrate capacitance adjustment */
+efAdjustSubCap(
+    Def *def,			/* Def to which this connection is to be added */
+    char *nodeName,		/* One of the names for this node */
+    double nodeCapAdjust)	/* Substrate capacitance adjustment */
 {
     EFNodeName *nodename;
     EFNode *node;
@@ -375,12 +375,12 @@ efAdjustSubCap(def, nodeName, nodeCapAdjust)
  */
 
 void
-efBuildAttr(def, nodeName, r, layerName, text)
-    Def *def;
-    char *nodeName;
-    Rect *r;
-    char *layerName;
-    char *text;
+efBuildAttr(
+    Def *def,
+    char *nodeName,
+    Rect *r,
+    char *layerName,
+    char *text)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -431,13 +431,12 @@ efBuildAttr(def, nodeName, r, layerName, text)
  */
 
 void
-efBuildDist(def, driver, receiver, min, max)
-    Def *def;		/* Def for which we're adding a new Distance */
-    char *driver;	/* Source terminal */
-    char *receiver;	/* Destination terminal */
-    int min, max;	/* Minimum and maximum acyclic distance from source
-			 * to destination.
-			 */
+efBuildDist(
+    Def *def,		/* Def for which we're adding a new Distance */
+    char *driver,	/* Source terminal */
+    char *receiver,	/* Destination terminal */
+    int min,
+    int max)
 {
     Distance *dist, distKey;
     HierName *hn1, *hn2;
@@ -506,9 +505,9 @@ efBuildDist(def, driver, receiver, min, max)
  */
 
 void
-efBuildKill(def, name)
-    Def *def;		/* Def for which we're adding a new Kill */
-    char *name;		/* Name of node to die */
+efBuildKill(
+    Def *def,		/* Def for which we're adding a new Kill */
+    char *name)		/* Name of node to die */
 {
     Kill *kill;
 
@@ -538,14 +537,14 @@ efBuildKill(def, name)
  */
 
 void
-efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
-    Def *def;		/* Def for which we're adding a new node name */
-    char *nodeName1;	/* One of node names to be made equivalent */
-    char *nodeName2;	/* Other name to be made equivalent.  One of nodeName1
+efBuildEquiv(
+    Def *def,		/* Def for which we're adding a new node name */
+    char *nodeName1,	/* One of node names to be made equivalent */
+    char *nodeName2,	/* Other name to be made equivalent.  One of nodeName1
 			 * or nodeName2 must already be known.
 			 */
-    bool resist;	/* True if "extresist on" option was selected */
-    bool isspice;	/* Passed from EFReadFile(), is only TRUE when
+    bool resist,	/* True if "extresist on" option was selected */
+    bool isspice)	/* Passed from EFReadFile(), is only TRUE when
 			 * running ext2spice.  Indicates that nodes are
 			 * case-insensitive.
 			 */
@@ -750,8 +749,8 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
  */
 
 DevParam *
-efGetDeviceParams(name)
-    char *name;
+efGetDeviceParams(
+    char *name)
 {
     HashEntry *he;
     DevParam *plist = NULL;
@@ -774,10 +773,10 @@ efGetDeviceParams(name)
  */
 
 void
-efBuildDeviceParams(name, argc, argv)
-    char *name;
-    int argc;
-    char *argv[];
+efBuildDeviceParams(
+    char *name,
+    int argc,
+    char *argv[])
 {
     HashEntry *he;
     DevParam *plist = NULL, *newparm;
@@ -1328,13 +1327,14 @@ efBuildDevice(
  */
 
 void
-efBuildPortNode(def, name, idx, x, y, layername, toplevel)
-    Def *def;		/* Def to which this connection is to be added */
-    char *name;		/* One of the names for this node */
-    int idx;		/* Port number (order) */
-    int x; int y;	/* Location of a point inside this node */
-    char *layername;	/* Name of tile type */
-    bool toplevel;	/* 1 if the cell def is the top level cell */
+efBuildPortNode(
+    Def *def,		/* Def to which this connection is to be added */
+    char *name,		/* One of the names for this node */
+    int idx,		/* Port number (order) */
+    int x,
+    int y,		/* Location of a point inside this node */
+    char *layername,	/* Name of tile type */
+    bool toplevel)	/* 1 if the cell def is the top level cell */
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -1375,8 +1375,8 @@ efBuildPortNode(def, name, idx, x, y, layername, toplevel)
  */
 
 int
-EFGetPortMax(def)
-   Def *def;
+EFGetPortMax(
+    Def *def)
 {
     EFNode *snode;
     EFNodeName *nodeName;
@@ -1480,11 +1480,11 @@ efBuildDevNode(
  */
 
 int
-efBuildAddStr(table, pMax, size, str)
-    char *table[];	/* Table to search */
-    int *pMax;		/* Increment this if we add an entry */
-    int size;		/* Maximum size of table */
-    char *str;		/* String to add */
+efBuildAddStr(
+    char *table[],	/* Table to search */
+    int *pMax,		/* Increment this if we add an entry */
+    int size,		/* Maximum size of table */
+    char *str)		/* String to add */
 {
     int n, max;
 
@@ -1530,12 +1530,16 @@ efBuildAddStr(table, pMax, size, str)
  */
 
 void
-efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
-    Def *def;		/* Def to which this connection is to be added */
-    char *subDefName;	/* Def of which this a use */
-    char *subUseId;	/* Use identifier for the def 'subDefName' */
-    int ta, tb, tc,
-	td, te, tf;	/* Elements of a transform from coordinates of
+efBuildUse(
+    Def *def,		/* Def to which this connection is to be added */
+    char *subDefName,	/* Def of which this a use */
+    char *subUseId,	/* Use identifier for the def 'subDefName' */
+    int ta,
+    int tb,
+    int tc,
+    int td,
+    int te,
+    int tf)		/* Elements of a transform from coordinates of
 			 * subDefName up to def.
 			 */
 {
@@ -1613,7 +1617,8 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
  */
 
 void
-efConnectionFreeLinkedList(Connection *conn)
+efConnectionFreeLinkedList(
+    Connection *conn)
 {
     while (conn)
     {
@@ -1641,7 +1646,8 @@ efConnectionFreeLinkedList(Connection *conn)
  */
 
 void
-efConnPointFreeLinkedList(ConnectionPoint *connpt)
+efConnPointFreeLinkedList(
+    ConnectionPoint *connpt)
 {
     while (connpt)
     {
@@ -1677,12 +1683,15 @@ efConnPointFreeLinkedList(ConnectionPoint *connpt)
  */
 
 void
-efBuildConnect(def, llx, lly, urx, ury, layerName, upnodeName, downnodeName)
-    Def *def;
-    int llx, lly, urx, ury;
-    char *layerName;
-    char *upnodeName;
-    char *downnodeName;
+efBuildConnect(
+    Def *def,
+    int llx,
+    int lly,
+    int urx,
+    int ury,
+    char *layerName,
+    char *upnodeName,
+    char *downnodeName)
 {
     int tnew;
     ConnectionPoint *connpt;
@@ -1759,13 +1768,13 @@ efBuildConnect(def, llx, lly, urx, ury, layerName, upnodeName, downnodeName)
  */
 
 void
-efBuildMerge(def, nodeName1, nodeName2, deltaC, av, ac)
-    Def *def;		/* Def to which this connection is to be added */
-    char *nodeName1;	/* Name of first node in connection */
-    char *nodeName2;	/* Name of other node in connection */
-    double deltaC;	/* Adjustment in capacitance */
-    char **av;		/* Strings for area, perimeter adjustment */
-    int ac;		/* Number of strings in av */
+efBuildMerge(
+    Def *def,		/* Def to which this connection is to be added */
+    char *nodeName1,	/* Name of first node in connection */
+    char *nodeName2,	/* Name of other node in connection */
+    double deltaC,	/* Adjustment in capacitance */
+    char **av,		/* Strings for area, perimeter adjustment */
+    int ac)		/* Number of strings in av */
 {
     int n;
     Connection *conn;
@@ -1878,11 +1887,11 @@ efBuildMerge(def, nodeName1, nodeName2, deltaC, av, ac)
  */
 
 void
-efBuildResistor(def, nodeName1, nodeName2, resistance)
-    Def *def;		/* Def to which this connection is to be added */
-    char *nodeName1;	/* Name of first node in resistor */
-    char *nodeName2;	/* Name of second node in resistor */
-    float resistance;	/* Resistor value */
+efBuildResistor(
+    Def *def,		/* Def to which this connection is to be added */
+    char *nodeName1,	/* Name of first node in resistor */
+    char *nodeName2,	/* Name of second node in resistor */
+    float resistance)	/* Resistor value */
 {
     Connection *conn;
 
@@ -1915,11 +1924,11 @@ efBuildResistor(def, nodeName1, nodeName2, resistance)
  */
 
 void
-efBuildCap(def, nodeName1, nodeName2, cap)
-    Def *def;		/* Def to which this connection is to be added */
-    char *nodeName1;	/* Name of first node in capacitor */
-    char *nodeName2;	/* Name of second node in capacitor */
-    double cap;		/* Capacitor value */
+efBuildCap(
+    Def *def,		/* Def to which this connection is to be added */
+    char *nodeName1,	/* Name of first node in capacitor */
+    char *nodeName2,	/* Name of second node in capacitor */
+    double cap)		/* Capacitor value */
 {
     Connection *conn;
 
@@ -1951,9 +1960,10 @@ efBuildCap(def, nodeName1, nodeName2, cap)
  */
 
 bool
-efConnInitSubs(conn, nodeName1, nodeName2)
-    Connection *conn;
-    char *nodeName1, *nodeName2;
+efConnInitSubs(
+    Connection *conn,
+    char *nodeName1,
+    char *nodeName2)
 {
     ConnName *c1, *c2;
     int n;
@@ -2009,9 +2019,9 @@ bad:
  */
 
 bool
-efConnBuildName(cnp, name)
-    ConnName *cnp;
-    char *name;
+efConnBuildName(
+    ConnName *cnp,
+    char *name)
 {
     char *srcp, *dstp, *cp, *dp;
     int nsubs;
@@ -2116,11 +2126,11 @@ again:
  */
 
 void
-efNodeAddName(node, he, hn, isNew)
-    EFNode *node;
-    HashEntry *he;
-    HierName *hn;
-    bool isNew;		// If TRUE, added name is never the preferred name.
+efNodeAddName(
+    EFNode *node,
+    HashEntry *he,
+    HierName *hn,
+    bool isNew)		// If TRUE, added name is never the preferred name.
 {
     EFNodeName *newnn;
     EFNodeName *oldnn;
@@ -2182,8 +2192,9 @@ efNodeAddName(node, he, hn, isNew)
  */
 
 EFNode *
-efNodeMerge(node1ptr, node2ptr)
-    EFNode **node1ptr, **node2ptr;	/* Pointers to hierarchical nodes */
+efNodeMerge(
+    EFNode **node1ptr,
+    EFNode **node2ptr)
 {
     EFNodeName *nn, *nnlast;
     EFAttr *ap;
@@ -2408,8 +2419,8 @@ efNodeMerge(node1ptr, node2ptr)
  */
 
 void
-efFreeUseTable(table)
-    HashTable *table;
+efFreeUseTable(
+    HashTable *table)
 {
     HashSearch hs;
     HashEntry *he;
@@ -2438,8 +2449,8 @@ efFreeUseTable(table)
  */
 
 void
-efFreeDevTable(table)
-    HashTable *table;
+efFreeDevTable(
+    HashTable *table)
 {
     Dev *dev;
     HashSearch hs;
@@ -2481,8 +2492,8 @@ efFreeDevTable(table)
  */
 
 void
-efFreeNodeTable(table)
-    HashTable *table;
+efFreeNodeTable(
+    HashTable *table)
 {
     HashSearch hs;
     HashEntry *he;
@@ -2536,9 +2547,9 @@ efFreeNodeTable(table)
  */
 
 void
-efFreeNodeList(head, func)
-    EFNode *head;
-    int (*func)();
+efFreeNodeList(
+    EFNode *head,
+    int (*func)())
 {
     EFNode *node;
     EFAttr *ap;
@@ -2590,8 +2601,8 @@ efFreeNodeList(head, func)
  */
 
 void
-efFreeConn(conn)
-    Connection *conn;
+efFreeConn(
+    Connection *conn)
 {
     if (conn->conn_name1) freeMagic(conn->conn_name1);
     if (conn->conn_name2) freeMagic(conn->conn_name2);

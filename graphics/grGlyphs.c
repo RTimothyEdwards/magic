@@ -54,8 +54,8 @@ extern void (*grFreeCursorPtr)();
  */
 
 void
-GrFreeGlyphs(g)
-    GrGlyphs *g;
+GrFreeGlyphs(
+    GrGlyphs *g)
 {
     int i;
     ASSERT(g != NULL, "GrFreeGlyphs");
@@ -94,10 +94,11 @@ GrFreeGlyphs(g)
  */
 
 bool
-GrReadGlyphs(filename, path, libPath, gl)
-    char *filename;
-    char *path, *libPath;	/* paths to search in for the file */
-    GrGlyphs **gl;		/* To be filled in with a malloc'ed structure
+GrReadGlyphs(
+    char *filename,
+    char *path,
+    char *libPath,
+    GrGlyphs **gl)		/* To be filled in with a malloc'ed structure
 				 * This structure must be freed by the caller
 				 * if it is not to live forever.
 				 */

@@ -106,20 +106,20 @@ bool dbParseArray();
  */
 
 int
-DBSearchLabel(scx, mask, xMask, pattern, func, cdarg)
-    SearchContext *scx;		/* Search context: specifies CellUse,
+DBSearchLabel(
+    SearchContext *scx,		/* Search context: specifies CellUse,
 				 * transform to "root" coordinates, and
 				 * an area to search.
 				 */
-    TileTypeBitMask *mask;	/* Only search for labels on these layers */
-    int xMask;			/* Expansion state mask for searching.  Cell
+    TileTypeBitMask *mask,	/* Only search for labels on these layers */
+    int xMask,			/* Expansion state mask for searching.  Cell
 				 * uses are only considered to be expanded
 				 * when their expand masks have all the bits
 				 * of xMask set.
 				 */
-    char *pattern;		/* Pattern for which to search */
-    int (*func)();		/* Function to apply to each match */
-    ClientData cdarg;		/* Argument to pass to function */
+    char *pattern,		/* Pattern for which to search */
+    int (*func)(),		/* Function to apply to each match */
+    ClientData cdarg)		/* Argument to pass to function */
 {
     TerminalPath tpath;
     int dbSrLabelFunc();
@@ -160,14 +160,14 @@ DBSearchLabel(scx, mask, xMask, pattern, func, cdarg)
  */
 
 int
-dbSrLabelFunc(scx, label, tpath, labsr)
-    SearchContext *scx;		/* Contains pointer to use in which label
+dbSrLabelFunc(
+    SearchContext *scx,		/* Contains pointer to use in which label
 				 * occurred, and transform back to root
 				 * coordinates.
 				 */
-    Label *label;		/* Label itself */
-    TerminalPath *tpath;	/* Full pathname of the terminal */
-    labSrStruct *labsr;		/* Information passed to this routine */
+    Label *label,		/* Label itself */
+    TerminalPath *tpath,	/* Full pathname of the terminal */
+    labSrStruct *labsr)		/* Information passed to this routine */
 {
     if (Match(labsr->labSrPattern, label->lab_text))
 	if ((*labsr->labSrFunc)(scx, label, tpath, labsr->labSrArg))
@@ -209,14 +209,14 @@ dbSrLabelFunc(scx, label, tpath, labsr)
  */
 
 int
-DBSrLabelLoc(rootUse, name, func, cdarg)
-    CellUse *rootUse;	/* Cell in which to search. */
-    char *name;		/* A hierarchical label name consisting of zero or more
+DBSrLabelLoc(
+    CellUse *rootUse,	/* Cell in which to search. */
+    char *name,		/* A hierarchical label name consisting of zero or more
 			 * use-ids followed by a label name (fields separated
 			 * with slashes).
 			 */
-    int (*func)();	/* Applied to each instance of the label name */
-    ClientData cdarg;	/* Data to pass through to (*func)() */
+    int (*func)(),	/* Applied to each instance of the label name */
+    ClientData cdarg)	/* Data to pass through to (*func)() */
 {
     CellDef *def;
     SearchContext scx;
@@ -273,10 +273,10 @@ DBSrLabelLoc(rootUse, name, func, cdarg)
  */
 
 void
-DBTreeFindUse(name, use, scx)
-    char *name;
-    CellUse *use;
-    SearchContext *scx;
+DBTreeFindUse(
+    char *name,
+    CellUse *use,
+    SearchContext *scx)
 {
     char *cp;
     HashEntry *he;
@@ -369,10 +369,10 @@ DBTreeFindUse(name, use, scx)
  */
 
 bool
-dbParseArray(cp, use, scx)
-    char *cp;
-    CellUse *use;
-    SearchContext *scx;
+dbParseArray(
+    char *cp,
+    CellUse *use,
+    SearchContext *scx)
 {
     int xdelta, ydelta, i1, i2, indexCount;
     Transform trans, trans2;
@@ -491,22 +491,22 @@ dbParseArray(cp, use, scx)
  */
 
 bool
-DBNearestLabel(cellUse, area, point, xMask, labelArea, labelName, length)
-    CellUse *cellUse;		/* Start search at this cell. */
-    Rect *area;			/* Search this area of cellUse. */
-    Point *point;		/* Find nearest label to this point. */
-    int xMask;			/* Recursively search subcells as long
+DBNearestLabel(
+    CellUse *cellUse,		/* Start search at this cell. */
+    Rect *area,			/* Search this area of cellUse. */
+    Point *point,		/* Find nearest label to this point. */
+    int xMask,			/* Recursively search subcells as long
 				 * as their expand masks, when anded with
 				 * xMask, are equal to xMask.  0 means search
 				 * all the way down through the hierarchy.
 				 */
-    Rect *labelArea;		/* To be filled in with area of closest
+    Rect *labelArea,		/* To be filled in with area of closest
 				 * label.  NULL means ignore.
 				 */
-    char *labelName;		/* Fill this in with name of label, unless
+    char *labelName,		/* Fill this in with name of label, unless
 				 * NULL.
 				 */
-    int length;			/* This gives the maximum number of chars
+    int length)			/* This gives the maximum number of chars
 				 * that may be used in labelName, including
 				 * the NULL character to terminate.
 				 */
@@ -567,11 +567,11 @@ DBNearestLabel(cellUse, area, point, xMask, labelArea, labelName, length)
  */
 
 int
-dbNearestLabelFunc(scx, label, tpath, funcData)
-    SearchContext *scx;		/* Describes state of search. */
-    Label *label;		/* Label found. */
-    TerminalPath *tpath;	/* Name of label. */
-    struct nldata *funcData;	/* Parameters to DBNearestLabel (passed as
+dbNearestLabelFunc(
+    SearchContext *scx,		/* Describes state of search. */
+    Label *label,		/* Label found. */
+    TerminalPath *tpath,	/* Name of label. */
+    struct nldata *funcData)	/* Parameters to DBNearestLabel (passed as
 				 * ClientData).
 				 */
 {

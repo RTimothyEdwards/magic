@@ -49,14 +49,14 @@ void gcrUnlinkTrack();
  */
 
 bool
-gcrBlocked(col, i, net, last)
-    GCRColEl *col;	/* Current column information */
-    int i;		/* Which element */
-    GCRNet *net;	/* Net we're interested in processing: locations
+gcrBlocked(
+    GCRColEl *col,	/* Current column information */
+    int i,		/* Which element */
+    GCRNet *net,	/* Net we're interested in processing: locations
 			 * that already contain this net aren't considered
 			 * to be blocked; all others are.
 			 */
-    int last;
+    int last)
 {
     GCRColEl *colptr = &col[i];
 
@@ -100,11 +100,11 @@ gcrBlocked(col, i, net, last)
  */
 
 void
-gcrMoveTrack(column, net, from, to)
-    GCRColEl *	column;
-    GCRNet   *  net;		/* Net to be assigned to a track	*/
-    int		from;
-    int		to;
+gcrMoveTrack(
+    GCRColEl *	column,
+    GCRNet   *  net,		/* Net to be assigned to a track	*/
+    int		from,
+    int		to)
 {
     int		i, last;
 
@@ -261,9 +261,9 @@ gcrMoveTrack(column, net, from, to)
  */
 
 void
-gcrUnlinkTrack(col, toUnlink)
-    GCRColEl *col;
-    int toUnlink;
+gcrUnlinkTrack(
+    GCRColEl *col,
+    int toUnlink)
 {
     GCRColEl *colPtr = &col[toUnlink];
 
@@ -293,10 +293,10 @@ gcrUnlinkTrack(col, toUnlink)
  */
 
 void
-gcrShellSort(v, n, isUp)
-    GCRNet **v;
-    int n;
-    bool isUp;
+gcrShellSort(
+    GCRNet **v,
+    int n,
+    bool isUp)
 {
     int gap, i, j, a1, a2;
     GCRNet * net;
@@ -343,10 +343,10 @@ gcrShellSort(v, n, isUp)
  */
 
 bool
-gcrVertClear(col, from, to)
-    GCRColEl *	col;
-    int		from;
-    int		to;
+gcrVertClear(
+    GCRColEl * col,
+    int from,
+    int to)
 {
     int		i, flags;
     GCRNet   *	net;
@@ -393,9 +393,9 @@ gcrVertClear(col, from, to)
  */
 
 GCRColEl *
-gcrCopyCol(col, size)
-    GCRColEl *col;
-    int size;
+gcrCopyCol(
+    GCRColEl *col,
+    int size)
 {
     GCRColEl *	result;
     int i, limit;
@@ -425,10 +425,11 @@ gcrCopyCol(col, size)
  */
 
 void
-gcrLinkTrack(col, net, track, width)
-    GCRColEl *col;
-    GCRNet *net;
-    int track, width;
+gcrLinkTrack(
+    GCRColEl *col,
+    GCRNet *net,
+    int track,
+    int width)
 {
     int i;
 

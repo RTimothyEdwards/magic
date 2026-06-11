@@ -162,9 +162,9 @@ extern int extDefInitFunc();
  */
 
 void
-ExtTimes(rootUse, f)
-    CellUse *rootUse;
-    FILE *f;
+ExtTimes(
+    CellUse *rootUse,
+    FILE *f)
 {
     double clip, inter;
     HashSearch hs;
@@ -290,9 +290,9 @@ ExtTimes(rootUse, f)
 
 /*ARGSUSED*/
 int
-extTimesInitFunc(use, cdata)
-    CellUse *use;
-    ClientData cdata;	/* UNUSED */
+extTimesInitFunc(
+    CellUse *use,
+    ClientData cdata)	/* UNUSED */
 {
     CellDef *def = use->cu_def;
     struct cellStats *cs;
@@ -345,8 +345,8 @@ extTimesInitFunc(use, cdata)
  */
 
 void
-extTimesCellFunc(cs)
-    struct cellStats *cs;
+extTimesCellFunc(
+    struct cellStats *cs)
 {
     extern long extSubtreeTotalArea;
     extern long extSubtreeInteractionArea;
@@ -398,10 +398,10 @@ extTimesCellFunc(cs)
  */
 
 int
-extCountTiles(tile, dinfo, cs)
-    Tile *tile;			/* (unused) */
-    TileType dinfo;		/* (unused) */
-    struct cellStats *cs;
+extCountTiles(
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
+    struct cellStats *cs)
 {
     cs->cs_rects++;
     return (0);
@@ -432,8 +432,8 @@ extCountTiles(tile, dinfo, cs)
  */
 
 void
-extTimesIncrFunc(cs)
-    struct cellStats *cs;
+extTimesIncrFunc(
+    struct cellStats *cs)
 {
     /*
      * Visit all of our parents recursively.
@@ -481,9 +481,9 @@ extTimesIncrFunc(cs)
  */
 
 void
-extTimesSummaryFunc(cs, f)
-    struct cellStats *cs;
-    FILE *f;
+extTimesSummaryFunc(
+    struct cellStats *cs,
+    FILE *f)
 {
     double tpaint, tcell, thier, tincr;
     double fetspaint, rectspaint;
@@ -590,9 +590,9 @@ extTimesSummaryFunc(cs, f)
  */
 
 void
-extTimesParentFunc(def, cs)
-    CellDef *def;
-    struct cellStats *cs;
+extTimesParentFunc(
+    CellDef *def,
+    struct cellStats *cs)
 {
     struct cellStats *csForDef;
     CellUse *parent;
@@ -643,9 +643,9 @@ extTimesParentFunc(def, cs)
  */
 
 int
-extTimesHierFunc(def, cs)
-    CellDef *def;
-    struct cellStats *cs;
+extTimesHierFunc(
+    CellDef *def,
+    struct cellStats *cs)
 {
     int extTimesHierUse();
     struct cellStats *csForDef;
@@ -679,9 +679,9 @@ extTimesHierFunc(def, cs)
 }
 
 int
-extTimesHierUse(use, cs)
-    CellUse *use;
-    struct cellStats *cs;
+extTimesHierUse(
+    CellUse *use,
+    struct cellStats *cs)
 {
     return (extTimesHierFunc(use->cu_def, cs));
 }
@@ -707,9 +707,9 @@ extTimesHierUse(use, cs)
  */
 
 int
-extTimesFlatFunc(def, cs)
-    CellDef *def;
-    struct cellStats *cs;
+extTimesFlatFunc(
+    CellDef *def,
+    struct cellStats *cs)
 {
     struct cellStats *csForDef;
     int extTimesFlatUse();
@@ -728,9 +728,9 @@ extTimesFlatFunc(def, cs)
 }
 
 int
-extTimesFlatUse(use, cs)
-    CellUse *use;
-    struct cellStats *cs;
+extTimesFlatUse(
+    CellUse *use,
+    struct cellStats *cs)
 {
     struct cellStats dummyCS;
     int nx, ny, nel;
@@ -781,10 +781,10 @@ extTimesFlatUse(use, cs)
  */
 
 void
-extTimeProc(proc, def, tv)
-    int (*proc)();
-    CellDef *def;
-    struct timeval *tv;
+extTimeProc(
+    int (*proc)(),
+    CellDef *def,
+    struct timeval *tv)
 {
     int secs, usecs, i;
 
@@ -839,8 +839,8 @@ extTimeProc(proc, def, tv)
  */
 
 void
-extPaintOnly(def)
-    CellDef *def;
+extPaintOnly(
+    CellDef *def)
 {
     NodeRegion *reg;
 
@@ -867,8 +867,8 @@ extPaintOnly(def)
  */
 
 void
-extHierCell(def)
-    CellDef *def;
+extHierCell(
+    CellDef *def)
 {
     extCellFile(def, extDevNull, FALSE);
 }
@@ -890,8 +890,8 @@ extHierCell(def)
  */
 
 void
-extCumInit(cum)
-    struct cumStats *cum;
+extCumInit(
+    struct cumStats *cum)
 {
     cum->cums_min = (double) INFINITY;
     cum->cums_max = (double) MINFINITY;
@@ -917,10 +917,10 @@ extCumInit(cum)
  */
 
 void
-extCumOutput(str, cum, f)
-    char *str;			/* Prefix string */
-    struct cumStats *cum;
-    FILE *f;
+extCumOutput(
+    char *str,			/* Prefix string */
+    struct cumStats *cum,
+    FILE *f)
 {
     double mean, var;
 
@@ -961,9 +961,9 @@ extCumOutput(str, cum, f)
  */
 
 void
-extCumAdd(cum, v)
-    struct cumStats *cum;
-    double v;
+extCumAdd(
+    struct cumStats *cum,
+    double v)
 {
     if (v < cum->cums_min) cum->cums_min = v;
     if (v > cum->cums_max) cum->cums_max = v;
@@ -989,8 +989,8 @@ extCumAdd(cum, v)
  */
 
 struct cellStats *
-extGetStats(def)
-    CellDef *def;
+extGetStats(
+    CellDef *def)
 {
     HashEntry *he;
 
@@ -1024,10 +1024,10 @@ int extInterCountHalo;
 CellDef *extInterCountDef;
 
 void
-ExtInterCount(rootUse, halo, f)
-    CellUse *rootUse;
-    int halo;
-    FILE *f;
+ExtInterCount(
+    CellUse *rootUse,
+    int halo,
+    FILE *f)
 {
     double inter;
     CellDef *err_def;
@@ -1073,9 +1073,9 @@ ExtInterCount(rootUse, halo, f)
 }
 
 int
-extInterAreaFunc(use, f)
-    CellUse *use;
-    FILE *f;
+extInterAreaFunc(
+    CellUse *use,
+    FILE *f)
 {
     static Plane *interPlane = (Plane *) NULL;
     CellDef *def = use->cu_def;
@@ -1118,10 +1118,10 @@ extInterAreaFunc(use, f)
 }
 
 int
-extInterCountFunc(tile, dinfo, pArea)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    int *pArea;
+extInterCountFunc(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    int *pArea)
 {
     Rect r;
 

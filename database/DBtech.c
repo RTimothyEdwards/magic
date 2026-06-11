@@ -101,10 +101,10 @@ DBTechInit()
 
     /*ARGSUSED*/
 bool
-DBTechSetTech(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBTechSetTech(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     if (argc != 1)
     {
@@ -169,10 +169,10 @@ DBTechInitVersion()
 
     /*ARGSUSED*/
 bool
-DBTechSetVersion(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBTechSetVersion(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     char *contline;
     int n, slen;
@@ -307,10 +307,10 @@ DBTechInitConnect()
 
     /*ARGSUSED*/
 bool
-DBTechAddConnect(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBTechAddConnect(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     TileTypeBitMask types1, types2;
     TileType t1, t2;

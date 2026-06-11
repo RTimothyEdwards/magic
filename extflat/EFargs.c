@@ -144,12 +144,12 @@ extern void efLoadSearchPath();
  */
 
 char *
-EFArgs(argc, argv, err_result, argsProc, cdata)
-    int argc;		/* Number of command-line args */
-    char *argv[];	/* Vector of command-line args */
-    bool *err_result;	/* Set to TRUE if error occurs */
-    bool (*argsProc)();	/* Called for args we don't recognize */
-    ClientData cdata;	/* Passed to (*argsProc)() */
+EFArgs(
+    int argc,		/* Number of command-line args */
+    char *argv[],	/* Vector of command-line args */
+    bool *err_result,	/* Set to TRUE if error occurs */
+    bool (*argsProc)(),	/* Called for args we don't recognize */
+    ClientData cdata)	/* Passed to (*argsProc)() */
 {
     static char libpath[FNSIZE];
     char *realIn, line[1024], *inname = NULL, *name, *cp;
@@ -362,8 +362,8 @@ usage:
  */
 
 void
-efLoadSearchPath(path)
-    char **path;
+efLoadSearchPath(
+    char **path)
 {
     PaVisit *pv;
 
@@ -377,9 +377,9 @@ efLoadSearchPath(path)
 }
 
 int
-efLoadPathFunc(line, ppath)
-    char *line;
-    char **ppath;
+efLoadPathFunc(
+    char *line,
+    char **ppath)
 {
     char *cp, *dp, c;
     char path[BUFSIZ];

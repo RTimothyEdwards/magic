@@ -85,8 +85,8 @@ void RegisterTkCommands();
 /*--------------------------------------------------------------*/
 
 int
-TagVerify(keyword)
-    char *keyword;
+TagVerify(
+    char *keyword)
 {
     char *croot, *postcmd;
     HashEntry *entry;
@@ -107,11 +107,11 @@ TagVerify(keyword)
 /*--------------------------------------------------------------*/
 
 int
-TagCallback(interp, tkpath, argc, argv)
-    Tcl_Interp *interp;
-    char *tkpath;
-    int argc;		/* original command's number of arguments */
-    char *argv[];	/* original command's argument list */
+TagCallback(
+    Tcl_Interp *interp,
+    char *tkpath,
+    int argc,		/* original command's number of arguments */
+    char *argv[])	/* original command's argument list */
 {
     int argidx, result = TCL_OK;
     char *postcmd, *substcmd, *newcmd, *sptr, *sres;
@@ -584,7 +584,9 @@ _tk_dispatch(ClientData clientData,
 /*--------------------------------------------------------------*/
 
 void
-MakeWindowCommand(char *wname, MagWindow *mw)
+MakeWindowCommand(
+    char *wname,
+    MagWindow *mw)
 {
     char *tclcmdstr;
 
@@ -603,7 +605,8 @@ MakeWindowCommand(char *wname, MagWindow *mw)
 
 #ifdef HAVE_SETRLIMIT
 static int
-process_rlimit_nofile_ensure(rlim_t nofile)
+process_rlimit_nofile_ensure(
+    rlim_t nofile)
 {
     struct rlimit rlim;
     int err = getrlimit(RLIMIT_NOFILE, &rlim);
@@ -983,10 +986,10 @@ _magic_startup(ClientData clientData,
 /*--------------------------------------------------------------*/
 
 int
-TxDialog(prompt, responses, defresp)
-    const char *prompt;
-    const char * const *responses;
-    int defresp;
+TxDialog(
+    const char *prompt,
+    const char * const *responses,
+    int defresp)
 {
     Tcl_Obj *objPtr;
     int code, result, pos;
@@ -1079,10 +1082,10 @@ TxSetPrompt(
 /*--------------------------------------------------------------*/
 
 char *
-TxGetLinePfix(dest, maxChars, prefix)
-    char *dest;
-    int maxChars;
-    char *prefix;
+TxGetLinePfix(
+    char *dest,
+    int maxChars,
+    char *prefix)
 {
     Tcl_Obj *objPtr;
     int charsStored;
@@ -1139,8 +1142,8 @@ TxGetLinePfix(dest, maxChars, prefix)
 /*--------------------------------------------------------------*/
 
 void
-TxDispatch(f)
-    FILE *f;	/* Under Tcl, we never call this with NULL */
+TxDispatch(
+    FILE *f)	/* Under Tcl, we never call this with NULL */
 {
     if (f == NULL)
     {
@@ -1164,8 +1167,8 @@ TxDispatch(f)
 /*--------------------------------------------------------------*/
 
 void
-TxParseString(str)
-    const char *str;
+TxParseString(
+    const char *str)
 {
     const char *reply;
 
@@ -1259,7 +1262,10 @@ TxFlush()
 /*--------------------------------------------------------------*/
 
 int
-Tcl_printf(FILE *f, const char *fmt, va_list args_in)
+Tcl_printf(
+    FILE *f,
+    const char *fmt,
+    va_list args_in)
 {
     va_list args;
     static char outstr[128] = "puts -nonewline std";
@@ -1353,8 +1359,8 @@ Tcl_printf(FILE *f, const char *fmt, va_list args_in)
 /*--------------------------------------------------------------*/
 
 char *
-Tcl_escape(instring)
-    char *instring;
+Tcl_escape(
+    char *instring)
 {
     char *newstr;
     int nchars = 0;
@@ -1403,11 +1409,11 @@ Tcl_escape(instring)
 /*--------------------------------------------------------------*/
 
 int
-TerminalInputProc(instanceData, buf, toRead, errorCodePtr)
-    ClientData instanceData;
-    char *buf;
-    int toRead;
-    int *errorCodePtr;
+TerminalInputProc(
+    ClientData instanceData,
+    char *buf,
+    int toRead,
+    int *errorCodePtr)
 {
     FileState *fsPtr = (FileState *)instanceData;
     int bytesRead, i, tlen;
@@ -1452,8 +1458,8 @@ TerminalInputProc(instanceData, buf, toRead, errorCodePtr)
 /*--------------------------------------------------------------*/
 
 int
-Tclmagic_Init(interp)
-    Tcl_Interp *interp;
+Tclmagic_Init(
+    Tcl_Interp *interp)
 {
     const char *cadroot;
 
@@ -1510,8 +1516,8 @@ Tclmagic_Init(interp)
 /*--------------------------------------------------------------*/
 
 int
-Tclmagic_SafeInit(interp)
-    Tcl_Interp *interp;
+Tclmagic_SafeInit(
+    Tcl_Interp *interp)
 {
     return Tclmagic_Init(interp);
 }

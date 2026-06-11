@@ -63,8 +63,8 @@ LinkedRect * grCurObscure;	/* A list of obscuring areas */
  */
 
 static char *
-grWindName(w)
-    MagWindow *w;
+grWindName(
+    MagWindow *w)
 {
     if (w == NULL) return "<NULL>";
     if (w == GR_LOCK_SCREEN) return "<FULL-SCREEN>";
@@ -92,11 +92,11 @@ grWindName(w)
  */
 
 void
-grSimpleLock(w, inside)
-    MagWindow *w;		/* The window to lock, or GR_LOCK_SCREEN if the
+grSimpleLock(
+    MagWindow *w,		/* The window to lock, or GR_LOCK_SCREEN if the
 			 * whole screen.
 			 */
-    bool inside;	/* If TRUE, clip to inside of window, otherwise clip
+    bool inside)	/* If TRUE, clip to inside of window, otherwise clip
 			 * to outside of window.
 			 */
 {
@@ -128,8 +128,8 @@ grSimpleLock(w, inside)
 
 
 void
-grSimpleUnlock(w)
-    MagWindow *w;
+grSimpleUnlock(
+    MagWindow *w)
 {
     ASSERT(w != NULL, "grSimpleUnlock");
     if (grTraceLocks) TxError("--- Unlock %s\n", grWindName(w));
@@ -160,8 +160,8 @@ grSimpleUnlock(w)
  */
 
 void
-GrClipTo(r)
-    Rect *r;
+GrClipTo(
+    Rect *r)
 {
     if (grLockedWindow == NULL) return;
     if (grLockScreen)

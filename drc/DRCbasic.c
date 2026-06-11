@@ -108,10 +108,13 @@ drcFoundOneFunc(Tile *tile,
  */
 
 long
-drcCifPointToSegment(px, py, s1x, s1y, s2x, s2y)
-    int px, py;		/* The position of the point */
-    int s1x, s1y;	/* One endpoint of the line segment */
-    int s2x, s2y;	/* The other endpoint of the line segment */
+drcCifPointToSegment(
+    int px,
+    int py,
+    int s1x,
+    int s1y,
+    int s2x,
+    int s2y)
 {
     long x, y;
     long a, b, c, frac;
@@ -170,10 +173,10 @@ drcCifPointToSegment(px, py, s1x, s1y, s2x, s2y)
  */
 
 int
-areaCheck(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    struct drcClientData *arg;
+areaCheck(
+    Tile *tile,
+    TileType dinfo,
+    struct drcClientData *arg)
 {
     Rect rect;		/* Area where error is to be recorded. */
 
@@ -337,10 +340,10 @@ areaCheck(tile, dinfo, arg)
  */
 
 int
-areaNMReject(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    ClientData *arg;
+areaNMReject(
+    Tile *tile,
+    TileType dinfo,
+    ClientData *arg)
 {
     Tile *checktile = (Tile *)arg;
 
@@ -369,10 +372,10 @@ areaNMReject(tile, dinfo, arg)
  */
 
 int
-areaNMCheck(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    struct drcClientData *arg;
+areaNMCheck(
+    Tile *tile,
+    TileType dinfo,
+    struct drcClientData *arg)
 {
     Rect rect;		/* Area where error is to be recorded. */
 
@@ -460,14 +463,14 @@ areaNMCheck(tile, dinfo, arg)
  */
 
 int
-DRCBasicCheck (celldef, checkRect, clipRect, function, cdata)
-    CellDef *celldef;	/* CellDef being checked */
-    Rect *checkRect;	/* Check rules in this area -- usually two Haloes
+DRCBasicCheck(
+    CellDef *celldef,	/* CellDef being checked */
+    Rect *checkRect,	/* Check rules in this area -- usually two Haloes
 			 * larger than the area where changes were made.
 			 */
-    Rect *clipRect;	/* Clip error tiles against this area. */
-    void (*function)();	/* Function to apply for each error found. */
-    ClientData cdata;	/* Passed to function as argument. */
+    Rect *clipRect,	/* Clip error tiles against this area. */
+    void (*function)(),	/* Function to apply for each error found. */
+    ClientData cdata)	/* Passed to function as argument. */
 {
     struct drcClientData arg;
     int	errors;
@@ -553,10 +556,10 @@ DRCBasicCheck (celldef, checkRect, clipRect, function, cdata)
  */
 
 int
-drcTile (tile, dinfo, arg)
-    Tile *tile;			/* Tile being examined */
-    TileType dinfo;		/* Split tile information */
-    struct drcClientData *arg;
+drcTile(
+    Tile *tile,			/* Tile being examined */
+    TileType dinfo,		/* Split tile information */
+    struct drcClientData *arg)
 {
     DRCCookie *cptr;	/* Current design rule on list */
     Rect *rect = arg->dCD_rect;	/* Area being checked */

@@ -179,8 +179,8 @@ extern void mzExtendPath(RoutePath *);
  * ----------------------------------------------------------------------------
  */
 RoutePath *
-mzSearch(mzResult)
-    int *mzResult;
+mzSearch(
+    int *mzResult)
 {
     RoutePath *path;		/* solution */
     bool morePartialPaths = TRUE;
@@ -728,8 +728,8 @@ mzSearch(mzResult)
  */
 
 void
-mzExtendPath(path)
-    RoutePath *path;
+mzExtendPath(
+    RoutePath *path)
 {
     int extendCode = path->rp_extendCode;
 
@@ -813,8 +813,8 @@ mzExtendPath(path)
  * ----------------------------------------------------------------------------
  */
 void
-mzExtendViaLRContacts(path)
-    RoutePath *path;
+mzExtendViaLRContacts(
+    RoutePath *path)
 {
     Point p = path->rp_entry, *lastCpos = NULL;
     RouteLayer *rLayer = path->rp_rLayer;
@@ -1010,8 +1010,8 @@ mzExtendViaLRContacts(path)
  * ----------------------------------------------------------------------------
  */
 void
-mzExtendViaUDContacts(path)
-    RoutePath *path;
+mzExtendViaUDContacts(
+    RoutePath *path)
 {
     Point p = path->rp_entry, *lastCpos = NULL;
     RouteLayer *rLayer = path->rp_rLayer;
@@ -1208,17 +1208,16 @@ mzExtendViaUDContacts(path)
  * ----------------------------------------------------------------------------
  */
 void
-mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
-    RoutePath *path;	/* path that new point extends */
-    Point *p;		/* new point */
-    RouteLayer *rLayer;	/* Route Layer of new point */
-    int orient;		/* 'H' = endpt of hor seg, 'V' = endpt of vert seg,
+mzAddPoint(
+    RoutePath *path,	/* path that new point extends */
+    Point *p,		/* new point */
+    RouteLayer *rLayer,	/* Route Layer of new point */
+    int orient,		/* 'H' = endpt of hor seg, 'V' = endpt of vert seg,
 			 * 'O' = LR contact, 'X' = UD contact,
 			 * 'B' = first point in path and blocked
 			 */
-    int extendCode;	/* interesting directions to extend in */
-    dlong *costptr;	/* Incremental cost of new path segment */
-
+    int extendCode,	/* interesting directions to extend in */
+    dlong *costptr)	/* Incremental cost of new path segment */
 {
     RoutePath *newPath;
     RoutePath *hashedPath;
@@ -1459,8 +1458,8 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
  * ----------------------------------------------------------------------------
  */
 void
-mzBloomInit(path)
-    RoutePath *path;	/* path that new point extends */
+mzBloomInit(
+    RoutePath *path)	/* path that new point extends */
 {
     ASSERT(mzBloomStack==NULL,"mzBloomInit");
 

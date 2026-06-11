@@ -192,9 +192,9 @@ int grtkNbRects=0;
  */
 
 void
-grtkDrawLines(lines, nb)
-    XSegment lines[];
-    int nb;
+grtkDrawLines(
+    XSegment lines[],
+    int nb)
 {
     XDrawSegments(grXdpy, grCurrent.windowid, grGCDraw,
 	      lines, nb);
@@ -213,9 +213,11 @@ grtkDrawLines(lines, nb)
  */
 
 void
-grtkDrawLine (x1, y1, x2, y2)
-    int x1, y1;			/* Screen coordinates of first point. */
-    int x2, y2;			/* Screen coordinates of second point. */
+grtkDrawLine(
+    int x1,
+    int y1,
+    int x2,
+    int y2)
 {
     if (grtkNbLines == TK_BATCH_SIZE) GR_TK_FLUSH_LINES();
     grtkLines[grtkNbLines].x1 = x1;
@@ -239,9 +241,9 @@ grtkDrawLine (x1, y1, x2, y2)
  */
 
 void
-grtkFillRects(rects, nb)
-    XRectangle rects[];
-    int nb;
+grtkFillRects(
+    XRectangle rects[],
+    int nb)
 {
     XFillRectangles(grXdpy, grCurrent.windowid, grGCFill, rects, nb);
 }
@@ -259,8 +261,8 @@ grtkFillRects(rects, nb)
  */
 
 void
-grtkFillRect(r)
-    Rect *r;	/* Address of a rectangle in screen
+grtkFillRect(
+    Rect *r)	/* Address of a rectangle in screen
 			 * coordinates.
 			 */
 {
@@ -289,9 +291,9 @@ grtkFillRect(r)
  */
 
 void
-grtkFillPolygon(tp, np)
-    Point *tp;
-    int np;
+grtkFillPolygon(
+    Point *tp,
+    int np)
 {
     XPoint xp[5];
     int i;

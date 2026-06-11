@@ -144,8 +144,8 @@ void extPathFloodTile();
  */
 
 void
-ExtSetDriver(name)
-    char *name;
+ExtSetDriver(
+    char *name)
 {
     HashEntry *he;
 
@@ -154,8 +154,8 @@ ExtSetDriver(name)
 }
 
 void
-ExtSetReceiver(name)
-    char *name;
+ExtSetReceiver(
+    char *name)
 {
     HashEntry *he;
 
@@ -238,12 +238,12 @@ extLengthInit()
  */
 
 void
-extLength(rootUse, f)
-    CellUse *rootUse;	/* The names stored in the driver and receiver tables
+extLength(
+    CellUse *rootUse,	/* The names stored in the driver and receiver tables
 			 * should all be relative to this root cell.  It is
 			 * the responsibility of the caller to ensure this.
 			 */
-    FILE *f;		/* Open output file */
+    FILE *f)		/* Open output file */
 {
     Label *dList, *rList, *dLab, *rLab;
     int min, max;
@@ -346,9 +346,9 @@ extLength(rootUse, f)
  */
 
 Label *
-extLengthYank(use, labList)
-    CellUse *use;	/* Cell whose material is to be traced */
-    Label *labList;	/* List of labels whose attached net is to be traced */
+extLengthYank(
+    CellUse *use,	/* Cell whose material is to be traced */
+    Label *labList)	/* List of labels whose attached net is to be traced */
 {
     SearchContext scx;
     char mesg[512];
@@ -434,10 +434,10 @@ extLengthYank(use, labList)
  */
 
 int
-extLengthLabels(tile, dinfo, rootUse)
-    Tile *tile;			/* Some tile in extPathDef */
-    TileType dinfo;		/* Split tile information (unused) */
-    CellUse *rootUse;		/* The original root cell */
+extLengthLabels(
+    Tile *tile,			/* Some tile in extPathDef */
+    TileType dinfo,		/* Split tile information (unused) */
+    CellUse *rootUse)		/* The original root cell */
 {
     char name[MAXNAMESIZE];
     TileTypeBitMask mask;
@@ -486,10 +486,10 @@ extLengthLabels(tile, dinfo, rootUse)
  */
 
 int
-extLengthLabelsFunc(scx, label, tpath)
-    SearchContext *scx;		/* Where in the search tree we are */
-    Label *label;		/* The label itself */
-    TerminalPath *tpath;	/* Identifies hierarchical prefix for label.
+extLengthLabelsFunc(
+    SearchContext *scx,		/* Where in the search tree we are */
+    Label *label,		/* The label itself */
+    TerminalPath *tpath)	/* Identifies hierarchical prefix for label.
 				 * The full hierarchical pathname will be the
 				 * concatenation of the string tpath->tp_first
 				 * and the string label->lab_text.
@@ -544,9 +544,9 @@ extLengthLabelsFunc(scx, label, tpath)
  */
 
 Label *
-extPathLabel(use, text)
-    CellUse *use;
-    char *text;
+extPathLabel(
+    CellUse *use,
+    char *text)
 {
     int extPathLabelFunc();
     Label *lab;
@@ -578,11 +578,11 @@ extPathLabel(use, text)
  */
 
 int
-extPathLabelFunc(rect, text, childLab, pLabList)
-    Rect *rect;		/* Transformed location of the label */
-    char *text;		/* Full hierarchical name of the label */
-    Label *childLab;	/* The label itself */
-    Label **pLabList;	/* Cons the newly allocated label onto the front of
+extPathLabelFunc(
+    Rect *rect,		/* Transformed location of the label */
+    char *text,		/* Full hierarchical name of the label */
+    Label *childLab,	/* The label itself */
+    Label **pLabList)	/* Cons the newly allocated label onto the front of
 			 * this list.
 			 */
 {
@@ -630,9 +630,11 @@ extPathLabelFunc(rect, text, childLab, pLabList)
  */
 
 void
-extPathPairDistance(lab1, lab2, pMin, pMax)
-    Label *lab1, *lab2;
-    int *pMin, *pMax;
+extPathPairDistance(
+    Label *lab1,
+    Label *lab2,
+    int *pMin,
+    int *pMax)
 {
     struct extPathArg epa;
     TileTypeBitMask mask;
@@ -694,8 +696,8 @@ extPathPairDistance(lab1, lab2, pMin, pMax)
  */
 
 int
-extPathResetClient(tile)
-    Tile *tile;
+extPathResetClient(
+    Tile *tile)
 {
     TiSetClient(tile, CLIENTDEFAULT);
     return (0);
@@ -728,10 +730,10 @@ extPathResetClient(tile)
  */
 
 int
-extPathPairFunc(tile, dinfo, epa)
-    Tile *tile;
-    TileType dinfo;		// Unused
-    struct extPathArg *epa;
+extPathPairFunc(
+    Tile *tile,
+    TileType dinfo,		// Unused
+    struct extPathArg *epa)
 {
     Point startPoint;
     Rect r;
@@ -772,11 +774,11 @@ extPathPairFunc(tile, dinfo, epa)
  */
 
 void
-extPathFlood(tile, p, distance, epa)
-    Tile *tile;	/* Tile whose neighbors we are to visit */
-    Point *p;			/* Usually at center of 'tile' */
-    int distance;		/* Distance to 'p' */
-    struct extPathArg *epa;	/* Update epa_min and epa_max when we reach
+extPathFlood(
+    Tile *tile,	/* Tile whose neighbors we are to visit */
+    Point *p,			/* Usually at center of 'tile' */
+    int distance,		/* Distance to 'p' */
+    struct extPathArg *epa)	/* Update epa_min and epa_max when we reach
 				 * the destination epa_lab2.
 				 */
 {
@@ -911,10 +913,10 @@ extPathFlood(tile, p, distance, epa)
 }
 
 int
-extPathFloodFunc(dstTile, dinfo, epfa)
-    Tile *dstTile;
-    TileType dinfo;	// Unused
-    struct extPathFloodArg *epfa;
+extPathFloodFunc(
+    Tile *dstTile,
+    TileType dinfo,	// Unused
+    struct extPathFloodArg *epfa)
 {
     Rect srcRect, dstRect;
     Point dstPoint, *p;
@@ -970,12 +972,12 @@ extPathFloodFunc(dstTile, dinfo, epfa)
  */
 
 void
-extPathFloodTile(srcTile, srcPoint, srcDist, dstTile, epa)
-    Tile *srcTile;	/* Tile through which we're propagating */
-    Point *srcPoint;		/* Point inside or on srcTile */
-    int srcDist;		/* Distance to srcPoint so far */
-    Tile *dstTile;	/* Tile on border of srcTile */
-    struct extPathArg *epa;
+extPathFloodTile(
+    Tile *srcTile,	/* Tile through which we're propagating */
+    Point *srcPoint,		/* Point inside or on srcTile */
+    int srcDist,		/* Distance to srcPoint so far */
+    Tile *dstTile,	/* Tile on border of srcTile */
+    struct extPathArg *epa)
 {
     Rect srcRect, dstRect;
     Point dstPoint;
@@ -1017,10 +1019,11 @@ extPathFloodTile(srcTile, srcPoint, srcDist, dstTile, epa)
  */
 
 int
-extPathTileDist(p1, p2, tile, oldDist)
-    Point *p1, *p2;
-    Tile *tile;
-    int oldDist;
+extPathTileDist(
+    Point *p1,
+    Point *p2,
+    Tile *tile,
+    int oldDist)
 {
     int newDist;
 

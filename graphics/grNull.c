@@ -71,28 +71,42 @@ nullDoNothing()
 
 /* 1-argument stub (int or pointer) */
 static void
-nullDoNothingI(int a)
+nullDoNothingI(
+    int a)
 {
     (void) a;
 }
 
 /* 2-argument stub */
 static void
-nullDoNothingII(int a, int b)
+nullDoNothingII(
+    int a,
+    int b)
 {
     (void) a; (void) b;
 }
 
 /* 4-argument stub */
 static void
-nullDoNothingIIII(int a, int b, int c, int d)
+nullDoNothingIIII(
+    int a,
+    int b,
+    int c,
+    int d)
 {
     (void) a; (void) b; (void) c; (void) d;
 }
 
 /* 7-argument stub (for grFontTextPtr) */
 static void
-nullDoNothingIIIIIII(int a, int b, int c, int d, int e, int f, int g)
+nullDoNothingIIIIIII(
+    int a,
+    int b,
+    int c,
+    int d,
+    int e,
+    int f,
+    int g)
 {
     (void) a; (void) b; (void) c; (void) d; (void) e; (void) f; (void) g;
 }
@@ -100,14 +114,17 @@ nullDoNothingIIIIIII(int a, int b, int c, int d, int e, int f, int g)
 /* bool-returning stubs — return FALSE so callers treat backing store / window
  * creation as unavailable, which is correct for the headless null driver. */
 static bool
-nullReturnFalseI(int a)
+nullReturnFalseI(
+    int a)
 {
     (void) a;
     return FALSE;
 }
 
 static bool
-nullReturnFalseII(int a, int b)
+nullReturnFalseII(
+    int a,
+    int b)
 {
     (void) a; (void) b;
     return FALSE;
@@ -115,7 +132,10 @@ nullReturnFalseII(int a, int b)
 
 /* 3-argument bool-returning stub (for grDrawGridPtr) */
 static bool
-nullReturnFalseIII(int a, int b, int c)
+nullReturnFalseIII(
+    int a,
+    int b,
+    int c)
 {
     (void) a; (void) b; (void) c;
     return FALSE;
@@ -123,7 +143,8 @@ nullReturnFalseIII(int a, int b, int c)
 
 /* 1-argument int-returning stub (for GrWindowIdPtr) */
 static int
-nullReturnZeroI(int a)
+nullReturnZeroI(
+    int a)
 {
     (void) a;
     return 0;
@@ -214,10 +235,10 @@ NullInit()
  */
 
 int
-NullTextSize(text, size, r)
-    char *text;
-    int size;
-    Rect *r;
+NullTextSize(
+    char *text,
+    int size,
+    Rect *r)
 {
     ASSERT(r != NULL, "nullTextSize");
     r->r_xbot = 0;
@@ -307,10 +328,10 @@ NullBitBlt()
  */
 
 bool
-nullSetDisplay(dispType, outFileName, mouseFileName)
-    char *dispType;
-    char *outFileName;
-    char *mouseFileName;
+nullSetDisplay(
+    char *dispType,
+    char *outFileName,
+    char *mouseFileName)
 {
     TxPrintf("Using NULL graphics device.\n");
 

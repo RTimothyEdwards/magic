@@ -290,10 +290,10 @@ int mzMakeEndpoints;  /* Set to MZ_EXPAND_START, MZ_EXPAND_DEST, or
  */
 
 void
-mzMarkConnectedTiles(rect, type, expandType)
-    Rect *rect;
-    TileType type;
-    int expandType;
+mzMarkConnectedTiles(
+    Rect *rect,
+    TileType type,
+    int expandType)
 {
     List *expandList = NULL;	/* areas remaining to be expanded from */
 
@@ -412,10 +412,10 @@ mzMarkConnectedTiles(rect, type, expandType)
  */
 
 int
-mzConnectedTileFunc(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    TreeContext *cxp;
+mzConnectedTileFunc(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    TreeContext *cxp)
 {
     /* If tile not marked, mark it, add it to marked list, and add
      * corresponding area to expand list.  Mark start tiles MZ_EXPAND_START
@@ -514,9 +514,9 @@ mzConnectedTileFunc(tile, dinfo, cxp)
  */
 
 int
-mzConnectedSubcellFunc(scx, cdarg)
-    SearchContext *scx;
-    ClientData cdarg;
+mzConnectedSubcellFunc(
+    SearchContext *scx,
+    ClientData cdarg)
 {
     CellUse *cu = scx->scx_use;
 
@@ -550,8 +550,9 @@ mzConnectedSubcellFunc(scx, cdarg)
  */
 
 RouteContact *
-MZGetContact(path, prev)
-    RoutePath *path, *prev;
+MZGetContact(
+    RoutePath *path,
+    RoutePath *prev)
 {
     RouteContact *rC;
     List *cL;
@@ -586,8 +587,9 @@ MZGetContact(path, prev)
  */
 
 int
-mzPaintContact(path, prev)
-    RoutePath *path, *prev;
+mzPaintContact(
+    RoutePath *path,
+    RoutePath *prev)
 {
     RouteContact *rC;
     int pNum, pNumC, cWidth;
@@ -670,8 +672,8 @@ mzPaintContact(path, prev)
  */
 
 RoutePath *
-mzCopyPath(path)
-    RoutePath *path;
+mzCopyPath(
+    RoutePath *path)
 {
     RoutePath *newHead, *newPrev, *new;
 
@@ -795,9 +797,9 @@ mzFreeAllRPaths()
  */
 
 bool
-mzPresent(rL,touchingTypes)
-    RouteLayer *rL;
-    TileTypeBitMask *touchingTypes;
+mzPresent(
+    RouteLayer *rL,
+    TileTypeBitMask *touchingTypes)
 {
     List *l;
 

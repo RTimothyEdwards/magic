@@ -54,7 +54,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/cif.h"
 
 /* Forward declarations */
-void windDoMacro();
+void windDoMacro(MagWindow *w, TxCommand *cmd, bool interactive);
 
 /*
  * ----------------------------------------------------------------------------
@@ -78,9 +78,9 @@ void windDoMacro();
  */
 
 void
-windBorderCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windBorderCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int place;
     bool value;
@@ -148,9 +148,9 @@ windBorderCmd(w, cmd)
  */
 
 void
-windCaptionCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windCaptionCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int place;
     Rect ts;
@@ -218,9 +218,9 @@ windCaptionCmd(w, cmd)
  */
 
 void
-windCenterCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windCenterCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Point rootPoint;
     Rect newArea, oldArea;
@@ -318,9 +318,9 @@ windCenterCmd(w, cmd)
  */
 
 void
-windCloseCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windCloseCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if ((cmd->tx_argc == 2) && GrWindowNamePtr)
     {
@@ -372,9 +372,9 @@ windCloseCmd(w, cmd)
  */
 
 void
-windBypassCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windBypassCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int saveCount;
 
@@ -410,9 +410,9 @@ windBypassCmd(w, cmd)
  */
 
 void
-windCrashCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windCrashCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc != 1)
     {
@@ -457,9 +457,9 @@ windCrashCmd(w, cmd)
 #define CURSOR_SCREEN	6
 
 void
-windCursorCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windCursorCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Point p_in, p_out;
     int  resulttype, saveunits, idx;
@@ -588,9 +588,9 @@ windCursorCmd(w, cmd)
  */
 
 void
-windDebugCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windDebugCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc != 1) goto usage;
     windPrintCommands = !windPrintCommands;
@@ -617,9 +617,9 @@ usage:
  */
 
 void
-windDumpCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windDumpCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     (void) windDump();
 }
@@ -643,9 +643,9 @@ windDumpCmd(w, cmd)
  */
 
 void
-windEchoCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windEchoCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int i;
     bool newline = TRUE;
@@ -686,9 +686,9 @@ windEchoCmd(w, cmd)
  /*ARGSUSED*/
 
 void
-windFilesCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windFilesCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 #define NUM_FD	20	/* max number of open files per process */
     int fd;
@@ -740,9 +740,9 @@ windFilesCmd(w, cmd)
  */
 
 void
-windGrowCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windGrowCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (w == NULL)
     {
@@ -769,9 +769,9 @@ windGrowCmd(w, cmd)
  */
 
 void
-windGrstatsCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windGrstatsCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     char *RunStats(), *rstatp;
     static struct tms tlast, tdelta;
@@ -875,9 +875,9 @@ windGrstatsCmd(w, cmd)
  */
 
 void
-windHelpCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windHelpCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     ASSERT(FALSE, windHelpCmd);
 }
@@ -914,9 +914,9 @@ windHelpCmd(w, cmd)
 #define LOG_CMD_RESUME 	4	// Resume command logging.
 
 void
-windLogCommandsCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windLogCommandsCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     char *fileName = NULL;
     unsigned char flags = 0;
@@ -994,9 +994,9 @@ usage:
  */
 
 void
-windIntMacroCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windIntMacroCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     windDoMacro(w, cmd, TRUE);
 }
@@ -1018,9 +1018,9 @@ windIntMacroCmd(w, cmd)
  */
 
 void
-windMacroCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windMacroCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     windDoMacro(w, cmd, FALSE);
 }
@@ -1042,10 +1042,10 @@ windMacroCmd(w, cmd)
  */
 
 void
-windDoMacro(w, cmd, interactive)
-    MagWindow *w;
-    TxCommand *cmd;
-    bool interactive;
+windDoMacro(
+    MagWindow *w,
+    TxCommand *cmd,
+    bool interactive)
 {
     char *cp, *cn;
     char nulltext[] = "";

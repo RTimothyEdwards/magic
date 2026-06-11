@@ -101,10 +101,10 @@ static CellDef *dbwelemRootDef;		/* To pass root cell definition from
  */
 
 void
-AppendString(oldstr, newstr, postfix)
-    char **oldstr;
-    const char *newstr;
-    const char *postfix;
+AppendString(
+    char **oldstr,
+    const char *newstr,
+    const char *postfix)
 {
     char *tmpstr;
     int olen = 0;
@@ -175,10 +175,10 @@ AppendFlag(
  */
 
 char *
-DBWPrintElements(cellDef, flagmask, reducer)
-    CellDef *cellDef;
-    unsigned char flagmask;
-    int reducer;
+DBWPrintElements(
+    CellDef *cellDef,
+    unsigned char flagmask,
+    int reducer)
 {
     DBWElement *elem;
     HashSearch hs;
@@ -287,8 +287,9 @@ DBWPrintElements(cellDef, flagmask, reducer)
  */
 
 void
-DBWScaleElements(n, d)
-    int n, d;
+DBWScaleElements(
+    int n,
+    int d)
 {
     DBWElement *elem;
     HashSearch hs;
@@ -333,9 +334,9 @@ DBWScaleElements(n, d)
  */
 
 void
-DBWElementRedraw(window, plane)
-    MagWindow *window;		/* Window in which to redraw. */
-    Plane *plane;		/* Non-space tiles on this plane mark what
+DBWElementRedraw(
+    MagWindow *window,		/* Window in which to redraw. */
+    Plane *plane)		/* Non-space tiles on this plane mark what
 				 * needs to be redrawn.
 				 */
 {
@@ -495,9 +496,9 @@ DBWElementRedraw(window, plane)
  */
 
 void
-dbwElementUndraw(mw, elem)
-    MagWindow *mw;
-    DBWElement *elem;		/* The element to erase */
+dbwElementUndraw(
+    MagWindow *mw,
+    DBWElement *elem)		/* The element to erase */
 {
     CellDef *windowRoot;
     Rect screenArea, textArea;
@@ -567,7 +568,9 @@ dbwElementUndraw(mw, elem)
  */
 
 void
-DBWElementDelete(MagWindow *w, char *name)
+DBWElementDelete(
+    MagWindow *w,
+    char *name)
 {
     DBWElement *elem;
     CellDef *currentRoot;
@@ -669,8 +672,8 @@ DBWElementNames()
  */
 
 void
-DBWElementInbox(area)
-    Rect *area;
+DBWElementInbox(
+    Rect *area)
 {
     DBWElement *elem;
     HashSearch hs;
@@ -726,14 +729,14 @@ DBWElementInbox(area)
 /* Set up everything is generic to all element types */
 
 DBWElement *
-DBWElementAdd(w, name, area, cellDef, style)
-    MagWindow *w;
-    char *name;			/* Name of this element for the hash table */
-    Rect *area;			/* The area of the element */
-    CellDef *cellDef;		/* The cellDef in whose coordinates area
+DBWElementAdd(
+    MagWindow *w,
+    char *name,			/* Name of this element for the hash table */
+    Rect *area,			/* The area of the element */
+    CellDef *cellDef,		/* The cellDef in whose coordinates area
 				 * is given.
 				 */
-    int style;			/* An initial display style to use */
+    int style)			/* An initial display style to use */
 {
     Transform transform;
     DBWElement *elem;
@@ -779,14 +782,14 @@ DBWElementAdd(w, name, area, cellDef, style)
 }
 
 void
-DBWElementAddRect(w, name, area, cellDef, style)
-    MagWindow *w;
-    char *name;			/* Name of this element for the hash table */
-    Rect *area;			/* The area to be highlighted. */
-    CellDef *cellDef;		/* The cellDef in whose coordinates area
+DBWElementAddRect(
+    MagWindow *w,
+    char *name,			/* Name of this element for the hash table */
+    Rect *area,			/* The area to be highlighted. */
+    CellDef *cellDef,		/* The cellDef in whose coordinates area
 				 * is given.
 				 */
-    int style;			/* An initial display style to use */
+    int style)			/* An initial display style to use */
 {
     DBWElement *elem;
 
@@ -796,14 +799,14 @@ DBWElementAddRect(w, name, area, cellDef, style)
 }
 
 void
-DBWElementAddLine(w, name, area, cellDef, style)
-    MagWindow *w;
-    char *name;			/* Name of this element for the hash table */
-    Rect *area;			/* The area to be highlighted. */
-    CellDef *cellDef;		/* The cellDef in whose coordinates area
+DBWElementAddLine(
+    MagWindow *w,
+    char *name,			/* Name of this element for the hash table */
+    Rect *area,			/* The area to be highlighted. */
+    CellDef *cellDef,		/* The cellDef in whose coordinates area
 				 * is given.
 				 */
-    int style;			/* An initial display style to use */
+    int style)			/* An initial display style to use */
 {
     DBWElement *elem;
 
@@ -813,15 +816,16 @@ DBWElementAddLine(w, name, area, cellDef, style)
 }
 
 void
-DBWElementAddText(w, name, x, y, text, cellDef, style)
-    MagWindow *w;
-    char *name;			/* Name of this element for the hash table */
-    int x, y;			/* Point of origin (x, y coordinates) */
-    char *text;			/* The text of the label */
-    CellDef *cellDef;		/* The cellDef in whose coordinates area
+DBWElementAddText(
+    MagWindow *w,
+    char *name,			/* Name of this element for the hash table */
+    int x,
+    int y,
+    char *text,			/* The text of the label */
+    CellDef *cellDef,		/* The cellDef in whose coordinates area
 				 * is given.
 				 */
-    int style;			/* An initial display style to use */
+    int style)			/* An initial display style to use */
 {
     DBWElement *elem;
     Rect area;
@@ -847,12 +851,12 @@ DBWElementAddText(w, name, x, y, text, cellDef, style)
  */
 
 int
-dbwelemGetTransform(use, transform, cdarg)
-    CellUse *use;			/* A root use that is an ancestor
+dbwelemGetTransform(
+    CellUse *use,			/* A root use that is an ancestor
 					 * of cellDef in DBWElementAdd.
 					 */
-    Transform *transform;		/* Transform up from cellDef to use. */
-    Transform *cdarg;			/* Place to store transform from
+    Transform *transform,		/* Transform up from cellDef to use. */
+    Transform *cdarg)			/* Place to store transform from
 					 * cellDef to its root def.
 					 */
 {
@@ -869,9 +873,9 @@ dbwelemGetTransform(use, transform, cdarg)
 
 /*ARGSUSED*/
 int
-dbwElementAlways1(w, clientData)
-    MagWindow *w;		/* UNUSED */
-    ClientData clientData;	/* UNUSED */
+dbwElementAlways1(
+    MagWindow *w,		/* UNUSED */
+    ClientData clientData)	/* UNUSED */
 {
     return 1;
 }
@@ -894,7 +898,10 @@ dbwElementAlways1(w, clientData)
  */
 
 void
-DBWElementText(MagWindow *w, char *ename, char *text)
+DBWElementText(
+    MagWindow *w,
+    char *ename,
+    char *text)
 {
     DBWElement *elem;
     HashEntry *entry;
@@ -949,7 +956,10 @@ DBWElementText(MagWindow *w, char *ename, char *text)
  */
 
 void
-DBWElementParseFlags(MagWindow *w, char *ename, char *flagstr)
+DBWElementParseFlags(
+    MagWindow *w,
+    char *ename,
+    char *flagstr)
 {
     DBWElement *elem;
     HashEntry *entry;
@@ -1097,7 +1107,11 @@ DBWElementParseFlags(MagWindow *w, char *ename, char *flagstr)
  */
 
 void
-DBWElementStyle(MagWindow *w, char *ename, int style, bool add)
+DBWElementStyle(
+    MagWindow *w,
+    char *ename,
+    int style,
+    bool add)
 {
     DBWElement *elem;
     HashEntry *entry;
@@ -1206,7 +1220,10 @@ DBWElementStyle(MagWindow *w, char *ename, int style, bool add)
  */
 
 void
-DBWElementPos(MagWindow *w, char *ename, Rect *crect)
+DBWElementPos(
+    MagWindow *w,
+    char *ename,
+    Rect *crect)
 {
     DBWElement *elem;
     HashEntry *entry;
@@ -1273,8 +1290,8 @@ DBWElementPos(MagWindow *w, char *ename, Rect *crect)
  */
 
 void
-DBWElementClearDef(cellDef)
-    CellDef *cellDef;
+DBWElementClearDef(
+    CellDef *cellDef)
 {
     DBWElement *elem;
     HashEntry *entry;

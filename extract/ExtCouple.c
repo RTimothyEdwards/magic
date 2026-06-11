@@ -166,10 +166,10 @@ void extAdjustCouple(he, c, str)
  */
 
 void
-extFindCoupling(def, table, clipArea)
-    CellDef *def;
-    HashTable *table;
-    Rect *clipArea;
+extFindCoupling(
+    CellDef *def,
+    HashTable *table,
+    Rect *clipArea)
 {
     const Rect *searchArea;
     int pNum;
@@ -208,9 +208,9 @@ extFindCoupling(def, table, clipArea)
  */
 
 void
-extRelocateSubstrateCoupling(table, subsnode)
-    HashTable *table;		/* Coupling capacitance hash table */
-    NodeRegion *subsnode;	/* Node record for substrate */
+extRelocateSubstrateCoupling(
+    HashTable *table,		/* Coupling capacitance hash table */
+    NodeRegion *subsnode)	/* Node record for substrate */
 {
     HashEntry *he;
     CoupleKey *ck;
@@ -265,9 +265,9 @@ extRelocateSubstrateCoupling(table, subsnode)
  */
 
 void
-extOutputCoupling(table, outFile)
-    HashTable *table;	/* Coupling capacitance hash table */
-    FILE *outFile;	/* Output file */
+extOutputCoupling(
+    HashTable *table,	/* Coupling capacitance hash table */
+    FILE *outFile)	/* Output file */
 {
     HashEntry *he;
     CoupleKey *ck;
@@ -312,10 +312,10 @@ extOutputCoupling(table, outFile)
  */
 
 int
-extBasicOverlap(tile, dinfo, ecs)
-    Tile *tile;
-    TileType dinfo;
-    extCapStruct *ecs;
+extBasicOverlap(
+    Tile *tile,
+    TileType dinfo,
+    extCapStruct *ecs)
 {
     int thisType;
     int pNum;
@@ -413,10 +413,10 @@ struct sideoverlap
 };
 
 int
-extAddOverlap(tbelow, dinfo, ecpls)
-    Tile *tbelow;
-    TileType dinfo;		/* unused, but needs to be handled */
-    extCoupleStruct *ecpls;
+extAddOverlap(
+    Tile *tbelow,
+    TileType dinfo,		/* unused, but needs to be handled */
+    extCoupleStruct *ecpls)
 {
     int extSubtractOverlap(), extSubtractOverlap2();
     NodeRegion *rabove, *rbelow;
@@ -551,10 +551,10 @@ extAddOverlap(tbelow, dinfo, ecpls)
 /* Simple overlap.  The area of overlap is subtracted from ov->o_area */
 
 int
-extSubtractOverlap(tile, dinfo, ov)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct overlap *ov;
+extSubtractOverlap(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct overlap *ov)
 {
     Rect r;
     int area;
@@ -575,10 +575,10 @@ extSubtractOverlap(tile, dinfo, ov)
 /* shielding plane.						*/
 
 int
-extSubtractOverlap2(tile, dinfo, ov)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct overlap *ov;
+extSubtractOverlap2(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct overlap *ov)
 {
     TileType ttype;
     struct overlap ovnew;
@@ -637,10 +637,10 @@ extSubtractOverlap2(tile, dinfo, ov)
  */
 
 int
-extSubtractSideOverlap(tile, dinfo, sov)
-    Tile *tile;
-    TileType dinfo;			/* (unused) */
-    struct sideoverlap *sov;
+extSubtractSideOverlap(
+    Tile *tile,
+    TileType dinfo,			/* (unused) */
+    struct sideoverlap *sov)
 {
     Rect r;
     int area, dnear, dfar, length;
@@ -715,10 +715,10 @@ extSubtractSideOverlap(tile, dinfo, sov)
 /* shielding plane.						*/
 
 int
-extSubtractSideOverlap2(tile, dinfo, sov)
-    Tile *tile;
-    TileType dinfo;
-    struct sideoverlap *sov;
+extSubtractSideOverlap2(
+    Tile *tile,
+    TileType dinfo,
+    struct sideoverlap *sov)
 {
     TileType ttype;
     struct sideoverlap sovnew;
@@ -795,10 +795,10 @@ extSubtractSideOverlap2(tile, dinfo, sov)
  */
 
 int
-extBasicCouple(tile, dinfo, ecs)
-    Tile *tile;
-    TileType dinfo;
-    extCapStruct *ecs;
+extBasicCouple(
+    Tile *tile,
+    TileType dinfo,
+    extCapStruct *ecs)
 {
     TileType ttype;
 
@@ -1070,9 +1070,9 @@ extGetBoundaryRegions(int bdir,
  */
 
 int
-extAddCouple(bp, ecs)
-    Boundary *bp;	/* Boundary being considered */
-    extCapStruct *ecs;
+extAddCouple(
+    Boundary *bp,	/* Boundary being considered */
+    extCapStruct *ecs)
 {
     TileType tin, tout;
     int pNum;
@@ -1203,10 +1203,10 @@ extAddCouple(bp, ecs)
  */
 
 void
-extRemoveSubcap(bp, clip, esws)
-    Boundary *bp;		/* Boundary with fringe capacitance */
-    Rect *clip;			/* Area not being blocked */
-    extSidewallStruct *esws;	/* Overlapping edge and plane information */
+extRemoveSubcap(
+    Boundary *bp,		/* Boundary with fringe capacitance */
+    Rect *clip,			/* Area not being blocked */
+    extSidewallStruct *esws)	/* Overlapping edge and plane information */
 {
     int dnear, length;
     double snear, cfrac;
@@ -1277,10 +1277,10 @@ extRemoveSubcap(bp, clip, esws)
 
 
 int
-extFindOverlap(tp, area, esws)
-    Tile *tp;			/* Overlapped tile */
-    Rect *area;			/* Area to check for coupling */
-    extSidewallStruct *esws;	/* Overlapping edge and plane information */
+extFindOverlap(
+    Tile *tp,			/* Overlapped tile */
+    Rect *area,			/* Area to check for coupling */
+    extSidewallStruct *esws)	/* Overlapping edge and plane information */
 {
     PlaneMask pMask;
     int pNum;
@@ -1345,10 +1345,10 @@ extFindOverlap(tp, area, esws)
  */
 
 int
-extSideOverlapHalo(tp, dinfo, esws)
-    Tile *tp;			/* Overlapped tile */
-    TileType dinfo;		/* Split tile information */
-    extSidewallStruct *esws;	/* Overlapping edge and plane information */
+extSideOverlapHalo(
+    Tile *tp,			/* Overlapped tile */
+    TileType dinfo,		/* Split tile information */
+    extSidewallStruct *esws)	/* Overlapping edge and plane information */
 {
     Boundary *bp = esws->bp;	/* Overlapping edge */
     NodeRegion *rtp = (NodeRegion *) ExtGetRegion(tp, dinfo);
@@ -1576,10 +1576,10 @@ extSideOverlapHalo(tp, dinfo, esws)
  */
 
 int
-extSideOverlap(tp, dinfo, esws)
-    Tile *tp;			/* Overlapped tile */
-    TileType dinfo;		/* Split tile information */
-    extSidewallStruct *esws;	/* Overlapping edge and plane information */
+extSideOverlap(
+    Tile *tp,			/* Overlapped tile */
+    TileType dinfo,		/* Split tile information */
+    extSidewallStruct *esws)	/* Overlapping edge and plane information */
 {
     Boundary *bp = esws->bp;	/* Overlapping edge */
     NodeRegion *rtp = (NodeRegion *) ExtGetRegion(tp, dinfo);
@@ -1757,12 +1757,12 @@ extSideOverlap(tp, dinfo, esws)
  */
 
 int
-extWalkTop(area, mask, func, bp, esws)
-    Rect *area;
-    TileTypeBitMask *mask;
-    int (*func)();
-    Boundary *bp;
-    extSidewallStruct *esws;
+extWalkTop(
+    Rect *area,
+    TileTypeBitMask *mask,
+    int (*func)(),
+    Boundary *bp,
+    extSidewallStruct *esws)
 {
     Tile *tile, *tp;
     TileType ttype;
@@ -1865,12 +1865,12 @@ extWalkTop(area, mask, func, bp, esws)
  */
 
 int
-extWalkBottom(area, mask, func, bp, esws)
-    Rect *area;
-    TileTypeBitMask *mask;
-    int (*func)();
-    Boundary *bp;
-    extSidewallStruct *esws;
+extWalkBottom(
+    Rect *area,
+    TileTypeBitMask *mask,
+    int (*func)(),
+    Boundary *bp,
+    extSidewallStruct *esws)
 {
     Tile *tile, *tp;
     TileType ttype;
@@ -1973,12 +1973,12 @@ extWalkBottom(area, mask, func, bp, esws)
  */
 
 int
-extWalkRight(area, mask, func, bp, esws)
-    Rect *area;
-    TileTypeBitMask *mask;
-    int (*func)();
-    Boundary *bp;
-    extSidewallStruct *esws;
+extWalkRight(
+    Rect *area,
+    TileTypeBitMask *mask,
+    int (*func)(),
+    Boundary *bp,
+    extSidewallStruct *esws)
 {
     Tile *tile, *tp;
     TileType ttype;
@@ -2081,12 +2081,12 @@ extWalkRight(area, mask, func, bp, esws)
  */
 
 int
-extWalkLeft(area, mask, func, bp, esws)
-    Rect *area;
-    TileTypeBitMask *mask;
-    int (*func)();
-    Boundary *bp;
-    extSidewallStruct *esws;
+extWalkLeft(
+    Rect *area,
+    TileTypeBitMask *mask,
+    int (*func)(),
+    Boundary *bp,
+    extSidewallStruct *esws)
 {
     Tile *tile, *tp;
     TileType ttype;
@@ -2194,10 +2194,10 @@ extWalkLeft(area, mask, func, bp, esws)
  */
 
 int
-extSideLeft(tpfar, bp, esws)
-    Tile *tpfar;
-    Boundary *bp;
-    extSidewallStruct *esws;
+extSideLeft(
+    Tile *tpfar,
+    Boundary *bp,
+    extSidewallStruct *esws)
 {
     NodeRegion *rinside, *rfar;
     Tile *tpnear;
@@ -2246,10 +2246,10 @@ extSideLeft(tpfar, bp, esws)
  */
 
 int
-extSideRight(tpfar, bp, esws)
-    Tile *tpfar;
-    Boundary *bp;
-    extSidewallStruct *esws;
+extSideRight(
+    Tile *tpfar,
+    Boundary *bp,
+    extSidewallStruct *esws)
 {
     NodeRegion *rinside, *rfar;
     Tile *tpnear;
@@ -2298,10 +2298,10 @@ extSideRight(tpfar, bp, esws)
  */
 
 int
-extSideTop(tpfar, bp, esws)
-    Tile *tpfar;
-    Boundary *bp;
-    extSidewallStruct *esws;
+extSideTop(
+    Tile *tpfar,
+    Boundary *bp,
+    extSidewallStruct *esws)
 {
     NodeRegion *rinside, *rfar;
     Tile *tpnear;
@@ -2350,10 +2350,10 @@ extSideTop(tpfar, bp, esws)
  */
 
 int
-extSideBottom(tpfar, bp, esws)
-    Tile *tpfar;
-    Boundary *bp;
-    extSidewallStruct *esws;
+extSideBottom(
+    Tile *tpfar,
+    Boundary *bp,
+    extSidewallStruct *esws)
 {
     NodeRegion *rinside, *rfar;
     Tile *tpnear;
@@ -2403,14 +2403,15 @@ extSideBottom(tpfar, bp, esws)
  */
 
 void
-extSideCommon(rinside, rfar, tpnear, tpfar, bdir, overlap, sep, extCoupleList)
-    NodeRegion *rinside, *rfar;	/* Both must be valid */
-    Tile *tpnear, *tpfar;	/* Tiles on near and far side of edge */
-    int bdir;			/* Boundary direction */
-    int overlap, sep;		/* Overlap of this edge with original one,
-				 * and distance between the two.
-				 */
-    EdgeCap  *extCoupleList;	/* List of sidewall capacitance rules */
+extSideCommon(
+    NodeRegion *rinside,
+    NodeRegion *rfar,
+    Tile *tpnear,
+    Tile *tpfar,
+    int bdir,			/* Boundary direction */
+    int overlap,
+    int sep,
+    EdgeCap  *extCoupleList)	/* List of sidewall capacitance rules */
 {
     TileType near, far;
     HashEntry *he;

@@ -84,12 +84,12 @@ extern int gaContactClear;
  */
 
 bool
-gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
-    CellUse *routeUse;			/* Search this cell for obstacles */
-    NLTermLoc *term;			/* Route from term->nloc_rect */
-    Point *pinPoint;		/* Crossing point to reach */
-    int pinSide;			/* Direction of pin from term. */
-    SimpleStem *simple;	/* Fill this in */
+gaStemSimpleInit(
+    CellUse *routeUse,			/* Search this cell for obstacles */
+    NLTermLoc *term,			/* Route from term->nloc_rect */
+    Point *pinPoint,		/* Crossing point to reach */
+    int pinSide,			/* Direction of pin from term. */
+    SimpleStem *simple)	/* Fill this in */
 {
 
     SimpleWire *sMetal = &simple->ss_metalWire;
@@ -530,10 +530,10 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
  */
 
 bool
-gaIsClear(use, r, mask)
-    CellUse *use;
-    Rect *r;
-    TileTypeBitMask *mask;
+gaIsClear(
+    CellUse *use,
+    Rect *r,
+    TileTypeBitMask *mask)
 {
     int gaIsClearFunc();
     SearchContext scx;
@@ -572,10 +572,10 @@ gaIsClear(use, r, mask)
  */
 
 int
-gaIsClearFunc(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;
-    TreeContext *cxp;
+gaIsClearFunc(
+    Tile *tile,
+    TileType dinfo,
+    TreeContext *cxp)
 {
     return 1;
 }
@@ -600,10 +600,10 @@ gaIsClearFunc(tile, dinfo, cxp)
  */
 
 bool
-gaStemSimpleRoute(simple, pinLayer, def)
-    SimpleStem *simple;	/* Describes the route */
-    TileType pinLayer;			/* Connect to pin on this layer */
-    CellDef *def;			/* If non-NULL, paint to this def */
+gaStemSimpleRoute(
+    SimpleStem *simple,	/* Describes the route */
+    TileType pinLayer,			/* Connect to pin on this layer */
+    CellDef *def)			/* If non-NULL, paint to this def */
 {
     SimpleWire *wPin, *wOther;
 

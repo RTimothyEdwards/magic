@@ -72,9 +72,9 @@ bool rtrDoVia();
  */
 
 void
-RtrPaintBack(ch, def)
-    GCRChannel * ch;
-    CellDef *def;
+RtrPaintBack(
+    GCRChannel * ch,
+    CellDef *def)
 {
     if(RtrDoMMax)		    /*Change poly to metal where possible  */
 	rtrMaxMetal(ch);
@@ -102,9 +102,9 @@ RtrPaintBack(ch, def)
  */
 
 void
-rtrPaintRows(def, ch)
-    CellDef *def;	/* Def into which paint will go */
-    GCRChannel *ch;	/* Channel being painted */
+rtrPaintRows(
+    CellDef *def,	/* Def into which paint will go */
+    GCRChannel *ch)	/* Channel being painted */
 {
     TileType curType, nextType;
     short **result, code;
@@ -230,9 +230,9 @@ rtrPaintRows(def, ch)
  */
 
 void
-rtrPaintColumns(def, ch)
-    CellDef * def;
-    GCRChannel * ch;
+rtrPaintColumns(
+    CellDef * def,
+    GCRChannel * ch)
 {
     TileType curType;	/* Describes what kind of material currently
 			 * occupies the column.  It's either RtrMetalType,
@@ -339,10 +339,10 @@ rtrPaintColumns(def, ch)
  */
 
 bool
-rtrDoVia(ch, col, row)
-    GCRChannel *ch;	/* The channel undergoing display */
-    int col;	/* The x coordinate of the location considered */
-    int row;	/* The y coordinate of the location considered */
+rtrDoVia(
+    GCRChannel *ch,	/* The channel undergoing display */
+    int col,	/* The x coordinate of the location considered */
+    int row)	/* The y coordinate of the location considered */
 {
     short up, down, left, right, mask;
     short **result, code;
@@ -430,8 +430,8 @@ rtrDoVia(ch, col, row)
  */
 
 void
-rtrMaxMetal(ch)
-    GCRChannel * ch;
+rtrMaxMetal(
+    GCRChannel * ch)
 {
     bool needLowX, needHiX, hasLowX, hasHiX, active, cross;
     int x, y, i, bottom, top;
@@ -569,10 +569,10 @@ rtrMaxMetal(ch)
  */
 
 bool
-rtrMetalOkay(ch, col, dir)
-    GCRChannel *ch;	/* The originating channel for the search */
-    int col;		/* The crossing column in the originating channel */
-    int dir;		/* Direction of the crossing NORTH or SOUTH */
+rtrMetalOkay(
+    GCRChannel *ch,	/* The originating channel for the search */
+    int col,		/* The crossing column in the originating channel */
+    int dir)		/* Direction of the crossing NORTH or SOUTH */
 {
     GCRChannel *newCh;
     GCRPin *pin;
@@ -622,9 +622,9 @@ rtrMetalOkay(ch, col, dir)
  */
 
 void
-RtrPaintContact(def, area)
-    CellDef *def;		/* Cell in which to paint contact. */
-    Rect *area;			/* Area in which to paint the contact. */
+RtrPaintContact(
+    CellDef *def,		/* Cell in which to paint contact. */
+    Rect *area)			/* Area in which to paint the contact. */
 {
     Rect larger;
 
@@ -659,9 +659,9 @@ RtrPaintContact(def, area)
  */
 
 void
-RtrPaintStats(type, distance)
-    TileType type;
-    int distance;
+RtrPaintStats(
+    TileType type,
+    int distance)
 {
     if (distance < 0) distance = -distance;
 

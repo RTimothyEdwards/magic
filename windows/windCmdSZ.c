@@ -72,9 +72,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-windScrollCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windScrollCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect r;
     int xsize, ysize;
@@ -211,9 +211,9 @@ windScrollCmd(w, cmd)
  */
 
 void
-windSetpointCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windSetpointCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int wid;
     Point rootPoint;
@@ -292,9 +292,9 @@ usage:
 }
 
 int
-windSetPrintProc(name, val)
-    char *name;
-    char *val;
+windSetPrintProc(
+    char *name,
+    char *val)
 {
     TxPrintf("%s = \"%s\"\n", name, val);
     return 0;
@@ -316,9 +316,9 @@ windSetPrintProc(name, val)
  */
 
 void
-windSleepCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windSleepCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int time;
 
@@ -360,9 +360,9 @@ windSleepCmd(w, cmd)
  */
 
 void
-windSourceCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windSourceCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     FILE *f;
 
@@ -401,9 +401,9 @@ windSourceCmd(w, cmd)
  */
 
 void
-windSpecialOpenCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windSpecialOpenCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     WindClient wc;
     Rect area;
@@ -478,9 +478,9 @@ usage:
  */
 
 void
-windNamesCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windNamesCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     bool doforall = FALSE;
     WindClient wc = (WindClient)NULL;
@@ -591,9 +591,9 @@ windNamesCmd(w, cmd)
  */
 
 void
-windUnderCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windUnderCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc != 1)
     {
@@ -631,9 +631,9 @@ windUnderCmd(w, cmd)
  */
 
 void
-windUndoCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windUndoCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int count;
 
@@ -713,9 +713,9 @@ windUndoCmd(w, cmd)
  */
 
 void
-windUpdateCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windUpdateCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc == 1)
 	WindUpdate();
@@ -759,9 +759,9 @@ badusage:
  */
 
 void
-windVersionCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windVersionCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc != 1) {
 	TxError("Usage: %s\n", cmd->tx_argv[0]);
@@ -795,9 +795,9 @@ windVersionCmd(w, cmd)
  */
 
 void
-windViewCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windViewCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (w == NULL)
 	return;
@@ -937,9 +937,9 @@ windViewCmd(w, cmd)
  */
 
 void
-windXviewCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windXviewCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     CellUse *celluse;
     int ViewUnexpandFunc();
@@ -967,9 +967,9 @@ windXviewCmd(w, cmd)
  */
 
 int
-ViewUnexpandFunc(use, windowMask)
-    CellUse *use;		/* Use that was just unexpanded. */
-    int windowMask;		/* Window where it was unexpanded. */
+ViewUnexpandFunc(
+    CellUse *use,		/* Use that was just unexpanded. */
+    int windowMask)		/* Window where it was unexpanded. */
 {
     if (use->cu_parent == NULL) return 0;
     DBWAreaChanged(use->cu_parent, &use->cu_bbox, windowMask,
@@ -998,9 +998,9 @@ ViewUnexpandFunc(use, windowMask)
  */
 
 void
-windScrollBarsCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windScrollBarsCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int place;
     static const char * const onoff[] = {"on", "off", 0};
@@ -1052,9 +1052,9 @@ windScrollBarsCmd(w, cmd)
  */
 
 void
-windSendCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windSendCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     MagWindow *toWindow;
     WindClient client;
@@ -1090,9 +1090,9 @@ windSendCmd(w, cmd)
 }
 
 int
-windSendCmdFunc(w, cd)
-    MagWindow *w;
-    ClientData cd;
+windSendCmdFunc(
+    MagWindow *w,
+    ClientData cd)
 {
     *((MagWindow **) cd) = w;
     return 1;
@@ -1129,9 +1129,9 @@ typedef struct _cdwpos {
  */
 
 void
-windPositionsCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windPositionsCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     extern int windPositionsFunc();
     char *filename = NULL;
@@ -1174,9 +1174,9 @@ usage:
 }
 
 int
-windPositionsFunc(w, cdata)
-    MagWindow *w;
-    ClientData cdata;
+windPositionsFunc(
+    MagWindow *w,
+    ClientData cdata)
 {
     cdwpos *windpos = (cdwpos *)cdata;
     Rect r;
@@ -1236,9 +1236,9 @@ windPositionsFunc(w, cdata)
  */
 
 void
-windZoomCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windZoomCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     float factor;
 

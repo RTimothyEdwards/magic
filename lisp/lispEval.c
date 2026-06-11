@@ -192,8 +192,8 @@ LispFnInit ()
  */
 
 int
-ispair (s)
-     Sexp *s;
+ispair(
+    Sexp *s)
 {
   while (s && LTYPE(CDR(s)) == S_LIST)
     s = LLIST(CDR(s));
@@ -220,9 +220,9 @@ ispair (s)
  */
 
 LispObj *
-lookup (s,f)
-     char *s;
-     Sexp *f;
+lookup(
+    char *s,
+    Sexp *f)
 {
   LispObj *l;
   Sexp *f1;
@@ -263,10 +263,10 @@ lookup (s,f)
  *------------------------------------------------------------------------
  */
 LispObj *
-LispMagicSend (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispMagicSend(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   int trace;
   LispObj *l;
@@ -373,10 +373,10 @@ LispMagicSend (name,s,f)
  */
 
 LispObj *
-LispApply (s,l,f)
-     Sexp *s;
-     Sexp *l;
-     Sexp *f;
+LispApply(
+    Sexp *s,
+    Sexp *l,
+    Sexp *f)
 {
   int len;
   int dp;
@@ -438,10 +438,10 @@ LispApply (s,l,f)
  */
 
 LispObj *
-LispBuiltinApply (num,s,f)
-     int num;
-     Sexp *s;
-     Sexp *f;
+LispBuiltinApply(
+    int num,
+    Sexp *s,
+    Sexp *f)
 {
   return FnTable[num].f(FnTable[num].name, s, f);
 }
@@ -464,9 +464,9 @@ LispBuiltinApply (num,s,f)
 
 static
 LispObj *
-evalList (s,f)
-     Sexp *s;
-     Sexp *f;
+evalList(
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   Sexp *t;
@@ -629,9 +629,9 @@ evalList (s,f)
  */
 
 LispObj *
-LispEval (l,f)
-     LispObj *l;
-     Sexp *f;
+LispEval(
+    LispObj *l,
+    Sexp *f)
 {
   LispObj *ret;
 

@@ -58,10 +58,10 @@ typedef struct touchingfuncparms
  * ----------------------------------------------------------------------------
  */
 TileTypeBitMask
-TouchingTypes(cellUse, expansionMask, point)
-    CellUse *cellUse;
-    int expansionMask;
-    Point *point;
+TouchingTypes(
+    CellUse *cellUse,
+    int expansionMask,
+    Point *point)
 {
     int touchingTypesFunc();
     int touchingSubcellsFunc();
@@ -138,10 +138,10 @@ TouchingTypes(cellUse, expansionMask, point)
  */
 
 int
-touchingTypesFunc(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;	/* (unused, but should be handled) */
-    TreeContext *cxp;
+touchingTypesFunc(
+    Tile *tile,
+    TileType dinfo,	/* (unused, but should be handled) */
+    TreeContext *cxp)
 {
     SearchContext *scx = cxp->tc_scx;
     Rect r, rDest;
@@ -179,9 +179,9 @@ touchingTypesFunc(tile, dinfo, cxp)
  */
 
 int
-touchingSubcellsFunc(scx, cdarg)
-    SearchContext *scx;
-    ClientData cdarg;
+touchingSubcellsFunc(
+    SearchContext *scx,
+    ClientData cdarg)
 {
     Rect r, rDest;
     TouchingFuncParms *parms = (TouchingFuncParms *) cdarg;

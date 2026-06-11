@@ -233,7 +233,7 @@ extern CellUse *glChanUse;
     /* Internal procedures */
 GlPoint *glPathNew();
 GlPoint *glPathCopyPerm();
-GlPoint *glProcessLoc();
+GlPoint *glProcessLoc(GlPoint *startList, NLTermLoc *loc, int bestCost, bool doFast);
 Tile *glChanPinToTile();
 void glCrossMark();
 

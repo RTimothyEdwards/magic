@@ -45,9 +45,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-LookupAny(c, table)
-    char c;
-    const char * const *table;
+LookupAny(
+    char c,
+    const char * const *table)
 {
     const char * const *tp;
 

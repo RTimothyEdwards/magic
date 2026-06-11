@@ -187,8 +187,8 @@ char *mainArg();
  */
 
 void
-MainExit(errNum)
-    int errNum;
+MainExit(
+    int errNum)
 {
 #ifdef	MOCHA
     MochaExit(errNum);
@@ -250,9 +250,9 @@ MainExit(errNum)
  */
 
 int
-mainDoArgs(argc, argv)
-    int argc;
-    char **argv;
+mainDoArgs(
+    int argc,
+    char **argv)
 {
     bool haveDashI = FALSE;
     char *cp;
@@ -471,10 +471,10 @@ mainDoArgs(argc, argv)
  */
 
 char *
-mainArg(pargc, pargv, mesg)
-    int *pargc;
-    char ***pargv;
-    char *mesg;
+mainArg(
+    int *pargc,
+    char ***pargv,
+    char *mesg)
 {
     char option, *cp;
 
@@ -508,9 +508,9 @@ mainArg(pargc, pargv, mesg)
  */
 
 int
-mainInitBeforeArgs(argc, argv)
-    int argc;
-    char *argv[];
+mainInitBeforeArgs(
+    int argc,
+    char *argv[])
 {
     TechOverridesDefault = FALSE;
     if (Path == NULL)
@@ -1283,9 +1283,9 @@ mainFinished()
  */
 
 void
-magicMain(argc, argv)
-    int argc;
-    char *argv[];
+magicMain(
+    int argc,
+    char *argv[])
 {
     int rstatus;
 
@@ -1295,9 +1295,9 @@ magicMain(argc, argv)
 }
 
 int
-magicMainInit(argc, argv)
-    int argc;
-    char *argv[];
+magicMainInit(
+    int argc,
+    char *argv[])
 {
     int rstatus;
 

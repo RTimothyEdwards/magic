@@ -36,8 +36,8 @@ extern void CmdPlot();
  */
 
 int
-Tclplot_Init(interp)
-    Tcl_Interp *interp;
+Tclplot_Init(
+    Tcl_Interp *interp)
 {
     int n;
     SectionID invplot;

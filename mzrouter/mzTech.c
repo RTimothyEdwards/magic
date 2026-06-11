@@ -117,8 +117,8 @@ void mzEdgeRule(int, char **);
  */
 
 void
-MZFreeParameters(params)
-    MazeParameters *params;
+MZFreeParameters(
+    MazeParameters *params)
 {
     RouteLayer *rL;
     RouteContact *rC;
@@ -331,10 +331,10 @@ MZAfterTech()
  */
 
 bool
-MZTechLine(sectionName, argc, argv)
-    char *sectionName;	/* Unused */
-    int argc;
-    char *argv[];
+MZTechLine(
+    char *sectionName,	/* Unused */
+    int argc,
+    char *argv[])
 {
     if(strcmp(argv[0], "style") == 0)
     {
@@ -399,9 +399,9 @@ MZTechLine(sectionName, argc, argv)
  */
 
 void
-mzTechStyle(argc, argv)
-    int argc;
-    char *argv[];
+mzTechStyle(
+    int argc,
+    char *argv[])
 {
 
     /* if there is a previous style, complete processing on it */
@@ -514,8 +514,8 @@ mzStyleEnd()
  * ----------------------------------------------------------------------------
  */
 void
-mzSetParmDefaults(parms)
-    MazeParameters *parms;
+mzSetParmDefaults(
+    MazeParameters *parms)
 {
 
     /* initialize penalty factor for excess cost togo */
@@ -583,9 +583,9 @@ mzSetParmDefaults(parms)
  */
 
 void
-mzTechLayer(argc, argv)
-    int argc;
-    char *argv[];
+mzTechLayer(
+    int argc,
+    char *argv[])
 {
     RouteLayer *new;
     TileType tileType;
@@ -745,9 +745,9 @@ mzTechLayer(argc, argv)
  */
 
 void
-mzTechNotActive(argc, argv)
-    int argc;
-    char *argv[];
+mzTechNotActive(
+    int argc,
+    char *argv[])
 {
     int argI;
     TileType tileType;
@@ -811,9 +811,9 @@ mzTechNotActive(argc, argv)
  */
 
 void
-mzTechSpacing(argc, argv)
-    int argc;
-    char *argv[];
+mzTechSpacing(
+    int argc,
+    char *argv[])
 {
     TechSpacing *new;
     TileType tileType;
@@ -932,9 +932,9 @@ mzTechSpacing(argc, argv)
  */
 
 void
-mzTechSearch(argc, argv)
-    int argc;
-    char *argv[];
+mzTechSearch(
+    int argc,
+    char *argv[])
 {
     /* check number of arguments */
     if(argc != 4)
@@ -1036,9 +1036,9 @@ mzTechSearch(argc, argv)
  */
 
 void
-mzTechWidth(argc, argv)
-    int argc;
-    char *argv[];
+mzTechWidth(
+    int argc,
+    char *argv[])
 {
     TileType tileType;
     RouteType *rT;
@@ -1133,9 +1133,9 @@ mzTechWidth(argc, argv)
  */
 
 void
-mzTechContact(argc, argv)
-    int argc;
-    char *argv[];
+mzTechContact(
+    int argc,
+    char *argv[])
 {
     RouteContact *new;
     TileType type, tileType;
@@ -1225,9 +1225,9 @@ mzTechContact(argc, argv)
  */
 
 void
-mzInitRouteType(rT,tileType)
-    RouteType *rT;
-    TileType tileType;
+mzInitRouteType(
+    RouteType *rT,
+    TileType tileType)
 {
     int t;
 
@@ -1296,8 +1296,8 @@ mzInitRouteType(rT,tileType)
  */
 
 RouteType *
-mzFindRouteType(type)
-    TileType type;
+mzFindRouteType(
+    TileType type)
 {
     RouteType *rT;
 
@@ -1326,8 +1326,8 @@ mzFindRouteType(type)
  */
 
 RouteLayer *
-mzFindRouteLayer(type)
-    TileType type;
+mzFindRouteLayer(
+    TileType type)
 {
     RouteLayer *rL;
 
@@ -1356,8 +1356,8 @@ mzFindRouteLayer(type)
  */
 
 RouteContact *
-mzFindRouteContact(type)
-    TileType type;
+mzFindRouteContact(
+    TileType type)
 {
     RouteContact *rC;
 
@@ -1390,10 +1390,10 @@ mzFindRouteContact(type)
  */
 
 void
-mzUpdateSpacing(rType,tType,distance)
-    RouteType *rType;	/* Route Type to which spacing applies */
-    TileType tType;		/* spacing from this tiletype */
-    int distance;		/* min spacing betweeen rType and tType */
+mzUpdateSpacing(
+    RouteType *rType,	/* Route Type to which spacing applies */
+    TileType tType,		/* spacing from this tiletype */
+    int distance)		/* min spacing betweeen rType and tType */
 {
     rType->rt_spacing[tType] =
 	MAX(rType->rt_spacing[tType],distance);

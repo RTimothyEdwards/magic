@@ -79,9 +79,9 @@ static Plane *nmscPlane;	/* Shared between procs below. */
 extern int nmscRedrawFunc();	/* Forward declaration. */
 
 int
-NMRedrawCell(window, plane)
-    MagWindow *window;		/* Window in which to redisplay. */
-    Plane *plane;		/* Non-space tiles on this plane indicate,
+NMRedrawCell(
+    MagWindow *window,		/* Window in which to redisplay. */
+    Plane *plane)		/* Non-space tiles on this plane indicate,
 				 * in root cell coordinates, the areas where
 				 * highlight information must be redrawn.
 				 */
@@ -122,10 +122,10 @@ NMRedrawCell(window, plane)
 }
 
 int
-nmscRedrawFunc(tile, dinfo, window)
-    Tile *tile;			/* Tile to be redisplayed on highlight layer.*/
-    TileType dinfo;		/* Split tile information */
-    MagWindow *window;		/* Window in which to redisplay. */
+nmscRedrawFunc(
+    Tile *tile,			/* Tile to be redisplayed on highlight layer.*/
+    TileType dinfo,		/* Split tile information */
+    MagWindow *window)		/* Window in which to redisplay. */
 {
     Rect area, screenArea;
     extern int nmscAlways1();	/* Forward reference. */
@@ -142,7 +142,10 @@ nmscRedrawFunc(tile, dinfo, window)
 }
 
 int
-nmscAlways1(Tile *tile, TileType dinfo, ClientData clientdata)
+nmscAlways1(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)
 {
     return 1;
 }
@@ -200,11 +203,11 @@ NMUnsetCell()
  */
 
 void
-NMShowCell(use, rootDef)
-    CellUse *use;		/* Cell whose contents are to be drawn
+NMShowCell(
+    CellUse *use,		/* Cell whose contents are to be drawn
 				 * on the highlight plane.
 				 */
-    CellDef *rootDef;		/* Highlights will appear in all windows
+    CellDef *rootDef)		/* Highlights will appear in all windows
 				 * with this root definition.
 				 */
 {
@@ -325,8 +328,8 @@ NMShowUnderBox()
  */
 
 int
-NMShowRoutedNet(netName)
-    char * netName;
+NMShowRoutedNet(
+    char * netName)
 {
     int nmShowRoutedNetFunc();
 
@@ -375,9 +378,9 @@ NMShowRoutedNet(netName)
  * ----------------------------------------------------------------------------
  */
 int
-nmShowRoutedNetFunc(name, clientData)
-    char *name;
-    ClientData clientData;
+nmShowRoutedNetFunc(
+    char *name,
+    ClientData clientData)
 {
     int nmSRNFunc();
 
@@ -404,11 +407,11 @@ nmShowRoutedNetFunc(name, clientData)
 
     /*ARGSUSED*/
 int
-nmSRNFunc(rect, name, label, cdarg)
-    Rect *rect;
-    char *name;		/* Unused */
-    Label *label;
-    ClientData cdarg;
+nmSRNFunc(
+    Rect *rect,
+    char *name,		/* Unused */
+    Label *label,
+    ClientData cdarg)
 {
     SearchContext scx;
 

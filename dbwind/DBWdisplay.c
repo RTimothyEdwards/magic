@@ -153,14 +153,14 @@ extern int dbwWindowFunc(), dbwChangedFunc();
  */
 
 void
-DBWredisplay(w, rootArea, clipArea)
-    MagWindow *w;			/* Window some of whose contents are to be
+DBWredisplay(
+    MagWindow *w,			/* Window some of whose contents are to be
 				 * redisplayed.
 				 */
-    Rect *rootArea;		/* The area that must be redisplayed, in
+    Rect *rootArea,		/* The area that must be redisplayed, in
 				 * root cell coordinates.
 				 */
-    Rect *clipArea;		/* The screen area that we should clip to
+    Rect *clipArea)		/* The screen area that we should clip to
 				 */
 {
     int i;
@@ -572,10 +572,10 @@ DBWredisplay(w, rootArea, clipArea)
  */
 
 int
-dbwPaintFunc(tile, dinfo, cxp)
-    Tile *tile;			/* Tile to be redisplayed. */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cxp;		/* From DBTreeSrTiles */
+dbwPaintFunc(
+    Tile *tile,			/* Tile to be redisplayed. */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cxp)		/* From DBTreeSrTiles */
 {
     SearchContext *scx = cxp->tc_scx;
 			/* Contains pointer to use containing def
@@ -683,22 +683,21 @@ dbwPaintFunc(tile, dinfo, cxp)
  */
 
 void
-DBWDrawLabel(label, rect, pos, style, labelSize, sizeBox)
-    Label *label;		/* Text to be displayed. */
-    Rect *rect;			/* labrect, clipped to the visible window
+DBWDrawLabel(
+    Label *label,		/* Text to be displayed. */
+    Rect *rect,			/* labrect, clipped to the visible window
 				 */
-    int pos;			/* Position of text relative to rect (e.g.
+    int pos,			/* Position of text relative to rect (e.g.
 				 * GEO_NORTH) in screen coordinates.
 				 */
-    int style;                 /* Style to use for redisplay; if -1 then
+    int style,                 /* Style to use for redisplay; if -1 then
                                 * this has already been set by the caller
                                 * and we shouldn't call GrSetStuff.
                                 */
-
-    int labelSize;		/* Size to use for drawing labels.  If < 0 then
+    int labelSize,		/* Size to use for drawing labels.  If < 0 then
 				 * no text is drawn:  only the box.
 				 */
-    Rect *sizeBox;		/* Expanded if necessary to include the
+    Rect *sizeBox)		/* Expanded if necessary to include the
 				 * screen area of the text for this label.
 				 */
 {
@@ -783,11 +782,11 @@ DBWDrawLabel(label, rect, pos, style, labelSize, sizeBox)
  */
 
 void
-DBWDrawFontLabel(label, window, trans, style)
-    Label *label;
-    MagWindow *window;
-    Transform *trans;
-    int style;		/* If -1, style is already set */
+DBWDrawFontLabel(
+    Label *label,
+    MagWindow *window,
+    Transform *trans,
+    int style)		/* If -1, style is already set */
 {
     Point *p, newcorner, scrncorners[4], labOrigin;
     Rect rootArea, labrect;
@@ -923,14 +922,14 @@ DBWDrawFontLabel(label, window, trans, style)
  */
 
 int
-dbwLabelFunc(scx, label, tpath, clientData)
-    SearchContext *scx;		/* Contains pointer to use containing def in
+dbwLabelFunc(
+    SearchContext *scx,		/* Contains pointer to use containing def in
 				 * which label appears, and transform to
 				 * screen coordinates.
 				 */
-    Label *label;		/* Label to be displayed. */
-    TerminalPath *tpath;	/* Contains pointer to full pathname of label */
-    ClientData clientData;	/* Used for mask for dbw_visibleLayers */
+    Label *label,		/* Label to be displayed. */
+    TerminalPath *tpath,	/* Contains pointer to full pathname of label */
+    ClientData clientData)	/* Used for mask for dbw_visibleLayers */
 {
     Rect labRect, tmp;
     int screenPos, screenRot, newStyle;
@@ -1027,8 +1026,8 @@ dbwLabelFunc(scx, label, tpath, clientData)
  */
 
 int
-dbwBBoxFunc(scx)
-    SearchContext *scx;	 /* Describes context of cell. */
+dbwBBoxFunc(
+    SearchContext *scx)	 /* Describes context of cell. */
 {
     Rect r, r2;
     char idName[100];
@@ -1077,10 +1076,10 @@ dbwBBoxFunc(scx)
  */
 
 int
-dbwTileFunc(tile, dinfo, clientdata)
-    Tile *tile;				/* A tile to be redisplayed. */
-    TileType dinfo;			/* Split tile information (unused) */
-    ClientData clientdata;		/* (unused) */
+dbwTileFunc(
+    Tile *tile,				/* A tile to be redisplayed. */
+    TileType dinfo,			/* Split tile information (unused) */
+    ClientData clientdata)		/* (unused) */
 {
     Rect r, r2;
     int xoffset, yoffset;
@@ -1292,13 +1291,13 @@ static TileTypeBitMask *dbwLayersChanged;
 				/* DBWAreaChanged's "layers" parameter. */
 
 void
-DBWAreaChanged(cellDef, defArea, expandMask, layers)
-    CellDef *cellDef;		/* The cell definition that was modified. */
-    Rect *defArea;		/* The area of the definition that changed. */
-    int expandMask;		/* We're only interested these windows.
+DBWAreaChanged(
+    CellDef *cellDef,		/* The cell definition that was modified. */
+    Rect *defArea,		/* The area of the definition that changed. */
+    int expandMask,		/* We're only interested these windows.
 				 * Use DBW_ALLWINDOWS for all windows.
 				 */
-    TileTypeBitMask *layers;	/* Indicates which layers were modified.  If
+    TileTypeBitMask *layers)	/* Indicates which layers were modified.  If
 				 * NULL, it means that labels were deleted
 				 * from defArea in addition to paint.  We'll
 				 * have to redisplay a larger area in order
@@ -1443,9 +1442,9 @@ DBWAreaChanged(cellDef, defArea, expandMask, layers)
  */
 
 int
-dbwChangedFunc(w, area)
-    MagWindow *w;			/* Window in which to record area. */
-    Rect *area;			/* (Client data) Area to be redisplayed, in
+dbwChangedFunc(
+    MagWindow *w,			/* Window in which to record area. */
+    Rect *area)			/* (Client data) Area to be redisplayed, in
 				 * coordinates of the root definition.
 				 */
 {
@@ -1523,10 +1522,10 @@ dbwChangedFunc(w, area)
 extern int dbwLabelChangedFunc();  /* Function to call for each label. */
 
 void
-DBWLabelChanged(cellDef, lab, mask)
-    CellDef *cellDef;		/* Cell definition containing label. */
-    Label *lab;			/* The label structure */
-    int mask;			/* Mask of windows where changes should be
+DBWLabelChanged(
+    CellDef *cellDef,		/* Cell definition containing label. */
+    Label *lab,			/* The label structure */
+    int mask)			/* Mask of windows where changes should be
 				 * reflected (DBW_ALLWINDOWS selects all
 				 * windows, and is usually the right value.)
 				 */
@@ -1596,9 +1595,9 @@ DBWLabelChanged(cellDef, lab, mask)
 }
 
 int
-dbwLabelChangedFunc(w, lab)
-    MagWindow *w;		/* Window in which label is displayed. */
-    Label *lab;			/* Label being changed.	*/
+dbwLabelChangedFunc(
+    MagWindow *w,		/* Window in which label is displayed. */
+    Label *lab)			/* Label being changed.	*/
 {
     Rect screenArea, textArea;
     int size;
@@ -1685,8 +1684,8 @@ DBWTechInitStyles()
  */
 
 int
-DBWTechParseStyle(stylestr)
-    char *stylestr;
+DBWTechParseStyle(
+    char *stylestr)
 {
     int sidx, style;
 
@@ -1724,10 +1723,10 @@ DBWTechParseStyle(stylestr)
  */
 
 bool
-DBWTechAddStyle(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBWTechAddStyle(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     TileType t, r;
     TileTypeBitMask *rMask;

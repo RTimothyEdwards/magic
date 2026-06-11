@@ -73,8 +73,8 @@ CZone *glPenFindCZones();
  */
 
 void
-glPenSetPerChan(net)
-    NLNet *net;
+glPenSetPerChan(
+    NLNet *net)
 {
     CZone *czNet, *czChan;
     GlobChan *gc;
@@ -92,8 +92,8 @@ glPenSetPerChan(net)
 }
 
 int
-glPenClearPerChan(net)
-    NLNet *net;
+glPenClearPerChan(
+    NLNet *net)
 {
     CZone *czNet, *czChan;
     GlobChan *gc;
@@ -181,9 +181,9 @@ glPenClearPerChan(net)
  */
 
 void
-glPenCompute(chanList, netList)
-    GCRChannel *chanList;	/* All the channels in the routing problem */
-    NLNetList *netList;	/* Netlist being routed */
+glPenCompute(
+    GCRChannel *chanList,	/* All the channels in the routing problem */
+    NLNetList *netList)	/* Netlist being routed */
 {
 #ifdef	notdef
     CZone *czones, *cz;
@@ -263,8 +263,8 @@ glPenCompute(chanList, netList)
  */
 
 CZone *
-glPenFindCZones(chanList)
-    GCRChannel *chanList;	/* All the channels in the routing problem */
+glPenFindCZones(
+    GCRChannel *chanList)	/* All the channels in the routing problem */
 {
     CZone *czList;
     DensMap *dmap;
@@ -300,11 +300,11 @@ glPenFindCZones(chanList)
  */
 
 CZone *
-glPenScanDens(czList, ch, dm, type)
-    CZone *czList;		/* Prepend to this list */
-    GCRChannel *ch;		/* Which channel is being processed */
-    DensMap *dm;	/* Map to search */
-    int type;			/* Type of zone: CZ_ROW or CZ_COL */
+glPenScanDens(
+    CZone *czList,		/* Prepend to this list */
+    GCRChannel *ch,		/* Which channel is being processed */
+    DensMap *dm,	/* Map to search */
+    int type)			/* Type of zone: CZ_ROW or CZ_COL */
 {
     short *val = dm->dm_value;
     CZone *cz;
@@ -381,9 +381,9 @@ glPenScanDens(czList, ch, dm, type)
  */
 
 void
-glPenAssignCosts(cz, netList)
-    CZone *cz;		/* A single CZone being processed */
-    NLNetList *netList;	/* List of all nets; we look for nets that cross
+glPenAssignCosts(
+    CZone *cz,		/* A single CZone being processed */
+    NLNetList *netList)	/* List of all nets; we look for nets that cross
 			 * this zone.
 			 */
 {
@@ -484,8 +484,9 @@ glPenAssignCosts(cz, netList)
  */
 
 int
-glPenSortNetSet(ns1, ns2)
-    NetSet **ns1, **ns2;
+glPenSortNetSet(
+    NetSet **ns1,
+    NetSet **ns2)
 {
     if ((*ns1)->ns_cost > (*ns2)->ns_cost) return 1;
     if ((*ns1)->ns_cost < (*ns2)->ns_cost) return -1;
@@ -518,9 +519,9 @@ struct glCrossClient
 };
 
 NetSet *
-glPenFindCrossingNets(cz, netList)
-    CZone *cz;	/* A single CZone being processed */
-    NLNetList *netList;	/* List of all nets; we look for nets that cross
+glPenFindCrossingNets(
+    CZone *cz,	/* A single CZone being processed */
+    NLNetList *netList)	/* List of all nets; we look for nets that cross
 			 * this zone.
 			 */
 {
@@ -566,10 +567,11 @@ glPenFindCrossingNets(cz, netList)
 
     /*ARGSUSED*/
 int
-glPenFindCrossingFunc(cz, srcPin, dstPin, rcc)
-    CZone *cz;			/* UNUSED */
-    GCRPin *srcPin, *dstPin;	/* UNUSED */
-    struct glCrossClient *rcc;
+glPenFindCrossingFunc(
+    CZone *cz,			/* UNUSED */
+    GCRPin *srcPin,
+    GCRPin *dstPin,
+    struct glCrossClient *rcc)
 {
     NetSet *ns;
 
@@ -615,11 +617,11 @@ glPenFindCrossingFunc(cz, srcPin, dstPin, rcc)
  */
 
 int
-glPenEnumCross(cz, rp, func, cdata)
-    CZone *cz;		/* Look for segments passing through here */
-    GlPoint *rp;	/* List of GlPoints (linked by gl_path ptrs) */
-    int (*func)();		/* Apply to each segment passing through cz */
-    ClientData cdata;		/* Passed to (*func)() */
+glPenEnumCross(
+    CZone *cz,		/* Look for segments passing through here */
+    GlPoint *rp,	/* List of GlPoints (linked by gl_path ptrs) */
+    int (*func)(),		/* Apply to each segment passing through cz */
+    ClientData cdata)		/* Passed to (*func)() */
 {
     GCRPin *srcPin, *dstPin;
     int cSrc, cDst;
@@ -674,9 +676,9 @@ glPenEnumCross(cz, rp, func, cdata)
  */
 
 int
-glPenRerouteNetCost(cz, net)
-    CZone *cz;
-    NLNet *net;	/* Net to be rerouted */
+glPenRerouteNetCost(
+    CZone *cz,
+    NLNet *net)	/* Net to be rerouted */
 {
     NetClient *nc = (NetClient *) net->nnet_cdata;
     CZone fakeCZ;
@@ -707,11 +709,11 @@ glPenRerouteNetCost(cz, net)
 
     /*ARGSUSED*/
 int
-glPenRouteCost(rootUse, bestPath, pNetId, pCost)
-    CellUse *rootUse;	/* UNUSED */
-    GlPoint *bestPath;	/* Best path for this segment */
-    NetId *pNetId;	/* UNUSED */
-    int *pCost;		/* Add bestPath->gl_cost to this */
+glPenRouteCost(
+    CellUse *rootUse,	/* UNUSED */
+    GlPoint *bestPath,	/* Best path for this segment */
+    NetId *pNetId,	/* UNUSED */
+    int *pCost)		/* Add bestPath->gl_cost to this */
 {
     *pCost += bestPath->gl_cost;
     return 0;
@@ -739,10 +741,10 @@ glPenRouteCost(rootUse, bestPath, pNetId, pCost)
  */
 
 int
-glPenDeleteNet(dm, list, cz)
-    DensMap *dm;	/* Update this map */
-    List *list;		/* List of paths */
-    CZone *cz;		/* Remove all segments passing through 'cz' from 'dm' */
+glPenDeleteNet(
+    DensMap *dm,	/* Update this map */
+    List *list,		/* List of paths */
+    CZone *cz)		/* Remove all segments passing through 'cz' from 'dm' */
 {
     for ( ; list; list = LIST_TAIL(list))
 	(void) glPenEnumCross(cz, (GlPoint *) LIST_FIRST(list),
@@ -768,10 +770,11 @@ glPenDeleteNet(dm, list, cz)
  */
 
 int
-glPenDeleteFunc(cz, srcPin, dstPin, dm)
-    CZone *cz;			/* Being passed through by srcPin..dstPin */
-    GCRPin *srcPin, *dstPin;	/* Two pins in cz->cz_chan */
-    DensMap *dm;	/* Remove srcPin..dstPin segment from 'dm' */
+glPenDeleteFunc(
+    CZone *cz,			/* Being passed through by srcPin..dstPin */
+    GCRPin *srcPin,
+    GCRPin *dstPin,
+    DensMap *dm)	/* Remove srcPin..dstPin segment from 'dm' */
 {
     int n;
     int lo, hi;
@@ -819,8 +822,8 @@ glPenDeleteFunc(cz, srcPin, dstPin, dm)
  */
 
 void
-glPenCleanNet(net)
-    NLNet *net;
+glPenCleanNet(
+    NLNet *net)
 {
     List *list;
     NetClient *nc;
@@ -851,10 +854,10 @@ glPenCleanNet(net)
  */
 
 void
-glPenSavePath(rootUse, path, pNetId)
-    CellUse *rootUse;	/* UNUSED */
-    GlPoint *path;	/* Path linked via gl_path pointers */
-    NetId *pNetId;	/* Net and segment identifier */
+glPenSavePath(
+    CellUse *rootUse,	/* UNUSED */
+    GlPoint *path,	/* Path linked via gl_path pointers */
+    NetId *pNetId)	/* Net and segment identifier */
 {
     GlPoint *newpath;
     NetClient *nc;
@@ -884,8 +887,8 @@ glPenSavePath(rootUse, path, pNetId)
  */
 
 void
-glPenDensitySet(net)
-    NLNet *net;
+glPenDensitySet(
+    NLNet *net)
 {
     NetClient *nc = (NetClient *) net->nnet_cdata;
     GCRPin *srcPin, *dstPin;

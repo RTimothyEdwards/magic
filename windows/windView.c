@@ -62,8 +62,8 @@ extern void windNewView();
  */
 
 void
-windFixSurfaceArea(w)
-    MagWindow *w;			/* Window to fix up. */
+windFixSurfaceArea(
+    MagWindow *w)			/* Window to fix up. */
 {
     Rect newArea, tmp;
 
@@ -92,8 +92,8 @@ windFixSurfaceArea(w)
  */
 
 void
-WindUnload(surfaceID)
-    ClientData surfaceID;	/* A unique ID for this surface */
+WindUnload(
+    ClientData surfaceID)	/* A unique ID for this surface */
 {
     MagWindow *mw;
 
@@ -120,11 +120,11 @@ WindUnload(surfaceID)
  */
 
 bool
-WindLoad(w, client, surfaceID, surfaceArea)
-    MagWindow *w;
-    WindClient client;		/* The unique identifier of the client */
-    ClientData surfaceID;	/* A unique ID for this surface */
-    Rect *surfaceArea;		/* The area that should appear in the window */
+WindLoad(
+    MagWindow *w,
+    WindClient client,		/* The unique identifier of the client */
+    ClientData surfaceID,	/* A unique ID for this surface */
+    Rect *surfaceArea)		/* The area that should appear in the window */
 {
    if (client != w->w_client) return FALSE;
 
@@ -151,9 +151,9 @@ WindLoad(w, client, surfaceID, surfaceArea)
  */
 
 void
-WindMove(w, surfaceArea)
-    MagWindow *w;			/* the window to be panned */
-    Rect *surfaceArea;		/* The area to be viewed */
+WindMove(
+    MagWindow *w,	/* the window to be panned */
+    Rect *surfaceArea)	/* The area to be viewed */
 {
     int size, xscale, yscale;
     int  halfSizePixels, halfSizeUnits;
@@ -232,9 +232,9 @@ WindMove(w, surfaceArea)
  */
 
 void
-WindZoom(w, factor)
-    MagWindow *w;			/* the window to be zoomed */
-    float factor;		/* The amount to zoom by (1 is no change),
+WindZoom(
+    MagWindow *w,			/* the window to be zoomed */
+    float factor)		/* The amount to zoom by (1 is no change),
 				 * greater than 1 is a larger magnification
 				 * (zoom in), and less than 1 is less mag.
 				 * (zoom out) )
@@ -274,8 +274,9 @@ WindZoom(w, factor)
  */
 
 void
-WindScale(scalen, scaled)
-    int scalen, scaled;
+WindScale(
+    int scalen,
+    int scaled)
 {
     MagWindow *w2;
     Rect newArea;
@@ -313,8 +314,9 @@ WindScale(scalen, scaled)
  */
 
 void
-WindTranslate(origx, origy)
-    int origx, origy;
+WindTranslate(
+    int origx,
+    int origy)
 {
     extern bool DBMovePoint();
     MagWindow *w2;
@@ -355,8 +357,8 @@ WindTranslate(origx, origy)
     /* ARGSUSED */
 
 void
-WindView(w)
-    MagWindow *w;
+WindView(
+    MagWindow *w)
 {
     Rect bbox;
 #define SLOP	10	/* Amount of border (in fraction of a screenfull)
@@ -399,15 +401,15 @@ WindView(w)
  */
 
 void
-WindScroll(w, surfaceOffset, screenOffset)
-    MagWindow *w;
-    Point *surfaceOffset;	/* An offset in surface coordinates.  The
+WindScroll(
+    MagWindow *w,
+    Point *surfaceOffset,	/* An offset in surface coordinates.  The
 				 * screen point that used to display surface
 				 * point (0,0) will now display surface point
 				 * surfaceOffset.  Can be NULL to indicate
 				 * no offset.
 				 */
-    Point *screenOffset;	/* An additional offset in screen coordinates.
+    Point *screenOffset)	/* An additional offset in screen coordinates.
 				 * Can be NULL to indicate no offset.  If
 				 * non-NULL, then after scrolling according
 				 * to surfaceOffset, the view is adjusted again

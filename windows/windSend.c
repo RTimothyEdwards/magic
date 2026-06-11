@@ -83,10 +83,10 @@ extern void windHelp();
  */
 
 int
-WindSendCommand(w, cmd, quiet)
-    MagWindow *w;
-    TxCommand *cmd;	/* A pointer to a command */
-    bool quiet;		/* Don't print error/warning messages if this is set */
+WindSendCommand(
+    MagWindow *w,
+    TxCommand *cmd,	/* A pointer to a command */
+    bool quiet)		/* Don't print error/warning messages if this is set */
 {
     int windCmdNum, clientCmdNum;
     clientRec *rc;
@@ -351,8 +351,8 @@ WindSendCommand(w, cmd, quiet)
  */
 
 void
-WindGrabInput(client)
-    WindClient client;
+WindGrabInput(
+    WindClient client)
 {
     ASSERT( client != NULL, "WindGrabInput");
     StackPush( (ClientData) windGrabber, windGrabberStack);
@@ -376,8 +376,8 @@ WindGrabInput(client)
  */
 
 void
-WindReleaseInput(client)
-    WindClient client;
+WindReleaseInput(
+    WindClient client)
 {
       ASSERT( client == windGrabber, "WindReleaseInput");
       windGrabber = (WindClient) StackPop(windGrabberStack);
@@ -399,12 +399,12 @@ WindReleaseInput(client)
  */
 
 void
-windHelp(cmd, name, table)
-    TxCommand *cmd;		/* Information about command options. */
-    char *name;			/* Name of client for whom help is being
+windHelp(
+    TxCommand *cmd,		/* Information about command options. */
+    char *name,			/* Name of client for whom help is being
 				 * printed.
 				 */
-    char *table[];		/* Client's command table. */
+    char *table[])		/* Client's command table. */
 {
     static char *capName = NULL;
     static char patString[200], *pattern;

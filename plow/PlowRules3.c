@@ -37,8 +37,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 extern int plowApplyRule();
 
 /* Forward declarations */
+struct inarg;
 int plowInSliverProc();
-int scanDown(), scanUp();
+int scanDown(struct inarg *inarg, TileType type, bool canMoveInargEdge), scanUp(struct inarg *inarg, TileType type, bool canMoveInargEdge);
 int scanDownError(), scanUpError();
 
 /* Argument passed to above filter functions */
@@ -47,7 +48,8 @@ struct inarg
     Rect	 ina_area;		/* Area to search for violations */
     Edge	*ina_moving;		/* Edge causing this search */
     TileType	 ina_t0;		/* See comments in the procedures */
-    int	       (*ina_proc)();		/* Apply to look for rule violations */
+    int	       (*ina_proc)(struct inarg *, TileType, bool);
+					/* Apply to look for rule violations */
 
     /* Used while appling design rules */
     PlowRule	*ina_rule;		/* Plowing design rule being applied */
@@ -74,8 +76,8 @@ struct inarg
  */
 
 void
-prInSliver(edge)
-    Edge *edge;			/* Edge being moved */
+prInSliver(
+    Edge *edge)			/* Edge being moved */
 {
     struct inarg inarg;
     Rect edgeBorder;
@@ -111,10 +113,10 @@ prInSliver(edge)
 }
 
 int
-plowInSliverProc(tile, dinfo, inarg)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct inarg *inarg;
+plowInSliverProc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct inarg *inarg)
 {
     Edge *movingEdge = inarg->ina_moving;
 #ifdef	notdef
@@ -199,10 +201,10 @@ plowInSliverProc(tile, dinfo, inarg)
 }
 
 int
-scanDown(inarg, type, canMoveInargEdge)
-    struct inarg *inarg;
-    TileType type;
-    bool canMoveInargEdge;
+scanDown(
+    struct inarg *inarg,
+    TileType type,
+    bool canMoveInargEdge)
 {
     TileType ltype = inarg->ina_moving->e_ltype;
     Edge *movingEdge = inarg->ina_moving;
@@ -256,9 +258,9 @@ scanDown(inarg, type, canMoveInargEdge)
 }
 
 int
-scanDownError(tile, inarg)
-    Tile *tile;
-    struct inarg *inarg;
+scanDownError(
+    Tile *tile,
+    struct inarg *inarg)
 {
     Rect atomRect;
     int incursion;
@@ -294,10 +296,10 @@ scanDownError(tile, inarg)
 }
 
 int
-scanUp(inarg, type, canMoveInargEdge)
-    struct inarg *inarg;
-    TileType type;
-    bool canMoveInargEdge;
+scanUp(
+    struct inarg *inarg,
+    TileType type,
+    bool canMoveInargEdge)
 {
     TileType ltype = inarg->ina_moving->e_ltype;
     Edge *movingEdge = inarg->ina_moving;
@@ -351,9 +353,9 @@ scanUp(inarg, type, canMoveInargEdge)
 }
 
 int
-scanUpError(tile, inarg)
-    Tile *tile;
-    struct inarg *inarg;
+scanUpError(
+    Tile *tile,
+    struct inarg *inarg)
 {
     Rect atomRect;
     int incursion;
@@ -390,12 +392,12 @@ scanUpError(tile, inarg)
 }
 
 int
-plowSrFinalArea(plane, area, okTypes, proc, cdata)
-    Plane *plane;
-    Rect *area;
-    TileTypeBitMask *okTypes;
-    int (*proc)();
-    ClientData cdata;
+plowSrFinalArea(
+    Plane *plane,
+    Rect *area,
+    TileTypeBitMask *okTypes,
+    int (*proc)(),
+    ClientData cdata)
 {
     return (DBSrPaintArea((Tile *) NULL, plane, area, okTypes, proc, cdata));
 }

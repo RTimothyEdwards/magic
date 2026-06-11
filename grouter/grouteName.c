@@ -58,9 +58,9 @@ static bool glNameDidInit = FALSE;
  */
 
 void
-glNetNameInit(netList, numNets)
-    NLNetList *netList;
-    int numNets;
+glNetNameInit(
+    NLNetList *netList,
+    int numNets)
 {
     NLNet *net;
     int i;
@@ -116,8 +116,8 @@ glNetNameInit(netList, numNets)
  */
 
 char *
-GlNetIdName(id)
-    int id;
+GlNetIdName(
+    int id)
 {
     static char tempId[100];
 

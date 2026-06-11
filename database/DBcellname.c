@@ -60,7 +60,7 @@ bool dbWarnUniqueIds;
  */
 extern CellDef *DBCellDefAlloc();
 extern int dbLinkFunc();
-extern void dbUsePrintInfo();
+extern void dbUsePrintInfo(CellUse *StartUse, int who, bool dolist);
 extern void DBsetUseIdHash();
 extern void DBUnLinkCell();
 
@@ -92,10 +92,10 @@ extern void DBSetUseIdHash();
  * ----------------------------------------------------------------------------
  */
 bool
-DBCellRename(cellname, newname, doforce)
-    char *cellname;
-    char *newname;
-    bool doforce;
+DBCellRename(
+    char *cellname,
+    char *newname,
+    bool doforce)
 {
     HashEntry *entry;
     CellDef *celldef;
@@ -189,8 +189,8 @@ DBCellRename(cellname, newname, doforce)
  */
 
 void
-DBEnumerateTypes(rMask)
-    TileTypeBitMask *rMask;
+DBEnumerateTypes(
+    TileTypeBitMask *rMask)
 {
     HashSearch hs;
     HashEntry *entry;
@@ -225,9 +225,9 @@ DBEnumerateTypes(rMask)
  * ----------------------------------------------------------------------------
  */
 bool
-DBCellDelete(cellname, force)
-    char *cellname;
-    bool force;
+DBCellDelete(
+    char *cellname,
+    bool force)
 {
     HashEntry *entry;
     CellDef *celldef;
@@ -380,8 +380,8 @@ DBCellInit()
  */
 
 char *
-dbGetUseName(celluse)
-   CellUse *celluse;
+dbGetUseName(
+    CellUse *celluse)
 {
     char *useID, *newID, xbuf[10], ybuf[10];
     int arxl, aryl, arxh, aryh;
@@ -454,10 +454,10 @@ dbGetUseName(celluse)
  */
 
 void
-dbCellPrintInfo(StartDef, who, dolist)
-    CellDef *StartDef;
-    int who;
-    bool dolist;
+dbCellPrintInfo(
+    CellDef *StartDef,
+    int who,
+    bool dolist)
 {
     HashSearch hs;
     HashEntry *entry;
@@ -639,9 +639,9 @@ dbCellPrintInfo(StartDef, who, dolist)
  * ----------------------------------------------------------------------------
  */
 void
-DBTopPrint(mw, dolist)
-    MagWindow *mw;
-    bool dolist;
+DBTopPrint(
+    MagWindow *mw,
+    bool dolist)
 {
     CellDef *celldef;
     CellUse *celluse;
@@ -719,7 +719,9 @@ int strcmpbynum(const char *s1, const char *s2)
  */
 
 int
-qcompare(const void *one, const void *two)
+qcompare(
+    const void *one,
+    const void *two)
 {
     int cval;
 
@@ -751,10 +753,10 @@ qcompare(const void *one, const void *two)
  */
 
 void
-DBCellPrint(CellName, who, dolist)
-    char *CellName;
-    int who;
-    bool dolist;
+DBCellPrint(
+    char *CellName,
+    int who,
+    bool dolist)
 {
     int found, numcells;
     HashSearch hs;
@@ -965,10 +967,10 @@ DBCellPrint(CellName, who, dolist)
  */
 
 void
-dbUsePrintInfo(StartUse, who, dolist)
-    CellUse *StartUse;
-    int who;
-    bool dolist;
+dbUsePrintInfo(
+    CellUse *StartUse,
+    int who,
+    bool dolist)
 {
     CellDef *celldef;
     CellUse *celluse;
@@ -1132,10 +1134,10 @@ dbUsePrintInfo(StartUse, who, dolist)
  */
 
 void
-DBUsePrint(CellName, who, dolist)
-    char *CellName;
-    int who;
-    bool dolist;
+DBUsePrint(
+    char *CellName,
+    int who,
+    bool dolist)
 {
     int found;
     HashSearch hs;
@@ -1230,9 +1232,9 @@ DBUsePrint(CellName, who, dolist)
 }
 
 int
-dbCellUsePrintFunc(cellUse, dolist)
-    CellUse *cellUse;
-    bool *dolist;
+dbCellUsePrintFunc(
+    CellUse *cellUse,
+    bool *dolist)
 {
     char *cu_name;
 
@@ -1257,11 +1259,11 @@ dbCellUsePrintFunc(cellUse, dolist)
  */
 
 int
-dbLockUseFunc(selUse, use, transform, data)
-    CellUse *selUse;	/* Use from selection cell */
-    CellUse *use;	/* Use from layout corresponding to selection */
-    Transform *transform;
-    ClientData data;
+dbLockUseFunc(
+    CellUse *selUse,	/* Use from selection cell */
+    CellUse *use,	/* Use from layout corresponding to selection */
+    Transform *transform,
+    ClientData data)
 {
     bool dolock = *((bool *)data);
 
@@ -1309,9 +1311,9 @@ dbLockUseFunc(selUse, use, transform, data)
  */
 
 void
-DBLockUse(UseName, bval)
-    char *UseName;
-    bool bval;
+DBLockUse(
+    char *UseName,
+    bool bval)
 {
     int found;
     HashSearch hs;
@@ -1388,9 +1390,9 @@ DBLockUse(UseName, bval)
  */
 
 void
-DBOrientUse(UseName, dodef)
-    char *UseName;
-    bool dodef;
+DBOrientUse(
+    char *UseName,
+    bool dodef)
 {
     int found;
     HashSearch hs;
@@ -1453,11 +1455,11 @@ enum def_orient {ORIENT_NORTH, ORIENT_SOUTH, ORIENT_EAST, ORIENT_WEST,
         ORIENT_FLIPPED_WEST};
 
 int
-dbOrientUseFunc(selUse, use, transform, data)
-    CellUse *selUse;	/* Use from selection cell */
-    CellUse *use;	/* Use from layout corresponding to selection */
-    Transform *transform;
-    ClientData data;
+dbOrientUseFunc(
+    CellUse *selUse,	/* Use from selection cell */
+    CellUse *use,	/* Use from layout corresponding to selection */
+    Transform *transform,
+    ClientData data)
 {
     bool *dodef = (bool *)data;
     int orient;
@@ -1554,9 +1556,9 @@ dbOrientUseFunc(selUse, use, transform, data)
  */
 
 void
-DBAbutmentUse(UseName, dolist)
-    char *UseName;
-    bool dolist;
+DBAbutmentUse(
+    char *UseName,
+    bool dolist)
 {
     int found;
     HashSearch hs;
@@ -1611,11 +1613,11 @@ DBAbutmentUse(UseName, dolist)
  */
 
 int
-dbAbutmentUseFunc(selUse, use, transform, data)
-    CellUse *selUse;	/* Use from selection cell */
-    CellUse *use;	/* Use from layout corresponding to selection */
-    Transform *transform;
-    ClientData data;
+dbAbutmentUseFunc(
+    CellUse *selUse,	/* Use from selection cell */
+    CellUse *use,	/* Use from layout corresponding to selection */
+    Transform *transform,
+    ClientData data)
 {
     Rect bbox, refbox;
     Transform *trans;
@@ -1704,8 +1706,8 @@ dbAbutmentUseFunc(selUse, use, transform, data)
  */
 
 CellDef *
-DBCellLookDef(cellName)
-    char *cellName;
+DBCellLookDef(
+    char *cellName)
 {
     HashEntry *entry;
 
@@ -1744,8 +1746,8 @@ DBCellLookDef(cellName)
  */
 
 CellDef *
-DBCellNewDef(cellName)
-    char *cellName;		/* Name by which the cell is known */
+DBCellNewDef(
+    char *cellName)		/* Name by which the cell is known */
 {
     CellDef *cellDef;
     HashEntry *entry;
@@ -1849,9 +1851,9 @@ DBCellDefAlloc()
  */
 
 CellUse *
-DBCellNewUse(cellDef, useName)
-    CellDef *cellDef;	/* Pointer to definition of the cell */
-    char *useName;	/* Pointer to use identifier for the cell.  This may
+DBCellNewUse(
+    CellDef *cellDef,	/* Pointer to definition of the cell */
+    char *useName)	/* Pointer to use identifier for the cell.  This may
 			 * be NULL, in which case a unique use identifier is
 			 * generated automatically when the cell use is linked
 			 * into a parent def.
@@ -1905,9 +1907,9 @@ DBCellNewUse(cellDef, useName)
  */
 
 bool
-DBCellRenameDef(cellDef, newName)
-    CellDef *cellDef;		/* Pointer to CellDef being renamed */
-    char *newName;		/* Pointer to new name */
+DBCellRenameDef(
+    CellDef *cellDef,		/* Pointer to CellDef being renamed */
+    char *newName)		/* Pointer to new name */
 {
     HashEntry *oldEntry, *newEntry;
     CellUse *parent;
@@ -1951,8 +1953,8 @@ DBCellRenameDef(cellDef, newName)
  */
 
 bool
-DBCellDeleteDef(cellDef)
-    CellDef *cellDef;		/* Pointer to CellDef to be deleted */
+DBCellDeleteDef(
+    CellDef *cellDef)		/* Pointer to CellDef to be deleted */
 {
     HashEntry *entry;
 
@@ -1995,9 +1997,8 @@ DBCellDeleteDef(cellDef)
  */
 
 void
-DBCellDefFree(cellDef)
-    CellDef *cellDef;
-
+DBCellDefFree(
+    CellDef *cellDef)
 {
     int pNum;
     Label *lab;
@@ -2058,8 +2059,8 @@ DBCellDefFree(cellDef)
  */
 
 bool
-DBCellDeleteUse(cellUse)
-    CellUse *cellUse;		/* Pointer to CellUse to be deleted */
+DBCellDeleteUse(
+    CellUse *cellUse)		/* Pointer to CellUse to be deleted */
 {
     CellDef *cellDef;
     CellUse *useptr;
@@ -2120,14 +2121,14 @@ DBCellDeleteUse(cellUse)
  */
 
 int
-DBCellSrDefs(pattern, func, cdata)
-    int pattern;	/* Used for selecting cell definitions.  If any
+DBCellSrDefs(
+    int pattern,	/* Used for selecting cell definitions.  If any
 			 * of the bits in the pattern are in a def->cd_flags,
 			 * or if pattern is 0, the user-supplied function
 			 * is invoked.
 			 */
-    int (*func)();	/* Function to be applied to each matching CellDef */
-    ClientData cdata;	/* Client data also passed to function */
+    int (*func)(),	/* Function to be applied to each matching CellDef */
+    ClientData cdata)	/* Client data also passed to function */
 {
     HashSearch hs;
     HashEntry *he;
@@ -2184,9 +2185,9 @@ DBCellSrDefs(pattern, func, cdata)
  */
 
 bool
-DBLinkCell(use, parentDef)
-    CellUse *use;
-    CellDef *parentDef;
+DBLinkCell(
+    CellUse *use,
+    CellDef *parentDef)
 {
     char useId[100], *lastName;
     HashEntry *he;
@@ -2248,9 +2249,9 @@ DBLinkCell(use, parentDef)
  */
 
 int
-dbLinkFunc(cellUse, defname)
-    CellUse *cellUse;
-    char *defname;
+dbLinkFunc(
+    CellUse *cellUse,
+    char *defname)
 {
     char *usep = cellUse->cu_id;
 
@@ -2294,9 +2295,9 @@ dbLinkFunc(cellUse, defname)
  */
 
 bool
-DBReLinkCell(cellUse, newName)
-    CellUse *cellUse;
-    char *newName;
+DBReLinkCell(
+    CellUse *cellUse,
+    char *newName)
 {
     if (cellUse->cu_id && strcmp(cellUse->cu_id, newName) == 0)
 	return (TRUE);
@@ -2337,9 +2338,9 @@ DBReLinkCell(cellUse, newName)
  */
 
 CellUse *
-DBFindUse(id, parentDef)
-    char *id;
-    CellDef *parentDef;
+DBFindUse(
+    char *id,
+    CellDef *parentDef)
 {
     HashEntry *he;
     char *delimit;
@@ -2388,9 +2389,9 @@ DBFindUse(id, parentDef)
  */
 
 void
-DBGenerateUniqueIds(def, warn)
-    CellDef *def;
-    bool warn;		/* If TRUE, warn user when we assign new ids */
+DBGenerateUniqueIds(
+    CellDef *def,
+    bool warn)		/* If TRUE, warn user when we assign new ids */
 {
     int dbFindNamesFunc();
     int dbGenerateUniqueIdsFunc();
@@ -2431,9 +2432,9 @@ DBGenerateUniqueIds(def, warn)
  */
 
 void
-DBSelectionUniqueIds(selDef, rootDef)
-    CellDef *selDef;	/* Should be Select2Def */
-    CellDef *rootDef;	/* Should be EditRootDef */
+DBSelectionUniqueIds(
+    CellDef *selDef,	/* Should be Select2Def */
+    CellDef *rootDef)	/* Should be EditRootDef */
 {
     int dbFindNamesFunc();
     int dbGenerateUniqueIdsFunc();
@@ -2473,9 +2474,9 @@ DBSelectionUniqueIds(selDef, rootDef)
  */
 
 int
-dbFindNamesFunc(use, parentDef)
-    CellUse *use;
-    CellDef *parentDef;
+dbFindNamesFunc(
+    CellUse *use,
+    CellDef *parentDef)
 {
     HashEntry *he;
 
@@ -2528,9 +2529,9 @@ dbFindNamesFunc(use, parentDef)
  */
 
 int
-dbGenerateUniqueIdsFunc(use, parentDef)
-    CellUse *use;
-    CellDef *parentDef;
+dbGenerateUniqueIdsFunc(
+    CellUse *use,
+    CellDef *parentDef)
 {
     HashEntry *hedef, *hename;
     int suffix;
@@ -2577,9 +2578,9 @@ setHash:
  */
 
 void
-DBSetUseIdHash(use, parentDef)
-    CellUse *use;
-    CellDef *parentDef;
+DBSetUseIdHash(
+    CellUse *use,
+    CellDef *parentDef)
 {
     HashEntry *he;
 
@@ -2605,9 +2606,9 @@ DBSetUseIdHash(use, parentDef)
  */
 
 void
-DBUnLinkCell(use, parentDef)
-    CellUse *use;
-    CellDef *parentDef;
+DBUnLinkCell(
+    CellUse *use,
+    CellDef *parentDef)
 {
     HashEntry *he;
 
@@ -2636,10 +2637,10 @@ DBUnLinkCell(use, parentDef)
  */
 
 void
-DBNewYank(yname, pyuse, pydef)
-    char *yname;	/* Name of yank buffer */
-    CellUse **pyuse;	/* Pointer to new cell use is stored in *pyuse */
-    CellDef **pydef;	/* Similarly for def */
+DBNewYank(
+    char *yname,	/* Name of yank buffer */
+    CellUse **pyuse,	/* Pointer to new cell use is stored in *pyuse */
+    CellDef **pydef)	/* Similarly for def */
 {
     *pydef = DBCellLookDef(yname);
     if (*pydef == (CellDef *) NULL)

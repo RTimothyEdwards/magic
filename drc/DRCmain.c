@@ -145,11 +145,11 @@ LinkedIndex *DRCIgnoreRules = NULL;
  */
 
 void
-drcPaintError(celldef, rect, cptr, plane)
-    CellDef   * celldef;		/* CellDef being checked */
-    Rect      * rect;			/* Area of error */
-    DRCCookie * cptr;  			/* Design rule violated -- not used */
-    Plane     * plane;			/* Where to paint error tiles. */
+drcPaintError(
+    CellDef   * celldef,		/* CellDef being checked */
+    Rect      * rect,			/* Area of error */
+    DRCCookie * cptr,  			/* Design rule violated -- not used */
+    Plane     * plane)			/* Where to paint error tiles. */
 {
     PaintUndoInfo ui;
 
@@ -180,8 +180,8 @@ drcPaintError(celldef, rect, cptr, plane)
  */
 
 char *
-drcSubstitute (cptr)
-    DRCCookie * cptr;  		/* Design rule violated */
+drcSubstitute(
+    DRCCookie * cptr)  		/* Design rule violated */
 {
     static char *why_out = NULL;
     char *whyptr, *sptr, *wptr, *vptr;
@@ -282,11 +282,11 @@ drcSubstitute (cptr)
  */
 
 void
-drcPrintError (celldef, rect, cptr, scx)
-    CellDef   * celldef;	/* CellDef being checked -- not used here */
-    Rect      * rect;		/* Area of error */
-    DRCCookie * cptr;  		/* Design rule violated */
-    SearchContext * scx;	/* Only errors in scx->scx_area get reported. */
+drcPrintError(
+    CellDef   * celldef,	/* CellDef being checked -- not used here */
+    Rect      * rect,		/* Area of error */
+    DRCCookie * cptr,  		/* Design rule violated */
+    SearchContext * scx)	/* Only errors in scx->scx_area get reported. */
 {
     HashEntry *h;
     int i;
@@ -343,11 +343,11 @@ drcPrintError (celldef, rect, cptr, scx)
 #ifdef MAGIC_WRAPPER
 
 void
-drcListError (celldef, rect, cptr, scx)
-    CellDef   * celldef;	/* CellDef being checked -- not used here */
-    Rect      * rect;		/* Area of error */
-    DRCCookie * cptr;  		/* Design rule violated */
-    SearchContext * scx;	/* Only errors in scx->scx_area get reported */
+drcListError(
+    CellDef   * celldef,	/* CellDef being checked -- not used here */
+    Rect      * rect,		/* Area of error */
+    DRCCookie * cptr,  		/* Design rule violated */
+    SearchContext * scx)	/* Only errors in scx->scx_area get reported */
 {
     HashEntry *h;
     int i;
@@ -400,11 +400,11 @@ drcListError (celldef, rect, cptr, scx)
 /* along with position information.					*/
 
 void
-drcListallError (celldef, rect, cptr, scx)
-    CellDef   * celldef;	/* CellDef being checked -- not used here */
-    Rect      * rect;		/* Area of error */
-    DRCCookie * cptr;  		/* Design rule violated */
-    SearchContext * scx;	/* Only errors in scx->scx_area get reported. */
+drcListallError(
+    CellDef   * celldef,	/* CellDef being checked -- not used here */
+    Rect      * rect,		/* Area of error */
+    DRCCookie * cptr,  		/* Design rule violated */
+    SearchContext * scx)	/* Only errors in scx->scx_area get reported. */
 {
     Tcl_Obj *lobj, *pobj;
     HashEntry *h;
@@ -566,17 +566,17 @@ DRCPrintStats()
  */
 
 bool
-DRCWhy(dolist, use, area, findonly)
-    bool dolist;			/*
+DRCWhy(
+    bool dolist,			/*
 					 * Generate Tcl list for value
 					 */
-    CellUse *use;			/* Use in whose definition to start
+    CellUse *use,			/* Use in whose definition to start
 					 * the hierarchical check.
 					 */
-    Rect *area;				/* Area, in def's coordinates, that
+    Rect *area,				/* Area, in def's coordinates, that
 					 * is to be checked.
 					 */
-    bool findonly;			/* If TRUE, contents of DRCIgnoreRules
+    bool findonly)			/* If TRUE, contents of DRCIgnoreRules
 					 * are inverted; that is, flag only
 					 * the marked rules instead of ignoring
 					 * them.
@@ -643,14 +643,14 @@ DRCWhy(dolist, use, area, findonly)
 #ifdef MAGIC_WRAPPER
 
 void
-DRCWhyAll(use, area, fout)
-    CellUse *use;			/* Use in whose definition to start
+DRCWhyAll(
+    CellUse *use,			/* Use in whose definition to start
 					 * the hierarchical check.
 					 */
-    Rect *area;				/* Area, in def's coordinates, that
+    Rect *area,				/* Area, in def's coordinates, that
 					 * is to be checked.
 					 */
-    FILE *fout;				/*
+    FILE *fout)				/*
 					 * Write formatted output to fout
 					 */
 {
@@ -732,9 +732,9 @@ DRCWhyAll(use, area, fout)
 
 	/* ARGSUSED */
 void
-drcWhyFunc(scx, cdarg)
-    SearchContext *scx;		/* Describes current state of search. */
-    ClientData cdarg;		/* Used to hold boolean value "dolist" */
+drcWhyFunc(
+    SearchContext *scx,		/* Describes current state of search. */
+    ClientData cdarg)		/* Used to hold boolean value "dolist" */
 {
     CellDef *def = scx->scx_use->cu_def;
     bool dolist = (bool)((pointertype)cdarg);
@@ -748,9 +748,9 @@ drcWhyFunc(scx, cdarg)
 #ifdef MAGIC_WRAPPER
 
 int
-drcWhyAllFunc(scx, cdarg)
-    SearchContext *scx;		/* Describes current state of search. */
-    ClientData cdarg;		/* Unused */
+drcWhyAllFunc(
+    SearchContext *scx,		/* Describes current state of search. */
+    ClientData cdarg)		/* Unused */
 {
     CellDef *def = scx->scx_use->cu_def;
 
@@ -781,9 +781,9 @@ drcWhyAllFunc(scx, cdarg)
  */
 
 void
-DRCCheck(use, area)
-    CellUse *use;		/* Top-level use of hierarchy. */
-    Rect *area;			/* This area is rechecked everywhere in the
+DRCCheck(
+    CellUse *use,		/* Top-level use of hierarchy. */
+    Rect *area)			/* This area is rechecked everywhere in the
 				 * hierarchy underneath use.
 				 */
 {
@@ -809,9 +809,9 @@ DRCCheck(use, area)
 
 	/* ARGSUSED */
 int
-drcCheckFunc(scx, cdarg)
-    SearchContext *scx;
-    ClientData cdarg;		/* Not used. */
+drcCheckFunc(
+    SearchContext *scx,
+    ClientData cdarg)		/* Not used. */
 {
     Rect cellArea;
     CellDef *def;
@@ -867,10 +867,10 @@ drcCheckFunc(scx, cdarg)
  */
 
 DRCCountList *
-DRCCount(use, area, recurse)
-    CellUse *use;		/* Top-level use of hierarchy. */
-    Rect *area;			/* Area in which violations are counted. */
-    bool recurse;		/* If TRUE, count errors in all subcells */
+DRCCount(
+    CellUse *use,		/* Top-level use of hierarchy. */
+    Rect *area,			/* Area in which violations are counted. */
+    bool recurse)		/* If TRUE, count errors in all subcells */
 {
     DRCCountList  *dcl, *newdcl;
     HashTable	  dupTable;
@@ -930,9 +930,9 @@ DRCCount(use, area, recurse)
 }
 
 int
-drcCountFunc(scx, dupTable)
-    SearchContext *scx;
-    HashTable *dupTable;	    /* Passed as client data, used to
+drcCountFunc(
+    SearchContext *scx,
+    HashTable *dupTable)	    /* Passed as client data, used to
 				     * avoid searching any cell twice.
 				     */
 {
@@ -977,10 +977,10 @@ drcCountFunc(scx, dupTable)
 }
 
 int
-drcCountFunc2(tile, dinfo, countptr)
-    Tile *tile;		/* Tile found in error plane.		*/
-    TileType dinfo;	/* Split tile information (unused)	*/
-    int *countptr;	/* Address of count word.		*/
+drcCountFunc2(
+    Tile *tile,		/* Tile found in error plane.		*/
+    TileType dinfo,	/* Split tile information (unused)	*/
+    int *countptr)	/* Address of count word.		*/
 {
     if (TiGetType(tile) != (TileType) TT_SPACE) (*countptr)++;
     return 0;
@@ -1053,11 +1053,11 @@ typedef struct {
 } Sindx;
 
 int
-DRCFind(use, area, rect, indx)
-    CellUse *use;		/* Cell use to check. */
-    Rect *area;			/* Area of search */
-    Rect *rect;			/* Rectangle to fill in with tile location. */
-    int indx;			/* Go to this error. */
+DRCFind(
+    CellUse *use,		/* Cell use to check. */
+    Rect *area,			/* Area of search */
+    Rect *rect,			/* Rectangle to fill in with tile location. */
+    int indx)			/* Go to this error. */
 {
     SearchContext scx;
     Sindx finddata;
@@ -1098,9 +1098,9 @@ DRCFind(use, area, rect, indx)
 }
 
 int
-drcFindFunc(scx, finddata)
-    SearchContext *scx;
-    Sindx *finddata;
+drcFindFunc(
+    SearchContext *scx,
+    Sindx *finddata)
 {
     CellDef *def;
     HashEntry *h;
@@ -1127,11 +1127,10 @@ drcFindFunc(scx, finddata)
 }
 
 int
-drcFindFunc2(tile, dinfo, finddata)
-    Tile *tile;			/* Tile in error plane. */
-    TileType dinfo;		/* Split tile information (unused) */
-    Sindx *finddata;		/* Information about error to find */
-
+drcFindFunc2(
+    Tile *tile,			/* Tile in error plane. */
+    TileType dinfo,		/* Split tile information (unused) */
+    Sindx *finddata)		/* Information about error to find */
 {
     if (TiGetType(tile) == (TileType) TT_SPACE) return 0;
     if (++finddata->current == finddata->target)

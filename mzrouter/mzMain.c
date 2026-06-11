@@ -269,8 +269,8 @@ do \
  */
 
 MazeParameters *
-MZCopyParms(oldParms)
-    MazeParameters *oldParms;	/* Maze routing parameters */
+MZCopyParms(
+    MazeParameters *oldParms)	/* Maze routing parameters */
 {
     MazeParameters *newParms;
     HashTable aT;	/* Address translation hash table */
@@ -415,8 +415,8 @@ MZCopyParms(oldParms)
  */
 
 MazeParameters *
-MZFindStyle(name)
-char *name;	/* name of style we are looking for */
+MZFindStyle(
+char *name)	/* name of style we are looking for */
 {
     MazeStyle *style = mzStyles;
 
@@ -457,10 +457,10 @@ char *name;	/* name of style we are looking for */
  */
 
 void
-MZInitRoute(parms, routeUse, expansionMask)
-    MazeParameters *parms;	/* Maze routing parameters */
-    CellUse *routeUse;		/* toplevel cell router sees */
-    int expansionMask;		/* which subcells are expanded - NOTE: the
+MZInitRoute(
+    MazeParameters *parms,	/* Maze routing parameters */
+    CellUse *routeUse,		/* toplevel cell router sees */
+    int expansionMask)		/* which subcells are expanded - NOTE: the
 				 * maze router interpets a 0 mask to mean
 				 * all cells are expanded
 				 */
@@ -568,9 +568,9 @@ MZInitRoute(parms, routeUse, expansionMask)
  */
 
 void
-MZAddStart(point, type)
-    Point *point;
-    TileType type;
+MZAddStart(
+    Point *point,
+    TileType type)
 {
     /* Disable undo to avoid overhead on paint operations to internal planes */
     UndoDisable();
@@ -668,9 +668,9 @@ MZAddStart(point, type)
  */
 
 void
-MZAddDest(rect, type)
-    Rect *rect;
-    TileType type;
+MZAddDest(
+    Rect *rect,
+    TileType type)
 {
     ColoredRect *dTerm;
 
@@ -721,8 +721,8 @@ MZAddDest(rect, type)
  */
 
 RoutePath *
-MZRoute(mzResult)
-    int *mzResult;	/* Place to put result code */
+MZRoute(
+    int *mzResult)	/* Place to put result code */
 {
     RoutePath *path;	/* handle for result of search */
     ColoredRect *term;
@@ -877,8 +877,8 @@ abort:
  */
 
 void
-MZCleanupPath(pathList)
-    RoutePath *pathList;
+MZCleanupPath(
+    RoutePath *pathList)
 {
     RoutePath *path, *n1path, *n2path, *n3path;
     RoutePath *spath, *cpath, *mpath;
@@ -1149,8 +1149,8 @@ MZCleanupPath(pathList)
  */
 
 CellUse *
-MZPaintPath(pathList)
-    RoutePath *pathList;
+MZPaintPath(
+    RoutePath *pathList)
 {
     RoutePath *path, *prev;
     RouteLayer *last_rL = NULL;

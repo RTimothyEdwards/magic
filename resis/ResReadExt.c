@@ -127,7 +127,8 @@ ResFixPoint	*ResFixList;
  */
 
 int
-ResReadExt(CellDef *def)
+ResReadExt(
+    CellDef *def)
 {
     char *line = NULL, *argv[128];
     int	result, locresult;
@@ -518,7 +519,9 @@ ResReadParentExt(CellDef *parent,
  */
 
 ResExtNode *
-ResReadNode(int argc, char *argv[])
+ResReadNode(
+    int argc,
+    char *argv[])
 {
     HashEntry	*entry;
     ResExtNode	*node;
@@ -1052,8 +1055,8 @@ ResReadAttribute(ResExtNode *node,
  */
 
 ResExtNode *
-ResExtInitNode(entry)
-    HashEntry	*entry;
+ResExtInitNode(
+    HashEntry *entry)
 {
     ResExtNode	*node;
 

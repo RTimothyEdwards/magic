@@ -137,10 +137,11 @@ dbwUndoInit()
  */
 
 void
-DBWUndoOldEdit(editUse, editRootDef, editToRootTrans, rootToEditTrans)
-    CellUse *editUse;
-    CellDef *editRootDef;
-    Transform *editToRootTrans, *rootToEditTrans;
+DBWUndoOldEdit(
+    CellUse *editUse,
+    CellDef *editRootDef,
+    Transform *editToRootTrans,
+    Transform *rootToEditTrans)
 {
     char *useid = editUse->cu_id;
     editUE *ep;
@@ -159,10 +160,11 @@ DBWUndoOldEdit(editUse, editRootDef, editToRootTrans, rootToEditTrans)
 }
 
 void
-DBWUndoNewEdit(editUse, editRootDef, editToRootTrans, rootToEditTrans)
-    CellUse *editUse;
-    CellDef *editRootDef;
-    Transform *editToRootTrans, *rootToEditTrans;
+DBWUndoNewEdit(
+    CellUse *editUse,
+    CellDef *editRootDef,
+    Transform *editToRootTrans,
+    Transform *rootToEditTrans)
 {
     char *useid = editUse->cu_id;
     editUE *ep;
@@ -202,8 +204,8 @@ DBWUndoNewEdit(editUse, editRootDef, editToRootTrans, rootToEditTrans)
  */
 
 void
-dbwUndoChangeEdit(ep)
-    editUE *ep;
+dbwUndoChangeEdit(
+    editUE *ep)
 {
     Rect area;
     CellUse *use;
@@ -262,11 +264,11 @@ dbwUndoChangeEdit(ep)
  */
 
 void
-DBWUndoBox(oldDef, oldArea, newDef, newArea)
-    CellDef *oldDef;		/* Celldef containing old box. */
-    Rect *oldArea;		/* Area of old box in oldDef coords. */
-    CellDef *newDef;		/* Celldef containing new box. */
-    Rect *newArea;		/* Area of new box in newDef coords. */
+DBWUndoBox(
+    CellDef *oldDef,		/* Celldef containing old box. */
+    Rect *oldArea,		/* Area of old box in oldDef coords. */
+    CellDef *newDef,		/* Celldef containing new box. */
+    Rect *newArea)		/* Area of new box in newDef coords. */
 {
     BoxUndoEvent *bue;
 
@@ -298,15 +300,15 @@ DBWUndoBox(oldDef, oldArea, newDef, newArea)
  */
 
 void
-dbwUndoBoxForw(bue)
-    BoxUndoEvent *bue;			/* Event to be redone. */
+dbwUndoBoxForw(
+    BoxUndoEvent *bue)			/* Event to be redone. */
 {
     DBWSetBox(bue->bue_newDef, &bue->bue_newArea);
 }
 
 void
-dbwUndoBoxBack(bue)
-    BoxUndoEvent *bue;			/* Event to be undone. */
+dbwUndoBoxBack(
+    BoxUndoEvent *bue)			/* Event to be undone. */
 {
     DBWSetBox(bue->bue_oldDef, &bue->bue_oldArea);
 }

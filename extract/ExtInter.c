@@ -87,13 +87,13 @@ int extInterSubtreePaint();
  */
 
 void
-ExtFindInteractions(def, halo, bloatby, resultPlane)
-    CellDef *def;	/* Find interactions among children of def */
-    int halo;		/* Interaction is elements closer than halo */
-    int bloatby;	/* Bloat each interaction area by this amount when
+ExtFindInteractions(
+    CellDef *def,	/* Find interactions among children of def */
+    int halo,		/* Interaction is elements closer than halo */
+    int bloatby,	/* Bloat each interaction area by this amount when
 			 * painting into resultPlane.
 			 */
-    Plane *resultPlane;	/* Paint interaction areas into this plane */
+    Plane *resultPlane)	/* Paint interaction areas into this plane */
 {
     SearchContext scx;
 
@@ -129,9 +129,9 @@ ExtFindInteractions(def, halo, bloatby, resultPlane)
 }
 
 int
-extInterSubtreePaint(scx, def)
-    SearchContext *scx;
-    CellDef *def;
+extInterSubtreePaint(
+    SearchContext *scx,
+    CellDef *def)
 {
     Rect r;
     int pNum;
@@ -165,8 +165,8 @@ extInterSubtreePaint(scx, def)
  */
 
 int
-extInterSubtree(scx)
-    SearchContext *scx;
+extInterSubtree(
+    SearchContext *scx)
 {
     CellUse *oldUse = extInterUse;
     SearchContext parentScx;
@@ -185,8 +185,9 @@ extInterSubtree(scx)
 }
 
 int
-extInterSubtreeClip(overlapScx, scx)
-    SearchContext *overlapScx, *scx;
+extInterSubtreeClip(
+    SearchContext *overlapScx,
+    SearchContext *scx)
 {
     Rect r, r2;
 
@@ -227,11 +228,12 @@ extInterSubtreeClip(overlapScx, scx)
  */
 
 int
-extInterSubtreeElement(use, trans, x, y, r)
-    CellUse *use;
-    Transform *trans;
-    int x, y;
-    Rect *r;
+extInterSubtreeElement(
+    CellUse *use,
+    Transform *trans,
+    int x,
+    int y,
+    Rect *r)
 {
     SearchContext scx;
     Transform tinv;
@@ -270,10 +272,10 @@ extInterSubtreeElement(use, trans, x, y, r)
  */
 
 int
-extInterSubtreeTile(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    TreeContext *cxp;
+extInterSubtreeTile(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    TreeContext *cxp)
 {
     SearchContext newscx;
     Rect r;
@@ -312,8 +314,8 @@ extInterSubtreeTile(tile, dinfo, cxp)
  */
 
 int
-extInterOverlapSubtree(scx)
-    SearchContext *scx;
+extInterOverlapSubtree(
+    SearchContext *scx)
 {
     if (extInterUse == scx->scx_use)
 	return (2);
@@ -343,10 +345,10 @@ extInterOverlapSubtree(scx)
  */
 
 int
-extInterOverlapTile(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    TreeContext *cxp;
+extInterOverlapTile(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    TreeContext *cxp)
 {
     SearchContext *scx = cxp->tc_scx;
     Rect r, rootr;
@@ -410,14 +412,14 @@ extInterOverlapTile(tile, dinfo, cxp)
  */
 
 int
-extTreeSrPaintArea(scx, func, cdarg)
-    SearchContext *scx;		/* Pointer to search context specifying
+extTreeSrPaintArea(
+    SearchContext *scx,		/* Pointer to search context specifying
 				 * a cell use to search, an area in the
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 */
-    int (*func)();		/* Function to apply at each qualifying tile */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each qualifying tile */
+    ClientData cdarg)		/* Client data for above function */
 {
     int extTreeSrFunc();
     CellDef *def = scx->scx_use->cu_def;
@@ -455,9 +457,9 @@ extTreeSrPaintArea(scx, func, cdarg)
  */
 
 int
-extTreeSrFunc(scx, fp)
-    SearchContext *scx;
-    TreeFilter *fp;
+extTreeSrFunc(
+    SearchContext *scx,
+    TreeFilter *fp)
 {
     CellDef *def = scx->scx_use->cu_def;
     TreeContext context;

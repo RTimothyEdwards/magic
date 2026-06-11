@@ -41,9 +41,9 @@ static char rcsid[] = "$Header: /usr/cvsroot/magic-8.0/utils/LIBtextio.c,v 1.1.1
  */
 
 char *
-TxGetLine(buf, size)
-    char *buf;
-    int size;
+TxGetLine(
+    char *buf,
+    int size)
 {
     return (fgets(buf, size, stdin));
 }
@@ -96,7 +96,9 @@ TxFlush()
  */
 
 void
-TxError(const char *fmt, ...)
+TxError(
+    const char *fmt,
+    ...)
 {
     va_list ap;
 
@@ -126,7 +128,9 @@ TxError(const char *fmt, ...)
  */
 
 void
-TxPrintf(const char *fmt, ...)
+TxPrintf(
+    const char *fmt,
+    ...)
 {
     va_list ap;
 

@@ -54,9 +54,9 @@ extern Cursor grCursors[MAX_CURSORS]; /* grX11su5.c */
  */
 
 void
-GrOGLDrawGlyph (gl, p)
-    GrGlyph *gl;		/* A single glyph */
-    Point *p;			/* screen pos of lower left corner */
+GrOGLDrawGlyph(
+    GrGlyph *gl,		/* A single glyph */
+    Point *p)			/* screen pos of lower left corner */
 {
     Rect bBox;
     bool anyObscure;
@@ -182,8 +182,8 @@ GrOGLDrawGlyph (gl, p)
  */
 
 void
-groglDefineCursor(glyphs)
-    GrGlyphs *glyphs;
+groglDefineCursor(
+    GrGlyphs *glyphs)
 {
     int glyphnum;
     Rect oldClip;
@@ -298,8 +298,8 @@ groglDefineCursor(glyphs)
  */
 
 void
-GrOGLSetCursor(cursorNum)
-int cursorNum;		/* The cursor number as defined in the display
+GrOGLSetCursor(
+int cursorNum)		/* The cursor number as defined in the display
 		         * styles file.
 		         */
 {

@@ -154,9 +154,9 @@ GAClearChannels()
  */
 
 bool
-GADefineChannel(chanType, r)
-    int chanType;
-    Rect *r;
+GADefineChannel(
+    int chanType,
+    Rect *r)
 {
     int length, width, halfGrid = RtrGridSpacing / 2;
     GCRChannel *ch;
@@ -257,10 +257,10 @@ GADefineChannel(chanType, r)
  */
 
 void
-gaChannelInit(list, routeUse, netList)
-    GCRChannel *list;	/* List of channels to process */
-    CellUse *routeUse;	/* Cell being routed (searched for obstacles) */
-    NLNetList *netList;	/* Netlist being routed */
+gaChannelInit(
+    GCRChannel *list,	/* List of channels to process */
+    CellUse *routeUse,	/* Cell being routed (searched for obstacles) */
+    NLNetList *netList)	/* Netlist being routed */
 {
     GCRChannel *ch;
 
@@ -356,8 +356,8 @@ gaChannelInit(list, routeUse, netList)
 }
 
 void
-gaChannelStats(list)
-    GCRChannel *list;
+gaChannelStats(
+    GCRChannel *list)
 {
     GCRChannel *ch;
     int *tot, *clear, numTot, numClear;
@@ -407,10 +407,11 @@ gaChannelStats(list)
 }
 
 void
-gaPinStats(pins, nPins, pTot, pClear)
-    GCRPin *pins;
-    int nPins;
-    int *pTot, *pClear;
+gaPinStats(
+    GCRPin *pins,
+    int nPins,
+    int *pTot,
+    int *pClear)
 {
     GCRPin *pin, *pend;
 
@@ -449,8 +450,8 @@ gaPinStats(pins, nPins, pTot, pClear)
  */
 
 void
-gaPropagateBlockages(list)
-    GCRChannel *list;
+gaPropagateBlockages(
+    GCRChannel *list)
 {
     GCRChannel *ch;
     bool changed;
@@ -482,10 +483,10 @@ gaPropagateBlockages(list)
  */
 
 int
-gaSetClient(tile, dinfo, cdata)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    ClientData cdata;
+gaSetClient(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    ClientData cdata)
 {
     tile->ti_client = (ClientData) cdata;
     return (0);
@@ -512,10 +513,10 @@ gaSetClient(tile, dinfo, cdata)
  */
 
 int
-gaSplitTile(tile, dinfo, r)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    Rect *r;
+gaSplitTile(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    Rect *r)
 {
     Tile *tp;
     ASSERT(TiGetType(tile) == TT_SPACE, "gaSplitTile");
@@ -574,9 +575,9 @@ gaSplitTile(tile, dinfo, r)
  */
 
 void
-gaInitRiverBlockages(routeUse, ch)
-    CellUse *routeUse;
-    GCRChannel *ch;
+gaInitRiverBlockages(
+    CellUse *routeUse,
+    GCRChannel *ch)
 {
     GCRPin *p1, *p2;
     int n, nPins, coord;
@@ -634,7 +635,10 @@ gaInitRiverBlockages(routeUse, ch)
 }
 
 int
-gaAlwaysOne(Tile *tile, TileType dinfo, ClientData clientdata)
+gaAlwaysOne(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)
 {
     return (1);
 }

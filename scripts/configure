@@ -8765,7 +8765,11 @@ case $target in
   *-emscripten*)
     $as_echo "#define linux 1" >>confdefs.h
 
-    CFLAGS="${CFLAGS} -fPIC -Werror=implicit-function-declaration -Wno-int-conversion -Wno-implicit-int"
+    # emcc (clang) defaults to C23, where "()" means "(void)".  Force
+    # -std=gnu17 to keep the legacy "()" declarations compiling, matching
+    # the native gcc build.  (-std=gnu17 must be a single dash; clang
+    # silently ignores the "--std=" long form used in some CI scripts.)
+    CFLAGS="${CFLAGS} -std=gnu17 -fPIC -Werror=implicit-function-declaration -Wno-int-conversion"
     ;;
   *solaris*)
     $as_echo "#define SYSV 1" >>confdefs.h
@@ -9209,7 +9213,10 @@ fi
       *cygwin*)
         ;;
       *)
-        SHLIB_CFLAGS="-Wimplicit-int -fPIC"
+        # GCC 16 defaults to C23, where "()" means "(void)".  Magic relies on
+        # the older C17 semantics where "()" means "unspecified arguments".
+        # Force -std=gnu17 to keep the legacy declarations compiling.
+        SHLIB_CFLAGS="-std=gnu17 -Wimplicit-int -fPIC"
         ;;
     esac
   fi

@@ -59,7 +59,7 @@ LayerInfo *dbContactInfo[NT];
 int dbNumContacts;
 
 /* Forward declaration */
-void dbTechMatchResidues();
+void dbTechMatchResidues(TileTypeBitMask *inMask, TileTypeBitMask *outMask, bool contactsOnly);
 void dbTechAddStackedContacts();
 int dbTechAddOneStackedContact();
 
@@ -166,10 +166,10 @@ DBTechInitContact()
  */
 
 bool
-DBTechAddContact(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBTechAddContact(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     TileType contactType;
     int nresidues;
@@ -335,8 +335,9 @@ dbTechAddStackedContacts()
  */
 
 int
-dbTechAddOneStackedContact(type1, type2)
-    TileType type1, type2;
+dbTechAddOneStackedContact(
+    TileType type1,
+    TileType type2)
 {
     LayerInfo *lim, *lin, *lp;
     TileTypeBitMask ttshared, ttall, mmask;
@@ -438,9 +439,9 @@ dbTechAddOneStackedContact(type1, type2)
  */
 
 TileType
-DBPlaneToResidue(type, plane)
-    TileType type;
-    int plane;
+DBPlaneToResidue(
+    TileType type,
+    int plane)
 {
     TileType rt, rt2;
     LayerInfo *lp = &dbLayerInfo[type], *lr;
@@ -475,8 +476,8 @@ DBPlaneToResidue(type, plane)
  */
 
 void
-DBMaskAddStacking(mask)
-    TileTypeBitMask *mask;
+DBMaskAddStacking(
+    TileTypeBitMask *mask)
 {
     TileType ttype;
     TileTypeBitMask *rMask;
@@ -511,10 +512,10 @@ DBMaskAddStacking(mask)
  */
 
 int
-dbTechContactResidues(argc, argv, contactType)
-    int argc;
-    char **argv;
-    TileType contactType;
+dbTechContactResidues(
+    int argc,
+    char **argv,
+    TileType contactType)
 {
     int       homePlane, residuePlane, nresidues;
     PlaneMask pMask;
@@ -653,9 +654,10 @@ dbTechContactResidues(argc, argv, contactType)
  */
 
 void
-dbTechMatchResidues(inMask, outMask, contactsOnly)
-    TileTypeBitMask *inMask, *outMask;
-    bool contactsOnly;
+dbTechMatchResidues(
+    TileTypeBitMask *inMask,
+    TileTypeBitMask *outMask,
+    bool contactsOnly)
 {
     TileType type;
     LayerInfo *li;
@@ -691,8 +693,9 @@ dbTechMatchResidues(inMask, outMask, contactsOnly)
  */
 
 TileType
-DBTechFindStacking(type1, type2)
-    TileType type1, type2;
+DBTechFindStacking(
+    TileType type1,
+    TileType type2)
 {
     TileType rtype, rtype1, rtype2, stackType;
     LayerInfo *li;
@@ -821,9 +824,9 @@ DBTechFinalContact()
  */
 
 bool
-DBTechTypesOnPlane(src, plane)
-    TileTypeBitMask *src;
-    int plane;
+DBTechTypesOnPlane(
+    TileTypeBitMask *src,
+    int plane)
 {
     int i;
     PlaneMask pmask;
@@ -856,8 +859,9 @@ DBTechTypesOnPlane(src, plane)
  */
 
 TileType
-DBTechGetContact(type1, type2)
-    TileType type1, type2;
+DBTechGetContact(
+    TileType type1,
+    TileType type2)
 {
     int pmask;
     LayerInfo *lp;
@@ -888,8 +892,8 @@ DBTechGetContact(type1, type2)
  */
 
 bool
-DBIsContact(type)
-    TileType type;
+DBIsContact(
+    TileType type)
 {
     if (IsContact(type)) return TRUE;
     return FALSE;
@@ -907,8 +911,8 @@ DBIsContact(type)
  */
 
 PlaneMask
-DBLayerPlanes(type)
-    TileType type;
+DBLayerPlanes(
+    TileType type)
 {
     return LayerPlaneMask(type);
 }
@@ -924,8 +928,8 @@ DBLayerPlanes(type)
  */
 
 TileTypeBitMask *
-DBResidueMask(type)
-    TileType type;
+DBResidueMask(
+    TileType type)
 {
     LayerInfo *li = &dbLayerInfo[type];
     return (&li->l_residues);
@@ -949,9 +953,9 @@ DBResidueMask(type)
  */
 
 void
-DBFullResidueMask(type, rmask)
-    TileType type;
-    TileTypeBitMask *rmask;
+DBFullResidueMask(
+    TileType type,
+    TileTypeBitMask *rmask)
 {
     TileType t;
     TileTypeBitMask *lmask;

@@ -62,7 +62,7 @@ typedef char	 UndoEvent;	/* Externally visible undo event */
  */
 
 extern bool UndoInit(char *, char *);
-extern UndoType UndoAddClient();
+extern UndoType UndoAddClient(void (*init)(), void (*done)(), UndoEvent *(*readEvent)(), int (*writeEvent)(), void (*forwEvent)(), void (*backEvent)(), char *name);
 extern UndoEvent *UndoNewEvent(UndoType, unsigned int);
 /* extern UndoEvent *UndoCopyEvent(); */
 extern void UndoNext(void);

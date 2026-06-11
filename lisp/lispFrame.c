@@ -75,9 +75,9 @@ LispFrameInit ()
 */
 static
 Sexp *
-findbinding (name,f)
-     char *name;
-     Sexp *f;
+findbinding(
+    char *name,
+    Sexp *f)
 {
   Sexp *t, *t1;
 
@@ -101,9 +101,9 @@ findbinding (name,f)
 */
 static
 Sexp *
-revfindbinding (l,f)
-     LispObj *l;
-     Sexp *f;
+revfindbinding(
+    LispObj *l,
+    Sexp *f)
 {
   Sexp *t, *t1;
 
@@ -139,9 +139,9 @@ revfindbinding (l,f)
  */
 
 LispObj *
-LispFrameLookup (s,f)
-     char *s;
-     Sexp *f;
+LispFrameLookup(
+    char *s,
+    Sexp *f)
 {
   Sexp *f1;
   f1 = findbinding (s,f);
@@ -169,9 +169,9 @@ LispFrameLookup (s,f)
  */
 
 char *
-LispFrameRevLookup (l,f)
-     LispObj *l;
-     Sexp *f;
+LispFrameRevLookup(
+    LispObj *l,
+    Sexp *f)
 {
   Sexp *f1;
   f1 = revfindbinding (l,f);
@@ -199,10 +199,10 @@ LispFrameRevLookup (l,f)
  */
 
 void
-LispAddBinding (name,val,f)
-     LispObj *name;
-     LispObj *val;
-     Sexp *f;
+LispAddBinding(
+    LispObj *name,
+    LispObj *val,
+    Sexp *f)
 {
   Sexp *t;
   LispObj *l;
@@ -253,10 +253,10 @@ LispAddBinding (name,val,f)
  */
 
 int
-LispModifyBinding (name,val,f)
-     LispObj *name;
-     LispObj *val;
-     Sexp *f;
+LispModifyBinding(
+    LispObj *name,
+    LispObj *val,
+    Sexp *f)
 {
   Sexp *t;
   LispObj *l;
@@ -287,8 +287,8 @@ LispModifyBinding (name,val,f)
  */
 
 Sexp *
-LispFramePush (f)
-     Sexp *f;
+LispFramePush(
+    Sexp *f)
 {
   Sexp *nf;
   nf = LispNewSexp ();

@@ -351,8 +351,9 @@ dbComposeContacts()
  */
 
 void
-dbComposePaintContact(lpImage, lpPaint)
-    LayerInfo *lpImage, *lpPaint;
+dbComposePaintContact(
+    LayerInfo *lpImage,
+    LayerInfo *lpPaint)
 {
     int pNum;
     PlaneMask pmask, pshared;
@@ -550,9 +551,10 @@ dbComposePaintContact(lpImage, lpPaint)
  */
 
 bool
-dbComposeSubsetResidues(lpImage, lpErase, outMask)
-    LayerInfo *lpImage, *lpErase;
-    TileTypeBitMask *outMask;
+dbComposeSubsetResidues(
+    LayerInfo *lpImage,
+    LayerInfo *lpErase,
+    TileTypeBitMask *outMask)
 {
     TileTypeBitMask ires;
     TileTypeBitMask smask, overlapmask;
@@ -623,8 +625,9 @@ dbComposeSubsetResidues(lpImage, lpErase, outMask)
  */
 
 void
-dbComposeEraseContact(lpImage, lpErase)
-    LayerInfo *lpImage, *lpErase;
+dbComposeEraseContact(
+    LayerInfo *lpImage,
+    LayerInfo *lpErase)
 {
     int pNum;
     PlaneMask pmask;
@@ -731,8 +734,8 @@ dbComposeEraseContact(lpImage, lpErase)
  */
 
 void
-DBLockContact(ctype)
-   TileType ctype;
+DBLockContact(
+    TileType ctype)
 {
     LayerInfo *lpImage, *lpPaint;
     TileType c, n, itype, eresult;
@@ -774,8 +777,8 @@ DBLockContact(ctype)
  */
 
 void
-DBUnlockContact(ctype)
-   TileType ctype;
+DBUnlockContact(
+    TileType ctype)
 {
     LayerInfo *lpImage, *lpPaint;
     TileType n, itype, eresult;
@@ -863,10 +866,10 @@ dbComposeSavedRules()
  */
 
 void
-dbComposeDecompose(imageType, componentType, remainingType)
-    TileType imageType;
-    TileType componentType;
-    TileType remainingType;
+dbComposeDecompose(
+    TileType imageType,
+    TileType componentType,
+    TileType remainingType)
 {
     int pNum = DBPlane(imageType);
     TileType resultType;
@@ -904,10 +907,10 @@ dbComposeDecompose(imageType, componentType, remainingType)
  */
 
 void
-dbComposeCompose(imageType, existingType, paintType)
-    TileType imageType;
-    TileType existingType;
-    TileType paintType;
+dbComposeCompose(
+    TileType imageType,
+    TileType existingType,
+    TileType paintType)
 {
     int pNum = DBPlane(imageType);
 

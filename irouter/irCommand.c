@@ -96,10 +96,10 @@ extern const SubCmdTableE irSubcommands[];
  */
 
 void
-irSetNoisyAutoInt(parm, valueS, file)
-    int *parm;
-    char *valueS;
-    FILE *file;
+irSetNoisyAutoInt(
+    int *parm,
+    char *valueS,
+    FILE *file)
 {
     int which;
 
@@ -208,10 +208,10 @@ irSetNoisyAutoInt(parm, valueS, file)
 
 /* irLSetActive --  */
 Tcl_Obj *
-irLSetActive(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetActive(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewBooleanObj(rL->rl_routeType.rt_active);
@@ -221,10 +221,10 @@ irLSetActive(rL,s,file)
 
 /* irLSetWidth -- */
 Tcl_Obj *
-irLSetWidth(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetWidth(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rL->rl_routeType.rt_width);
@@ -234,10 +234,10 @@ irLSetWidth(rL,s,file)
 
 /* irLSetLength -- */
 Tcl_Obj *
-irLSetLength(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetLength(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rL->rl_routeType.rt_length);
@@ -247,10 +247,10 @@ irLSetLength(rL,s,file)
 
 /* irLSetHCost -- */
 Tcl_Obj *
-irLSetHCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetHCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rL->rl_hCost);
@@ -260,10 +260,10 @@ irLSetHCost(rL,s,file)
 
 /* irLSetVCost -- */
 Tcl_Obj *
-irLSetVCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetVCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rL->rl_vCost);
@@ -273,10 +273,10 @@ irLSetVCost(rL,s,file)
 
 /* irLSetJogCost -- */
 Tcl_Obj *
-irLSetJogCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetJogCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rL->rl_jogCost);
@@ -286,10 +286,10 @@ irLSetJogCost(rL,s,file)
 
 /* irLSetHintCost  -- */
 Tcl_Obj *
-irLSetHintCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetHintCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rL->rl_hintCost);
@@ -299,10 +299,10 @@ irLSetHintCost(rL,s,file)
 
 /* irLSetOverCost  -- */
 Tcl_Obj *
-irLSetOverCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetOverCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rL->rl_overCost);
@@ -314,60 +314,60 @@ irLSetOverCost(rL,s,file)
 
 /* irLSetActive --  */
 void
-irLSetActive(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetActive(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     SetNoisyBool(&(rL->rl_routeType.rt_active),s,file);
 }
 
 /* irLSetWidth -- */
 void
-irLSetWidth(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetWidth(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rL->rl_routeType.rt_width),s,file);
 }
 
 /* irLSetLength -- */
 void
-irLSetLength(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetLength(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rL->rl_routeType.rt_length),s,file);
 }
 
 /* irLSetHCost -- */
 void
-irLSetHCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetHCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rL->rl_hCost),s,file);
 }
 
 /* irLSetVCost -- */
 void
-irLSetVCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetVCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rL->rl_vCost),s,file);
 }
 
 /* irLSetJogCost -- */
 void
-irLSetJogCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetJogCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rL->rl_jogCost),s,file);
 }
@@ -375,20 +375,20 @@ irLSetJogCost(rL,s,file)
 
 /* irLSetHintCost  -- */
 void
-irLSetHintCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetHintCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rL->rl_hintCost),s,file);
 }
 
 /* irLSetOverCost  -- */
 void
-irLSetOverCost(rL,s,file)
-    RouteLayer *rL;
-    char *s;
-    FILE *file;
+irLSetOverCost(
+    RouteLayer *rL,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rL->rl_overCost),s,file);
 }
@@ -418,10 +418,10 @@ irLSetOverCost(rL,s,file)
 
 /* irCSetActive -- */
 Tcl_Obj *
-irCSetActive(rC,s, file)
-    RouteContact *rC;
-    char *s;
-    FILE *file;
+irCSetActive(
+    RouteContact *rC,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewBooleanObj(rC->rc_routeType.rt_active);
@@ -431,10 +431,10 @@ irCSetActive(rC,s, file)
 
 /* irCSetWidth --  */
 Tcl_Obj *
-irCSetWidth(rC,s,file)
-    RouteContact *rC;
-    char *s;
-    FILE *file;
+irCSetWidth(
+    RouteContact *rC,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rC->rc_routeType.rt_width);
@@ -444,10 +444,10 @@ irCSetWidth(rC,s,file)
 
 /* irCSetLength--  */
 Tcl_Obj *
-irCSetLength(rC,s,file)
-    RouteContact *rC;
-    char *s;
-    FILE *file;
+irCSetLength(
+    RouteContact *rC,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rC->rc_routeType.rt_length);
@@ -457,10 +457,10 @@ irCSetLength(rC,s,file)
 
 /* irCSetCost -- */
 Tcl_Obj *
-irCSetCost(rC,s,file)
-    RouteContact *rC;
-    char *s;
-    FILE *file;
+irCSetCost(
+    RouteContact *rC,
+    char *s,
+    FILE *file)
 {
     if (file == (FILE *)1)
 	return Tcl_NewIntObj(rC->rc_cost);
@@ -472,40 +472,40 @@ irCSetCost(rC,s,file)
 
 /* irCSetActive -- */
 void
-irCSetActive(rC,s, file)
-    RouteContact *rC;
-    char *s;
-    FILE *file;
+irCSetActive(
+    RouteContact *rC,
+    char *s,
+    FILE *file)
 {
     SetNoisyBool(&(rC->rc_routeType.rt_active),s,file);
 }
 
 /* irCSetWidth --  */
 void
-irCSetWidth(rC,s,file)
-    RouteContact *rC;
-    char *s;
-    FILE *file;
+irCSetWidth(
+    RouteContact *rC,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rC->rc_routeType.rt_width),s,file);
 }
 
 /* irCSetLength --  */
 void
-irCSetLength(rC,s,file)
-    RouteContact *rC;
-    char *s;
-    FILE *file;
+irCSetLength(
+    RouteContact *rC,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rC->rc_routeType.rt_length),s,file);
 }
 
 /* irCSetCost -- */
 void
-irCSetCost(rC,s,file)
-    RouteContact *rC;
-    char *s;
-    FILE *file;
+irCSetCost(
+    RouteContact *rC,
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(rC->rc_cost),s,file);
 }
@@ -535,18 +535,18 @@ irCSetCost(rC,s,file)
 
 /* irSrSetRate -- */
 void
-irSrSetRate(s,file)
-    char *s;
-    FILE *file;
+irSrSetRate(
+    char *s,
+    FILE *file)
 {
     SetNoisyDI(&irMazeParms->mp_wRate,s,file);
 }
 
 /* irSrSetWidth -- */
 void
-irSrSetWidth(s,file)
-    char *s;
-    FILE *file;
+irSrSetWidth(
+    char *s,
+    FILE *file)
 {
     SetNoisyDI(&(irMazeParms->mp_wWidth),s,file);
 }
@@ -572,54 +572,54 @@ irSrSetWidth(s,file)
 
 /* irWzdSetBloomCost -- */
 void
-irWzdSetBloomCost(s,file)
-    char *s;
-    FILE *file;
+irWzdSetBloomCost(
+    char *s,
+    FILE *file)
 {
     SetNoisyDI(&(irMazeParms->mp_bloomDeltaCost),s,file);
 }
 
 /* irWzdSetBloomLimit -- */
 void
-irWzdSetBloomLimit(s,file)
-    char *s;
-    FILE *file;
+irWzdSetBloomLimit(
+    char *s,
+    FILE *file)
 {
     SetNoisyInt(&(irMazeParms->mp_bloomLimit),s,file);
 }
 
 /* irWzdSetBoundsIncrement -- */
 void
-irWzdSetBoundsIncrement(s,file)
-    char *s;
-    FILE *file;
+irWzdSetBoundsIncrement(
+    char *s,
+    FILE *file)
 {
     irSetNoisyAutoInt(&(irMazeParms->mp_boundsIncrement),s,file);
 }
 
 /* irWzdSetEstimate -- */
 void
-irWzdSetEstimate(s,file)
-    char *s;
-    FILE *file;
+irWzdSetEstimate(
+    char *s,
+    FILE *file)
 {
     SetNoisyBool(&(irMazeParms->mp_estimate),s,file);
 }
 
 /* irWzdSetExpandEndpoints-- */
 void
-irWzdSetExpandEndpoints(s, file)
-char *s;
-FILE *file;
+irWzdSetExpandEndpoints(
+char *s,
+FILE *file)
 {
     SetNoisyBool(&(irMazeParms->mp_expandEndpoints),s,file);
 }
 
 /* irWzdSetPenalty -- */
 void
-irWzdSetPenalty(s, file)
-    char *s;
-    FILE *file;
+irWzdSetPenalty(
+    char *s,
+    FILE *file)
 {
     if(s)
     {
@@ -655,18 +655,18 @@ irWzdSetPenalty(s, file)
 
 /* irWzdSetPenetration-- */
 void
-irWzdSetPenetration(s, file)
-char *s;
-FILE *file;
+irWzdSetPenetration(
+char *s,
+FILE *file)
 {
     irSetNoisyAutoInt(&(irMazeParms->mp_maxWalkLength),s,file);
 }
 
 /* irWzdSetWindow -- */
 void
-irWzdSetWindow(s, file)
-char *s;
-FILE *file;
+irWzdSetWindow(
+char *s,
+FILE *file)
 {
     int which;
     int i, type;
@@ -800,9 +800,9 @@ static const struct
 )
 
 void
-irContactsCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irContactsCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileType tileType;
     RouteContact *rC;
@@ -1069,9 +1069,9 @@ irContactsCmd(w, cmd)
 
     /*ARGSUSED*/
 void
-irHelpCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irHelpCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int n;
     int which;
@@ -1174,9 +1174,9 @@ static const struct
 
     /*ARGSUSED*/
 void
-irLayersCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irLayersCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileType tileType;
     RouteLayer *rL;
@@ -1459,9 +1459,9 @@ static const char* const rOptions[] = {
 };
 
 void
-irRouteCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irRouteCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Point *startPtArg = NULL;	/* pts to start point, if given on command */
     Rect  *destRectArg = NULL;	/* pts to dest rect, if given on command */
@@ -1753,9 +1753,9 @@ static const struct
 };
 
 void
-irSearchCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irSearchCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 
     /* Process by case */
@@ -1853,9 +1853,9 @@ irSearchCmd(w, cmd)
  */
 
 void
-irSpacingsCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irSpacingsCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileType tileType;
     RouteType *rT;
@@ -2132,9 +2132,9 @@ irSpacingsCmd(w, cmd)
  */
 
 void
-irVerbosityCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irVerbosityCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if(cmd->tx_argc >3)
     {
@@ -2197,9 +2197,9 @@ irVerbosityCmd(w, cmd)
  */
 
 void
-irVersionCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irVersionCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 
     if(cmd->tx_argc == 2)
@@ -2250,9 +2250,9 @@ static const struct
 };
 
 void
-irWizardCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irWizardCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 
     /* Process by case */
@@ -2353,9 +2353,9 @@ irWizardCmd(w, cmd)
  */
 
 void
-irSaveParametersCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+irSaveParametersCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     FILE *saveFile;
     RouteContact *rC;
@@ -2570,9 +2570,9 @@ iroute spacings CLEAR\n\
 }, *subCmdP;
 
 void
-IRCommand(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+IRCommand(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int n;
     int which;

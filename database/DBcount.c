@@ -109,12 +109,12 @@ struct countArg
 };
 
 void
-DBTreeCountPaint(def, count, hiercount, cleanup, cdata)
-    CellDef *def;
-    int (*count)();
-    void (*hiercount)();
-    int (*cleanup)();
-    ClientData cdata;
+DBTreeCountPaint(
+    CellDef *def,
+    int (*count)(),
+    void (*hiercount)(),
+    int (*cleanup)(),
+    ClientData cdata)
 {
     struct countArg ca;
     int dbCountFunc(), dbCountHierFunc();
@@ -137,9 +137,9 @@ DBTreeCountPaint(def, count, hiercount, cleanup, cdata)
 }
 
 int
-dbCountFunc(use, ca)
-    CellUse *use;
-    struct countArg *ca;
+dbCountFunc(
+    CellUse *use,
+    struct countArg *ca)
 {
     if ((*ca->ca_count)(use->cu_def, ca->ca_cdata) == 0)
 	(void) DBCellEnum(use->cu_def, dbCountFunc, (ClientData) ca);
@@ -147,9 +147,9 @@ dbCountFunc(use, ca)
 }
 
 int
-dbCountHierFunc(use, ca)
-    CellUse *use;
-    struct countArg *ca;
+dbCountHierFunc(
+    CellUse *use,
+    struct countArg *ca)
 {
     int nx, ny;
 

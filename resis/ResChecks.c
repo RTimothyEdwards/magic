@@ -43,12 +43,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-ResSanityChecks(nodename, resistorList, nodeList, devlist)
-    char	*nodename;
-    resResistor	*resistorList;
-    resNode	*nodeList;
-    resDevice	*devlist;
-
+ResSanityChecks(
+    char *nodename,
+    resResistor *resistorList,
+    resNode *nodeList,
+    resDevice *devlist)
 {
     resResistor	*resistor;
     resNode	*node;

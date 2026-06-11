@@ -83,7 +83,11 @@ struct seeTypesArg
  */
 
 int
-DBSrCellPlaneArea(BPlane *plane, const Rect *rect, int (*func)(), ClientData arg)
+DBSrCellPlaneArea(
+    BPlane *plane,
+    const Rect *rect,
+    int (*func)(),
+    ClientData arg)
 {
     BPEnum sbpe;
     BPEnum *bpe;
@@ -152,22 +156,22 @@ DBSrCellPlaneArea(BPlane *plane, const Rect *rect, int (*func)(), ClientData arg
  */
 
 int
-DBTreeSrTiles(scx, mask, xMask, func, cdarg)
-    SearchContext *scx;		/* Pointer to search context specifying
+DBTreeSrTiles(
+    SearchContext *scx,		/* Pointer to search context specifying
 				 * a cell use to search, an area in the
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles with a type for which
+    TileTypeBitMask *mask,	/* Only tiles with a type for which
 				 * a bit in this mask is on are processed.
 				 */
-    int xMask;			/* All subcells are visited recursively
+    int xMask,			/* All subcells are visited recursively
 				 * until we encounter uses whose flags,
 				 * when anded with xMask, are not
 				 * equal to xMask.
 				 */
-    int (*func)();		/* Function to apply at each qualifying tile */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each qualifying tile */
+    ClientData cdarg)		/* Client data for above function */
 {
     int dbCellPlaneSrFunc();
     TreeFilter filter;
@@ -191,25 +195,25 @@ DBTreeSrTiles(scx, mask, xMask, func, cdarg)
  */
 
 int
-DBTreeSrNMTiles(scx, dinfo, mask, xMask, func, cdarg)
-    SearchContext *scx;		/* Pointer to search context specifying
+DBTreeSrNMTiles(
+    SearchContext *scx,		/* Pointer to search context specifying
 				 * a cell use to search, an area in the
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 */
-    TileType dinfo;		/* Type containing information about the
+    TileType dinfo,		/* Type containing information about the
 				 * diagonal area to search.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles with a type for which
+    TileTypeBitMask *mask,	/* Only tiles with a type for which
 				 * a bit in this mask is on are processed.
 				 */
-    int xMask;			/* All subcells are visited recursively
+    int xMask,			/* All subcells are visited recursively
 				 * until we encounter uses whose flags,
 				 * when anded with xMask, are not
 				 * equal to xMask.
 				 */
-    int (*func)();		/* Function to apply at each qualifying tile */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each qualifying tile */
+    ClientData cdarg)		/* Client data for above function */
 {
     int dbCellPlaneSrFunc();
     TreeFilter filter;
@@ -233,9 +237,9 @@ DBTreeSrNMTiles(scx, dinfo, mask, xMask, func, cdarg)
  */
 
 int
-dbCellPlaneSrFunc(scx, fp)
-    SearchContext *scx;
-    TreeFilter *fp;
+dbCellPlaneSrFunc(
+    SearchContext *scx,
+    TreeFilter *fp)
 {
     TreeContext context;
     CellDef *def = scx->scx_use->cu_def;
@@ -311,22 +315,22 @@ dbCellPlaneSrFunc(scx, fp)
  */
 
 int
-DBTreeSrUniqueTiles(scx, mask, xMask, func, cdarg)
-    SearchContext *scx;		/* Pointer to search context specifying
+DBTreeSrUniqueTiles(
+    SearchContext *scx,		/* Pointer to search context specifying
 				 * a cell use to search, an area in the
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles with a type for which
+    TileTypeBitMask *mask,	/* Only tiles with a type for which
 				 * a bit in this mask is on are processed.
 				 */
-    int xMask;			/* All subcells are visited recursively
+    int xMask,			/* All subcells are visited recursively
 				 * until we encounter uses whose flags,
 				 * when anded with xMask, are not
 				 * equal to xMask.
 				 */
-    int (*func)();		/* Function to apply at each qualifying tile */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each qualifying tile */
+    ClientData cdarg)		/* Client data for above function */
 {
     int dbCellPlaneSrFunc();
     TreeFilter filter;
@@ -352,9 +356,9 @@ DBTreeSrUniqueTiles(scx, mask, xMask, func, cdarg)
  */
 
 int
-dbCellUniqueTileSrFunc(scx, fp)
-    SearchContext *scx;
-    TreeFilter *fp;
+dbCellUniqueTileSrFunc(
+    SearchContext *scx,
+    TreeFilter *fp)
 {
     TreeContext context;
     TileTypeBitMask uMask;
@@ -448,22 +452,22 @@ dbCellUniqueTileSrFunc(scx, fp)
  *-----------------------------------------------------------------------------
  */
 int
-DBNoTreeSrTiles(scx, mask, xMask, func, cdarg)
-    SearchContext *scx;		/* Pointer to search context specifying
+DBNoTreeSrTiles(
+    SearchContext *scx,		/* Pointer to search context specifying
 				 * a cell use to search, an area in the
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles with a type for which
+    TileTypeBitMask *mask,	/* Only tiles with a type for which
 				 * a bit in this mask is on are processed.
 				 */
-    int xMask;			/* All subcells are visited recursively
+    int xMask,			/* All subcells are visited recursively
 				 * until we encounter uses whose flags,
 				 * when anded with xMask, are not
 				 * equal to xMask.
 				 */
-    int (*func)();		/* Function to apply at each qualifying tile */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each qualifying tile */
+    ClientData cdarg)		/* Client data for above function */
 {
     TreeContext context;
     TreeFilter filter;
@@ -544,34 +548,34 @@ DBNoTreeSrTiles(scx, mask, xMask, func, cdarg)
  */
 
 int
-DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
-    SearchContext *scx;		/* Pointer to search context specifying
+DBTreeSrLabels(
+    SearchContext *scx,		/* Pointer to search context specifying
 				 * a cell use to search, an area in the
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 * The area may have zero size.  Labels
 				 * need only touch the area.
 				 */
-    TileTypeBitMask * mask;	/* Only visit labels attached to these types */
-    int xMask;			/* All subcells are visited recursively
+    TileTypeBitMask * mask,	/* Only visit labels attached to these types */
+    int xMask,			/* All subcells are visited recursively
 				 * until we encounter uses whose flags,
 				 * when anded with xMask, are not
 				 * equal to xMask.
 				 */
-    TerminalPath *tpath;	/* Pointer to a structure describing a
+    TerminalPath *tpath,	/* Pointer to a structure describing a
 				 * partially filled in terminal pathname.
 				 * If this pointer is NULL, we don't bother
 				 * filling it in further; otherwise, we add
 				 * new pathname components as we encounter
 				 * them.
 				 */
-    unsigned char flags;	/* Flags to denote whether labels should be
+    unsigned char flags,	/* Flags to denote whether labels should be
 				 * searched according to the area of the
 				 * attachment, the area of the label itself,
 				 * or both.
 				 */
-    int (*func)();		/* Function to apply at each qualifying tile */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each qualifying tile */
+    ClientData cdarg)		/* Client data for above function */
 {
     SearchContext scx2;
     Label *lab;
@@ -696,9 +700,9 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
  */
 
 int
-dbCellLabelSrFunc(scx, fp)
-    SearchContext *scx;
-    TreeFilter *fp;
+dbCellLabelSrFunc(
+    SearchContext *scx,
+    TreeFilter *fp)
 {
     Label *lab;
     Rect *r = &scx->scx_area;
@@ -822,20 +826,20 @@ cleanup:
  */
 
 int
-DBTreeSrCells(scx, xMask, func, cdarg)
-    SearchContext *scx;	/* Pointer to search context specifying a cell use to
+DBTreeSrCells(
+    SearchContext *scx,	/* Pointer to search context specifying a cell use to
 			 * search, an area in the coordinates of the cell's
 			 * def, and a transform back to "root" coordinates.
 			 */
-    int xMask;		/* All subcells are visited recursively until we
+    int xMask,		/* All subcells are visited recursively until we
 			 * encounter uses whose flags, when anded with
 			 * xMask, are not equal to xMask.  Func is called
 			 * for these cells.  A zero mask means all cells in
 			 * the root use are considered not to be expanded,
 			 * and hence are passed to func.
 			 */
-    int (*func)();	/* Function to apply to each qualifying cell */
-    ClientData cdarg;	/* Client data for above function */
+    int (*func)(),	/* Function to apply to each qualifying cell */
+    ClientData cdarg)	/* Client data for above function */
 {
     int dbTreeCellSrFunc();
     CellUse *cellUse = scx->scx_use;
@@ -868,13 +872,13 @@ DBTreeSrCells(scx, xMask, func, cdarg)
 
     /*ARGSUSED*/
 int
-dbTreeCellSrFunc(scx, fp)
-    SearchContext *scx;	/* Pointer to context containing a
+dbTreeCellSrFunc(
+    SearchContext *scx,	/* Pointer to context containing a
 					 * CellUse and a transform from coord-
 					 * inates of the def of the use to the
 					 * "root" of the search.
 					 */
-    TreeFilter *fp;
+    TreeFilter *fp)
 {
     CellUse *use = scx->scx_use;
     int result;
@@ -924,11 +928,11 @@ dbTreeCellSrFunc(scx, fp)
  */
 
 void
-DBSeeTypesAll(rootUse, rootRect, xMask, mask)
-    CellUse *rootUse;	/* CellUse from which to begin search */
-    Rect *rootRect;	/* Clipping rectangle in coordinates of CellUse's def */
-    int xMask;		/* Expansion mask for DBTreeSrTiles() */
-    TileTypeBitMask *mask;	/* Mask to set */
+DBSeeTypesAll(
+    CellUse *rootUse,	/* CellUse from which to begin search */
+    Rect *rootRect,	/* Clipping rectangle in coordinates of CellUse's def */
+    int xMask,		/* Expansion mask for DBTreeSrTiles() */
+    TileTypeBitMask *mask)	/* Mask to set */
 {
     int dbSeeTypesAllSrFunc();
     SearchContext scontext;
@@ -949,10 +953,10 @@ DBSeeTypesAll(rootUse, rootRect, xMask, mask)
  */
 
 int
-dbSeeTypesAllSrFunc(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;
-    TreeContext *cxp;
+dbSeeTypesAllSrFunc(
+    Tile *tile,
+    TileType dinfo,
+    TreeContext *cxp)
 {
     Rect tileRect;
     TileTypeBitMask *mask = (TileTypeBitMask *) cxp->tc_filter->tf_arg;
@@ -1002,15 +1006,15 @@ dbSeeTypesAllSrFunc(tile, dinfo, cxp)
  */
 
 int
-DBSrRoots(baseDef, transform, func, cdarg)
-    CellDef *baseDef;		/* Base CellDef, all of whose ancestors are
+DBSrRoots(
+    CellDef *baseDef,		/* Base CellDef, all of whose ancestors are
 				 * searched for.
 				 */
-    Transform *transform;	/* Transform from original baseDef to current
+    Transform *transform,	/* Transform from original baseDef to current
 				 * baseDef.
 				 */
-    int (*func)();		/* Function to apply at each root cellUse */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each root cellUse */
+    ClientData cdarg)		/* Client data for above function */
 {
     CellUse *parentUse;
     int xoff, yoff, x, y;
@@ -1065,9 +1069,9 @@ DBSrRoots(baseDef, transform, func, cdarg)
  */
 
 bool
-DBIsAncestor(cellDef1, cellDef2)
-    CellDef *cellDef1;		/* Potential ancestor */
-    CellDef *cellDef2;		/* Potential descendant -- this is where we
+DBIsAncestor(
+    CellDef *cellDef1,		/* Potential ancestor */
+    CellDef *cellDef2)		/* Potential descendant -- this is where we
 				 * start the search.
 				 */
 {
@@ -1128,15 +1132,15 @@ DBIsAncestor(cellDef1, cellDef2)
  */
 
 int
-DBCellSrArea(scx, func, cdarg)
-    SearchContext *scx;
+DBCellSrArea(
+    SearchContext *scx,
 			/* Pointer to search context specifying a cell use to
 			 * search, an area in the coordinates of the cell's
 			 * def, and a transform back to "root" coordinates.
 			 * The area may have zero size.
 			 */
-    int (*func)();	/* Function to apply at every tile found */
-    ClientData cdarg;	/* Argument to pass to function */
+    int (*func)(),	/* Function to apply at every tile found */
+    ClientData cdarg)	/* Argument to pass to function */
 {
     TreeFilter filter;
     TreeContext context;
@@ -1176,9 +1180,9 @@ DBCellSrArea(scx, func, cdarg)
  */
 
 int
-dbCellSrFunc(use, cxp)
-    CellUse *use;
-    TreeContext *cxp;
+dbCellSrFunc(
+    CellUse *use,
+    TreeContext *cxp)
 {
     TreeFilter *fp = cxp->tc_filter;
     SearchContext *scx = cxp->tc_scx;
@@ -1260,10 +1264,10 @@ dbCellSrFunc(use, cxp)
  */
 
 int
-DBCellEnum(cellDef, func, cdarg)
-    CellDef *cellDef;	/* Def whose subcell plane is to be searched */
-    int (*func)();	/* Function to apply at every tile found */
-    ClientData cdarg;	/* Argument to pass to function */
+DBCellEnum(
+    CellDef *cellDef,	/* Def whose subcell plane is to be searched */
+    int (*func)(),	/* Function to apply at every tile found */
+    ClientData cdarg)	/* Argument to pass to function */
 {
     TreeFilter filter;
     int dbEnumFunc();
@@ -1299,9 +1303,9 @@ DBCellEnum(cellDef, func, cdarg)
  */
 
 int
-dbEnumFunc(use, fp)
-    CellUse *use;
-    TreeFilter *fp;
+dbEnumFunc(
+    CellUse *use,
+    TreeFilter *fp)
 {
     Rect *bbox;
 
@@ -1345,17 +1349,17 @@ dbEnumFunc(use, fp)
  */
 
 int
-DBArraySr(use, searchArea, func, cdarg)
-    CellUse *use;		/* CellUse of array to be searched. */
-    Rect *searchArea;		/* Area of interest, given in the
+DBArraySr(
+    CellUse *use,		/* CellUse of array to be searched. */
+    Rect *searchArea,		/* Area of interest, given in the
 				 * coordinates of the parent (i.e. the
 				 * cell use, not def).  Must overlap
 				 * the array bounding box.
 				 */
-    int (*func)();		/* Function to apply for each overlapping
+    int (*func)(),		/* Function to apply for each overlapping
 				 * array element.
 				 */
-    ClientData cdarg;		/* Client-specific info to give to func. */
+    ClientData cdarg)		/* Client-specific info to give to func. */
 {
     int xlo, xhi, ylo, yhi, x, y;
     int xsep, ysep, xbase, ybase;
@@ -1416,9 +1420,10 @@ typedef struct LCU1		/* A linked celluse record */
  */
 
 bool
-DBMovePoint(p, origx, origy)
-    Point *p;
-    int origx, origy;
+DBMovePoint(
+    Point *p,
+    int origx,
+    int origy)
 {
     int result = FALSE;
     if ((p->p_x < (INFINITY - 2)) && (p->p_x > (MINFINITY + 2)))
@@ -1454,8 +1459,10 @@ DBMovePoint(p, origx, origy)
  */
 
 bool
-DBScaleValue(v, n, d)
-    int *v, n, d;
+DBScaleValue(
+    int *v,
+    int n,
+    int d)
 {
     dlong llv = (dlong)(*v);
 
@@ -1498,9 +1505,10 @@ DBScaleValue(v, n, d)
  */
 
 bool
-DBScalePoint(p, n, d)
-    Point *p;
-    int n, d;
+DBScalePoint(
+    Point *p,
+    int n,
+    int d)
 {
     bool result;
     result = DBScaleValue(&p->p_x, n, d);
@@ -1529,8 +1537,9 @@ DBScalePoint(p, n, d)
  */
 
 void
-DBScaleEverything(scalen, scaled)
-    int scalen, scaled;
+DBScaleEverything(
+    int scalen,
+    int scaled)
 {
     void ToolScaleBox();
 
@@ -1609,11 +1618,13 @@ struct moveArg {
  */
 
 bool
-dbScalePlane(oldplane, newplane, pnum, scalen, scaled, doCIF)
-    Plane *oldplane, *newplane;
-    int pnum;
-    int scalen, scaled;
-    bool doCIF;
+dbScalePlane(
+    Plane *oldplane,
+    Plane *newplane,
+    int pnum,
+    int scalen,
+    int scaled,
+    bool doCIF)
 {
     int dbTileScaleFunc();		/* forward declaration */
     struct scaleArg arg;
@@ -1643,10 +1654,10 @@ dbScalePlane(oldplane, newplane, pnum, scalen, scaled, doCIF)
  */
 
 int
-dbTileScaleFunc(tile, dinfo, scvals)
-    Tile *tile;
-    TileType dinfo;
-    struct scaleArg *scvals;
+dbTileScaleFunc(
+    Tile *tile,
+    TileType dinfo,
+    struct scaleArg *scvals)
 {
     TileType type;
     Rect targetRect;
@@ -1694,10 +1705,12 @@ dbTileScaleFunc(tile, dinfo, scvals)
  */
 
 bool
-dbMovePlane(oldplane, newplane, pnum, origx, origy)
-    Plane *oldplane, *newplane;
-    int pnum;
-    int origx, origy;
+dbMovePlane(
+    Plane *oldplane,
+    Plane *newplane,
+    int pnum,
+    int origx,
+    int origy)
 {
     int dbTileMoveFunc();		/* forward declaration */
     struct moveArg arg;
@@ -1726,10 +1739,10 @@ dbMovePlane(oldplane, newplane, pnum, origx, origy)
  */
 
 int
-dbTileMoveFunc(tile, dinfo, mvvals)
-    Tile *tile;
-    TileType dinfo;
-    struct moveArg *mvvals;
+dbTileMoveFunc(
+    Tile *tile,
+    TileType dinfo,
+    struct moveArg *mvvals)
 {
     TileType type;
     Rect targetRect;
@@ -1774,10 +1787,10 @@ dbTileMoveFunc(tile, dinfo, mvvals)
  */
 
 int
-DBSrCellUses(cellDef, func, arg)
-    CellDef *cellDef;	/* Pointer to CellDef to search for uses. */
-    int (*func)();	/* Function to apply for each cell use.	  */
-    ClientData arg;	/* data to be passed to function func().  */
+DBSrCellUses(
+    CellDef *cellDef,	/* Pointer to CellDef to search for uses. */
+    int (*func)(),	/* Function to apply for each cell use.	  */
+    ClientData arg)	/* data to be passed to function func().  */
 {
     int dbCellUseEnumFunc();
     int retval;
@@ -1952,11 +1965,12 @@ int dbMoveProp(name, proprec, cps)
  */
 
 int
-dbScaleCell(cellDef, scalen, scaled)
-    CellDef *cellDef;	/* Pointer to CellDef to be saved.  This def might
+dbScaleCell(
+    CellDef *cellDef,	/* Pointer to CellDef to be saved.  This def might
 			 * be an internal buffer; if so, we ignore it.
 			 */
-    int scalen, scaled; /* scale numerator and denominator. */
+    int scalen,
+    int scaled)
 {
     int dbCellScaleFunc(), dbCellUseEnumFunc();
     Label *lab;
@@ -2110,9 +2124,9 @@ donecell:
  */
 
 int
-dbCellDefEnumFunc(cellDef, arg)
-    CellDef *cellDef;
-    LinkedCellDef **arg;
+dbCellDefEnumFunc(
+    CellDef *cellDef,
+    LinkedCellDef **arg)
 {
     LinkedCellDef *lcd;
 
@@ -2137,9 +2151,9 @@ dbCellDefEnumFunc(cellDef, arg)
  */
 
 int
-dbCellUseEnumFunc(cellUse, arg)
-    CellUse *cellUse;
-    LinkedCellUse **arg;
+dbCellUseEnumFunc(
+    CellUse *cellUse,
+    LinkedCellUse **arg)
 {
     LinkedCellUse *lcu;
 
@@ -2169,11 +2183,12 @@ dbCellUseEnumFunc(cellUse, arg)
  */
 
 int
-DBMoveCell(cellDef, origx, origy)
-    CellDef *cellDef;	/* Pointer to CellDef to be saved.  This def might
+DBMoveCell(
+    CellDef *cellDef,	/* Pointer to CellDef to be saved.  This def might
 			 * be an internal buffer; if so, we ignore it.
 			 */
-    int origx, origy; /* Internal unit coordinates which will become the new origin */
+    int origx,
+    int origy)
 {
     int dbCellTileEnumFunc(), dbCellUseEnumFunc();
     Label *lab;

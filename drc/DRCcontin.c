@@ -181,12 +181,12 @@ extern TileType DRCErrorType;
 
 	/* ARGSUSED */
 void
-DRCCheckThis (celldef, operation, area)
-    CellDef * celldef;			/* Allows check areas to propagate
+DRCCheckThis(
+    CellDef * celldef,			/* Allows check areas to propagate
 					 * up from EditCell.
 					 */
-    TileType  operation;		/* TT_CHECKPAINT or TT_CHECKSUBCELL */
-    Rect    * area;			/* Area that changed. */
+    TileType  operation,		/* TT_CHECKPAINT or TT_CHECKSUBCELL */
+    Rect    * area)			/* Area that changed. */
 {
     CellUse	     * cu;		/* Ptr to uses of the given CellDef */
     Rect	       transRect;	/* Area in coords of parent CellDefs,
@@ -318,8 +318,8 @@ DRCCheckThis (celldef, operation, area)
  */
 
 void
-DRCRemovePending(def)
-   CellDef *def;
+DRCRemovePending(
+    CellDef *def)
 {
     DRCPendingCookie *p, *plast;
 
@@ -639,10 +639,10 @@ checkDone:
 
 	/* ARGSUSED */
 int
-drcCheckTile(tile, dinfo, arg)
-    Tile        *tile;		/* Tile in DRC_CHECK plane */
-    TileType	dinfo;		/* Split tile information (unused) */
-    ClientData 	arg;		/* Not used. */
+drcCheckTile(
+    Tile        *tile,		/* Tile in DRC_CHECK plane */
+    TileType	dinfo,		/* Split tile information (unused) */
+    ClientData 	arg)		/* Not used. */
 {
     Rect square;		/* Square area of the checkerboard
 				 * being processed right now.
@@ -768,10 +768,10 @@ drcCheckTile(tile, dinfo, arg)
  */
 
 int
-drcXorFunc(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;
-    ClientData clientdata;
+drcXorFunc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)
 {
     Rect area;
 
@@ -785,10 +785,10 @@ drcXorFunc(tile, dinfo, clientdata)
  */
 
 int
-drcPutBackFunc(tile, dinfo, cellDef)
-    Tile *tile;			/* Error tile, from drcTempPlane. */
-    TileType dinfo;		/* Split tile information */
-    CellDef *cellDef;		/* Celldef in which to paint error. */
+drcPutBackFunc(
+    Tile *tile,			/* Error tile, from drcTempPlane. */
+    TileType dinfo,		/* Split tile information */
+    CellDef *cellDef)		/* Celldef in which to paint error. */
 {
     Rect area;
 
@@ -820,10 +820,10 @@ drcPutBackFunc(tile, dinfo, cellDef)
  */
 
 int
-drcIncludeArea(tile, dinfo, rect)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    Rect *rect;			/* Rectangle in which to record total area. */
+drcIncludeArea(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    Rect *rect)			/* Rectangle in which to record total area. */
 {
     Rect dum;
 

@@ -123,9 +123,9 @@ typedef struct _ams {
 #define ANTENNACHECK_HELP    2
 
 void
-CmdAntennaCheck(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdAntennaCheck(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int i, flatFlags;
     char *inName;
@@ -291,9 +291,9 @@ runantennacheck:
  */
 
 int
-antennacheckArgs(pargc, pargv)
-    int *pargc;
-    char ***pargv;
+antennacheckArgs(
+    int *pargc,
+    char ***pargv)
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
@@ -327,9 +327,9 @@ usage:
  * ----------------------------------------------------------------------------
  */
 EFNode *
-AntennaGetNode(prefix, suffix)
-HierName *prefix;
-HierName *suffix;
+AntennaGetNode(
+HierName *prefix,
+HierName *suffix)
 {
         HashEntry *he;
 
@@ -754,10 +754,10 @@ antennacheckVisit(
  */
 
 int
-areaMarkFunc(tile, dinfo, ams)
-    Tile *tile;
-    TileType dinfo;
-    AntennaMarkStruct *ams;
+areaMarkFunc(
+    Tile *tile,
+    TileType dinfo,
+    AntennaMarkStruct *ams)
 {
     Rect rect;
     char msg[200];
@@ -779,10 +779,10 @@ areaMarkFunc(tile, dinfo, ams)
  */
 
 int
-areaAccumFunc(tile, dinfo, gdas)
-    Tile *tile;
-    TileType dinfo;
-    GateDiffAccumStruct *gdas;
+areaAccumFunc(
+    Tile *tile,
+    TileType dinfo,
+    GateDiffAccumStruct *gdas)
 {
     Rect *rect = &(gdas->r);
     int type;
@@ -819,10 +819,10 @@ areaAccumFunc(tile, dinfo, gdas)
  */
 
 int
-antennaAccumFunc(tile, dinfo, aaptr)
-    Tile *tile;
-    TileType dinfo;		/* Not used, but should be handled */
-    AntennaAccumStruct *aaptr;
+antennaAccumFunc(
+    Tile *tile,
+    TileType dinfo,		/* Not used, but should be handled */
+    AntennaAccumStruct *aaptr)
 {
     Rect *rect = &(aaptr->r);
     Rect *cont = &(aaptr->via);

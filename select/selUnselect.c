@@ -44,10 +44,10 @@
  */
 
 int
-selUnselFunc(tile, dinfo, arg)
-     Tile *tile;
-     TileType dinfo;	/* unused, but should be handled */
-     ClientData *arg;
+selUnselFunc(
+     Tile *tile,
+     TileType dinfo,	/* unused, but should be handled */
+     ClientData *arg)
 {
   TileType type;
   Rect rect;
@@ -83,10 +83,9 @@ static CellUse *(selRemoveUses[MAXUNSELUSES]);
 static int selNRemove;
 
 int
-selRemoveCellFunc(scx, cdarg)
-     SearchContext *scx;
-     Rect *cdarg;
-
+selRemoveCellFunc(
+    SearchContext *scx,
+    Rect *cdarg)
 {
   ASSERT((selNRemove < MAXUNSELUSES) && (selNRemove >= 0),
 	 "selRemoveCellFunc(selNRemove)");
@@ -118,10 +117,10 @@ selRemoveCellFunc(scx, cdarg)
  */
 
 void
-SelRemoveArea(area, mask, globmatch)
-    Rect *area;
-    TileTypeBitMask *mask;
-    char *globmatch;
+SelRemoveArea(
+    Rect *area,
+    TileTypeBitMask *mask,
+    char *globmatch)
 {
   SearchContext scx;
   Rect bbox, areaReturn;
@@ -211,10 +210,10 @@ SelRemoveArea(area, mask, globmatch)
  */
 
 int
-selRemoveLabelPaintFunc(tile, dinfo, label)
-     Tile *tile;
-     TileType dinfo;	/* (unused) */
-     Label *label;
+selRemoveLabelPaintFunc(
+     Tile *tile,
+     TileType dinfo,	/* (unused) */
+     Label *label)
 {
   (void) DBPutFontLabel(Select2Def, &label->lab_rect, label->lab_font,
 	label->lab_size, label->lab_rotate, &label->lab_offset,
@@ -319,9 +318,9 @@ typedef struct
  */
 
 int
-SelRemoveCellSearchFunc(scx, cdarg)
-     SearchContext *scx;
-     SelRemoveCellArgs *cdarg;
+SelRemoveCellSearchFunc(
+    SearchContext *scx,
+    SelRemoveCellArgs *cdarg)
 {
   Transform *et, *st;
 
@@ -374,10 +373,9 @@ SelRemoveCellSearchFunc(scx, cdarg)
  */
 
 int
-SelectRemoveCellUse(use, trans)
-     CellUse *use;
-     Transform *trans;
-
+SelectRemoveCellUse(
+    CellUse *use,
+    Transform *trans)
 {
   SearchContext scx;
   SelRemoveCellArgs args;

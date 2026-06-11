@@ -83,9 +83,9 @@ int	ResPortIndex;	/* Port ordering to backannotate into magic */
  */
 
 void
-ExtResisForDef(celldef, resisdata)
-    CellDef *celldef;
-    ResisData *resisdata;
+ExtResisForDef(
+    CellDef *celldef,
+    ResisData *resisdata)
 {
     RDev       *oldRDev;
     HashSearch hs;
@@ -263,9 +263,9 @@ ResInit()
  */
 
 void
-CmdExtResis(win, cmd)
-    MagWindow *win;
-    TxCommand *cmd;
+CmdExtResis(
+    MagWindow *win,
+    TxCommand *cmd)
 {
     int i, j, k, option, value, saveFlags;
 
@@ -802,9 +802,9 @@ typedef enum {
  */
 
 int
-resSubcircuitFunc(cellUse, rdata)
-    CellUse *cellUse;
-    ResisData *rdata;
+resSubcircuitFunc(
+    CellUse *cellUse,
+    ResisData *rdata)
 {
     CellDef	*cellDef = cellUse->cu_def;
     Plane	*savePlane;
@@ -843,11 +843,11 @@ resSubcircuitFunc(cellUse, rdata)
  */
 
 int
-resPortFunc(scx, lab, tpath, result)
-    SearchContext *scx;
-    Label *lab;
-    TerminalPath *tpath;
-    int *result;
+resPortFunc(
+    SearchContext *scx,
+    Label *lab,
+    TerminalPath *tpath,
+    int *result)
 {
     Rect r;
     int pclass, puse;
@@ -946,8 +946,8 @@ resPortFunc(scx, lab, tpath, result)
  */
 
 int
-ResCheckBlackbox(cellDef)
-    CellDef *cellDef;
+ResCheckBlackbox(
+    CellDef *cellDef)
 {
     int result = 1;
     SearchContext scx;
@@ -990,8 +990,8 @@ ResCheckBlackbox(cellDef)
  */
 
 int
-ResCheckPorts(cellDef)
-    CellDef *cellDef;
+ResCheckPorts(
+    CellDef *cellDef)
 {
     Label *lab;
     HashEntry *entry;
@@ -1313,9 +1313,9 @@ ResProcessNode(
  */
 
 void
-ResCheckExtNodes(celldef, resisdata)
-    CellDef	*celldef;
-    ResisData	*resisdata;
+ResCheckExtNodes(
+    CellDef *celldef,
+    ResisData *resisdata)
 {
     ResExtNode	*node;
     int		numext = 0;	/* Number of nets extracted */
@@ -1506,11 +1506,11 @@ ResFixUpSinkpoints(ResConnect *sink,
  */
 
 void
-ResFixUpConnections(extDev, layoutDev, extNode, nodename)
-    RDev		*extDev;
-    resDevice		*layoutDev;
-    ResExtNode		*extNode;
-    char		*nodename;
+ResFixUpConnections(
+    RDev *extDev,
+    resDevice *layoutDev,
+    ResExtNode *extNode,
+    char *nodename)
 {
     static char	newname[MAXNAME], oldnodename[MAXNAME];
     int		notdecremented;
@@ -1810,12 +1810,11 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
  */
 
 void
-ResFixDevName(line, type, device, layoutnode)
-    char 	line[];
-    int		type;
-    RDev	*device;
-    resNode	*layoutnode;
-
+ResFixDevName(
+    char line[],
+    int type,
+    RDev *device,
+    resNode *layoutnode)
 {
     HashEntry		*entry;
     ResExtNode		*node;
@@ -1881,8 +1880,9 @@ ResFixDevName(line, type, device, layoutnode)
  */
 
 int
-devSortFunc(rec1, rec2)
-    devPtr **rec1, **rec2;
+devSortFunc(
+    devPtr **rec1,
+    devPtr **rec2)
 {
     devPtr *dev1 = *rec1;
     devPtr *dev2 = *rec2;
@@ -1932,8 +1932,8 @@ devSortFunc(rec1, rec2)
  */
 
 void
-ResSortByGate(DevpointerList)
-    devPtr	**DevpointerList;
+ResSortByGate(
+    devPtr **DevpointerList)
 {
     devPtr	*working, **Devindexed;
     int		listlen, listidx;
@@ -1950,7 +1950,8 @@ ResSortByGate(DevpointerList)
     for (working = *DevpointerList; working; working = working->nextDev)
 	Devindexed[listidx++] = working;
 
-    qsort(Devindexed, (size_t)listlen, (size_t)sizeof(devPtr *), devSortFunc);
+    qsort(Devindexed, (size_t)listlen, (size_t)sizeof(devPtr *),
+		(int (*)(const void *, const void *))devSortFunc);
 
     for (listidx = 0; listidx < listlen - 1; listidx++)
 	Devindexed[listidx]->nextDev = Devindexed[listidx + 1];
@@ -1973,9 +1974,9 @@ ResSortByGate(DevpointerList)
  */
 
 void
-ResWriteLumpFile(node, resisdata)
-    ResExtNode	*node;
-    ResisData	*resisdata;
+ResWriteLumpFile(
+    ResExtNode *node,
+    ResisData *resisdata)
 {
     int	lumpedres;
 
@@ -2009,9 +2010,9 @@ ResWriteLumpFile(node, resisdata)
  */
 
 void
-ResAlignNodes(nodelist, reslist)
-    resNode	*nodelist;
-    resResistor *reslist;
+ResAlignNodes(
+    resNode *nodelist,
+    resResistor *reslist)
 {
     resResistor *resistor;
     resNode	*node1;
@@ -2068,11 +2069,12 @@ ResAlignNodes(nodelist, reslist)
  */
 
 int
-ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
-    CellDef	*celldef;
-    ResExtNode	*node;
-    ResisData	*resisdata;
-    int		*nidx, *eidx;
+ResWriteExtFile(
+    CellDef *celldef,
+    ResExtNode *node,
+    ResisData *resisdata,
+    int *nidx,
+    int *eidx)
 {
     char	*cp, newname[MAXNAME];
     devPtr	*ptr;

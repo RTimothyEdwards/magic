@@ -109,13 +109,13 @@ void glMultiAddStart();
  */
 
 int
-glMultiSteiner(rootUse, net, routeProc, markProc, cdRoute, cdMark)
-    CellUse *rootUse;		/* If non-NULL, feedback for errors left here */
-    NLNet *net;		/* Net to process */
-    GlPoint *(*routeProc)();	/* Procedure to route a segment */
-    int (*markProc)();		/* Procedure to remember the route */
-    ClientData cdRoute;		/* Passed to (*routeProc)() */
-    ClientData cdMark;		/* Passed to (*markProc)() */
+glMultiSteiner(
+    CellUse *rootUse,		/* If non-NULL, feedback for errors left here */
+    NLNet *net,		/* Net to process */
+    GlPoint *(*routeProc)(),	/* Procedure to route a segment */
+    int (*markProc)(),		/* Procedure to remember the route */
+    ClientData cdRoute,		/* Passed to (*routeProc)() */
+    ClientData cdMark)		/* Passed to (*markProc)() */
 {
     GlPoint *startList, *bestDest, *dest;
     char mesg[128], *lastTermName;
@@ -240,8 +240,8 @@ glMultiSteiner(rootUse, net, routeProc, markProc, cdRoute, cdMark)
  */
 
 int
-glMultiStemCost(loc)
-    NLTermLoc *loc;
+glMultiStemCost(
+    NLTermLoc *loc)
 {
     int n1, n2, cost;
 
@@ -278,9 +278,9 @@ glMultiStemCost(loc)
  */
 
 void
-glMultiAddStart(path, pStartList)
-    GlPoint *path;		/* Path linked via gl_path pointers */
-    GlPoint **pStartList;	/* List of starting points */
+glMultiAddStart(
+    GlPoint *path,		/* Path linked via gl_path pointers */
+    GlPoint **pStartList)	/* List of starting points */
 {
     GlPoint *srcEntry, *dstEntry;
     GCRPin *srcPin, *dstPin;

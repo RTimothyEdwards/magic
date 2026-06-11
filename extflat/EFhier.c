@@ -69,10 +69,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-efHierSrUses(hc, func, cdata)
-    HierContext *hc;
-    int (*func)();
-    ClientData cdata;
+efHierSrUses(
+    HierContext *hc,
+    int (*func)(),
+    ClientData cdata)
 {
     int xlo, xhi, ylo, yhi, xbase, ybase, xsep, ysep;
     HierContext newhc;
@@ -153,11 +153,11 @@ efHierSrUses(hc, func, cdata)
  */
 
 int
-efHierSrArray(hc, conn, proc, cdata)
-    HierContext *hc;
-    Connection *conn;
-    int (*proc)();
-    ClientData cdata;
+efHierSrArray(
+    HierContext *hc,
+    Connection *conn,
+    int (*proc)(),
+    ClientData cdata)
 {
     char name1[1024], name2[1024];
     int i, j, i1lo, i2lo, j1lo, j2lo;
@@ -234,10 +234,10 @@ efHierSrArray(hc, conn, proc, cdata)
  */
 
 int
-EFHierSrDefs(hc, func, cdata)
-    HierContext *hc;
-    int (*func)();
-    ClientData cdata;
+EFHierSrDefs(
+    HierContext *hc,
+    int (*func)(),
+    ClientData cdata)
 {
     HierContext newhc;
     Use *u;
@@ -321,10 +321,10 @@ EFHierSrDefs(hc, func, cdata)
  */
 
 int
-EFHierVisitSubcircuits(hc, subProc, cdata)
-    HierContext *hc;
-    int (*subProc)();
-    ClientData cdata;	/* unused */
+EFHierVisitSubcircuits(
+    HierContext *hc,
+    int (*subProc)(),
+    ClientData cdata)	/* unused */
 {
     CallArg ca;
     int efHierVisitSubcircuits();   /* Forward declaration */
@@ -353,9 +353,9 @@ EFHierVisitSubcircuits(hc, subProc, cdata)
  */
 
 int
-efHierVisitSubcircuits(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efHierVisitSubcircuits(
+    HierContext *hc,
+    CallArg *ca)
 {
     /* Visit all children of this def */
     Def *def = (Def *)ca->ca_cdata;
@@ -385,10 +385,10 @@ efHierVisitSubcircuits(hc, ca)
  */
 
 bool
-efHierDevKilled(hc, dev, prefix)
-    HierContext *hc;
-    Dev *dev;
-    HierName *prefix;
+efHierDevKilled(
+    HierContext *hc,
+    Dev *dev,
+    HierName *prefix)
 {
     HierName *suffix;
     HashEntry *he;
@@ -468,9 +468,9 @@ EFHierVisitDevs(
  */
 
 int
-efHierVisitDevs(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efHierVisitDevs(
+    HierContext *hc,
+    CallArg *ca)
 {
     Def *def = hc->hc_use->use_def;
     Dev *dev;
@@ -678,10 +678,10 @@ efHierVisitResists(
  */
 
 int
-EFHierVisitCaps(hc, capProc, cdata)
-    HierContext *hc;
-    int (*capProc)();
-    ClientData cdata;
+EFHierVisitCaps(
+    HierContext *hc,
+    int (*capProc)(),
+    ClientData cdata)
 {
     HashSearch hs;
     HashEntry *he;
@@ -737,10 +737,10 @@ EFHierVisitCaps(hc, capProc, cdata)
  */
 
 int
-EFHierVisitNodes(hc, nodeProc, cdata)
-    HierContext *hc;
-    int (*nodeProc)();
-    ClientData cdata;
+EFHierVisitNodes(
+    HierContext *hc,
+    int (*nodeProc)(),
+    ClientData cdata)
 {
     Def *def = hc->hc_use->use_def;
     EFCapValue cap;

@@ -53,30 +53,30 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/w
 /* our window client ID */
 global WindClient windClientID = (WindClient) NULL;
 
-extern int windBorderCmd();
-extern int windCaptionCmd(), windCrashCmd(), windCursorCmd();
-extern int windFilesCmd(), windCloseCmd(), windOpenCmd();
-extern int windQuitCmd(), windRedrawCmd();
-extern int windResetCmd(), windSpecialOpenCmd();
-extern int windOverCmd(), windUnderCmd(), windDebugCmd();
-extern int windDumpCmd(), windHelpCmd();
-extern int windMacroCmd(), windIntMacroCmd();
-extern int windLogCommandsCmd(), windUpdateCmd(), windSleepCmd();
-extern int windSetpointCmd();
-extern int windPushbuttonCmd();
-extern int windPauseCmd(), windGrstatsCmd();
-extern int windGrowCmd();
-extern int windUndoCmd(), windRedoCmd();
-extern int windCenterCmd(), windScrollCmd();
-extern int windVersionCmd(), windViewCmd(), windXviewCmd(), windZoomCmd();
-extern int windScrollBarsCmd(), windPositionsCmd();
-extern int windNamesCmd();
+extern void windBorderCmd();
+extern void windCaptionCmd(), windCrashCmd(), windCursorCmd();
+extern void windFilesCmd(), windCloseCmd(), windOpenCmd();
+extern void windQuitCmd(), windRedrawCmd();
+extern void windResetCmd(), windSpecialOpenCmd();
+extern void windOverCmd(), windUnderCmd(), windDebugCmd();
+extern void windDumpCmd(), windHelpCmd();
+extern void windMacroCmd(), windIntMacroCmd();
+extern void windLogCommandsCmd(), windUpdateCmd(), windSleepCmd();
+extern void windSetpointCmd();
+extern void windPushbuttonCmd();
+extern void windPauseCmd(), windGrstatsCmd();
+extern void windGrowCmd();
+extern void windUndoCmd(), windRedoCmd();
+extern void windCenterCmd(), windScrollCmd();
+extern void windVersionCmd(), windViewCmd(), windXviewCmd(), windZoomCmd();
+extern void windScrollBarsCmd(), windPositionsCmd();
+extern void windNamesCmd();
 
 
 #ifdef MAGIC_WRAPPER
-extern int windBypassCmd();
+extern void windBypassCmd();
 #else
-extern int windEchoCmd(), windSourceCmd(), windSendCmd();
+extern void windEchoCmd(), windSourceCmd(), windSendCmd();
 #endif
 
 static Rect windFrameRect;
@@ -104,9 +104,9 @@ static int windCorner = WIND_ILG;	/* Nearest corner when button went
  */
 
 void
-windButtonSetCursor(button, corner)
-    int button;			/* Button that is down. */
-    int corner;			/* Corner to be displayed in cursor. */
+windButtonSetCursor(
+    int button,			/* Button that is down. */
+    int corner)			/* Corner to be displayed in cursor. */
 {
     switch (corner)
     {
@@ -154,10 +154,9 @@ windButtonSetCursor(button, corner)
  */
 
 int
-windGetCorner(screenPoint, screenRect)
-    Point *screenPoint;
-    Rect *screenRect;
-
+windGetCorner(
+    Point *screenPoint,
+    Rect *screenRect)
 {
     Rect r;
 
@@ -200,15 +199,15 @@ windGetCorner(screenPoint, screenRect)
  */
 
 void
-windMoveRect(wholeRect, corner, p, rect)
-    bool wholeRect;		/* move the whole thing?  or just a corner? */
-    int corner;			/* Specifies a corner in the format
+windMoveRect(
+    bool wholeRect,		/* move the whole thing?  or just a corner? */
+    int corner,			/* Specifies a corner in the format
 				 * returned by ToolGetCorner.
 				 */
-    Point *p;			/* New position of corner, in screen
+    Point *p,			/* New position of corner, in screen
 				 * coordinates.
 				 */
-    Rect *rect;
+    Rect *rect)
 {
     int x, y, tmp;
 
@@ -312,9 +311,9 @@ windMoveRect(wholeRect, corner, p, rect)
  */
 
 void
-windFrameDown(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windFrameDown(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (WindOldButtons == 0)
     {
@@ -341,9 +340,9 @@ windFrameDown(w, cmd)
 
     /*ARGSUSED*/
 void
-windFrameUp(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windFrameUp(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (WindNewButtons == 0)
     {
@@ -391,9 +390,9 @@ windFrameUp(w, cmd)
  */
 
 bool
-windFrameButtons(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windFrameButtons(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     extern void windBarLocations();
 
@@ -498,9 +497,9 @@ windFrameButtons(w, cmd)
  */
 
 void
-windClientButtons(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windClientButtons(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     /*
      * Is this an initial 'down push' in a non-iconic window?  If so, we
@@ -599,11 +598,11 @@ windClientButtons(w, cmd)
  */
 
 bool
-WindButtonInFrame(w, x, y, b)
-    MagWindow *w;
-    int x;
-    int y;
-    int b;
+WindButtonInFrame(
+    MagWindow *w,
+    int x,
+    int y,
+    int b)
 {
     TxCommand cmd;
     cmd.tx_p.p_x = x;
@@ -638,9 +637,9 @@ WindButtonInFrame(w, x, y, b)
  */
 
 void
-windCmdInterp(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+windCmdInterp(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int cmdNum;
 

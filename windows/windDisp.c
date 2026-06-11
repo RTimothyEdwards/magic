@@ -78,7 +78,9 @@ bool windSomeSeparateRedisplay = FALSE;
  */
 
 int
-windCheckOnlyWindow(MagWindow **w, WindClient client)
+windCheckOnlyWindow(
+    MagWindow **w,
+    WindClient client)
 {
     MagWindow *sw, *tw;
     int wct = 0;
@@ -116,8 +118,8 @@ windCheckOnlyWindow(MagWindow **w, WindClient client)
  */
 
 void
-windFreeList(llr)
-    LinkedRect **llr;	/* A pointer to a list of linked rectangles */
+windFreeList(
+    LinkedRect **llr)	/* A pointer to a list of linked rectangles */
 {
     LinkedRect *lr, *freelr;
 
@@ -211,8 +213,8 @@ windReClip()
  */
 
 void
-WindSeparateRedisplay(w)
-    MagWindow *w;
+WindSeparateRedisplay(
+    MagWindow *w)
 {
     windSomeSeparateRedisplay = TRUE;
     if (w->w_redrawAreas != (ClientData)NULL) return;
@@ -235,8 +237,8 @@ WindSeparateRedisplay(w)
  */
 
 void
-WindIconChanged(w)
-    MagWindow *w;
+WindIconChanged(
+    MagWindow *w)
 {
     ASSERT(w != NULL, "WindIconChanged");
     w->w_flags |= WIND_REDRAWICON;
@@ -264,9 +266,9 @@ WindIconChanged(w)
  */
 
 void
-WindAreaChanged(w, area)
-    MagWindow *w;		/* The window that changed. */
-    Rect *area;		/* The area in screen coordinates.
+WindAreaChanged(
+    MagWindow *w,	/* The window that changed. */
+    Rect *area)	/* The area in screen coordinates.
 			 * NULL means the whole screen.  Caller
 			 * should clip this rectangle to the area
 			 * of the window.
@@ -346,9 +348,9 @@ WindAreaChanged(w, area)
 }
 
 bool
-windChangedFunc(area, next)
-    Rect *area;			/* Area that is still unobscured. */
-    LinkedRect *next;		/* Next obscuring area. */
+windChangedFunc(
+    Rect *area,			/* Area that is still unobscured. */
+    LinkedRect *next)		/* Next obscuring area. */
 {
     /* If we're at the end of obscuring areas, paint an error
      * tile to mark what's to be redisplayed.  Otherwise,
@@ -383,29 +385,29 @@ windChangedFunc(area, next)
  */
 
 void
-windBarLocations(w, leftBar, botBar, up, down, right, left, zoom)
-    MagWindow *w;		/* The window under consideration. */
+windBarLocations(
+    MagWindow *w,		/* The window under consideration. */
 			/* The following are rectangles that will be filled
 			 * in by this procedure.  The values will be in the
 			 * same coordinate sytem as w->w_allArea.
 			 */
-    Rect *leftBar;	/* The location of the left scrollbar area (not the
+    Rect *leftBar,	/* The location of the left scrollbar area (not the
 			 * bar itself).
 			 */
-    Rect *botBar;	/* The location of the bottom scrollbar area. */
-    Rect *up;		/* The location of the 'up arrow' icon above the
+    Rect *botBar,	/* The location of the bottom scrollbar area. */
+    Rect *up,		/* The location of the 'up arrow' icon above the
 			 * left scroll bar.
 			 */
-    Rect *down;		/* The location of the 'down arrow' icon below the
+    Rect *down,		/* The location of the 'down arrow' icon below the
 			 * left scroll bar.
 			 */
-    Rect *right;	/* The location of the 'right arrow' icon to the right
+    Rect *right,	/* The location of the 'right arrow' icon to the right
 			 * of the bottom scroll bar.
 			 */
-    Rect *left;		/* The location of the 'left arrow' icon to the left of
+    Rect *left,		/* The location of the 'left arrow' icon to the left of
 			 * the bottom scroll bar.
 			 */
-    Rect *zoom;		/* The location of the 'zoom' icon in the lower-left
+    Rect *zoom)		/* The location of the 'zoom' icon in the lower-left
 			 * corner of the window.
 			 */
 {
@@ -462,9 +464,9 @@ windBarLocations(w, leftBar, botBar, up, down, right, left, zoom)
  */
 
 void
-WindDrawBorder(w, clip)
-    MagWindow *w;
-    Rect *clip;
+WindDrawBorder(
+    MagWindow *w,
+    Rect *clip)
 {
     Rect r;
     Rect leftBar, botBar, up, down, left, right, zoom;
@@ -633,9 +635,9 @@ leave:
  */
 
 void
-WindCaption(w, caption)
-    MagWindow *w;
-    char *caption;	/* The string that is to be copied into the caption.
+WindCaption(
+    MagWindow *w,
+    char *caption)	/* The string that is to be copied into the caption.
 			 * (The string is copied, not just pointed at.)
 			 */
 {
@@ -666,8 +668,8 @@ WindCaption(w, caption)
  */
 
 void
-windNewView(w)
-    MagWindow *w;
+windNewView(
+    MagWindow *w)
 {
     Rect leftBar, botBar, up, down, right, left, zoom;
 
@@ -696,8 +698,8 @@ windNewView(w)
  */
 
 void
-WindRedisplay(w)
-    MagWindow *w;
+WindRedisplay(
+    MagWindow *w)
 {
     WindAreaChanged(w, &(w->w_allArea));
 }
@@ -717,8 +719,8 @@ WindRedisplay(w)
  */
 
 void
-windRedrawIcon(w)
-    MagWindow *w;
+windRedrawIcon(
+    MagWindow *w)
 {
     Point p;
     clientRec *cl;
@@ -900,10 +902,10 @@ WindUpdate()
  */
 
 int
-windUpdateFunc(tile, dinfo, w)
-    Tile *tile;			/* Tile in the redisplay plane. */
-    TileType dinfo;		/* Split tile information (unused) */
-    MagWindow *w;		/* Window we're currently interested in. */
+windUpdateFunc(
+    Tile *tile,			/* Tile in the redisplay plane. */
+    TileType dinfo,		/* Split tile information (unused) */
+    MagWindow *w)		/* Window we're currently interested in. */
 {
     Rect area;
 
@@ -968,10 +970,10 @@ windUpdateFunc(tile, dinfo, w)
 
 	/* ARGSUSED */
 int
-windBackgroundFunc(tile, dinfo, notUsed)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData notUsed;		/* (unused) */
+windBackgroundFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData notUsed)		/* (unused) */
 {
     Rect area;
 

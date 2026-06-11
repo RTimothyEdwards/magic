@@ -63,11 +63,11 @@ extern void ResAddResistorToList();
  */
 
 void
-ResSimplifyNet(nodelist, biglist, reslist, tolerance)
-    resNode	**nodelist, **biglist;
-    resResistor	**reslist;
-    float	tolerance;
-
+ResSimplifyNet(
+    resNode **nodelist,
+    resNode **biglist,
+    resResistor **reslist,
+    float tolerance)
 {
     resElement  *resisptr;
     resNode     *node, *otherNode, *node1, *node2;
@@ -372,9 +372,9 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
  */
 
 void
-ResMoveDevices(node1, node2)
-    resNode *node1, *node2;
-
+ResMoveDevices(
+    resNode *node1,
+    resNode *node2)
 {
     tElement	*devptr, *oldptr;
     resDevice	*device;
@@ -413,7 +413,9 @@ ResMoveDevices(node1, node2)
  */
 
 int
-qrescompare(const void *one, const void *two)
+qrescompare(
+    const void *one,
+    const void *two)
 {
     int cval;
 
@@ -442,11 +444,11 @@ qrescompare(const void *one, const void *two)
  */
 
 void
-ResScrunchNet(reslist, pendingList, biglist, tolerance)
-    resResistor	**reslist;
-    resNode	**pendingList, **biglist;
-    float	tolerance;
-
+ResScrunchNet(
+    resResistor **reslist,
+    resNode **pendingList,
+    resNode **biglist,
+    float tolerance)
 {
     resResistor *current, *working;
     resNode	*node1, *node2;
@@ -640,9 +642,9 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
  */
 
 void
-ResAddResistorToList(resistor, locallist)
-    resResistor	*resistor, **locallist;
-
+ResAddResistorToList(
+    resResistor *resistor,
+    resResistor **locallist)
 {
     resResistor *local, *last = NULL;
 
@@ -696,10 +698,9 @@ ResAddResistorToList(resistor, locallist)
  */
 
 void
-ResDistributeCapacitance(nodelist, totalcap)
-    resNode	*nodelist;
-    float	totalcap;
-
+ResDistributeCapacitance(
+    resNode *nodelist,
+    float totalcap)
 {
     float totalarea = 0, capperarea;
     resNode	*workingNode;
@@ -739,9 +740,8 @@ ResDistributeCapacitance(nodelist, totalcap)
  */
 
 float
-ResCalculateChildCapacitance(me)
-    resNode	*me;
-
+ResCalculateChildCapacitance(
+    resNode *me)
 {
     RCDelayStuff    *myC;
     resElement	    *workingRes;
@@ -817,11 +817,10 @@ ResCalculateChildCapacitance(me)
  */
 
 void
-ResCalculateTDi(node, resistor, resistorvalue)
-    resNode	*node;
-    resResistor *resistor;
-    int		resistorvalue;
-
+ResCalculateTDi(
+    resNode *node,
+    resResistor *resistor,
+    int resistorvalue)
 {
     resElement	    *workingRes;
     RCDelayStuff    *rcd = (RCDelayStuff *)node->rn_client;
@@ -863,11 +862,12 @@ ResCalculateTDi(node, resistor, resistorvalue)
  */
 
 void
-ResPruneTree(node, minTdi, nodelist1, nodelist2, resistorlist)
-    resNode	*node, **nodelist1, **nodelist2;
-    float	minTdi;
-    resResistor	**resistorlist;
-
+ResPruneTree(
+    resNode *node,
+    float minTdi,
+    resNode **nodelist1,
+    resNode **nodelist2,
+    resResistor **resistorlist)
 {
     resResistor	*currentRes;
     resElement	*current;
@@ -920,9 +920,8 @@ ResPruneTree(node, minTdi, nodelist1, nodelist2, resistorlist)
  */
 
 int
-ResDoSimplify(resisdata)
-    ResisData 	*resisdata;
-
+ResDoSimplify(
+    ResisData *resisdata)
 {
     resNode 		*node, *slownode;
     float		bigres = 0.0;
@@ -1061,7 +1060,8 @@ ResDoSimplify(resisdata)
  */
 
 void
-ResSetPathRes(ResisData *resisdata)
+ResSetPathRes(
+    ResisData *resisdata)
 {
     HeapEntry	he;
     resNode	*node;
@@ -1119,9 +1119,8 @@ ResSetPathRes(ResisData *resisdata)
  */
 
 void
-resPathNode(node)
-    resNode	*node;
-
+resPathNode(
+    resNode *node)
 {
     resElement	*re;
 
@@ -1158,9 +1157,8 @@ resPathNode(node)
  */
 
 void
-resPathRes(res)
-    resResistor	*res;
-
+resPathRes(
+    resResistor *res)
 {
     resNode *node0, *node1;
     int	    flag0, flag1;

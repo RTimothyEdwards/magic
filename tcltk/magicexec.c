@@ -44,8 +44,8 @@
 /*----------------------------------------------------------------------*/
 
 int
-magic_AppInit(interp)
-    Tcl_Interp *interp;
+magic_AppInit(
+    Tcl_Interp *interp)
 {
     if (Tcl_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
@@ -68,9 +68,9 @@ magic_AppInit(interp)
 /*----------------------------------------------------------------------*/
 
 int
-main(argc, argv)
-   int argc;
-   char **argv;
+main(
+    int argc,
+    char **argv)
 {
     Tk_Main(argc, argv, magic_AppInit);
     return 0;

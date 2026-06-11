@@ -71,10 +71,10 @@ bool extHardSetLabel();
  */
 
 ExtRegion *
-extLabFirst(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    FindRegion *arg;
+extLabFirst(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    FindRegion *arg)
 {
     TransRegion *reg;
     reg = (TransRegion *) mallocMagic((unsigned) (sizeof (TransRegion)));
@@ -97,11 +97,11 @@ extLabFirst(tile, dinfo, arg)
 
     /*ARGSUSED*/
 int
-extLabEach(tile, dinfo, pNum, arg)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    int pNum;
-    FindRegion *arg;
+extLabEach(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    int pNum,
+    FindRegion *arg)
 {
     TransRegion *reg = (TransRegion *) arg->fra_region;
 
@@ -157,9 +157,9 @@ extLabEach(tile, dinfo, pNum, arg)
  */
 
 int
-extHardProc(scx, arg)
-    SearchContext *scx;		/* Context of the search to this cell */
-    HardWay *arg;		/* See above; this structure provides both
+extHardProc(
+    SearchContext *scx,		/* Context of the search to this cell */
+    HardWay *arg)		/* See above; this structure provides both
 				 * options to govern how we generate labels
 				 * and a place to store the label we return.
 				 */
@@ -294,13 +294,13 @@ done:
  */
 
 bool
-extHardSetLabel(scx, reg, arg)
-    SearchContext *scx;		/* We use scx->scx_trans to transform label
+extHardSetLabel(
+    SearchContext *scx,		/* We use scx->scx_trans to transform label
 				 * coordinates in the def scx->scx_use->cu_def
 				 * up to root coordinates.
 				 */
-    TransRegion *reg;		/* ExtRegion with a label list */
-    HardWay *arg;		/* We will set arg->hw_label if a node
+    TransRegion *reg,		/* ExtRegion with a label list */
+    HardWay *arg)		/* We will set arg->hw_label if a node
 				 * label is found on the label list of 'reg'.
 				 */
 {
@@ -408,15 +408,15 @@ extHardSetLabel(scx, reg, arg)
  */
 
 bool
-extHardGenerateLabel(scx, reg, arg)
-    SearchContext *scx;		/* We use scx->scx_trans to transform the
+extHardGenerateLabel(
+    SearchContext *scx,		/* We use scx->scx_trans to transform the
 				 * generated label's coordinates up to
 				 * root coordinates.
 				 */
-    TransRegion *reg;		/* ExtRegion whose treg_ll and treg_pnum we use
+    TransRegion *reg,		/* ExtRegion whose treg_ll and treg_pnum we use
 				 * to generate a new label name.
 				 */
-    HardWay *arg;		/* We set arg->hw_label to the new label */
+    HardWay *arg)		/* We set arg->hw_label to the new label */
 {
     TerminalPath *tpath = &arg->hw_tpath;
     char *srcp, *dstp;
@@ -480,9 +480,9 @@ extHardGenerateLabel(scx, reg, arg)
  */
 
 void
-extHardFreeAll(def, tReg)
-    CellDef *def;
-    TransRegion *tReg;
+extHardFreeAll(
+    CellDef *def,
+    TransRegion *tReg)
 {
     TransRegion *reg;
     LabelList *ll;

@@ -75,7 +75,7 @@ Rect RouteArea;
 
 /* Forward declarations */
 extern int rtrSrCells();
-extern void rtrRoundRect();
+extern void rtrRoundRect(Rect *r, int sepUp, int sepDown, bool doRoundUp);
 extern void rtrHashKill();
 extern void rtrSplitToArea();
 extern void rtrMarkChannel();
@@ -104,10 +104,10 @@ bool rtrUseCorner();
  */
 
 CellDef *
-RtrDecomposeName(routeUse, area, name)
-    CellUse *routeUse;	/* Cell to be decomposed */
-    Rect *area;		/* Confine channels to this area */
-    char *name;		/* Name of netlist if non-NULL; otherwise, use the
+RtrDecomposeName(
+    CellUse *routeUse,	/* Cell to be decomposed */
+    Rect *area,		/* Confine channels to this area */
+    char *name)		/* Name of netlist if non-NULL; otherwise, use the
 			 * name of the current netlist or that of routeUse
 			 * as described above.
 			 */
@@ -164,10 +164,10 @@ RtrDecomposeName(routeUse, area, name)
  */
 
 CellDef *
-RtrDecompose(routeUse, area, netList)
-    CellUse *routeUse;
-    Rect *area;
-    NLNetList *netList;
+RtrDecompose(
+    CellUse *routeUse,
+    Rect *area,
+    NLNetList *netList)
 {
     SearchContext scx;
     CellDef *cdTo;
@@ -312,9 +312,9 @@ RtrFindChannelDef()
  */
 
 int
-rtrSrCells(scx, targetDef)
-    SearchContext *scx;	/* The cell to be painted */
-    CellDef *targetDef;	/* The def into which the silhouette is painted */
+rtrSrCells(
+    SearchContext *scx,	/* The cell to be painted */
+    CellDef *targetDef)	/* The def into which the silhouette is painted */
 {
     CellDef *def = scx->scx_use->cu_def;
     Rect rootBbox, gridBbox;
@@ -367,10 +367,11 @@ rtrSrCells(scx, targetDef)
  */
 
 void
-rtrRoundRect(r, sepUp, sepDown, doRoundUp)
-    Rect *r;
-    int sepUp, sepDown;
-    bool doRoundUp;
+rtrRoundRect(
+    Rect *r,
+    int sepUp,
+    int sepDown,
+    bool doRoundUp)
 {
     int halfGrid = RtrGridSpacing / 2;
 
@@ -425,8 +426,8 @@ rtrRoundRect(r, sepUp, sepDown, doRoundUp)
  */
 
 void
-rtrHashKill(ht)
-    HashTable *ht;
+rtrHashKill(
+    HashTable *ht)
 {
     HashEntry *he;
     HashSearch hs;
@@ -454,9 +455,9 @@ rtrHashKill(ht)
  */
 
 void
-rtrSplitToArea(area, def)
-    Rect *area;		/* Routing area */
-    CellDef *def;	/* Def holding routing results */
+rtrSplitToArea(
+    Rect *area,		/* Routing area */
+    CellDef *def)	/* Def holding routing results */
 {
     Tile *tile;
     Point p;
@@ -522,10 +523,10 @@ rtrSplitToArea(area, def)
  */
 
 int
-rtrSrClear(tile, dinfo, area)
-    Tile *tile;
-    TileType dinfo;
-    Rect *area;
+rtrSrClear(
+    Tile *tile,
+    TileType dinfo,
+    Rect *area)
 {
     /* Clear all */
     rtrCLEAR(tile, -1);
@@ -581,10 +582,10 @@ rtrSrClear(tile, dinfo, area)
  */
 
 int
-rtrSrFunc(tile, dinfo, plane)
-    Tile *tile;		/* Candidate cell tile */
-    TileType dinfo;	/* Split tile information (unused) */
-    Plane *plane;	/* Plane in which searches take place */
+rtrSrFunc(
+    Tile *tile,		/* Candidate cell tile */
+    TileType dinfo,	/* Split tile information (unused) */
+    Plane *plane)	/* Plane in which searches take place */
 {
     Tile *tiles[3];
     Point p;
@@ -639,11 +640,11 @@ rtrSrFunc(tile, dinfo, plane)
  */
 
 bool
-rtrUseCorner(point, corner, plane, tiles)
-    Point *point;	/* Point at which a cell corner is found */
-    int corner;		/* Selects NE, NW, SE, or SW cell corner */
-    Plane *plane;	/* Plane to be searched for tiles */
-    Tile *tiles[];	/* Return pointers to found space tiles */
+rtrUseCorner(
+    Point *point,	/* Point at which a cell corner is found */
+    int corner,		/* Selects NE, NW, SE, or SW cell corner */
+    Plane *plane,	/* Plane to be searched for tiles */
+    Tile *tiles[])	/* Return pointers to found space tiles */
 {
     Point  p0, p1;
     Tile * tile;
@@ -723,11 +724,11 @@ rtrUseCorner(point, corner, plane, tiles)
  */
 
 void
-rtrMarkChannel(plane, tiles, point, corner)
-    Plane *plane;	/* Plane for searching */
-    Tile *tiles[];	/* Bordering space tiles */
-    Point *point;	/* Coordinates of corner */
-    int	corner;		/* Corner of tile to process */
+rtrMarkChannel(
+    Plane *plane,	/* Plane for searching */
+    Tile *tiles[],	/* Bordering space tiles */
+    Point *point,	/* Coordinates of corner */
+    int	corner)		/* Corner of tile to process */
 {
     int xDist, yDist, d1, d2, lastY;
     Tile *tile, *new;
@@ -846,11 +847,11 @@ rtrMarkChannel(plane, tiles, point, corner)
  */
 
 int
-rtrYDist(tiles, point, up, plane)
-    Tile *tiles[];	/* Start tile in [1].  Put bottom tile in [0] */
-    Point *point;	/* Point from which distance is measure */
-    bool up;		/* TRUE if search up, FALSE if down */
-    Plane *plane;	/* Cell plane for search */
+rtrYDist(
+    Tile *tiles[],	/* Start tile in [1].  Put bottom tile in [0] */
+    Point *point,	/* Point from which distance is measure */
+    bool up,		/* TRUE if search up, FALSE if down */
+    Plane *plane)	/* Cell plane for search */
 {
     Tile *current = tiles[1], *next;
     int x, yStart, flag;
@@ -954,10 +955,10 @@ rtrYDist(tiles, point, up, plane)
  */
 
 int
-rtrXDist(tiles, x, isRight)
-    Tile *tiles[];	/* Space tiles bordering the corner */
-    int x;		/* Starting x for distance calculation */
-    bool isRight;		/* TRUE if right, FALSE if left */
+rtrXDist(
+    Tile *tiles[],	/* Space tiles bordering the corner */
+    int x,		/* Starting x for distance calculation */
+    bool isRight)		/* TRUE if right, FALSE if left */
 {
     int l0, l1;
 
@@ -987,7 +988,11 @@ rtrXDist(tiles, x, isRight)
  */
 
 void
-rtrMerge(Tile **delay1, Tile *tup, Tile *tdn, Plane *plane)
+rtrMerge(
+    Tile **delay1,
+    Tile *tup,
+    Tile *tdn,
+    Plane *plane)
 {
     Tile *side;
 

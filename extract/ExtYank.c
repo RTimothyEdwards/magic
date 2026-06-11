@@ -70,8 +70,9 @@ int extHierLabelFunc();
  */
 
 void
-extHierCopyLabels(sourceDef, targetDef)
-    CellDef *sourceDef, *targetDef;
+extHierCopyLabels(
+    CellDef *sourceDef,
+    CellDef *targetDef)
 {
     Label *lab, *newlab, *firstLab, *lastLab;
     unsigned n;
@@ -115,8 +116,8 @@ extHierCopyLabels(sourceDef, targetDef)
  */
 
 void
-extHierFreeLabels(def)
-    CellDef *def;
+extHierFreeLabels(
+    CellDef *def)
 {
     Label *lab;
 
@@ -156,13 +157,14 @@ extHierFreeLabels(def)
  */
 
 int
-extHierYankFunc(use, trans, x, y, hy)
-    CellUse *use;	/* Use that is the root of the subtree being yanked */
-    Transform *trans;	/* Transform from coordinates of use->cu_def to those
+extHierYankFunc(
+    CellUse *use,	/* Use that is the root of the subtree being yanked */
+    Transform *trans,	/* Transform from coordinates of use->cu_def to those
 			 * in use->cu_parent, for the array element (x, y).
 			 */
-    int x, y;		/* Indices of this array element */
-    HierYank *hy;	/* See comments in procedure header */
+    int x,
+    int y,
+    HierYank *hy)	/* See comments in procedure header */
 {
     char labelBuf[4096];
     TerminalPath tpath;
@@ -201,11 +203,11 @@ extHierYankFunc(use, trans, x, y, hy)
 }
 
 int
-extHierLabelFunc(scx, label, tpath, targetDef)
-    SearchContext *scx;
-    Label *label;
-    TerminalPath *tpath;
-    CellDef *targetDef;
+extHierLabelFunc(
+    SearchContext *scx,
+    Label *label,
+    TerminalPath *tpath,
+    CellDef *targetDef)
 {
     char *srcp, *dstp;
     Label *newlab;

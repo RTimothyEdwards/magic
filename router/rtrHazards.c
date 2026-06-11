@@ -45,7 +45,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* Forward declarations */
 
 extern void rtrFindEnds();
-extern void rtrFlag();
+extern void rtrFlag(GCRChannel * ch, int cl, int cr, int rb, int rt, bool isHoriz);
 
 
 /*
@@ -84,8 +84,8 @@ extern void rtrFlag();
  */
 
 void
-RtrHazards(ch)
-    GCRChannel *ch;	/* The channel to be flagged */
+RtrHazards(
+    GCRChannel *ch)	/* The channel to be flagged */
 {
     short **map, **rtrHeights(), **rtrWidths(), **height, **width;
     short *hcol, *wcol, *mcol;
@@ -231,8 +231,8 @@ RtrHazards(ch)
  */
 
 short **
-rtrHeights(ch)
-    GCRChannel * ch;	/* Channel to be processed */
+rtrHeights(
+    GCRChannel * ch)	/* Channel to be processed */
 {
     short **heights, *obstacles, *hcol;
     int i, row;
@@ -303,8 +303,8 @@ rtrHeights(ch)
  */
 
 short **
-rtrWidths(ch)
-    GCRChannel * ch;
+rtrWidths(
+    GCRChannel * ch)
 {
     short **widths, **map;
     int col, i;
@@ -377,13 +377,13 @@ rtrWidths(ch)
  */
 
 void
-rtrFindEnds(ch, isHoriz, bot, top, lo, hi)
-    GCRChannel *ch;
-    int isHoriz;	/* 1 if to find horizontal ends */
-    int bot;	/* Low range to be scanned */
-    int top;	/* High range to be scanned */
-    int *lo;		/* Low range of result.  Also starting col or row. */
-    int *hi;		/* High range of result */
+rtrFindEnds(
+    GCRChannel *ch,
+    int isHoriz,	/* 1 if to find horizontal ends */
+    int bot,	/* Low range to be scanned */
+    int top,	/* High range to be scanned */
+    int *lo,		/* Low range of result.  Also starting col or row. */
+    int *hi)		/* High range of result */
 {
     int col, row;
     short **map;
@@ -488,11 +488,13 @@ gotVL:
  */
 
 void
-rtrFlag(ch, cl, cr, rb, rt, isHoriz)
-    GCRChannel * ch;	/* Channel whose flag array is to be set	*/
-    int cl, cr;		/* Left and right limits of columns to be set	*/
-    int rb, rt;		/* Bottom and top limits of rows to be set	*/
-    bool isHoriz;	/* TRUE if left/right flags, else top/bottom	*/
+rtrFlag(
+    GCRChannel * ch,	/* Channel whose flag array is to be set	*/
+    int cl,
+    int cr,
+    int rb,
+    int rt,
+    bool isHoriz)	/* TRUE if left/right flags, else top/bottom	*/
 {
     int extra, limit, r, c;
     short ** map;

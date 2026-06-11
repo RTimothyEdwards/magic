@@ -53,8 +53,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * ----------------------------------------------------------------------------
  */
 void
-mzExtendLeft(path)
-    RoutePath *path;
+mzExtendLeft(
+    RoutePath *path)
 {
     Point pOrg;		/* point to extend from */
     Point pStep;	/* one unit from pOrg in direction of extension */

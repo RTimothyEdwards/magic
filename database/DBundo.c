@@ -69,7 +69,6 @@ void dbUndoCellForw(), dbUndoCellBack();
  *** of an undo/redo command.
  ***/
 void dbUndoInit();
-CellUse *findUse();
 
 /***
  *** The following points to the CellDef specified in the most
@@ -194,8 +193,8 @@ DBUndoInit()
  */
 
 void
-DBUndoReset(celldef)
-    CellDef *celldef;
+DBUndoReset(
+    CellDef *celldef)
 {
     if (celldef == dbUndoLastCell)
     {
@@ -255,8 +254,8 @@ dbUndoInit()
  * ----------------------------------------------------------------------------
  */
 void
-dbUndoSplitForw(us)
-    splitUE *us;
+dbUndoSplitForw(
+    splitUE *us)
 {
     /* Create internal fracture */
     if (dbUndoLastCell == NULL) return;
@@ -265,8 +264,8 @@ dbUndoSplitForw(us)
 }
 
 void
-dbUndoSplitBack(us)
-    splitUE *us;
+dbUndoSplitBack(
+    splitUE *us)
 {
     Rect srect;
     if (dbUndoLastCell == NULL) return;
@@ -303,8 +302,8 @@ dbUndoSplitBack(us)
  */
 
 void
-dbUndoPaintForw(up)
-    paintUE *up;
+dbUndoPaintForw(
+    paintUE *up)
 {
     TileType loctype, dinfo;
     if (dbUndoLastCell == NULL) return;
@@ -357,8 +356,8 @@ endPaintFor:
 }
 
 void
-dbUndoPaintBack(up)
-    paintUE *up;
+dbUndoPaintBack(
+    paintUE *up)
 {
     TileType loctype, dinfo;
     if (dbUndoLastCell == NULL) return;
@@ -461,9 +460,9 @@ typedef  Label labelUE;
  */
 
 void
-DBUndoPutLabel(cellDef, lab)
-    CellDef *cellDef;	/* CellDef being modified */
-    Label *lab;		/* Label being modified */
+DBUndoPutLabel(
+    CellDef *cellDef,	/* CellDef being modified */
+    Label *lab)		/* Label being modified */
 {
     labelUE *lup;
 
@@ -505,9 +504,9 @@ DBUndoPutLabel(cellDef, lab)
  */
 
 void
-DBUndoEraseLabel(cellDef, lab)
-    CellDef *cellDef;	/* Cell being modified */
-    Label *lab;		/* Label being modified */
+DBUndoEraseLabel(
+    CellDef *cellDef,	/* Cell being modified */
+    Label *lab)		/* Label being modified */
 {
     labelUE *lup;
 
@@ -550,8 +549,8 @@ DBUndoEraseLabel(cellDef, lab)
  */
 
 void
-dbUndoLabelForw(up)
-    labelUE *up;
+dbUndoLabelForw(
+    labelUE *up)
 {
     Label *lab;
 
@@ -574,8 +573,8 @@ dbUndoLabelForw(up)
 }
 
 void
-dbUndoLabelBack(up)
-    labelUE *up;
+dbUndoLabelBack(
+    labelUE *up)
 {
     if (dbUndoLastCell == NULL) return;
     (void) DBEraseLabelsByContent(dbUndoLastCell, &up->lue_rect,
@@ -617,6 +616,9 @@ dbUndoLabelBack(up)
 	char		 cue_id[4];
     } cellUE;
 
+/* Forward declaration (cellUE must be defined first) */
+extern CellUse *findUse(cellUE *up, bool matchName);
+
     /*
      * Compute the size of a cellUE, with sufficient space
      * at the end to store the use id.
@@ -651,9 +653,9 @@ dbUndoLabelBack(up)
  */
 
 void
-DBUndoCellUse(use, action)
-    CellUse *use;
-    int action;
+DBUndoCellUse(
+    CellUse *use,
+    int action)
 {
     cellUE *up;
 
@@ -692,8 +694,8 @@ DBUndoCellUse(use, action)
  */
 
 void
-dbUndoCellForw(up)
-    cellUE *up;
+dbUndoCellForw(
+    cellUE *up)
 {
     CellUse *use;
 
@@ -740,7 +742,7 @@ dbUndoCellForw(up)
 	/*
 	 * The following is a hack.
 	 * We clear out the use id of the cell so that
-	 * findUse() will find it on the next time around,
+	 * findUse(cellUE *up, bool matchName) will find it on the next time around,
 	 * which should be when we process a UNDO_CELL_SETID
 	 * event.
 	 */
@@ -761,8 +763,8 @@ dbUndoCellForw(up)
 }
 
 void
-dbUndoCellBack(up)
-    cellUE *up;
+dbUndoCellBack(
+    cellUE *up)
 {
     CellUse *use;
 
@@ -815,7 +817,7 @@ dbUndoCellBack(up)
 	/*
 	 * The following is a hack.
 	 * We clear out the use id of the cell so that
-	 * findUse() will find it on the next time around,
+	 * findUse(cellUE *up, bool matchName) will find it on the next time around,
 	 * which should be when we process a UNDO_CELL_SETID
 	 * event.
 	 */
@@ -861,9 +863,9 @@ dbUndoCellBack(up)
  */
 
 CellUse *
-findUse(up, matchName)
-    cellUE *up;
-    bool matchName;
+findUse(
+    cellUE *up,
+    bool matchName)
 {
     CellUse *use;
 
@@ -923,8 +925,8 @@ findUse(up, matchName)
  */
 
 void
-dbUndoEdit(new)
-    CellDef *new;
+dbUndoEdit(
+    CellDef *new)
 {
     editUE *up;
     CellDef *old = dbUndoLastCell;
@@ -970,8 +972,8 @@ dbUndoEdit(new)
  */
 
 void
-dbUndoOpenCell(eup)
-    editUE *eup;
+dbUndoOpenCell(
+    editUE *eup)
 {
     CellDef *newDef;
 

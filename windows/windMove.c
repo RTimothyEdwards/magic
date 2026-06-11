@@ -75,8 +75,8 @@ int windCurNumWindows = 0;
  */
 
 void
-windUnlink(w)
-    MagWindow *w;
+windUnlink(
+    MagWindow *w)
 {
     ASSERT(w != (MagWindow *) NULL, "windUnlink");
     ASSERT(windTopWindow != (MagWindow *) NULL, "windUnlink");
@@ -127,8 +127,8 @@ windUnlink(w)
  */
 
 void
-windFree(w)
-    MagWindow *w;
+windFree(
+    MagWindow *w)
 {
     windWindowMask &= ~(1 << w->w_wid);
     windCurNumWindows--;
@@ -158,8 +158,8 @@ windFree(w)
  */
 
 void
-WindSetWindowAreas(w)
-    MagWindow *w;
+WindSetWindowAreas(
+    MagWindow *w)
 {
     switch ( WindPackageType )
     {
@@ -193,8 +193,8 @@ WindSetWindowAreas(w)
  */
 
 void
-windSetWindowPosition(w)
-    MagWindow *w;
+windSetWindowPosition(
+    MagWindow *w)
 {
 }
 
@@ -214,8 +214,8 @@ windSetWindowPosition(w)
  */
 
 bool
-WindDelete(w)
-    MagWindow *w;
+WindDelete(
+    MagWindow *w)
 {
     clientRec *cr;
 
@@ -253,16 +253,16 @@ WindDelete(w)
  */
 
 MagWindow *
-WindCreate(client, frameArea, isHint, argc, argv)
-    WindClient client;		/* The client that will control this window */
-    Rect *frameArea;		/* The area that the window is to occupy */
-    bool isHint;		/* TRUE if the above rectangle is only a
+WindCreate(
+    WindClient client,		/* The client that will control this window */
+    Rect *frameArea,		/* The area that the window is to occupy */
+    bool isHint,		/* TRUE if the above rectangle is only a
 				 * hint and it is OK for a window package to
 				 * override it to maintain a consistent
 				 * user interface.
 				 */
-    int argc;			/* Passed to the client */
-    char *argv[];
+    int argc,			/* Passed to the client */
+    char *argv[])
 {
     MagWindow *w;
     clientRec *cr;
@@ -386,12 +386,12 @@ WindCreate(client, frameArea, isHint, argc, argv)
  */
 
 void
-WindOutToIn(w, out, in)
-    MagWindow *w;			/* Window under consideration */
-    Rect *out;			/* Pointer to rectangle of outside area of
+WindOutToIn(
+    MagWindow *w,			/* Window under consideration */
+    Rect *out,			/* Pointer to rectangle of outside area of
 				 * a window.
 				 */
-    Rect *in;			/* Pointer to rectangle to be filled in with
+    Rect *in)			/* Pointer to rectangle to be filled in with
 				 * inside area corresponding to out.
 				 */
 {
@@ -435,8 +435,8 @@ void WindInToOut(w, in, out)
  */
 
 void
-WindUnder(w)
-    MagWindow *w;		/* the window to be moved */
+WindUnder(
+    MagWindow *w)		/* the window to be moved */
 {
     Rect area;
     MagWindow *w2;
@@ -492,8 +492,8 @@ WindUnder(w)
  */
 
 void
-WindOver(w)
-    MagWindow *w;		/* the window to be moved */
+WindOver(
+    MagWindow *w)		/* the window to be moved */
 {
     LinkedRect *r;
     Rect area;
@@ -557,9 +557,9 @@ WindOver(w)
  */
 
 bool
-windFindUnobscured(area, okArea)
-    Rect *area;				/* Area that may be obscured. */
-    Rect *okArea;			/* Modified to contain one of the
+windFindUnobscured(
+    Rect *area,				/* Area that may be obscured. */
+    Rect *okArea)			/* Modified to contain one of the
 					 * unobscured areas.
 					 */
 {
@@ -593,14 +593,14 @@ windFindUnobscured(area, okArea)
  */
 
 void
-WindReframe(w, r, inside, move)
-    MagWindow *w;		/* the window to be reframed */
-    Rect *r;		/* the new location in screen coordinates */
-    bool inside;	/* TRUE if the rectangle is the screen location of
+WindReframe(
+    MagWindow *w,		/* the window to be reframed */
+    Rect *r,		/* the new location in screen coordinates */
+    bool inside,	/* TRUE if the rectangle is the screen location of
 			 * the inside of the window, FALSE if the above
 			 * rectangle includes border areas.
 			 */
-    bool move;		/* Move the coordinate system of the window the same
+    bool move)		/* Move the coordinate system of the window the same
 			 * amount as the lower left corner of the window?
 			 */
 {
@@ -721,10 +721,9 @@ WindReframe(w, r, inside, move)
 }
 
 bool
-windReframeFunc(area, w)
-    Rect *area;			/* Area to redisplay. */
-    MagWindow *w;			/* Window in which to redisplay. */
-
+windReframeFunc(
+    Rect *area,			/* Area to redisplay. */
+    MagWindow *w)			/* Window in which to redisplay. */
 {
     WindAreaChanged(w, area);
     return FALSE;
@@ -749,8 +748,8 @@ windReframeFunc(area, w)
  */
 
 void
-WindFullScreen(w)
-    MagWindow *w;			/* Window to be blown up or shrunk back. */
+WindFullScreen(
+    MagWindow *w)			/* Window to be blown up or shrunk back. */
 {
     int i;
     MagWindow *w2;

@@ -32,7 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations */
 
-void gcrMakeRuns();
+void gcrMakeRuns(GCRChannel * ch, int column, GCRNet ** list, int count, bool riseFall);
 
 
 /*
@@ -56,9 +56,9 @@ void gcrMakeRuns();
  */
 
 void
-gcrVacate(ch, column)
-    GCRChannel * ch;
-    int		 column;
+gcrVacate(
+    GCRChannel * ch,
+    int column)
 {
     int        i;
     int		        to, count, gcrIsGreater();
@@ -142,10 +142,10 @@ gcrVacate(ch, column)
  */
 
 int
-gcrLook(ch, track, canCover)
-    GCRChannel * ch;
-    int		 track;
-    bool	 canCover;
+gcrLook(
+    GCRChannel * ch,
+    int track,
+    bool canCover)
 {
     int 	up, dn, dir, bestUp= EMPTY, bestDn= EMPTY, uplim, dnlim;
     int		target, upLength, dnLength;
@@ -273,9 +273,9 @@ gcrLook(ch, track, canCover)
  */
 
 GCRNet **
-gcrClassify(ch, count)
-    GCRChannel * ch;
-    int	       * count;
+gcrClassify(
+    GCRChannel * ch,
+    int	       * count)
 {
     GCRColEl *	col;
     GCRPin   	      *	pin, * next;
@@ -355,9 +355,10 @@ gcrClassify(ch, count)
  */
 
 int
-gcrRealDist(col, i, dist)
-    GCRColEl * col;
-    int i, dist;
+gcrRealDist(
+    GCRColEl * col,
+    int i,
+    int dist)
 {
     int j, last;
     GCRNet * net=col[i].gcr_h;
@@ -388,9 +389,9 @@ gcrRealDist(col, i, dist)
  */
 
 int
-gcrClass(net, track)
-    GCRNet    * net;
-    int		track;
+gcrClass(
+    GCRNet    * net,
+    int track)
 {
     GCRPin    *	pin, * next;
     int	 	dist;
@@ -446,12 +447,12 @@ gcrClass(net, track)
  */
 
 void
-gcrMakeRuns(ch, column, list, count, riseFall)
-    GCRChannel * ch;
-    int		 column;
-    GCRNet **	 list;
-    int		 count;
-    bool	 riseFall;
+gcrMakeRuns(
+    GCRChannel * ch,
+    int column,
+    GCRNet ** list,
+    int count,
+    bool riseFall)
 {
     int		 j, from, to, runTo;
     int		 distToTarget;
@@ -526,10 +527,12 @@ gcrMakeRuns(ch, column, list, count, riseFall)
  */
 
 int
-gcrTryRun(ch, net, from, to, column)
-    GCRChannel	* ch;
-    GCRNet	* net;
-    int		  from, to, column;
+gcrTryRun(
+    GCRChannel	* ch,
+    GCRNet	* net,
+    int from,
+    int to,
+    int column)
 {
     GCRColEl * col;
     GCRNet * vnet, * hnet;

@@ -123,8 +123,8 @@ LispNewObj ()
  */
 
 LispObj *
-LispCopyObj (l)
-     LispObj *l;
+LispCopyObj(
+    LispObj *l)
 {
   LispObj *s;
   s = LispNewObj ();
@@ -217,8 +217,8 @@ LispNewSexp ()
  */
 
 Sexp *
-LispCopySexp (s)
-     Sexp *s;
+LispCopySexp(
+    Sexp *s)
 {
   Sexp *t;
   t = LispNewSexp ();
@@ -297,8 +297,8 @@ mergealloc ()
 
 static
 void
-mark_sw (l)
-     LispObj *l;
+mark_sw(
+    LispObj *l)
 {
   LispObj *m;
   LispObj *t0,*t1,*t2,*t3;
@@ -416,8 +416,8 @@ collect_sw ()
 static int skip_gc = 50;	/* make this bigger if it is too slow :) */
 
 void
-LispGC (fl)
-     LispObj *fl;
+LispGC(
+    LispObj *fl)
 {
   LispObj *l;
 
@@ -497,10 +497,10 @@ LispGC (fl)
  */
 
 LispObj *
-LispCollectGarbage (name,s,f)
-     char *name;
-     Sexp *s;
-     Sexp *f;
+LispCollectGarbage(
+    char *name,
+    Sexp *s,
+    Sexp *f)
 {
   LispObj *l;
   extern LispObj *LispMainFrameObj;

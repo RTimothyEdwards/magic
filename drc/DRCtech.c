@@ -110,9 +110,9 @@ void drcTechFinalStyle();
  */
 
 PlaneMask
-CoincidentPlanes(typeMask, pmask)
-    TileTypeBitMask *typeMask;		/* Mask of types to check coincidence */
-    PlaneMask pmask;			/* Mask of all possible planes of types */
+CoincidentPlanes(
+    TileTypeBitMask *typeMask,		/* Mask of types to check coincidence */
+    PlaneMask pmask)			/* Mask of all possible planes of types */
 {
     PlaneMask planes = pmask;
     TileType i;
@@ -135,7 +135,8 @@ CoincidentPlanes(typeMask, pmask)
  */
 
 int
-LowestMaskBit(PlaneMask pmask)
+LowestMaskBit(
+    PlaneMask pmask)
 {
    PlaneMask pset = pmask;
    int plane = 0;
@@ -167,8 +168,10 @@ LowestMaskBit(PlaneMask pmask)
  */
 
 void
-DRCPrintStyle(dolist, doforall, docurrent)
-    bool dolist, doforall, docurrent;
+DRCPrintStyle(
+    bool dolist,
+    bool doforall,
+    bool docurrent)
 {
     DRCKeep *style;
 
@@ -231,8 +234,8 @@ DRCPrintStyle(dolist, doforall, docurrent)
  */
 
 void
-DRCSetStyle(name)
-    char *name;
+DRCSetStyle(
+    char *name)
 {
     DRCKeep *style, *match;
     int length;
@@ -365,8 +368,8 @@ drcTechNewStyle()
  */
 
 int
-drcWhyCreate(whystring)
-    char *whystring;
+drcWhyCreate(
+    char *whystring)
 {
     HashEntry *he;
 
@@ -417,8 +420,8 @@ drcWhyCreate(whystring)
  */
 
 unsigned char
-drcExceptionCreate(name)
-    char *name;
+drcExceptionCreate(
+    char *name)
 {
     int i;
     char **newlist;
@@ -473,8 +476,10 @@ drcExceptionCreate(name)
  */
 
 DRCCookie *
-drcFindBucket(i, j, distance)
-    int i, j, distance;
+drcFindBucket(
+    int i,
+    int j,
+    int distance)
 {
     DRCCookie *dp;
 
@@ -516,8 +521,8 @@ drcFindBucket(i, j, distance)
  */
 
 void
-drcLoadStyle(stylename)
-    char *stylename;
+drcLoadStyle(
+    char *stylename)
 {
     SectionID invdrc;
 
@@ -757,10 +762,10 @@ DRCTechStyleInit()
  */
 
 bool
-DRCTechLine(sectionName, argc, argv)
-    char *sectionName;		/* The name of this section */
-    int argc;			/* Number of fields on the line */
-    char *argv[];		/* Values of the fields */
+DRCTechLine(
+    char *sectionName,		/* The name of this section */
+    int argc,			/* Number of fields on the line */
+    char *argv[])		/* Values of the fields */
 {
     int j, l;
     DRCKeep *newStyle, *p;
@@ -1009,13 +1014,17 @@ DRCTechLine(sectionName, argc, argv)
 }
 
 void
-drcCifAssign(cookie, dist, next, mask, corner, tag, cdist, flags, planeto, planefrom)
-    DRCCookie *cookie, *next;
-    int dist, cdist;
-    TileTypeBitMask *mask, *corner;
-    int tag;
-    unsigned short flags;
-    int planeto, planefrom;
+drcCifAssign(
+    DRCCookie *cookie,
+    int dist,
+    DRCCookie *next,
+    TileTypeBitMask *mask,
+    TileTypeBitMask *corner,
+    int tag,
+    int cdist,
+    unsigned short flags,
+    int planeto,
+    int planefrom)
 {
     (cookie)->drcc_dist = dist;
     (cookie)->drcc_next = next;
@@ -1035,13 +1044,17 @@ drcCifAssign(cookie, dist, next, mask, corner, tag, cdist, flags, planeto, plane
 // planefrom
 
 void
-drcAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefrom)
-    DRCCookie *cookie, *next;
-    int dist, cdist;
-    TileTypeBitMask *mask, *corner;
-    int why;
-    unsigned short flags;
-    int planeto, planefrom;
+drcAssign(
+    DRCCookie *cookie,
+    int dist,
+    DRCCookie *next,
+    TileTypeBitMask *mask,
+    TileTypeBitMask *corner,
+    int why,
+    int cdist,
+    unsigned short flags,
+    int planeto,
+    int planefrom)
 {
     /* Diagnostic */
     if (planeto >= DBNumPlanes)
@@ -1090,10 +1103,10 @@ drcAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefro
 
 	/* ARGSUSED */
 bool
-DRCTechAddRule(sectionName, argc, argv)
-    char *sectionName;		/* Unused */
-    int argc;
-    char *argv[];
+DRCTechAddRule(
+    char *sectionName,		/* Unused */
+    int argc,
+    char *argv[])
 {
     int which, distance, mdist;
     const char *fmt;
@@ -1217,9 +1230,9 @@ DRCTechAddRule(sectionName, argc, argv)
  */
 
 int
-drcExtend(argc, argv)
-    int argc;
-    char *argv[];
+drcExtend(
+    int argc,
+    char *argv[])
 {
     char *layers1 = argv[1];
     char *layers2 = argv[2];
@@ -1393,9 +1406,9 @@ drcExtend(argc, argv)
  */
 
 int
-drcWidth(argc, argv)
-    int argc;
-    char *argv[];
+drcWidth(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int distance = atoi(argv[2]);
@@ -1504,9 +1517,9 @@ drcWidth(argc, argv)
  */
 
 int
-drcArea(argc, argv)
-    int argc;
-    char *argv[];
+drcArea(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int distance = atoi(argv[2]);
@@ -1584,9 +1597,9 @@ drcArea(argc, argv)
  */
 
 int
-drcOffGrid(argc, argv)
-    int argc;
-    char *argv[];
+drcOffGrid(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int pitch = atoi(argv[2]);
@@ -1689,9 +1702,9 @@ drcOffGrid(argc, argv)
  */
 
 int
-drcMaxwidth(argc, argv)
-    int argc;
-    char *argv[];
+drcMaxwidth(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int distance = atoi(argv[2]);
@@ -1816,9 +1829,9 @@ drcMaxwidth(argc, argv)
  */
 
 int
-drcAngles(argc, argv)
-    int argc;
-    char *argv[];
+drcAngles(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     char *endptr;
@@ -1996,9 +2009,9 @@ drcAngles(argc, argv)
  */
 
 int
-drcSpacing3(argc, argv)
-    int argc;
-    char *argv[];
+drcSpacing3(
+    int argc,
+    char *argv[])
 {
     char *layers1 = argv[1], *layers2 = argv[2];
     char *layers3 = argv[5];
@@ -2091,16 +2104,18 @@ drcSpacing3(argc, argv)
  */
 
 int
-drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
-		why, widerule, runlength, multiplane)
-    TileTypeBitMask *set1, *set2;
-    PlaneMask pmask1, pmask2;
-    int wwidth, distance;
-    char *adjacency;
-    int why;
-    bool widerule;
-    int runlength;
-    bool multiplane;
+drcMaskSpacing(
+    TileTypeBitMask *set1,
+    TileTypeBitMask *set2,
+    PlaneMask pmask1,
+    PlaneMask pmask2,
+    int wwidth,
+    int distance,
+    char *adjacency,
+    int why,
+    bool widerule,
+    int runlength,
+    bool multiplane)
 {
     TileTypeBitMask tmp1, tmp2, setR, setRreverse;
     int plane, plane2;
@@ -2600,9 +2615,9 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
  */
 
 int
-drcSpacing(argc, argv)
-    int argc;
-    char *argv[];
+drcSpacing(
+    int argc,
+    char *argv[])
 {
     char *layers1 = argv[1], *layers2;
     char *adjacency;
@@ -2775,9 +2790,9 @@ drcSpacing(argc, argv)
  */
 
 int
-drcEdge(argc, argv)
-    int argc;
-    char *argv[];
+drcEdge(
+    int argc,
+    char *argv[])
 {
     char *layers1 = argv[1], *layers2 = argv[2];
     int distance = atoi(argv[3]);
@@ -2956,9 +2971,9 @@ drcEdge(argc, argv)
  */
 
 int
-drcOverhang(argc, argv)
-    int argc;
-    char *argv[];
+drcOverhang(
+    int argc,
+    char *argv[])
 {
     char *layers2 = argv[1], *layers1 = argv[2];
     int distance = atoi(argv[3]);
@@ -3093,9 +3108,9 @@ drcOverhang(argc, argv)
  */
 
 int
-drcRectOnly(argc, argv)
-    int argc;
-    char *argv[];
+drcRectOnly(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int why = drcWhyCreate(argv[2]);
@@ -3198,9 +3213,9 @@ drcRectOnly(argc, argv)
  */
 
 int
-drcSurround(argc, argv)
-    int argc;
-    char *argv[];
+drcSurround(
+    int argc,
+    char *argv[])
 {
     char *layers1 = argv[1], *layers2 = argv[2], *endptr;
     int distance = atoi(argv[3]);
@@ -3498,9 +3513,9 @@ drcSurround(argc, argv)
  */
 
 int
-drcNoOverlap(argc, argv)
-    int argc;
-    char *argv[];
+drcNoOverlap(
+    int argc,
+    char *argv[])
 {
     char *layers1 = argv[1], *layers2 = argv[2];
     TileTypeBitMask set1, set2;
@@ -3552,9 +3567,9 @@ drcNoOverlap(argc, argv)
  */
 
 int
-drcExactOverlap(argc, argv)
-    int argc;
-    char *argv[];
+drcExactOverlap(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     TileTypeBitMask set;
@@ -3596,9 +3611,9 @@ drcExactOverlap(argc, argv)
  */
 
 int
-drcRectangle(argc, argv)
-    int argc;
-    char *argv[];
+drcRectangle(
+    int argc,
+    char *argv[])
 {
     char *layers = argv[1];
     int why = drcWhyCreate(argv[4]);
@@ -3738,9 +3753,9 @@ drcRectangle(argc, argv)
  */
 
 int
-drcException(argc, argv)
-    int argc;
-    char *argv[];
+drcException(
+    int argc,
+    char *argv[])
 {
     int i;
 
@@ -3756,9 +3771,9 @@ drcException(argc, argv)
 }
 
 int
-drcExemption(argc, argv)
-    int argc;
-    char *argv[];
+drcExemption(
+    int argc,
+    char *argv[])
 {
     int i;
 
@@ -3797,9 +3812,9 @@ drcExemption(argc, argv)
  */
 
 int
-drcOption(argc, argv)
-    int argc;
-    char *argv[];
+drcOption(
+    int argc,
+    char *argv[])
 {
     int i;
 
@@ -3844,9 +3859,9 @@ drcOption(argc, argv)
  */
 
 int
-drcStepSize(argc, argv)
-    int argc;
-    char *argv[];
+drcStepSize(
+    int argc,
+    char *argv[])
 {
     if (DRCCurStyle == NULL) return 0;
 
@@ -3922,9 +3937,9 @@ DRCTechFinal()
  */
 
 void
-drcScaleDown(style, scalefactor)
-    DRCStyle *style;
-    int scalefactor;
+drcScaleDown(
+    DRCStyle *style,
+    int scalefactor)
 {
     TileType i, j;
     DRCCookie  *dp;
@@ -3991,9 +4006,9 @@ drcScaleDown(style, scalefactor)
  */
 
 void
-drcScaleUp(style, scalefactor)
-    DRCStyle *style;
-    int scalefactor;
+drcScaleUp(
+    DRCStyle *style,
+    int scalefactor)
 {
     TileType i, j;
     DRCCookie  *dp;
@@ -4060,8 +4075,8 @@ drcScaleUp(style, scalefactor)
  */
 
 void
-drcTechFinalStyle(style)
-   DRCStyle *style;
+drcTechFinalStyle(
+    DRCStyle *style)
 {
     TileTypeBitMask tmpMask, nextMask;
     DRCCookie  *dummy, *dp, *next, *dptrig;
@@ -4400,8 +4415,9 @@ DRCTechRuleStats()
  */
 
 void
-DRCTechScale(scalen, scaled)
-    int scalen, scaled;
+DRCTechScale(
+    int scalen,
+    int scaled)
 {
     DRCCookie  *dp;
     TileType i, j;
@@ -4469,8 +4485,8 @@ DRCTechScale(scalen, scaled)
  */
 
 int
-DRCGetDefaultLayerWidth(ttype)
-    TileType ttype;
+DRCGetDefaultLayerWidth(
+    TileType ttype)
 {
     int routeWidth = 0;
     DRCCookie *cptr;
@@ -4535,8 +4551,9 @@ DRCGetDefaultLayerWidth(ttype)
  */
 
 int
-DRCGetDefaultLayerSpacing(ttype1, ttype2)
-    TileType ttype1, ttype2;
+DRCGetDefaultLayerSpacing(
+    TileType ttype1,
+    TileType ttype2)
 {
     int routeSpacing = 0;
     DRCCookie *cptr;
@@ -4594,8 +4611,9 @@ DRCGetDefaultLayerSpacing(ttype1, ttype2)
  */
 
 int
-DRCGetDefaultLayerSurround(ttype1, ttype2)
-    TileType ttype1, ttype2;
+DRCGetDefaultLayerSurround(
+    TileType ttype1,
+    TileType ttype2)
 {
     int layerSurround = 0;
     DRCCookie *cptr;
@@ -4668,8 +4686,9 @@ DRCGetDefaultLayerSurround(ttype1, ttype2)
  */
 
 int
-DRCGetDirectionalLayerSurround(ttype1, ttype2)
-    TileType ttype1, ttype2;
+DRCGetDirectionalLayerSurround(
+    TileType ttype1,
+    TileType ttype2)
 {
     int layerSurround = 0;
     DRCCookie *cptr, *cnext;
@@ -4720,9 +4739,9 @@ DRCGetDirectionalLayerSurround(ttype1, ttype2)
  */
 
 int
-DRCGetDefaultWideLayerSpacing(ttype, twidth)
-    TileType ttype;
-    int twidth;
+DRCGetDefaultWideLayerSpacing(
+    TileType ttype,
+    int twidth)
 {
     int routeSpacing = 0;
     DRCCookie *cptr;

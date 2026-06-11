@@ -79,9 +79,9 @@ extern const TestCmdTableE mzTestCommands[];
  */
 
 void
-mzDebugTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+mzDebugTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int result;
     bool value;
@@ -133,9 +133,9 @@ mzDebugTstCmd(w, cmd)
  */
 
 void
-mzDumpEstimatesTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+mzDumpEstimatesTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc > 2)
     {
@@ -180,9 +180,9 @@ mzDumpEstimatesTstCmd(w, cmd)
  */
 
 void
-mzDumpTagsTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+mzDumpTagsTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc > 2)
     {
@@ -227,9 +227,9 @@ mzDumpTagsTstCmd(w, cmd)
  */
 
 void
-mzHelpTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+mzHelpTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int n;
     int which;
@@ -303,9 +303,9 @@ mzHelpTstCmd(w, cmd)
  */
 
 void
-mzNumberLineTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+mzNumberLineTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     NumberLine myLine;
     int *result;
@@ -382,9 +382,9 @@ mzNumberLineTstCmd(w, cmd)
  */
 
 void
-mzParmsTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+mzParmsTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 
     MZPrintRLs(mzRouteLayers);
@@ -413,9 +413,9 @@ mzParmsTstCmd(w, cmd)
  */
 
 void
-mzPlaneTstCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+mzPlaneTstCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileType t;
     RouteType *rT;
@@ -486,9 +486,9 @@ mzPlaneTstCmd(w, cmd)
  */
 
 void
-mzVersionCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+mzVersionCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 
     if(cmd->tx_argc == 2)
@@ -573,9 +573,9 @@ const TestCmdTableE mzTestCommands[] = {
 }, *mzTestCmdP;
 
 void
-MZTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+MZTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int n;
     int which;

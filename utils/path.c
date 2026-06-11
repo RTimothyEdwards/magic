@@ -71,7 +71,11 @@ bool FileLocking = TRUE;
  * Made non-static as flock() can use it but still considered module internal API.
  */
 gzFile
-path_gzdopen_internal(const char *path, int oflags, const char *modestr, int *fdp)
+path_gzdopen_internal(
+    const char *path,
+    int oflags,
+    const char *modestr,
+    int *fdp)
 {
     ASSERT(fdp, "fdp");
 
@@ -113,8 +117,8 @@ close:
  */
  
 char *
-PaCheckCompressed(filename)
-    const char *filename;
+PaCheckCompressed(
+    const char *filename)
 {
     char *gzname;
 
@@ -137,7 +141,9 @@ PaCheckCompressed(filename)
  *	newstring is the new string to append to the path.
  */
 void
-PaAppend(char **pathptr, const char *newstring)
+PaAppend(
+    char **pathptr,
+    const char *newstring)
 {
     int oldlength, addlength;
     char *new;
@@ -190,11 +196,10 @@ PaAppend(char **pathptr, const char *newstring)
  */
 
 int
-PaExpand(psource, pdest, size)
-    const char **psource;	/* Pointer to a pointer to the source string */
-    char **pdest;		/* Pointer to a ptr to dest string area. */
-    int size;			/* Number of bytes available at pdest */
-
+PaExpand(
+    const char **psource,	/* Pointer to a pointer to the source string */
+    char **pdest,		/* Pointer to a ptr to dest string area. */
+    int size)			/* Number of bytes available at pdest */
 {
     const char *ps;
     char *pd;
@@ -386,14 +391,13 @@ noexpand:
  */
 
 char *
-nextName(ppath, file, dest, size)
-    const char **ppath;		/* Pointer to a pointer to the next
+nextName(
+    const char **ppath,		/* Pointer to a pointer to the next
 				 * entry in the path.
 				 */
-    const char *file;		/* Pointer to a file name. */
-    char *dest;			/* Place to build result name. */
-    int size;			/* Size of result area. */
-
+    const char *file,		/* Pointer to a file name. */
+    char *dest,			/* Place to build result name. */
+    int size)			/* Size of result area. */
 {
     char *p;
 
@@ -444,32 +448,32 @@ nextName(ppath, file, dest, size)
  */
 
 gzFile
-PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
-    const char *file;		/* Name of the file to be opened. */
-    const char *mode;		/* The file mode, as given to fopen. */
-    const char *ext;		/* The extension to be added to the file name,
+PaLockZOpen(
+    const char *file,		/* Name of the file to be opened. */
+    const char *mode,		/* The file mode, as given to fopen. */
+    const char *ext,		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    const char *path;		/* A search path:  a list of directory names
+    const char *path,		/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    const char *library;	/* A 2nd path containing library names.  Can be
+    const char *library,	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
-    char **pRealName;		/* Pointer to a location that will be filled
+    char **pRealName,		/* Pointer to a location that will be filled
 				 * in with the address of the real name of
 				 * the file that was successfully opened.
 				 * If NULL, then nothing is stored.
 				 */
-    bool *is_locked;		/* Pointer to a location to store the result
+    bool *is_locked,		/* Pointer to a location to store the result
 				 * of the attempt to grab an advisory lock
 				 * on the file.  If NULL, then nothing is
 				 * stored.
 				 */
-    int *fdp;			/* If non-NULL, put the file descriptor here */
+    int *fdp)			/* If non-NULL, put the file descriptor here */
 {
     char extendedName[MAXSIZE], *p1;
     const char *p2;
@@ -644,32 +648,32 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
  */
 
 FILE *
-PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
-    const char *file;		/* Name of the file to be opened. */
-    const char *mode;		/* The file mode, as given to fopen. */
-    const char *ext;		/* The extension to be added to the file name,
+PaLockOpen(
+    const char *file,		/* Name of the file to be opened. */
+    const char *mode,		/* The file mode, as given to fopen. */
+    const char *ext,		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    const char *path;		/* A search path:  a list of directory names
+    const char *path,		/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    const char *library;	/* A 2nd path containing library names.  Can be
+    const char *library,	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
-    char **pRealName;		/* Pointer to a location that will be filled
+    char **pRealName,		/* Pointer to a location that will be filled
 				 * in with the address of the real name of
 				 * the file that was successfully opened.
 				 * If NULL, then nothing is stored.
 				 */
-    bool *is_locked;		/* Pointer to a location to store the result
+    bool *is_locked,		/* Pointer to a location to store the result
 				 * of the attempt to grab an advisory lock
 				 * on the file.  If NULL, then nothing is
 				 * stored.
 				 */
-    int *fdp;			/* If non-NULL, put the file descriptor here. */
+    int *fdp)			/* If non-NULL, put the file descriptor here. */
 {
     char extendedName[MAXSIZE], *p1;
     const char *p2;
@@ -829,22 +833,22 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
  */
 
 gzFile
-PaZOpen(file, mode, ext, path, library, pRealName)
-    const char *file;		/* Name of the file to be opened. */
-    const char *mode;		/* The file mode, as given to gzopen. */
-    const char *ext;		/* The extension to be added to the file name,
+PaZOpen(
+    const char *file,		/* Name of the file to be opened. */
+    const char *mode,		/* The file mode, as given to gzopen. */
+    const char *ext,		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    const char *path;		/* A search path:  a list of directory names
+    const char *path,		/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    const char *library;	/* A 2nd path containing library names.  Can be
+    const char *library,	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
-    char **pRealName;		/* Pointer to a location that will be filled
+    char **pRealName)		/* Pointer to a location that will be filled
 				 * in with the address of the real name of
 				 * the file that was successfully opened.
 				 * If NULL, then nothing is stored.
@@ -964,22 +968,22 @@ PaZOpen(file, mode, ext, path, library, pRealName)
  */
 
 FILE *
-PaOpen(file, mode, ext, path, library, pRealName)
-    const char *file;		/* Name of the file to be opened. */
-    const char *mode;		/* The file mode, as given to fopen. */
-    const char *ext;		/* The extension to be added to the file name,
+PaOpen(
+    const char *file,		/* Name of the file to be opened. */
+    const char *mode,		/* The file mode, as given to fopen. */
+    const char *ext,		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    const char *path;			/* A search path:  a list of directory names
+    const char *path,			/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    const char *library;	/* A 2nd path containing library names.  Can be
+    const char *library,	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
-    char **pRealName;		/* Pointer to a location that will be filled
+    char **pRealName)		/* Pointer to a location that will be filled
 				 * in with the address of the real name of
 				 * the file that was successfully opened.
 				 * If NULL, then nothing is stored.
@@ -1008,12 +1012,11 @@ PaOpen(file, mode, ext, path, library, pRealName)
  */
 
 char *
-PaSubsWD(path, newWD)
-const char *path;		/* Path in which to substitute. */
-const char *newWD;		/* New working directory to be used.  Must
+PaSubsWD(
+const char *path,		/* Path in which to substitute. */
+const char *newWD)		/* New working directory to be used.  Must
 				 * end in a slash.
 				 */
-
 {
 #define NEWPATHSIZE 1000
     static char newPath[NEWPATHSIZE];
@@ -1107,13 +1110,13 @@ const char *newWD;		/* New working directory to be used.  Must
  */
 
 int
-PaEnum(path, file, proc, cdata)
-    const char *path;		/* Search path */
-    const char *file;	/* Each element of the search path is prepended to
+PaEnum(
+    const char *path,		/* Search path */
+    const char *file,	/* Each element of the search path is prepended to
 			 * this file name and passed to the client.
 			 */
-    int (*proc)();	/* Client procedure */
-    ClientData cdata;	/* Passed to (*proc)() */
+    int (*proc)(),	/* Client procedure */
+    ClientData cdata)	/* Passed to (*proc)() */
 {
     char component[MAXSIZE], *next;
 

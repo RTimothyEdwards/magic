@@ -66,11 +66,11 @@ char *NMCurNetName = NULL;
  */
 
 void
-NMButtonNetList(window, cmd, nmButton, point)
-    MagWindow *window;		/* Where button was clicked (not used). */
-    NetButton *nmButton;	/* Data structure for button (not used). */
-    TxCommand *cmd;		/* Used to figure out which button it was. */
-    Point *point;		/* Not used. */
+NMButtonNetList(
+    MagWindow *window,		/* Where button was clicked (not used). */
+    TxCommand *cmd,		/* Used to figure out which button it was. */
+    NetButton *nmButton,	/* Data structure for button (not used). */
+    Point *point)		/* Not used. */
 {
 #define MAXLENGTH 200
     char newName[MAXLENGTH];
@@ -182,9 +182,9 @@ nmButtonSetup()
  */
 
 void
-NMButtonRight(w, cmd)
-    MagWindow *w;			/* Window in which button was pushed. */
-    TxCommand *cmd;		/* Detailed information about command. */
+NMButtonRight(
+    MagWindow *w,			/* Window in which button was pushed. */
+    TxCommand *cmd)		/* Detailed information about command. */
 {
     char *name;
     extern int nmButHighlightFunc(), nmButUnHighlightFunc();
@@ -251,9 +251,9 @@ NMButtonRight(w, cmd)
  */
 
 int
-nmButCheckFunc(name1, name2)
-    char *name1;		/* Name of terminal in net. */
-    char *name2;		/* Name of other terminal. */
+nmButCheckFunc(
+    char *name1,		/* Name of terminal in net. */
+    char *name2)		/* Name of other terminal. */
 {
     if (strcmp(name1, name2) == 0) return 1;
     return 0;
@@ -265,9 +265,9 @@ nmButCheckFunc(name1, name2)
  */
 
 int
-nmFindNetNameFunc(name1, pname2)
-    char *name1;		/* Name of terminal in net. */
-    char **pname2;		/* Pointer to name to be replaced with
+nmFindNetNameFunc(
+    char *name1,		/* Name of terminal in net. */
+    char **pname2)		/* Pointer to name to be replaced with
 				 * different name, if there is a different
 				 * name in the net.
 				 */
@@ -279,11 +279,11 @@ nmFindNetNameFunc(name1, pname2)
 
 	/* ARGSUSED */
 int
-nmButHighlightFunc(area, name, label, pExists)
-    Rect  *area;		/* Area of the label. */
-    char  *name;		/* Name of label. */
-    Label *label;		/* Pointer to label */
-    bool  *pExists;		/* We just set this to TRUE. */
+nmButHighlightFunc(
+    Rect  *area,		/* Area of the label. */
+    char  *name,		/* Name of label. */
+    Label *label,		/* Pointer to label */
+    bool  *pExists)		/* We just set this to TRUE. */
 {
     Rect rootArea;
     Point point;
@@ -297,8 +297,8 @@ nmButHighlightFunc(area, name, label, pExists)
 }
 
 int
-nmButUnHighlightFunc(area)
-    Rect *area;			/* Area of the label. */
+nmButUnHighlightFunc(
+    Rect *area)			/* Area of the label. */
 {
     Rect rootArea;
     Point point;
@@ -311,9 +311,9 @@ nmButUnHighlightFunc(area)
 }
 
 int
-nmNewRefFunc(name, oldRef)
-    char *name;			/* Name of a terminal in the net. */
-    char *oldRef;		/* Name we don't want to use as net reference
+nmNewRefFunc(
+    char *name,			/* Name of a terminal in the net. */
+    char *oldRef)		/* Name we don't want to use as net reference
 				 * anymore.
 				 */
 {
@@ -344,8 +344,8 @@ nmNewRefFunc(name, oldRef)
  */
 
 void
-NMSelectNet(name)
-    char *name;			/* Gives name of terminal in net to be
+NMSelectNet(
+    char *name)			/* Gives name of terminal in net to be
 				 * be selected.
 				 */
 {
@@ -371,8 +371,8 @@ NMSelectNet(name)
 /* For each terminal in the net, highlight each instance of the terminal. */
 
 int
-nmSelNetFunc(name)
-    char *name;
+nmSelNetFunc(
+    char *name)
 {
     bool exists;
 
@@ -402,9 +402,9 @@ nmSelNetFunc(name)
  */
 
 void
-NMButtonLeft(w, cmd)
-    MagWindow *w;			/* Window in which button was pushed. */
-    TxCommand *cmd;		/* Detailed information about the command. */
+NMButtonLeft(
+    MagWindow *w,			/* Window in which button was pushed. */
+    TxCommand *cmd)		/* Detailed information about the command. */
 {
     char *name;
 
@@ -441,9 +441,9 @@ NMButtonLeft(w, cmd)
  */
 
 void
-NMButtonMiddle(w, cmd)
-    MagWindow *w;		/* Window in which button was pushed. */
-    TxCommand *cmd;	/* Detailed information about command. */
+NMButtonMiddle(
+    MagWindow *w,		/* Window in which button was pushed. */
+    TxCommand *cmd)	/* Detailed information about command. */
 {
     char *name;
 
@@ -489,9 +489,9 @@ NMButtonMiddle(w, cmd)
  */
 
 void
-NMButtonProc(w, cmd)
-    MagWindow *w;		/* Window in which button was pushed. */
-    TxCommand *cmd;	/* Detailed information about exactly what happened. */
+NMButtonProc(
+    MagWindow *w,		/* Window in which button was pushed. */
+    TxCommand *cmd)	/* Detailed information about exactly what happened. */
 {
     if (cmd->tx_buttonAction != TX_BUTTON_DOWN) return;
     switch (cmd->tx_button)

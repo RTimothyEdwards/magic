@@ -124,10 +124,10 @@ bool extTestNMInteract(Tile *t1, TileType di1, Tile *t2, TileType di2)
  */
 
 int
-extHierSubShieldFunc(tile, dinfo, clientdata)
-    Tile *tile;			/* (unused) */
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+extHierSubShieldFunc(
+    Tile *tile,			/* (unused) */
+    TileType dinfo,		/* (unused) */
+    ClientData clientdata)	/* (unused) */
 {
     return 1;
 }
@@ -149,10 +149,11 @@ extHierSubShieldFunc(tile, dinfo, clientdata)
  */
 
 void
-extHierSubstrate(ha, use, x, y)
-    HierExtractArg *ha; 	// Contains parent def and hash table
-    CellUse *use;		// Child use
-    int x, y;			// Array subscripts, or -1 if not an array
+extHierSubstrate(
+    HierExtractArg *ha, 	// Contains parent def and hash table
+    CellUse *use,		// Child use
+    int x,
+    int y)
 {
     NodeRegion *nodeList;
     HashTable *table = &ha->ha_connHash;
@@ -164,7 +165,7 @@ extHierSubstrate(ha, use, x, y)
     Rect subArea;
     int pNum;
 
-    NodeRegion *extFindNodes();
+    NodeRegion *extFindNodes(CellDef *def, Rect *clipArea, bool subonly);
 
     /* Backwards compatibility with tech files that don't */
     /* define a substrate plane or substrate connections. */
@@ -336,9 +337,10 @@ extHierSubstrate(ha, use, x, y)
  */
 
 void
-extHierConnections(ha, cumFlat, oneFlat)
-    HierExtractArg *ha;
-    ExtTree *cumFlat, *oneFlat;
+extHierConnections(
+    HierExtractArg *ha,
+    ExtTree *cumFlat,
+    ExtTree *oneFlat)
 {
     int pNum;
     CellDef *sourceDef = oneFlat->et_use->cu_def;
@@ -399,10 +401,10 @@ extHierConnections(ha, cumFlat, oneFlat)
  */
 
 int
-extHierConnectFunc1(oneTile, dinfo, ha)
-    Tile *oneTile;	/* Comes from 'oneFlat' in extHierConnections */
-    TileType dinfo;	/* Split tile information (unused) */
-    HierExtractArg *ha;	/* Extraction context */
+extHierConnectFunc1(
+    Tile *oneTile,	/* Comes from 'oneFlat' in extHierConnections */
+    TileType dinfo,	/* Split tile information (unused) */
+    HierExtractArg *ha)	/* Extraction context */
 {
     CellDef *cumDef = extHierCumFlat->et_use->cu_def;
     Rect r;
@@ -613,10 +615,10 @@ extHierFindTopNode(Tile *tile,
  */
 
 int
-extHierConnectFunc2(cum, dinfo, ha)
-    Tile *cum;		/* Comes from extHierCumFlat->et_use->cu_def */
-    TileType dinfo;	/* Split tile information */
-    HierExtractArg *ha;	/* Extraction context */
+extHierConnectFunc2(
+    Tile *cum,		/* Comes from extHierCumFlat->et_use->cu_def */
+    TileType dinfo,	/* Split tile information */
+    HierExtractArg *ha)	/* Extraction context */
 {
     HashTable *table = &ha->ha_connHash;
     Node *node1, *node2;
@@ -799,10 +801,10 @@ extHierConnectFunc2(cum, dinfo, ha)
  */
 
 int
-extHierConnectFunc3(cum, dinfo, ha)
-    Tile *cum;		/* Comes from extHierCumFlat->et_use->cu_def */
-    TileType dinfo;	/* Split tile information */
-    HierExtractArg *ha;	/* Extraction context */
+extHierConnectFunc3(
+    Tile *cum,		/* Comes from extHierCumFlat->et_use->cu_def */
+    TileType dinfo,	/* Split tile information */
+    HierExtractArg *ha)	/* Extraction context */
 {
     HashTable *table = &ha->ha_connHash;
     Node *node1, *node2;
@@ -953,9 +955,11 @@ extHierConnectFunc3(cum, dinfo, ha)
  */
 
 void
-extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
-    HierExtractArg *ha;
-    ExtTree *cumFlat, *oneFlat, *lookFlat;
+extHierAdjustments(
+    HierExtractArg *ha,
+    ExtTree *cumFlat,
+    ExtTree *oneFlat,
+    ExtTree *lookFlat)
 {
     HashEntry *he, *heCum;
     int n;
@@ -1050,9 +1054,9 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
  */
 
 void
-extOutputConns(table, outf)
-    HashTable *table;
-    FILE *outf;
+extOutputConns(
+    HashTable *table,
+    FILE *outf)
 {
     CapValue c;  /* cap value */
     NodeName *nn, *nnext;
@@ -1149,8 +1153,8 @@ extOutputConns(table, outf)
  */
 
 Node *
-extHierNewNode(he)
-    HashEntry *he;
+extHierNewNode(
+    HashEntry *he)
 {
     int n, nclasses;
     NodeName *nn;
@@ -1199,10 +1203,10 @@ extHierNewNode(he)
 
     /*ARGSUSED*/
 ExtRegion *
-extHierLabFirst(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    FindRegion *arg;
+extHierLabFirst(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    FindRegion *arg)
 {
     LabRegion *new;
 
@@ -1220,11 +1224,11 @@ extHierLabFirst(tile, dinfo, arg)
 
     /*ARGSUSED*/
 int
-extHierLabEach(tile, dinfo, pNum, arg)
-    Tile *tile;
-    TileType dinfo;
-    int pNum;
-    FindRegion *arg;
+extHierLabEach(
+    Tile *tile,
+    TileType dinfo,
+    int pNum,
+    FindRegion *arg)
 {
     LabRegion *reg;
 
@@ -1307,8 +1311,8 @@ extHierNewOne()
  */
 
 void
-extHierFreeOne(et)
-    ExtTree *et;
+extHierFreeOne(
+    ExtTree *et)
 {
     if (ExtOptions & EXT_DOCOUPLING)
 	extCapHashKill(&et->et_coupleHash);

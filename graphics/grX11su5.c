@@ -53,9 +53,9 @@ Cursor grCursors[MAX_CURSORS];
  */
 
 void
-GrX11DrawGlyph (gl, p)
-    GrGlyph *gl;		/* A single glyph */
-    Point *p;			/* screen pos of lower left corner */
+GrX11DrawGlyph(
+    GrGlyph *gl,		/* A single glyph */
+    Point *p)			/* screen pos of lower left corner */
 {
     Rect bBox;
     bool anyObscure;
@@ -168,8 +168,8 @@ GrX11DrawGlyph (gl, p)
  */
 
 void
-grx11DefineCursor(glyphs)
-    GrGlyphs *glyphs;
+grx11DefineCursor(
+    GrGlyphs *glyphs)
 {
     int glyphnum;
     Rect oldClip;
@@ -301,8 +301,8 @@ grx11DefineCursor(glyphs)
  */
 
 void
-GrX11SetCursor(cursorNum)
-    int cursorNum;	/* The cursor number as defined in the display
+GrX11SetCursor(
+    int cursorNum)	/* The cursor number as defined in the display
 		         * styles file.
 		         */
 {

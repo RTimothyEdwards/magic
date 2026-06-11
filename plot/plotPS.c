@@ -237,10 +237,10 @@ PlotPSTechInit()
  */
 
 bool
-PlotPSTechLine(sectionName, argc, argv)
-    char *sectionName;		/* Name of this section (unused). */
-    int argc;			/* Number of arguments on line. */
-    char *argv[];		/* Pointers to fields of line. */
+PlotPSTechLine(
+    char *sectionName,		/* Name of this section (unused). */
+    int argc,			/* Number of arguments on line. */
+    char *argv[])		/* Pointers to fields of line. */
 {
     PSStyle *newstyle;
     PSColor *newcolor;
@@ -333,8 +333,8 @@ PlotPSTechLine(sectionName, argc, argv)
  */
 
 void
-plotPSFlushRect(style)
-    int style;
+plotPSFlushRect(
+    int style)
 {
     if (curwidth > 0)
     {
@@ -389,10 +389,9 @@ plotPSFlushLine()
  */
 
 void
-plotPSLine(p1, p2)
-    Point *p1, *p2;		/* Endpoints of line, given in root
-				 * coordinates.
-				 */
+plotPSLine(
+    Point *p1,
+    Point *p2)
 {
     int x1, x2, y1, y2, limit, diff;
     bool tmptf;
@@ -472,9 +471,9 @@ plotPSLine(p1, p2)
  */
 
 void
-plotPSRect(rect, style)
-    Rect *rect;	/* Rectangle to be drawn, in root coords. */
-    int style;
+plotPSRect(
+    Rect *rect,	/* Rectangle to be drawn, in root coords. */
+    int style)
 {
     int x, y, w, h;
 
@@ -513,10 +512,10 @@ plotPSRect(rect, style)
  */
 
 int
-plotPSPaint(tile, dinfo, cxp)
-    Tile *tile;			/* Tile that's of type to be output. */
-    TileType dinfo;		/* Split tile information */
-    TreeContext *cxp;		/* Describes search in progress. */
+plotPSPaint(
+    Tile *tile,			/* Tile that's of type to be output. */
+    TileType dinfo,		/* Split tile information */
+    TreeContext *cxp)		/* Describes search in progress. */
 {
     Rect tileArea, edge, rootArea;
     int xbot, width, ybot, height;
@@ -758,14 +757,14 @@ searchright:
  */
 
 int
-plotPSLabelPosition(scx, label, x, y, p)
-    SearchContext *scx;		/* Describes state of search when label
+plotPSLabelPosition(
+    SearchContext *scx,		/* Describes state of search when label
 				 * was found.
 				 */
-    Label *label;		/* Label that was found. */
-    int *x;			/* returned x position */
-    int *y;			/* returned y position */
-    int *p;			/* returned orientation */
+    Label *label,		/* Label that was found. */
+    int *x,			/* returned x position */
+    int *y,			/* returned y position */
+    int *p)			/* returned orientation */
 {
     Rect rootArea;
     int pos;
@@ -854,11 +853,11 @@ plotPSLabelPosition(scx, label, x, y, p)
 #define CHARHEIGHT 1.4
 
 int
-plotPSLabelBounds(scx, label)
-    SearchContext *scx;		/* Describes state of search when label
+plotPSLabelBounds(
+    SearchContext *scx,		/* Describes state of search when label
 				 * was found.
 				 */
-    Label *label;		/* Label that was found. */
+    Label *label)		/* Label that was found. */
 {
     int pspos;
     int ls, psxsize, psysize;
@@ -939,11 +938,11 @@ plotPSLabelBounds(scx, label)
  */
 
 int
-plotPSLabelBox(scx, label)
-    SearchContext *scx;		/* Describes state of search when label
+plotPSLabelBox(
+    SearchContext *scx,		/* Describes state of search when label
 				 * was found.
 				 */
-    Label *label;		/* Label that was found. */
+    Label *label)		/* Label that was found. */
 {
     Rect rootArea;
     int x, y;
@@ -1004,11 +1003,11 @@ plotPSLabelBox(scx, label)
  */
 
 int
-plotPSLabel(scx, label)
-    SearchContext *scx;		/* Describes state of search when label
+plotPSLabel(
+    SearchContext *scx,		/* Describes state of search when label
 				 * was found.
 				 */
-    Label *label;		/* Label that was found. */
+    Label *label)		/* Label that was found. */
 {
     int x, y;
     int pspos;
@@ -1047,8 +1046,8 @@ plotPSLabel(scx, label)
  */
 
 int
-plotPSCell(scx)
-    SearchContext *scx;		/* Describes cell whose bbox is to
+plotPSCell(
+    SearchContext *scx)		/* Describes cell whose bbox is to
 				 * be plotted.
 				 */
 {
@@ -1123,12 +1122,12 @@ plotPSCell(scx)
  */
 
 void
-PlotPS(fileName, scx, layers, xMask)
-    char *fileName;			/* Name of PS file to write. */
-    SearchContext *scx;			/* The use and area and transformation
+PlotPS(
+    char *fileName,			/* Name of PS file to write. */
+    SearchContext *scx,			/* The use and area and transformation
 					 * in this describe what to plot.
 					 */
-    TileTypeBitMask *layers;		/* Tells what layers to plot.  Only
+    TileTypeBitMask *layers,		/* Tells what layers to plot.  Only
 					 * paint layers in this mask, and also
 					 * expanded according to xMask, are
 					 * plotted.  If L_LABELS is set, then
@@ -1139,7 +1138,7 @@ PlotPS(fileName, scx, layers, xMask)
 					 * according to xMask are plotted as
 					 * bounding boxes.
 					 */
-    int xMask;				/* An expansion mask, used to indicate
+    int xMask)				/* An expansion mask, used to indicate
 					 * the window whose expansion status
 					 * will be used to determine
 					 * visibility.  Zero means treat

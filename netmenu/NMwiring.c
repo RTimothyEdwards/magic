@@ -123,10 +123,10 @@ static int nmVCount= 0;
  */
 
 int
-nmwRipTileFunc(tile, plane, listHead)
-    Tile *tile;			/* Tile that is to be deleted. */
-    int plane;			/* Plane index of the tile */
-    struct nmwarea **listHead;	/* Pointer to list head pointer. */
+nmwRipTileFunc(
+    Tile *tile,			/* Tile that is to be deleted. */
+    int plane,			/* Plane index of the tile */
+    struct nmwarea **listHead)	/* Pointer to list head pointer. */
 {
     struct nmwarea *new;
 
@@ -219,13 +219,13 @@ NMRipup()
 
 	/* ARGSUSED */
 int
-nmRipLocFunc(rect, name, label, area)
-    Rect *rect;			/* Area of the terminal, edit cell coords. */
-    char *name;			/* Name of the terminal (ignored). */
-    Label *label;		/* Pointer to the label, used to find out
+nmRipLocFunc(
+    Rect *rect,			/* Area of the terminal, edit cell coords. */
+    char *name,			/* Name of the terminal (ignored). */
+    Label *label,		/* Pointer to the label, used to find out
 				 * what layer the label's attached to.
 				 */
-    Rect *area;			/* We GeoInclude into this all the areas of
+    Rect *area)			/* We GeoInclude into this all the areas of
 				 * all the tiles we delete.
 				 */
 {
@@ -278,10 +278,10 @@ nmRipLocFunc(rect, name, label, area)
 
 	/* ARGSUSED */
 int
-nmRipNameFunc(name, firstInNet, area)
-    char *name;			/* Name of terminal. */
-    bool firstInNet;		/* Ignored by this procedure. */
-    Rect *area;			/* Passed through as ClientData to
+nmRipNameFunc(
+    char *name,			/* Name of terminal. */
+    bool firstInNet,		/* Ignored by this procedure. */
+    Rect *area)			/* Passed through as ClientData to
 				 * nmRipLocFunc.
 				 */
 {
@@ -346,8 +346,8 @@ NMRipupList()
  */
 
 int
-nmwNetCellFunc(scx)
-    SearchContext *scx;		/* Describes search. */
+nmwNetCellFunc(
+    SearchContext *scx)		/* Describes search. */
 {
     TxError("Cell id %s touches net but has no terminals.\n",
 	scx->scx_use->cu_id);
@@ -373,9 +373,9 @@ nmwNetCellFunc(scx)
  */
 
 int
-nmwCheckFunc(name, otherName)
-    char *name;			/* Terminal in net. */
-    char *otherName;		/* Terminal we want to know if it's in net. */
+nmwCheckFunc(
+    char *name,			/* Terminal in net. */
+    char *otherName)		/* Terminal we want to know if it's in net. */
 {
     if (strcmp(name, otherName) == 0) return 1;
     return 0;
@@ -405,11 +405,11 @@ nmwCheckFunc(name, otherName)
 
 	/* ARGSUSED */
 int
-nmwNetTermFunc(scx, label, tpath, netPtr)
-    SearchContext *scx;		/* Describes state of search (ignored). */
-    Label *label;		/* Label (ignored). */
-    TerminalPath *tpath;	/* Gives hierarchical label name. */
-    char **netPtr;		/* Pointer to a terminal in current net. */
+nmwNetTermFunc(
+    SearchContext *scx,		/* Describes state of search (ignored). */
+    Label *label,		/* Label (ignored). */
+    TerminalPath *tpath,	/* Gives hierarchical label name. */
+    char **netPtr)		/* Pointer to a terminal in current net. */
 {
     char *p, *p2;
 
@@ -478,10 +478,10 @@ nmwNetTermFunc(scx, label, tpath, netPtr)
  */
 
 int
-nmwNetTileFunc(tile, plane, netPtr)
-    Tile *tile;			/* Tile that is connected to net. */
-    int plane;			/* Plane index of the tile */
-    char **netPtr;		/* Pointer to pointer to net name. */
+nmwNetTileFunc(
+    Tile *tile,			/* Tile that is connected to net. */
+    int plane,			/* Plane index of the tile */
+    char **netPtr)		/* Pointer to pointer to net name. */
 {
     SearchContext scx;
     char label[TERMLENGTH];
@@ -587,11 +587,11 @@ NMExtract()
  */
 
 int
-nmwVerifyLabelFunc2(scx, label, tpath, cd)
-    SearchContext *scx;		/* Describes state of search. */
-    Label *label;		/* Label. */
-    TerminalPath *tpath;	/* Gives hierarchical label name. */
-    ClientData cd;		/* Used in nmwVerifyTileFunc */
+nmwVerifyLabelFunc2(
+    SearchContext *scx,		/* Describes state of search. */
+    Label *label,		/* Label. */
+    TerminalPath *tpath,	/* Gives hierarchical label name. */
+    ClientData cd)		/* Used in nmwVerifyTileFunc */
 {
     char *p, *p2;
     char *name;
@@ -765,11 +765,11 @@ nmwVerifyTileFunc(
  */
 
 int
-nmwVerifyLabelFunc(rect, name, label, cd)
-    Rect *rect;			/* Area of the label, in EditUse coords. */
-    char *name;			/* Hierarchical name of label. */
-    Label *label;		/* Actual label structure. */
-    ClientData cd;		/* Client data for nmwVerifyTileFunc (function pointer) */
+nmwVerifyLabelFunc(
+    Rect *rect,			/* Area of the label, in EditUse coords. */
+    char *name,			/* Hierarchical name of label. */
+    Label *label,		/* Actual label structure. */
+    ClientData cd)		/* Client data for nmwVerifyTileFunc (function pointer) */
 {
     TileTypeBitMask *mask;
     int i;
@@ -826,10 +826,10 @@ nmwVerifyLabelFunc(rect, name, label, cd)
 
     /* ARGSUSED */
 int
-nmwVErrorLabelFunc(rect, name, label)
-    Rect *rect;			/* Area of label in edit cell coords. */
-    char *name;			/* Hierarchical name of label. */
-    Label *label;		/* Pointer to the label itself (not used). */
+nmwVErrorLabelFunc(
+    Rect *rect,			/* Area of label in edit cell coords. */
+    char *name,			/* Hierarchical name of label. */
+    Label *label)		/* Pointer to the label itself (not used). */
 {
     char msg[200];
     Rect biggerArea;
@@ -868,9 +868,9 @@ nmwVErrorLabelFunc(rect, name, label)
 
     /* ARGSUSED */
 int
-nmwVerifyTermFunc(name, report)
-    char *name;		/* Name of terminal. */
-    bool report;	/* TRUE => print error messages */
+nmwVerifyTermFunc(
+    char *name,		/* Name of terminal. */
+    bool report)	/* TRUE => print error messages */
 {
     int i, found;
 
@@ -923,9 +923,9 @@ nmwVerifyTermFunc(name, report)
  */
 
 int
-nmwVerifyNetFunc(name, first)
-    char *name;			/* Name of terminal. */
-    bool first;			/* TRUE means this is first terminal
+nmwVerifyNetFunc(
+    char *name,			/* Name of terminal. */
+    bool first)			/* TRUE means this is first terminal
 				 * of a new net.
 				 */
 {
@@ -1081,7 +1081,7 @@ NMVerify()
 int
 NMCull()
 {
-    int nmwCullNetFunc();
+    int nmwCullNetFunc(char *name, bool first);
 
     /* This implementation is the complement of the verify command.  Instead
      * of finding bad nets and reporting them, find good nets and remove them.
@@ -1118,9 +1118,9 @@ NMCull()
  * ----------------------------------------------------------------------------
  */
 int
-nmwCullNetFunc(name, first)
-    char *name;	/* Name of a terminal in a net */
-    bool first;	/* TRUE => first terminal of a net */
+nmwCullNetFunc(
+    char *name,	/* Name of a terminal in a net */
+    bool first)	/* TRUE => first terminal of a net */
 {
     int i;
 
@@ -1222,10 +1222,10 @@ NMMeasureNet()
 
 	/* ARGSUSED */
 int
-nmMeasureFunc(r, type, clientData)
-    Rect *r;
-    TileType type;
-    ClientData clientData;
+nmMeasureFunc(
+    Rect *r,
+    TileType type,
+    ClientData clientData)
 {
     if(type == RtrMetalType)
 	nmMArea=nmMArea+(r->r_xtop-r->r_xbot)*(r->r_ytop-r->r_ybot);
@@ -1257,10 +1257,10 @@ nmMeasureFunc(r, type, clientData)
  * ----------------------------------------------------------------------------
  */
 void
-NMMeasureAll(fp)
-    FILE * fp;
+NMMeasureAll(
+    FILE * fp)
 {
-    int nmAllFunc();
+    int nmAllFunc(char *name, bool firstInNet, FILE * fp);
 
     nmMArea = nmPArea = nmVCount= 0;
     (void) NMEnumNets(nmAllFunc, (ClientData) fp);
@@ -1271,10 +1271,10 @@ NMMeasureAll(fp)
 
 	/* ARGSUSED */
 int
-nmAllFunc(name, firstInNet, fp)
-    char *name;
-    bool firstInNet;
-    FILE * fp;
+nmAllFunc(
+    char *name,
+    bool firstInNet,
+    FILE * fp)
 {
     void nmwMeasureTileFunc();
     int saveM, saveP, saveV;
@@ -1329,8 +1329,8 @@ nmAllFunc(name, firstInNet, fp)
  * ----------------------------------------------------------------------------
  */
 void
-nmwMeasureTileFunc(tile)
-    Tile * tile;
+nmwMeasureTileFunc(
+    Tile * tile)
 {
     int i;
     Rect r;

@@ -130,9 +130,9 @@ struct drcSubcellArg {
  */
 
 int
-drcFindOtherCells(use, dlu)
-    CellUse *use;
-    struct drcLinkedUse *dlu;
+drcFindOtherCells(
+    CellUse *use,
+    struct drcLinkedUse *dlu)
 {
     if (use != dlu->dlu_use)
     	GeoInclude(&use->cu_bbox, &dlu->dlu_area);
@@ -158,10 +158,10 @@ drcFindOtherCells(use, dlu)
  */
 
 int
-drcSubCopyErrors(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    TreeContext *cxp;
+drcSubCopyErrors(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    TreeContext *cxp)
 {
     Rect area;
     Rect destArea;
@@ -206,9 +206,9 @@ drcSubCopyErrors(tile, dinfo, cxp)
  */
 
 int
-drcSubCopyFunc(scx, cdarg)
-    SearchContext *scx;
-    ClientData cdarg;
+drcSubCopyFunc(
+    SearchContext *scx,
+    ClientData cdarg)
 {
     TileTypeBitMask drcMask;
 
@@ -246,9 +246,9 @@ drcSubCopyFunc(scx, cdarg)
  */
 
 int
-drcSubcellFunc(subUse, dsa)
-    CellUse *subUse;		/* Subcell instance found in area. */
-    struct drcSubcellArg *dsa; 	/* Information needed for funtion and to pass
+drcSubcellFunc(
+    CellUse *subUse,		/* Subcell instance found in area. */
+    struct drcSubcellArg *dsa) 	/* Information needed for funtion and to pass
 				 * back to the caller.
 				 */
 {
@@ -349,11 +349,11 @@ drcAlwaysOne(Tile *tile,
  */
 
 int
-drcSubCheckPaint(scx, curUse)
-    SearchContext *scx;		/* Contains information about the celluse
+drcSubCheckPaint(
+    SearchContext *scx,		/* Contains information about the celluse
 				 * that was found.
 				 */
-    CellUse **curUse;		/* Points to a celluse, or NULL, or -1.  -1
+    CellUse **curUse)		/* Points to a celluse, or NULL, or -1.  -1
 				 * means paint was found in the root cell,
 				 * and non-NULL means some other celluse had
 				 * paint in it.  If we find another celluse
@@ -403,17 +403,17 @@ drcSubCheckPaint(scx, curUse)
  */
 
 int
-DRCFindInteractions(def, area, radius, interaction)
-    CellDef *def;		/* Cell to check for interactions. */
-    Rect *area;			/* Area of def to check for interacting
+DRCFindInteractions(
+    CellDef *def,		/* Cell to check for interactions. */
+    Rect *area,			/* Area of def to check for interacting
 				 * material.
 				 */
-    int radius;			/* How close two pieces of material must be
+    int radius,			/* How close two pieces of material must be
 				 * to be considered interacting.  Two pieces
 				 * radius apart do NOT interact, but if they're
 				 * close than this they do.
 				 */
-    Rect *interaction;		/* Gets filled in with the bounding box of
+    Rect *interaction)		/* Gets filled in with the bounding box of
 				 * the interaction area, if any.  Doesn't
 				 * have a defined value when FALSE is returned.
 				 */
@@ -539,10 +539,10 @@ DRCFindInteractions(def, area, radius, interaction)
  */
 
 int
-drcExactOverlapCheck(tile, dinfo, arg)
-    Tile *tile;			/* Tile to check. */
-    TileType dinfo;		/* Split tile information (unused) */
-    struct drcClientData *arg;	/* How to detect and process errors. */
+drcExactOverlapCheck(
+    Tile *tile,			/* Tile to check. */
+    TileType dinfo,		/* Split tile information (unused) */
+    struct drcClientData *arg)	/* How to detect and process errors. */
 {
     Rect rect;
 
@@ -579,10 +579,10 @@ drcExactOverlapCheck(tile, dinfo, arg)
  */
 
 int
-drcExactOverlapTile(tile, dinfo, cxp)
-    Tile *tile;			/* Tile that must overlap exactly. */
-    TileType dinfo;		/* Split tile information (unused) */
-    TreeContext *cxp;		/* Tells how to translate out of subcell.
+drcExactOverlapTile(
+    Tile *tile,			/* Tile that must overlap exactly. */
+    TileType dinfo,		/* Split tile information (unused) */
+    TreeContext *cxp)		/* Tells how to translate out of subcell.
 				 * The client data must be a drcClientData
 				 * record, and the caller must have filled
 				 * in the celldef, clip, errors, function,
@@ -720,8 +720,8 @@ drcExactOverlapTile(tile, dinfo, cxp)
  */
 
 void
-DRCOffGridError(rect)
-    Rect      *rect;            /* Area of error */
+DRCOffGridError(
+    Rect      *rect)            /* Area of error */
 {
     if (drcSubFunc == NULL) return;
     (*drcSubFunc)(DRCErrorDef, rect, &drcOffGridCookie, drcSubClientData);
@@ -763,12 +763,12 @@ DRCOffGridError(rect)
  */
 
 int
-DRCInteractionCheck(def, area, erasebox, func, cdarg)
-    CellDef *def;		/* Definition in which to do check. */
-    Rect *area;			/* Area in which all errors are to be found. */
-    Rect *erasebox;		/* Smaller area containing DRC check tiles */
-    void (*func)();		/* Function to call for each error. */
-    ClientData cdarg;		/* Extra info to be passed to func. */
+DRCInteractionCheck(
+    CellDef *def,		/* Definition in which to do check. */
+    Rect *area,			/* Area in which all errors are to be found. */
+    Rect *erasebox,		/* Smaller area containing DRC check tiles */
+    void (*func)(),		/* Function to call for each error. */
+    ClientData cdarg)		/* Extra info to be passed to func. */
 {
     int oldTiles, count, x, y, errorSaveType;
     Rect intArea, square, cliparea, subArea;
@@ -966,9 +966,9 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 }
 
 void
-DRCFlatCheck(use, area)
-    CellUse *use;
-    Rect *area;
+DRCFlatCheck(
+    CellUse *use,
+    Rect *area)
 {
     int x, y;
     Rect chunk;
@@ -1012,11 +1012,11 @@ DRCFlatCheck(use, area)
 }
 
 void
-drcIncCount(def, area, rule, count)
-    CellDef *def;
-    Rect *area;
-    DRCCookie *rule;
-    int *count;
+drcIncCount(
+    CellDef *def,
+    Rect *area,
+    DRCCookie *rule,
+    int *count)
 {
     (*count)++;
 }

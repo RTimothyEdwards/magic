@@ -96,7 +96,7 @@ DefaultType dbTechDefaultTypes[] =
 
 /* Forward declarations */
 char *dbTechNameAdd();
-NameList *dbTechNameAddOne();
+NameList *dbTechNameAddOne(char *name, ClientData cdata, bool isPrimary, bool isAlias, NameList *ptable);
 
 /*
  * ----------------------------------------------------------------------------
@@ -312,10 +312,10 @@ DBTechAddPlane(
  */
 
 void
-DBTechAddNameToType(newname, ttype, canonical)
-    char *newname;
-    TileType ttype;
-    bool canonical;
+DBTechAddNameToType(
+    char *newname,
+    TileType ttype,
+    bool canonical)
 {
     char *cp;
 
@@ -343,10 +343,10 @@ DBTechAddNameToType(newname, ttype, canonical)
  */
 
 bool
-DBTechAddAlias(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBTechAddAlias(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     char *cp;
     int pNum;
@@ -419,10 +419,10 @@ DBTechAddAlias(sectionName, argc, argv)
 
     /*ARGSUSED*/
 bool
-DBTechAddType(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBTechAddType(
+    char *sectionName,
+    int argc,
+    char *argv[])
 {
     char *cp;
     int pNum;
@@ -504,8 +504,9 @@ DBTechAddType(sectionName, argc, argv)
  */
 
 TileType
-dbTechNewStackedType(type1, type2)
-    TileType type1, type2;
+dbTechNewStackedType(
+    TileType type1,
+    TileType type2)
 {
     char buf[1024], *cp;
 
@@ -615,9 +616,9 @@ DBTechFinalType()
  */
 
 ClientData
-dbTechNameLookupExact(str, table)
-    char *str;		/* The name to be looked up */
-    NameList *table;	/* Table of names to search */
+dbTechNameLookupExact(
+    char *str,		/* The name to be looked up */
+    NameList *table)	/* Table of names to search */
 {
     NameList *top;
 
@@ -650,9 +651,9 @@ dbTechNameLookupExact(str, table)
  */
 
 ClientData
-dbTechNameLookup(str, table)
-    char *str;		/* The name to be looked up */
-    NameList *table;	/* Table of names to search */
+dbTechNameLookup(
+    char *str,		/* The name to be looked up */
+    NameList *table)	/* Table of names to search */
 {
     /*
      * The search is carried out by using two pointers, one which moves
@@ -734,11 +735,11 @@ dbTechNameLookup(str, table)
  */
 
 char *
-dbTechNameAdd(name, cdata, ptable, alias)
-    char *name;	/* Comma-separated list of names to be added */
-    ClientData cdata;		/* Value to be stored with each name above */
-    NameList *ptable;		/* Table to which we will add names */
-    int alias;			/* 1 if this is an alias (never make primary) */
+dbTechNameAdd(
+    char *name,	/* Comma-separated list of names to be added */
+    ClientData cdata,		/* Value to be stored with each name above */
+    NameList *ptable,		/* Table to which we will add names */
+    int alias)			/* 1 if this is an alias (never make primary) */
 {
     char *cp;
     char onename[BUFSIZ];
@@ -797,12 +798,12 @@ dbTechNameAdd(name, cdata, ptable, alias)
  */
 
 NameList *
-dbTechNameAddOne(name, cdata, isPrimary, isAlias, ptable)
-    char *name;	/* Name to be added */
-    ClientData cdata;		/* Client value associated with this name */
-    bool isPrimary;		/* TRUE if this is the primary abbreviation */
-    bool isAlias;		/* TRUE if this name is an alias */
-    NameList *ptable;		/* Table of names to which we're adding this */
+dbTechNameAddOne(
+    char *name,	/* Name to be added */
+    ClientData cdata,		/* Client value associated with this name */
+    bool isPrimary,		/* TRUE if this is the primary abbreviation */
+    bool isAlias,		/* TRUE if this name is an alias */
+    NameList *ptable)		/* Table of names to which we're adding this */
 {
     int cmp;
     NameList *tbl, *new;

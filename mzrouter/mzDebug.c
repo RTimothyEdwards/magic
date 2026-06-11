@@ -67,8 +67,8 @@ extern void mzPrintPathHead();
  */
 
 void
-MZPrintRCListNames(l)
-    List *l;
+MZPrintRCListNames(
+    List *l)
 {
     RouteContact *rC;
 
@@ -101,8 +101,8 @@ MZPrintRCListNames(l)
  */
 
 void
-MZPrintRLListNames(l)
-    List *l;
+MZPrintRLListNames(
+    List *l)
 {
     RouteLayer *rL;
 
@@ -135,8 +135,8 @@ MZPrintRLListNames(l)
  */
 
 void
-MZPrintRLs(rL)
-    RouteLayer *rL;
+MZPrintRLs(
+    RouteLayer *rL)
 {
     while(rL!=NULL)
     {
@@ -166,8 +166,8 @@ MZPrintRLs(rL)
  */
 
 void
-mzPrintRL(rL)
-    RouteLayer *rL;
+mzPrintRL(
+    RouteLayer *rL)
 {
     List *cL;
 
@@ -224,8 +224,8 @@ mzPrintRL(rL)
  */
 
 void
-mzPrintRT(rT)
-    RouteType *rT;
+mzPrintRT(
+    RouteType *rT)
 {
     int i;
 
@@ -282,8 +282,8 @@ mzPrintRT(rT)
  */
 
 void
-MZPrintRCs(rC)
-    RouteContact *rC;
+MZPrintRCs(
+    RouteContact *rC)
 {
     while(rC!=NULL)
     {
@@ -312,8 +312,8 @@ MZPrintRCs(rC)
  */
 
 void
-mzPrintRC(rC)
-    RouteContact *rC;
+mzPrintRC(
+    RouteContact *rC)
 {
     TxPrintf("ROUTE CONTACT:\n");
     mzPrintRT(&(rC->rc_routeType));
@@ -348,8 +348,8 @@ mzPrintRC(rC)
  */
 
 void
-mzPrintRPs(path)
-    RoutePath *path;
+mzPrintRPs(
+    RoutePath *path)
 {
     while(path!=NULL)
     {
@@ -377,8 +377,8 @@ mzPrintRPs(path)
  */
 
 void
-mzPrintRP(path)
-    RoutePath *path;
+mzPrintRP(
+    RoutePath *path)
 {
     TxPrintf("ROUTE PATH:");
     TxPrintf("  layer = %s",
@@ -415,8 +415,8 @@ mzPrintRP(path)
 
 /* mzPrintPathHead -- */
 void
-mzPrintPathHead(path)
-    RoutePath *path;
+mzPrintPathHead(
+    RoutePath *path)
 {
 
     if(path==NULL)
@@ -479,8 +479,8 @@ mzPrintPathHead(path)
  */
 
 void
-mzDumpTags(area)
-    Rect *area;
+mzDumpTags(
+    Rect *area)
 {
     int mzDumpTagsFunc();
     SearchContext scx;
@@ -526,10 +526,10 @@ mzDumpTags(area)
  */
 
 int
-mzDumpTagsFunc(tile, dinfo, cxp)
-    Tile *tile;
-    TileType dinfo;	/* (unused) */
-    TreeContext *cxp;
+mzDumpTagsFunc(
+    Tile *tile,
+    TileType dinfo,	/* (unused) */
+    TreeContext *cxp)
 {
     SearchContext *scx = cxp->tc_scx;
     Rect r;

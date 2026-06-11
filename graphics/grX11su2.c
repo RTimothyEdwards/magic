@@ -225,9 +225,9 @@ int grx11NbRects=0;
  */
 
 void
-grx11DrawLines(lines, nb)
-    XSegment lines[];
-    int nb;
+grx11DrawLines(
+    XSegment lines[],
+    int nb)
 {
     XDrawSegments(grXdpy, grCurrent.window, grGCDraw,
 	      lines, nb);
@@ -245,9 +245,11 @@ grx11DrawLines(lines, nb)
  */
 
 void
-grx11DrawLine (x1, y1, x2, y2)
-    int x1, y1;			/* Screen coordinates of first point. */
-    int x2, y2;			/* Screen coordinates of second point. */
+grx11DrawLine(
+    int x1,
+    int y1,
+    int x2,
+    int y2)
 {
     if (grx11NbLines == X11_BATCH_SIZE) GR_X_FLUSH_LINES();
     grx11Lines[grx11NbLines].x1 = x1;
@@ -270,9 +272,9 @@ grx11DrawLine (x1, y1, x2, y2)
  */
 
 void
-grx11FillRects(rects, nb)
-    XRectangle rects[];
-    int nb;
+grx11FillRects(
+    XRectangle rects[],
+    int nb)
 {
     XFillRectangles(grXdpy, grCurrent.window, grGCFill, rects, nb);
 }
@@ -290,8 +292,8 @@ grx11FillRects(rects, nb)
  */
 
 void
-grx11FillRect(r)
-    Rect *r;	/* Address of a rectangle in screen
+grx11FillRect(
+    Rect *r)	/* Address of a rectangle in screen
 			 * coordinates.
 			 */
 {
@@ -315,9 +317,9 @@ grx11FillRect(r)
  */
 
 void
-grx11FillPolygon(tp, np)
-    Point *tp;
-    int np;
+grx11FillPolygon(
+    Point *tp,
+    int np)
 {
     XPoint xp[5];
     int i;

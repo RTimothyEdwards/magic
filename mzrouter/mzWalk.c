@@ -54,8 +54,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header:";
  * ----------------------------------------------------------------------------
  */
 void
-mzWalkRight(path)
-    RoutePath *path;
+mzWalkRight(
+    RoutePath *path)
 {
     Point pOrg;		/* point to extend from */
     Point pNew;		/* next interesting point in direction of extension */
@@ -172,8 +172,8 @@ mzWalkRight(path)
  * ----------------------------------------------------------------------------
  */
 void
-mzWalkLeft(path)
-    RoutePath *path;
+mzWalkLeft(
+    RoutePath *path)
 {
     Point pOrg;		/* point to extend from */
     Point pNew;		/* next interesting point in direction of extension */
@@ -293,8 +293,8 @@ mzWalkLeft(path)
  * ----------------------------------------------------------------------------
  */
 void
-mzWalkUp(path)
-    RoutePath *path;
+mzWalkUp(
+    RoutePath *path)
 {
     Point pOrg;		/* point to extend from */
     Point pNew;		/* next interesting point in direction of extension */
@@ -411,8 +411,8 @@ mzWalkUp(path)
  * ----------------------------------------------------------------------------
  */
 void
-mzWalkDown(path)
-    RoutePath *path;
+mzWalkDown(
+    RoutePath *path)
 {
     Point pOrg;		/* point to extend from */
     Point pNew;		/* next interesting point in direction of extension */
@@ -531,8 +531,8 @@ mzWalkDown(path)
  * ----------------------------------------------------------------------------
  */
 void
-mzWalkLRContact(path)
-    RoutePath *path;
+mzWalkLRContact(
+    RoutePath *path)
 {
     Point pOrg;		/* point to extend from */
     int extendCode;	/* Interesting directions to extend in */
@@ -618,8 +618,8 @@ mzWalkLRContact(path)
  * ----------------------------------------------------------------------------
  */
 void
-mzWalkUDContact(path)
-    RoutePath *path;
+mzWalkUDContact(
+    RoutePath *path)
 {
     Point pOrg;		/* point to extend from */
     int extendCode;	/* Interesting directions to extend in */

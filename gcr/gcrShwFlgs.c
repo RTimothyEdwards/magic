@@ -88,9 +88,9 @@ CellDef * gcrShowCell = (CellDef *) NULL;
  */
 
 void
-GCRShow(point, arg)
-    Point   * point;
-    char    * arg;
+GCRShow(
+    Point   * point,
+    char    * arg)
 {
     GCRChannel * ch;
     HashEntry  * he;
@@ -200,8 +200,8 @@ GCRShow(point, arg)
  */
 
 void
-gcrDumpChannel(ch)
-    GCRChannel * ch;
+gcrDumpChannel(
+    GCRChannel * ch)
 {
     char name[32];
     int track, col, netCount = 0, gcrNetName();
@@ -255,10 +255,10 @@ gcrDumpChannel(ch)
 }
 
 int
-gcrNetName(netNames, netCount, net)
-    GCRNet * netNames[];
-    int * netCount;
-    GCRNet * net;
+gcrNetName(
+    GCRNet * netNames[],
+    int * netCount,
+    GCRNet * net)
 {
     int i;
     for(i=0; i<= *netCount; i++)

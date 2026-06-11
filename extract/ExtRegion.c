@@ -139,13 +139,13 @@ ExtGetRegion(Tile *tp,		/* Tile to get region record from */
  */
 
 ExtRegion *
-ExtFindRegions(def, area, mask, connectsTo, first, each)
-    CellDef *def;		/* Cell definition being searched */
-    Rect *area;			/* Area to search initially for tiles */
-    TileTypeBitMask *mask;	/* In the initial area search, only visit
+ExtFindRegions(
+    CellDef *def,		/* Cell definition being searched */
+    Rect *area,			/* Area to search initially for tiles */
+    TileTypeBitMask *mask,	/* In the initial area search, only visit
 				 * tiles whose types are in this mask.
 				 */
-    TileTypeBitMask *connectsTo;/* Connectivity table for determining regions.
+    TileTypeBitMask *connectsTo,/* Connectivity table for determining regions.
 				 * If t1 and t2 are the types of adjacent
 				 * tiles, then t1 and t2 belong to the same
 				 * region iff:
@@ -155,8 +155,8 @@ ExtFindRegions(def, area, mask, connectsTo, first, each)
 				 * so this is the same as:
 				 *	TTMaskHasType(&connectsTo[t2], t1)
 				 */
-    ExtRegion * (*first)();	/* Applied to first tile in region */
-    int (*each)();		/* Applied to each tile in region */
+    ExtRegion * (*first)(),	/* Applied to first tile in region */
+    int (*each)())		/* Applied to each tile in region */
 {
     FindRegion arg;
     int extRegionAreaFunc();
@@ -206,10 +206,10 @@ ExtFindRegions(def, area, mask, connectsTo, first, each)
  */
 
 int
-extRegionAreaFunc(tile, dinfo, arg)
-    Tile *tile;
-    TileType dinfo;
-    FindRegion *arg;
+extRegionAreaFunc(
+    Tile *tile,
+    TileType dinfo,
+    FindRegion *arg)
 {
     /* Allocate a new region */
     if (arg->fra_first)
@@ -251,11 +251,11 @@ extRegionAreaFunc(tile, dinfo, arg)
  */
 
 LabelList *
-ExtLabelRegions(def, connTo, nodeList, clipArea)
-    CellDef *def;		/* Cell definition being labelled */
-    TileTypeBitMask *connTo;	/* Connectivity table (see above) */
-    NodeRegion **nodeList;	/* Node list to add to (or NULL)  */
-    Rect *clipArea;		/* Area to search for sticky labels */
+ExtLabelRegions(
+    CellDef *def,		/* Cell definition being labelled */
+    TileTypeBitMask *connTo,	/* Connectivity table (see above) */
+    NodeRegion **nodeList,	/* Node list to add to (or NULL)  */
+    Rect *clipArea)		/* Area to search for sticky labels */
 {
     static Point offsets[] = { { 0, 0 }, { 0, -1 }, { -1, -1 }, { -1, 0 } };
     LabelList *ll;
@@ -431,10 +431,10 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
  */
 
 void
-ExtLabelOneRegion(def, connTo, reg)
-    CellDef *def;		/* Cell definition being labelled */
-    TileTypeBitMask *connTo;	/* Connectivity table (see above) */
-    NodeRegion  *reg;			/* The region whose labels we want */
+ExtLabelOneRegion(
+    CellDef *def,		/* Cell definition being labelled */
+    TileTypeBitMask *connTo,	/* Connectivity table (see above) */
+    NodeRegion  *reg)			/* The region whose labels we want */
 {
     static Point offsets[] = { { 0, 0 }, { 0, -1 }, { -1, -1 }, { -1, 0 } };
     LabelList *ll;
@@ -519,9 +519,9 @@ ExtLabelOneRegion(def, connTo, reg)
  */
 
 void
-ExtResetTiles(def, resetTo)
-    CellDef *def;
-    ClientData resetTo;		/* New value for ti_client */
+ExtResetTiles(
+    CellDef *def,
+    ClientData resetTo)		/* New value for ti_client */
 {
     int pNum;
 
@@ -553,8 +553,8 @@ ExtResetTiles(def, resetTo)
  */
 
 void
-ExtFreeRegions(regList)
-    ExtRegion *regList;	/* List of regions to be freed */
+ExtFreeRegions(
+    ExtRegion *regList)	/* List of regions to be freed */
 {
     ExtRegion *reg;
 
@@ -565,8 +565,8 @@ ExtFreeRegions(regList)
 }
 
 void
-ExtFreeLabRegions(regList)
-    LabRegion *regList;	/* List of regions to be freed */
+ExtFreeLabRegions(
+    LabRegion *regList)	/* List of regions to be freed */
 {
     LabRegion *lreg;
     LabelList *ll;
@@ -584,8 +584,8 @@ ExtFreeLabRegions(regList)
 }
 
 void
-ExtFreeHierLabRegions(regList)
-    ExtRegion *regList;	/* List of regions to be freed */
+ExtFreeHierLabRegions(
+    ExtRegion *regList)	/* List of regions to be freed */
 {
     ExtRegion *reg;
     LabelList *ll;

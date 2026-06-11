@@ -69,10 +69,10 @@ GlPage *glPathCurPage = NULL;
  */
 
 void
-glListAdd(list, pin, cost)
-    GlPoint **list;	/* Linked via gl_path pointers */
-    GCRPin *pin;
-    int cost;
+glListAdd(
+    GlPoint **list,	/* Linked via gl_path pointers */
+    GCRPin *pin,
+    int cost)
 {
     GlPoint *newPt;
 
@@ -106,9 +106,9 @@ glListAdd(list, pin, cost)
  */
 
 void
-glListToHeap(list, destPt)
-    GlPoint *list;	/* List of points linked via gl_path pointers */
-    Point *destPt;
+glListToHeap(
+    GlPoint *list,	/* List of points linked via gl_path pointers */
+    Point *destPt)
 {
     GlPoint *temp, *new;
     GCRPin *pin;
@@ -164,8 +164,8 @@ glListToHeap(list, destPt)
  */
 
 GlPoint *
-glPathCopyPerm(list)
-    GlPoint *list;
+glPathCopyPerm(
+    GlPoint *list)
 {
     GlPoint *new, *prev, *first;
 
@@ -183,8 +183,8 @@ glPathCopyPerm(list)
 }
 
 int
-glPathFreePerm(list)
-    GlPoint *list;
+glPathFreePerm(
+    GlPoint *list)
 {
     GlPoint *p;
 
@@ -213,10 +213,10 @@ glPathFreePerm(list)
  */
 
 GlPoint *
-glPathNew(pin, cost, prev)
-    GCRPin *pin;	/* Pin at the crossing point (mustn't be NULL) */
-    int	cost;		/* The cost to get here from source */
-    GlPoint *prev;	/* Point from which the new one was visited */
+glPathNew(
+    GCRPin *pin,	/* Pin at the crossing point (mustn't be NULL) */
+    int	cost,		/* The cost to get here from source */
+    GlPoint *prev)	/* Point from which the new one was visited */
 {
     GlPoint *result;
 

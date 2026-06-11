@@ -63,9 +63,9 @@ pthread_t xloop_thread = 0;
  */
 
 void
-ParseEvent (event, parentID)
-    XEvent *event;
-    int parentID;
+ParseEvent(
+    XEvent *event,
+    int parentID)
 {
     if (event->type == KeyPress)
     {
@@ -161,8 +161,8 @@ ParseEvent (event, parentID)
  */
 
 void
-xloop_begin(window)
-    Window window;
+xloop_begin(
+    Window window)
 {
     XEvent xevent;
     int parentID;
@@ -201,8 +201,8 @@ xloop_begin(window)
  */
 
 int
-xloop_create(window)
-    Window window;
+xloop_create(
+    Window window)
 {
     int status = 0;
 

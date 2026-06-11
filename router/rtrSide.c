@@ -151,15 +151,15 @@ int rtrSideLookCellsFunc();
  */
 
 int
-rtrEnumSides(use, area, minChannelWidth, func, cdata)
-    CellUse *use;		/* Enumerate sides of use->cu_def */
-    Rect *area;			/* Only consider sides inside this area;
+rtrEnumSides(
+    CellUse *use,		/* Enumerate sides of use->cu_def */
+    Rect *area,			/* Only consider sides inside this area;
 				 * this does not include sides along the
 				 * border.
 				 */
-    int minChannelWidth;	/* See above */
-    int (*func)();		/* Applied to each Side found */
-    ClientData cdata;		/* Passed to (*func)() */
+    int minChannelWidth,	/* See above */
+    int (*func)(),		/* Applied to each Side found */
+    ClientData cdata)		/* Passed to (*func)() */
 {
     /* Create the yank buffer if it doesn't exist */
     if (rtrSideTransUse == NULL)
@@ -213,11 +213,11 @@ rtrEnumSides(use, area, minChannelWidth, func, cdata)
  */
 
 int
-rtrSideProcess(use, side, area, trans)
-    CellUse *use;	/* Enumerating Sides of use->cu_def */
-    int side;		/* Which sides (GEO_NORTH, etc) of cells to process */
-    Rect *area;		/* Find sides in this area (in use->cu_def coords) */
-    Transform *trans;	/* Transform from use->cu_def coords to those of the
+rtrSideProcess(
+    CellUse *use,	/* Enumerating Sides of use->cu_def */
+    int side,		/* Which sides (GEO_NORTH, etc) of cells to process */
+    Rect *area,		/* Find sides in this area (in use->cu_def coords) */
+    Transform *trans)	/* Transform from use->cu_def coords to those of the
 			 * cell tile plane where we actually try to find Sides.
 			 */
 {
@@ -285,10 +285,10 @@ rtrSideProcess(use, side, area, trans)
  */
 
 int
-rtrSideInitClient(tile, dinfo, client)
-    Tile *tile;
-    TileType dinfo;
-    ClientData client;
+rtrSideInitClient(
+    Tile *tile,
+    TileType dinfo,
+    ClientData client)
 {
     if (IsSplit(tile))
 	if (TiGetLeftType(tile) != TT_SPACE && TiGetRightType(tile) != TT_SPACE)
@@ -321,10 +321,10 @@ rtrSideInitClient(tile, dinfo, client)
  */
 
 int
-rtrEnumSidesFunc(tile, dinfo, clientdata)
-    Tile *tile;
-    TileType dinfo;
-    ClientData clientdata;	/* (unused) */
+rtrEnumSidesFunc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData clientdata)	/* (unused) */
 {
     int ybot, ytop, yprev, sep, x, origin;
     Tile *tp, *tpB;
@@ -487,8 +487,8 @@ rtrEnumSidesFunc(tile, dinfo, clientdata)
  */
 
 int
-rtrSidePassToClient(side)
-    Side *side;
+rtrSidePassToClient(
+    Side *side)
 {
     side->side_search.r_ybot = side->side_line.r_ybot;
     side->side_search.r_ytop = side->side_line.r_ytop;

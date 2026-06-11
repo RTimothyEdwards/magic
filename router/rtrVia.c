@@ -108,13 +108,13 @@ int	rtrExamineStack();		/* Examines the tile stack for
 
 	/* ARGSUSED */
 int
-rtrFollowLocFunc(rect, name, label, area)
-    Rect *rect;			/* Area of the terminal, edit cell coords. */
-    char *name;			/* Name of the terminal (ignored). */
-    Label *label;		/* Pointer to the label, used to find out
+rtrFollowLocFunc(
+    Rect *rect,			/* Area of the terminal, edit cell coords. */
+    char *name,			/* Name of the terminal (ignored). */
+    Label *label,		/* Pointer to the label, used to find out
 				 * what layer the label's attached to.
 				 */
-    Rect *area;			/* We GeoInclude into this all the areas of
+    Rect *area)			/* We GeoInclude into this all the areas of
 				 * all the tiles we delete.
 				 */
 {
@@ -150,10 +150,10 @@ rtrFollowLocFunc(rect, name, label, area)
 
 	/* ARGSUSED */
 int
-rtrFollowName(name, firstInNet, area)
-    char *name;			/* Name of terminal. */
-    bool firstInNet;		/* Ignored by this procedure. */
-    Rect *area;			/* Passed through as ClientData to
+rtrFollowName(
+    char *name,			/* Name of terminal. */
+    bool firstInNet,		/* Ignored by this procedure. */
+    Rect *area)			/* Passed through as ClientData to
 				 * rtrFollowLocFunc.
 				 */
 {
@@ -182,10 +182,10 @@ rtrFollowName(name, firstInNet, area)
  */
 
 int
-rtrCheckTypes(tile, dinfo, cdata)
-    Tile *tile;
-    TileType dinfo;
-    ClientData cdata;
+rtrCheckTypes(
+    Tile *tile,
+    TileType dinfo,
+    ClientData cdata)
 {
     int type;
     int lastType = *(int *)cdata;
@@ -226,10 +226,10 @@ rtrCheckTypes(tile, dinfo, cdata)
  */
 
 void
-rtrExtend(tile,area,stub)
-    Tile *tile;				/* Tile adjacent to via			*/
-    Rect *area;				/* Area occupied by via			*/
-    Rect *stub;				/* Extension of routing material
+rtrExtend(
+    Tile *tile,				/* Tile adjacent to via			*/
+    Rect *area,				/* Area occupied by via			*/
+    Rect *stub)				/* Extension of routing material
 					   into area of via			*/
 {
     if ( (TOP(tile) == area->r_ybot) || (BOTTOM(tile) == area->r_ytop) )
@@ -264,10 +264,10 @@ rtrExtend(tile,area,stub)
  */
 
 int
-rtrStubGen(tile, dinfo, si)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct srinfo *si;
+rtrStubGen(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct srinfo *si)
 {
     Rect area;
     struct paintlist *pl;
@@ -311,10 +311,10 @@ rtrStubGen(tile, dinfo, si)
 
 
 int
-rtrReferenceTile(tile, dinfo, si)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    struct srinfo *si;
+rtrReferenceTile(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct srinfo *si)
 {
     si->si_tile = tile;
     rtrExtend(tile, si->si_varea, &si->si_extend);
@@ -342,9 +342,9 @@ rtrReferenceTile(tile, dinfo, si)
  */
 
 void
-rtrViaCheck(area, def)
-    Rect *area;
-    CellDef *def;
+rtrViaCheck(
+    Rect *area,
+    CellDef *def)
 {
     Rect r;
     int type, plane;
@@ -423,12 +423,12 @@ rtrViaCheck(area, def)
  */
 
 void
-rtrListArea(tile, oldType, newType, deltax, deltay)
-    Tile *tile;
-    int oldType;
-    int	newType;
-    int deltax;
-    int deltay;
+rtrListArea(
+    Tile *tile,
+    int oldType,
+    int newType,
+    int deltax,
+    int deltay)
 {
     struct arealist *ap;
 
@@ -469,8 +469,8 @@ rtrListArea(tile, oldType, newType, deltax, deltay)
  */
 
 int
-rtrListVia(tile)
-    Tile *tile;
+rtrListVia(
+    Tile *tile)
 {
     struct vialist *vp;
 
@@ -501,8 +501,8 @@ rtrListVia(tile)
  */
 
 int
-RtrViaMinimize(def)
-    CellDef *def;
+RtrViaMinimize(
+    CellDef *def)
 {
     Rect area;
     struct vialist *vp;

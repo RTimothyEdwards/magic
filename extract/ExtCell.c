@@ -51,7 +51,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* Forward declarations */
 int extOutputUsesFunc();
 
-Plane* extCellFile();
+Plane* extCellFile(CellDef *def, FILE *f, bool isTop);
 void extHeader();
 
 /*
@@ -76,10 +76,10 @@ void extHeader();
  */
 
 Plane *
-ExtCell(def, outName, isTop)
-    CellDef *def;	/* Cell being extracted */
-    char *outName;	/* Name of output file; if NULL, derive from def name */
-    bool isTop;		/* If TRUE, cell is the top level cell */
+ExtCell(
+    CellDef *def,	/* Cell being extracted */
+    char *outName,	/* Name of output file; if NULL, derive from def name */
+    bool isTop)		/* If TRUE, cell is the top level cell */
 {
     char *filename;
     FILE *f = NULL;
@@ -150,16 +150,16 @@ ExtCell(def, outName, isTop)
  */
 
 FILE *
-ExtFileOpen(def, file, mode, prealfile)
-    CellDef *def;	/* Cell whose .ext file is to be written */
-    char *file;		/* If non-NULL, open 'name'.ext; otherwise,
+ExtFileOpen(
+    CellDef *def,	/* Cell whose .ext file is to be written */
+    char *file,		/* If non-NULL, open 'name'.ext; otherwise,
 			 * derive filename from 'def' as described
 			 * above.
 			 */
-    char *mode;		/* Either "r" or "w", the mode in which the .ext
+    char *mode,		/* Either "r" or "w", the mode in which the .ext
 			 * file is to be opened.
 			 */
-    char **prealfile;	/* If this is non-NULL, it gets set to point to
+    char **prealfile)	/* If this is non-NULL, it gets set to point to
 			 * a string holding the name of the .ext file.
 			 */
 {
@@ -287,8 +287,8 @@ ExtFileOpen(def, file, mode, prealfile)
  */
 
 Plane *
-extPrepSubstrate(def)
-    CellDef *def;
+extPrepSubstrate(
+    CellDef *def)
 {
     SearchContext scx;
     CellUse dummy;
@@ -363,8 +363,8 @@ extPrepSubstrate(def)
  */
 
 Plane *
-extResPrepSubstrate(def)
-    CellDef *def;
+extResPrepSubstrate(
+    CellDef *def)
 {
     SearchContext scx;
     CellUse dummy;
@@ -436,9 +436,9 @@ extResPrepSubstrate(def)
 
 
 void
-ExtRevertSubstrate(def, savePlane)
-    CellDef *def;
-    Plane *savePlane;
+ExtRevertSubstrate(
+    CellDef *def,
+    Plane *savePlane)
 {
     int pNum;
     Plane *subPlane;
@@ -472,10 +472,10 @@ ExtRevertSubstrate(def, savePlane)
  */
 
 Plane *
-extCellFile(def, f, isTop)
-    CellDef *def;	/* Def to be extracted */
-    FILE *f;		/* Output to this file */
-    bool isTop;		/* TRUE if the cell is the top level cell */
+extCellFile(
+    CellDef *def,	/* Def to be extracted */
+    FILE *f,		/* Output to this file */
+    bool isTop)		/* TRUE if the cell is the top level cell */
 {
     NodeRegion *reg;
     Plane *saveSub;
@@ -559,9 +559,9 @@ extCellFile(def, f, isTop)
  */
 
 void
-extHeader(def, f)
-    CellDef *def;	/* Cell being extracted */
-    FILE *f;		/* Write to this file */
+extHeader(
+    CellDef *def,	/* Cell being extracted */
+    FILE *f)		/* Write to this file */
 {
     int n;
     bool propfound;
@@ -650,9 +650,9 @@ extHeader(def, f)
  */
 
 int
-extOutputUsesFunc(cu, outf)
-    CellUse *cu;
-    FILE *outf;
+extOutputUsesFunc(
+    CellUse *cu,
+    FILE *outf)
 {
     Transform *t = &cu->cu_transform;
 
