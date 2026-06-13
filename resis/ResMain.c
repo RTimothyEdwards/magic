@@ -1492,7 +1492,7 @@ ResExtractNet(node, resisdata, cellname)
 	resDevTerm *resdevList, *resdevNext;
 
 	resdevList = (resDevTerm *)HashGetValue(he);
-	while (resdevList)
+	if (resdevList)
 	{
 	    /* Diagnostic */
 	    Tile *tp;
@@ -1501,9 +1501,12 @@ ResExtractNet(node, resisdata, cellname)
 			(resdevList->rdt_term < 0) ? "Substrate" : "Terminal",
 			tp->ti_ll.p_x, tp->ti_ll.p_y);
 
-	    resdevNext = resdevList->rdt_next;
-	    freeMagic((char *)resdevList);
-	    resdevList = resdevNext;
+	    while (resdevList)
+	    {
+		resdevNext = resdevList->rdt_next;
+		freeMagic((char *)resdevList);
+		resdevList = resdevNext;
+	    }
 	}
     }
     HashKill(&DevNodeTable);

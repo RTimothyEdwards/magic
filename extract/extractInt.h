@@ -627,6 +627,13 @@ typedef struct extstyle
     TileTypeBitMask	 exts_deviceConn[NT];
 
     /*
+     * List of device types which connect to a substrate type.  This
+     * distinguishes between devices that make a connection to substrate
+     * (e.g., FETs) and those that don't (e.g., MiM caps, metal resistors).
+     */
+    TileTypeBitMask	exts_subsDevTypes;
+
+    /*
      * Set of types to be considered for extraction.  Types not in
      * this list cannot be nodes (e.g., implant layers)
      */

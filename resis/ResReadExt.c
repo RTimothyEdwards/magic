@@ -737,7 +737,7 @@ ResReadDevice(int argc,
     char *argv[])
 {
     RDev	*device;
-    int		rvalue, i, j, k, w, l;
+    int		rvalue, i, j, k, w, l, n;
     ExtDevice	*devptr;
     TileType	ttype;
     HashEntry	*entry;
@@ -791,13 +791,25 @@ ResReadDevice(int argc,
      * arbitrary number of terminals.
      */
 
-    if (strcmp(argv[i], "None"))
+    /* See code in extflat/EFbuild.c:  Devices do not necessarily
+     * declare a substrate terminal.  This can be determined by
+     * noting that all terminals other than the substrate come in
+     * triplets of arguments, so if the remaining count of arguments
+     * is divisible by 3, then there is no substrate node, and if
+     * there is a remainder of 1, then there is.  It would probably
+     * be simpler if all devices just put "None" in this position.
+     */
+    n = argc - i;
+    if ((n % 3) == 1)	/* Device has a substrate argument */
     {
-	entry = HashFind(&ResNodeTable, argv[i]);
-	device->subs = (ResExtNode *)HashGetValue(entry);
-	ResNodeAddDevice(device->subs, device, SUBS);
+	if (strcmp(argv[i], "None"))
+	{
+	    entry = HashFind(&ResNodeTable, argv[i]);
+	    device->subs = (ResExtNode *)HashGetValue(entry);
+	    ResNodeAddDevice(device->subs, device, SUBS);
+	}
+	i++;
     }
-    i++;
     entry = HashFind(&ResNodeTable, argv[i]);
     device->gate = (ResExtNode *)HashGetValue(entry);
     device->rs_gattr = StrDup((char **)NULL, argv[i + 2]);

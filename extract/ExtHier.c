@@ -115,21 +115,89 @@ bool extTestNMInteract(Tile *t1, TileType di1, Tile *t2, TileType di2)
 
 /*
  *----------------------------------------------------------------------
- * extHierSubShieldFunc --						
+ * extHierSubInteractFunc --						
  *
- *	Simple callback function for extHierSubstrate() that halts the
- *	search if any substrate shield type is found in the search area
+ *	Simple callback function for extHierSubShielfFunc() that halts
+ *	the search if any type connecting to substrate is found in
+ *	the area.
+ *
+ * Results:  1 to stop the search.
+ *
+ * Side effects:  None.
  *
  *----------------------------------------------------------------------
  */
 
 int
-extHierSubShieldFunc(tile, dinfo, clientdata)
-    Tile *tile;			/* (unused) */
-    TileType dinfo;		/* (unused) */
-    ClientData clientdata;	/* (unused) */
+extHierSubInteractFunc(tile, dinfo, clientdata)
+    Tile *tile;			/* unused */
+    TileType dinfo;		/* unused */
+    ClientData clientdata;	/* unused */
 {
     return 1;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * extHierSubShieldFunc --						
+ *
+ *	Callback function for extHierSubstrate() that halts the search
+ *	if any substrate shield type is found in the search area.  To
+ *	avoid flagging substrate shields that overlap the search area
+ *	but do not interact with the cell, check the area of the
+ *	substrate shield for device types that connect to substrate
+ *	(ExtCurStyle->exts_subsDevTypes).  If something is found, then
+ *	return 1 immediately to stop the search.
+ *
+ * Results:  1 if an interacting substrate shield is found, 0 otherwise.
+ *
+ * Side effects:  None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+extHierSubShieldFunc(tile, dinfo, use)
+    Tile *tile;
+    TileType dinfo;
+    CellUse *use;
+{
+    Rect r, rsub;
+    int  pNum;
+    TileType ttype;
+    CellDef *subdef;
+    Transform t;
+
+    if (IsSplit(tile))
+    {
+	ttype = TiGetLeftType(tile);
+	if (!TTMaskHasType(&ExtCurStyle->exts_globSubstrateShieldTypes, ttype))
+	    ttype = TiGetRightType(tile);
+    }
+    else
+	ttype = TiGetTypeExact(tile);
+
+    TiToRect(tile, &r);
+
+    /* Convert area of tile to the coordinates of the cell "subdef", which is
+     * a child of the cell containing "tile".
+     */
+    subdef = use->cu_def;
+    GeoInvertTrans(&use->cu_transform, &t);
+    GeoTransRect(&t, &r, &rsub);
+
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+	if (TTMaskIntersect(&DBPlaneTypes[pNum], &ExtCurStyle->exts_subsDevTypes))
+	{
+	    if (DBSrPaintNMArea((Tile *)NULL,
+			subdef->cd_planes[pNum], dinfo, &rsub,
+			&ExtCurStyle->exts_subsDevTypes,
+			extHierSubInteractFunc, (ClientData)NULL) == 1)
+		return 1;
+	}
+    }
+    return 0;
 }
 
 /*
@@ -229,7 +297,7 @@ extHierSubstrate(ha, use, x, y)
     	    if (DBSrPaintArea((Tile *) NULL,
 			def->cd_planes[pNum], &subArea,
 			&ExtCurStyle->exts_globSubstrateShieldTypes,
-			extHierSubShieldFunc, (ClientData)NULL) != 0)
+			extHierSubShieldFunc, PTR2CD(use)) != 0)
     	    {
     		freeMagic(nodeList);
     		ExtResetTiles(use->cu_def, CLIENTDEFAULT);

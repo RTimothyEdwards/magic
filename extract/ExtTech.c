@@ -836,6 +836,7 @@ extTechStyleInit(style)
 
     style->exts_sidePlanes = style->exts_overlapPlanes = 0;
     TTMaskZero(&style->exts_deviceMask);
+    TTMaskZero(&style->exts_subsDevTypes);
     style->exts_activeTypes = DBAllButSpaceAndDRCBits;
 
     for (r = 0; r < NP; r++)
@@ -2355,6 +2356,9 @@ ExtTechLine(sectionName, argc, argv)
 	    }
 
 	    TTMaskSetMask(&ExtCurStyle->exts_deviceMask, &types1);
+	    if (!TTMaskIsZero(&subsTypes))
+		TTMaskSetMask(&ExtCurStyle->exts_subsDevTypes, &types1);
+
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
 		{
@@ -2380,6 +2384,7 @@ ExtTechLine(sectionName, argc, argv)
 
 		    devptr->exts_next = ExtCurStyle->exts_device[t];
 		    ExtCurStyle->exts_device[t] = devptr;
+
 #ifdef ARIEL
 		    {
 			int z;
@@ -2867,6 +2872,8 @@ ExtTechLine(sectionName, argc, argv)
 	    }
 
 	    TTMaskSetMask(&ExtCurStyle->exts_deviceMask, &types1);
+	    if (!TTMaskIsZero(&subsTypes))
+		TTMaskSetMask(&ExtCurStyle->exts_subsDevTypes, &types1);
 
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	    {
