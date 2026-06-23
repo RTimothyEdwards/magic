@@ -1515,3 +1515,32 @@ Tclmagic_SafeInit(interp)
 {
     return Tclmagic_Init(interp);
 }
+
+/* Procedure to set up restricted Tk event processing to allow window
+ * exposure and updates to occur while deferring key and button press
+ * events.  This allows window updates during potentially long-running
+ * processes like extraction or GDS writes but prevents commands from
+ * being executed while the process is still running.
+ */
+
+Tk_RestrictAction
+RestrictInputProc(
+    ClientData clientData,
+    XEvent *eventPtr)
+{
+    switch (eventPtr->type)
+    {
+	case KeyPress:
+	case KeyRelease:
+	case ButtonPress:
+	case ButtonRelease:
+	    return TK_DEFER_EVENT;
+
+	case MotionNotify:
+	    return TK_DISCARD_EVENT;
+
+	default:
+	    return TK_PROCESS_EVENT;
+    }
+}
+

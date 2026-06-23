@@ -177,6 +177,20 @@ extSubtree(parentUse, reg, f)
     float pdone, plast;
     SearchContext scx;
     int savedDisplayStatus;
+    bool longTime = FALSE;
+
+#ifdef MAGIC_WRAPPER
+    /* This routine may be long-running and events to refresh the
+     * console will be periodically run to allow the progress status
+     * to be displayed.  Force a restriction on event processing to
+     * exclude key and button events so that it is not possible to
+     * corrupt the database during extraction.
+     */
+    Tk_RestrictProc *oldProc;
+    ClientData oldArg;
+
+    oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
+#endif /* MAGIC_WRAPPER */
 
     /* Use the display timer to force a 5-second progress check */
     savedDisplayStatus = GrDisplayStatus;
@@ -299,6 +313,7 @@ extSubtree(parentUse, reg, f)
 		/* Only print something if the 5-second timer has expired */
 		if (GrDisplayStatus == DISPLAY_BREAK_PENDING)
 		{
+		    longTime = TRUE;
 		    TxPrintf("Completed %d%%\n", (int)(pdone + 0.5));
 		    plast = pdone;
 		    TxFlushOut();
@@ -309,7 +324,7 @@ extSubtree(parentUse, reg, f)
 
 #ifdef MAGIC_WRAPPER
 		/* We need to let Tk paint the console display */
-		while (Tcl_DoOneEvent(TCL_DONT_WAIT) != 0);
+		while (Tcl_DoOneEvent(TCL_WINDOW_EVENTS | TCL_DONT_WAIT) != 0);
 #endif
 	    }
 	}
@@ -352,11 +367,27 @@ done:
     /* Output connections and node adjustments */
     extOutputConns(&ha.ha_connHash, f);
     HashKill(&ha.ha_connHash);
-    GrDisplayStatus = savedDisplayStatus;
-    SigRemoveTimer();
 
     /* Clear the CU_SUB_EXTRACTED flag from all children instances */
     DBCellEnum(def, extClearUseFlags, (ClientData)NULL);
+
+    /* If this cell took more than 5 seconds to extract and a
+     * progress update was made, then complete the progress
+     * update with a 100% complete message.
+     */
+    GrDisplayStatus = savedDisplayStatus;
+    SigRemoveTimer();
+    if (longTime)
+    {
+	TxPrintf("Completed 100%%\n");
+	TxFlushOut();
+    }
+
+#ifdef MAGIC_WRAPPER
+    /* Restore full event access */
+    Tk_RestrictEvents(oldProc, oldArg, &oldArg);
+#endif /* MAGIC_WRAPPER */
+
 }
 
 #ifdef	exactinteractions

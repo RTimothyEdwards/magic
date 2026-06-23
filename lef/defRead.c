@@ -2498,6 +2498,11 @@ DefRead(
 	NULL
     };
 
+#ifdef MAGIC_WRAPPER
+    Tk_RestrictProc *oldProc;
+    ClientData oldArg;
+#endif /* MAGIC_WRAPPER */
+
     /* "annotate" implies "dolabels" whether set or not */
     if (annotate) dolabels = TRUE;
 
@@ -2518,6 +2523,17 @@ DefRead(
 #endif
 	return NULL;
     }
+
+#ifdef MAGIC_WRAPPER
+    /* This routine may be long-running and events to refresh the
+     * console will be periodically run to allow the progress status
+     * to be displayed.  Force a restriction on event processing to
+     * exclude key and button events so that it is not possible to
+     * corrupt the database during DEF reads.
+     */
+
+    oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
+#endif /* MAGIC_WRAPPER */
 
     /* Initialize */
 
@@ -2739,5 +2755,11 @@ DefRead(
 
     if (f != NULL) fclose(f);
     UndoEnable();
+
+#ifdef MAGIC_WRAPPER
+    /* Restore full event access */
+    Tk_RestrictEvents(oldProc, oldArg, &oldArg);
+#endif /* MAGIC_WRAPPER */
+
     return rootDef;
 }

@@ -132,66 +132,6 @@ LefEstimate(
     }
 }
 
-/* This is the original version, which doesn't use the system itimer	*/
-/* and which is not very good at maintaining constant intervals.	*/
-
-#if 0
-void
-LefEstimate(
-   int processed,
-   int total,
-   const char *item_name)
-{
-    static int check_interval, partition;
-    static struct timeval tv_start;
-    static float last_time;
-    struct timeval tv;
-    struct timezone tz;
-    float cur_time, time_left;
-
-    if (!total) return;
-
-    if (processed == 0)		/* Initialization */
-    {
-	GrDisplayStatus = DISPLAY_IN_PROGRESS;
-
-	check_interval = 100;
-	gettimeofday(&tv_start, &tz);
-	last_time = 0.0;
-    }
-
-    if (processed > check_interval)
-    {
-	gettimeofday(&tv, &tz);
-	cur_time = (float)(tv.tv_sec - tv_start.tv_sec)
-		+ ((float)(tv.tv_usec - tv_start.tv_usec) / 1.0e6);
-	time_left = (((float)total / (float)processed) - 1) * cur_time;
-
-	/* not likely to happen, but we don't want a divide-by-0 error */
-	if (cur_time == 0.0) cur_time = 1.0e-6;
-
-	partition = (int)((float)processed * (float)PRINT_INTERVAL / cur_time);
-
-	/* partition is never less than 1 nor greater than 5% of the total */
-	if (partition == 0) partition = 1;
-	if (partition > (total / 20)) partition = (total / 20);
-
-	check_interval += partition;
-
-	/* Don't print anything in intervals faster than 1 second */
-	if ((cur_time - last_time) < 1.0) return;
-	last_time = cur_time;
-
-	TxPrintf("  Processed %d of %d %s (%2.1f%%).", processed, total,
-			item_name, (float)(100 * processed) / (float)total);
-	TxPrintf("  Est. time remaining: %2.1fs\n", time_left);
-	TxFlushOut();
-    }
-}
-
-#endif /* 0 */
-
-
 /*
  *------------------------------------------------------------
  *

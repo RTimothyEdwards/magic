@@ -719,6 +719,20 @@ CIFGenSubcells(
     SearchContext scx;
     int cuts, totcuts;
     float pdone, plast;
+    bool longTime = FALSE;
+
+#ifdef MAGIC_WRAPPER
+    /* This routine may be long-running and events to refresh the
+     * console will be periodically run to allow the progress status
+     * to be displayed.  Force a restriction on event processing to
+     * exclude key and button events so that it is not possible to
+     * corrupt the database during GDS/CIF writes.
+     */
+    Tk_RestrictProc *oldProc;
+    ClientData oldArg;
+
+    oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
+#endif /* MAGIC_WRAPPER */
 
     UndoDisable();
     CIFInitCells();
@@ -847,6 +861,7 @@ CIFGenSubcells(
 		/* Only print something if the 5-second timer has expired */
 		if (GrDisplayStatus == DISPLAY_BREAK_PENDING)
 		{
+		    longTime = TRUE;
 		    TxPrintf("Completed %d%%\n", (int)(pdone + 0.5));
 		    plast = pdone;
 		    TxFlushOut();
@@ -865,6 +880,12 @@ CIFGenSubcells(
 
     GrDisplayStatus = savedDisplayStatus;
     SigRemoveTimer();
+    if (longTime) TxPrintf("Completed 100%%\n");
+
+#ifdef MAGIC_WRAPPER
+    /* Restore full event access */
+    Tk_RestrictEvents(oldProc, oldArg, &oldArg);
+#endif /* MAGIC_WRAPPER */
 
     UndoEnable();
 }

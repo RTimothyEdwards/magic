@@ -724,3 +724,4 @@ sigSetAction(int signo, sigRetVal (*handler)(int))
     sigvec(signo, &sv, (struct sigvec *)NULL);
 #endif
 }
+
