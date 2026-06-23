@@ -350,7 +350,7 @@ typedef enum {
 	    if (cmd->tx_argc > 2)
 	    {
 		resisdata->minres = MagAtof(cmd->tx_argv[2]);
-		if (resisdata->minres <= 0)
+		if (resisdata->minres < 0)
 		{
 		    TxError("Usage:  %s minres [value]\n", cmd->tx_argv[0]);
 			return;

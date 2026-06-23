@@ -800,9 +800,11 @@ ResReadDevice(int argc,
      * be simpler if all devices just put "None" in this position.
      */
     n = argc - i;
-    if ((n % 3) == 1)	/* Device has a substrate argument */
+    if ((n % 3) == 1)
     {
-	if (strcmp(argv[i], "None"))
+	/* Device has a substrate argument or a numerical value */
+
+	if (strcmp(argv[i], "None") && (!StrIsNumeric(argv[i])))
 	{
 	    entry = HashFind(&ResNodeTable, argv[i]);
 	    device->subs = (ResExtNode *)HashGetValue(entry);
