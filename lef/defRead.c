@@ -27,6 +27,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/hash.h"
 #include "utils/undo.h"
 #include "utils/utils.h"
+#include "utils/signals.h"
 #include "database/database.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
@@ -2532,7 +2533,8 @@ DefRead(
      * corrupt the database during DEF reads.
      */
 
-    oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
+    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+	oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
 #endif /* MAGIC_WRAPPER */
 
     /* Initialize */
@@ -2758,7 +2760,8 @@ DefRead(
 
 #ifdef MAGIC_WRAPPER
     /* Restore full event access */
-    Tk_RestrictEvents(oldProc, oldArg, &oldArg);
+    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+	Tk_RestrictEvents(oldProc, oldArg, &oldArg);
 #endif /* MAGIC_WRAPPER */
 
     return rootDef;

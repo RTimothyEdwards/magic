@@ -189,7 +189,8 @@ extSubtree(parentUse, reg, f)
     Tk_RestrictProc *oldProc;
     ClientData oldArg;
 
-    oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
+    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+	oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
 #endif /* MAGIC_WRAPPER */
 
     /* Use the display timer to force a 5-second progress check */
@@ -385,7 +386,8 @@ done:
 
 #ifdef MAGIC_WRAPPER
     /* Restore full event access */
-    Tk_RestrictEvents(oldProc, oldArg, &oldArg);
+    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+	Tk_RestrictEvents(oldProc, oldArg, &oldArg);
 #endif /* MAGIC_WRAPPER */
 
 }

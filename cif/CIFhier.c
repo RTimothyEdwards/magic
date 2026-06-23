@@ -731,7 +731,8 @@ CIFGenSubcells(
     Tk_RestrictProc *oldProc;
     ClientData oldArg;
 
-    oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
+    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+	oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
 #endif /* MAGIC_WRAPPER */
 
     UndoDisable();
@@ -884,7 +885,8 @@ CIFGenSubcells(
 
 #ifdef MAGIC_WRAPPER
     /* Restore full event access */
-    Tk_RestrictEvents(oldProc, oldArg, &oldArg);
+    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+	Tk_RestrictEvents(oldProc, oldArg, &oldArg);
 #endif /* MAGIC_WRAPPER */
 
     UndoEnable();
