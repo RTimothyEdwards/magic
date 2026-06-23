@@ -181,7 +181,7 @@ extSubtree(parentUse, reg, f)
     /* Use the display timer to force a 5-second progress check */
     savedDisplayStatus = GrDisplayStatus;
     GrDisplayStatus = DISPLAY_IN_PROGRESS;
-    SigSetTimer(5);		    /* Print at 5-second intervals */
+    SigSetTimer(5);	    	    /* Print at 5-second intervals */
 
     if ((ExtOptions & (EXT_DOCOUPLING|EXT_DOADJUST))
 		   != (EXT_DOCOUPLING|EXT_DOADJUST))
@@ -777,6 +777,7 @@ extSubtreeFunc(scx, ha)
     SearchContext newscx;
     ExtTree *oneFlat;
     HierYank hy;
+    bool subok;
     int x, y;
 
     /* Allocate a new ExtTree to hold the flattened, extracted subtree */
@@ -921,25 +922,31 @@ extSubtreeFunc(scx, ha)
     /* connected.						*/
 
     if (use->cu_xhi == use->cu_xlo && use->cu_yhi == use->cu_ylo)
-	extHierSubstrate(ha, use, -1, -1);
+	subok = (!extHierSubstrate(ha, use, -1, -1)) ? TRUE : FALSE;
     else if (use->cu_xhi == use->cu_xlo && use->cu_yhi > use->cu_ylo)
     {
+	subok = FALSE;
 	for (y = use->cu_ylo; y <= use->cu_yhi; y++)
-	    extHierSubstrate(ha, use, -1, y);
+	    if (!extHierSubstrate(ha, use, -1, y))
+		subok = TRUE;
     }
     else if (use->cu_xhi > use->cu_xlo && use->cu_yhi == use->cu_ylo)
     {
+	subok = FALSE;
 	for (x = use->cu_xlo; x <= use->cu_xhi; x++)
-	extHierSubstrate(ha, use, x, -1);
+	    if (!extHierSubstrate(ha, use, x, -1))
+		subok = TRUE;
     }
     else
     {
+	subok = FALSE;
 	for (x = use->cu_xlo; x <= use->cu_xhi; x++)
 	    for (y = use->cu_ylo; y <= use->cu_yhi; y++)
-		extHierSubstrate(ha, use, x, y);
+		if (!extHierSubstrate(ha, use, x, y))
+		    subok = TRUE;
     }
     /* Mark substrate as having been extracted for this use. */
-    use->cu_flags |= CU_SUB_EXTRACTED;
+    if (subok) use->cu_flags |= CU_SUB_EXTRACTED;
 
     /* Free the cumulative node list we extracted above */
     if (ha->ha_cumFlat.et_nodes)

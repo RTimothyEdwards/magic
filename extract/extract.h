@@ -139,7 +139,7 @@ extern void extHierConnections();
 extern void extHierFreeLabels();
 extern void extHierFreeOne();
 extern void extHierFreeOne();
-extern void extHierSubstrate();
+extern int  extHierSubstrate();
 extern int  extHierYankFunc();
 extern bool extLabType();
 extern void extLength();

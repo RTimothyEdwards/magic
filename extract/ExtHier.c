@@ -147,7 +147,11 @@ extHierSubInteractFunc(tile, dinfo, clientdata)
  *	but do not interact with the cell, check the area of the
  *	substrate shield for device types that connect to substrate
  *	(ExtCurStyle->exts_subsDevTypes).  If something is found, then
- *	return 1 immediately to stop the search.
+ *	return 1 immediately to stop the search.  This search needs to
+ *	be done hierarchically over this cell and all of its descendants,
+ *	because if any descendant cell contains a device connecting to
+ *	the substrate under the shield, then this cell will need to
+ *	connect the correct substrate net to it.
  *
  * Results:  1 if an interacting substrate shield is found, 0 otherwise.
  *
@@ -162,41 +166,21 @@ extHierSubShieldFunc(tile, dinfo, use)
     TileType dinfo;
     CellUse *use;
 {
-    Rect r, rsub;
-    int  pNum;
-    TileType ttype;
-    CellDef *subdef;
+    SearchContext scontext;
     Transform t;
-
-    if (IsSplit(tile))
-    {
-	ttype = TiGetLeftType(tile);
-	if (!TTMaskHasType(&ExtCurStyle->exts_globSubstrateShieldTypes, ttype))
-	    ttype = TiGetRightType(tile);
-    }
-    else
-	ttype = TiGetTypeExact(tile);
+    Rect r;
 
     TiToRect(tile, &r);
 
-    /* Convert area of tile to the coordinates of the cell "subdef", which is
-     * a child of the cell containing "tile".
-     */
-    subdef = use->cu_def;
-    GeoInvertTrans(&use->cu_transform, &t);
-    GeoTransRect(&t, &r, &rsub);
+    scontext.scx_use = use;    
+    scontext.scx_trans = GeoIdentityTransform;
+    GEOINVERTTRANS(&use->cu_transform, &t);
+    GEOTRANSRECT(&t, &r, &scontext.scx_area);
 
-    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-    {
-	if (TTMaskIntersect(&DBPlaneTypes[pNum], &ExtCurStyle->exts_subsDevTypes))
-	{
-	    if (DBSrPaintNMArea((Tile *)NULL,
-			subdef->cd_planes[pNum], dinfo, &rsub,
-			&ExtCurStyle->exts_subsDevTypes,
-			extHierSubInteractFunc, (ClientData)NULL) == 1)
-		return 1;
-	}
-    }
+    if (DBTreeSrTiles(&scontext, &ExtCurStyle->exts_subsDevTypes, 0,
+		extHierSubInteractFunc, (ClientData)NULL) == 1)
+	return 1;
+
     return 0;
 }
 
@@ -213,10 +197,14 @@ extHierSubShieldFunc(tile, dinfo, use)
  *	isolated by a substrate shield type, in which case no merge is
  *	done.
  *
+ * Result:
+ *	Return 0 if a substrate was extracted, or doesn't require
+ *	extracting; 1 if not.
+ *
  *----------------------------------------------------------------------
  */
 
-void
+int
 extHierSubstrate(ha, use, x, y)
     HierExtractArg *ha; 	// Contains parent def and hash table
     CellUse *use;		// Child use
@@ -236,14 +224,14 @@ extHierSubstrate(ha, use, x, y)
 
     /* Backwards compatibility with tech files that don't */
     /* define a substrate plane or substrate connections. */
-    if (glob_subsnode == NULL) return;
+    if (glob_subsnode == NULL) return 0;
 
     /* If the substrate has already been extracted for this use	*/
     /* then there is no need to do it again.			*/
-    if (use->cu_flags & CU_SUB_EXTRACTED) return;
+    if (use->cu_flags & CU_SUB_EXTRACTED) return 0;
 
     /* Don't extract anything from cells marked "don't use".	*/
-    if (use->cu_def->cd_flags & CDDONTUSE) return;
+    if (use->cu_def->cd_flags & CDDONTUSE) return 0;
 
     def = (CellDef *)ha->ha_parentUse->cu_def;
 
@@ -251,7 +239,8 @@ extHierSubstrate(ha, use, x, y)
     /* The parent def's substrate node is in glob_subsnode */
 
     name1 = extNodeName(glob_subsnode);
-    if (*name1 == '(' && !strcmp(name1, "(none)")) return;	/* Don't process "(none)" nodes! */
+    /* Don't process "(none)" nodes! */
+    if (*name1 == '(' && !strcmp(name1, "(none)")) return 0;
     he = HashFind(table, name1);
     nn = (NodeName *) HashGetValue(he);
     node1 = nn ? nn->nn_node : extHierNewNode(he);
@@ -261,7 +250,7 @@ extHierSubstrate(ha, use, x, y)
     if (nodeList == NULL)
     {
     	ExtResetTiles(use->cu_def, CLIENTDEFAULT);
-	return;
+	return 0;
     }
 
     /* Check if the child's substrate node is covered by any substrate	*/
@@ -301,7 +290,7 @@ extHierSubstrate(ha, use, x, y)
     	    {
     		freeMagic(nodeList);
     		ExtResetTiles(use->cu_def, CLIENTDEFAULT);
-		return;
+		return 1;
 	    }
 	}
     }
@@ -380,6 +369,7 @@ extHierSubstrate(ha, use, x, y)
 	}
     }
     freeMagic(nodeList);
+    return 0;
 }
 
 /*

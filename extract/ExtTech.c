@@ -2356,8 +2356,6 @@ ExtTechLine(sectionName, argc, argv)
 	    }
 
 	    TTMaskSetMask(&ExtCurStyle->exts_deviceMask, &types1);
-	    if (!TTMaskIsZero(&subsTypes))
-		TTMaskSetMask(&ExtCurStyle->exts_subsDevTypes, &types1);
 
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
@@ -2872,8 +2870,6 @@ ExtTechLine(sectionName, argc, argv)
 	    }
 
 	    TTMaskSetMask(&ExtCurStyle->exts_deviceMask, &types1);
-	    if (!TTMaskIsZero(&subsTypes))
-		TTMaskSetMask(&ExtCurStyle->exts_subsDevTypes, &types1);
 
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	    {
@@ -3589,6 +3585,39 @@ extTechFinalStyle(style)
     TileType r, s, t;
     int p, p1, missing, conflict;
     int indicis[NP];
+
+    /* Collect list of all device types that have a substrate connection
+     * to substrate types, and all material types not in the substrate
+     * plane and which are not substrate shields that connect to the
+     * substrate.
+     */
+
+    for (r = TT_TECHDEPBASE; r < DBNumTypes; r++)
+    {
+	ExtDevice *devptr;
+
+	if (TTMaskHasType(&ExtCurStyle->exts_subsDevTypes, r)) continue;
+
+	for (devptr = ExtCurStyle->exts_device[r]; devptr; devptr = devptr->exts_next)
+	{
+	    if (TTMaskIntersect(&devptr->exts_deviceSubstrateTypes,
+			&ExtCurStyle->exts_globSubstrateTypes))
+		TTMaskSetType(&ExtCurStyle->exts_subsDevTypes, r);
+	}
+    }
+
+    if (ExtCurStyle->exts_globSubstratePlane >= 0)
+    {
+	for (r = TT_TECHDEPBASE; r < DBNumTypes; r++)
+	{
+	    if ((TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, r)) &&
+			(!TTMaskHasType(&ExtCurStyle->exts_globSubstrateShieldTypes, r))
+			&& (DBPlane(r) != ExtCurStyle->exts_globSubstratePlane))
+		TTMaskSetType(&ExtCurStyle->exts_subsDevTypes, r);
+	}
+    }
+
+    /* Prepare resistance classes */
 
     for (r = TT_TECHDEPBASE; r < DBNumTypes; r++)
     {
