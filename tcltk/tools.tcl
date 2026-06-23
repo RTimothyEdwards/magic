@@ -57,11 +57,17 @@ proc magic::resumeall {} {
 proc magic::makecrashbackup {} {
    global Opts
 
-   *bypass crash save
-   if {![catch set Opts(backupinterval)]} {
+   if {[catch {*bypass crash save} errmsg]} {
+	puts stderr "Crash backup save error:  $errmsg"
+   }
+   if {![catch {set Opts(backupinterval)}]} {
       if {$Opts(backupinterval) > 0} {
          after $Opts(backupinterval) magic::makecrashbackup
+      } else {
+	 puts stderr "Warning:  Crash backups halted due to interval of $Opts(backupinterval)"
       }
+   } else {
+      puts stderr "Warning:  Crash backups halted due to no interval being set."
    }
 }
 
@@ -88,7 +94,7 @@ proc magic::crashbackups {{option start}} {
 
    switch -exact $option {
       start {
-         if {[catch set Opts(backupinterval)]} {
+         if {[catch {set Opts(backupinterval)}]} {
             set Opts(backupinterval) 600000
          }
 	 if {$Opts(backupinterval) > 0} {
@@ -96,7 +102,7 @@ proc magic::crashbackups {{option start}} {
 	 }
       }
       resume {
-         if {![catch set Opts(backupinterval)]} {
+         if {![catch {set Opts(backupinterval)}]} {
 	    if {$Opts(backupinterval) > 0} {
 	       after $Opts(backupinterval) magic::makecrashbackup
 	    }

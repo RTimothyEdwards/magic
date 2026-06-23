@@ -1145,7 +1145,8 @@ DBFileRecovery(filename)
 	while ((dp = readdir(cwd)) != NULL)
 	{
 	    char *doslash = (tempdir[strlen(tempdir) - 1] == '/') ? "" : "/";
-	    int n = snprintf(tempname, sizeof(tempname), "%s%s%s", tempdir, doslash, dp->d_name);
+	    int n = snprintf(tempname, sizeof(tempname), "%s%s%s", tempdir,
+			doslash, dp->d_name);
 	    ASSERT(n < sizeof(tempname), "tempname");
 	    snptr = tempname + strlen(tempdir);
 	    if (!strncmp(snptr, "MAG", 3))
@@ -5575,7 +5576,7 @@ DBWriteBackup(filename, archive, doforall)
 	    pid = (int)getpid();
 
 	    doslash = (tempdir[strlen(tempdir) - 1] == '/') ? "" : "/";
-	    sprintf(template, "%s/MAG%d.XXXXXX", tempdir, pid);
+	    sprintf(template, "%s%sMAG%d.XXXXXX", tempdir, doslash, pid);
 
 	    fd = mkstemp(template);
 	    if (fd == -1)
