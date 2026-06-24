@@ -260,7 +260,19 @@ ResSeriesCheck(resptr)
 		if (rr2->rr_connection1 == resptr)
 		{
 		    resptr2 = rr1->rr_connection2;
-		    if (rr1->rr_connection2 == rr2->rr_connection2)
+		    if (rr1 == rr2)	/* This should not happen, but does? */
+		    {
+			TxError("Internal error:  Resistor linked to itself!\n");
+			status = LOOP;
+			ResDeleteResPointer(rr2->rr_connection1, rr2);
+			ResDeleteResPointer(rr2->rr_connection2, rr2);
+			resptr2->rn_float.rn_area += rr2->rr_float.rr_area
+					+ rr2->rr_float.rr_area
+					+ resptr->rn_float.rn_area;
+			ResEliminateResistor(rr2, &ResResList);
+			ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
+		    }
+		    else if (rr1->rr_connection2 == rr2->rr_connection2)
 		    {
 			status = LOOP;
 			ResDeleteResPointer(rr1->rr_connection1, rr1);
