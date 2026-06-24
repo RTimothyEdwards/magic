@@ -49,6 +49,7 @@ extern void setDevMult(int i, float f);
 extern int EFHNSprintf(char *str, HierName *hierName);
 extern int printSubcktDict(void);
 extern int spcdevOutNode(const HierName *prefix, const HierName *suffix, const char *name, FILE *outf);
+extern void spcdevResPi(const HierName *prefix, const HierName *gate, const HierName *source, const HierName *drain, const char *name);
 extern int spcnAP(DevTerm *dterm, EFNode *node, int resClass, float scale, char *asterm, char *psterm, float m, FILE *outf, int w);
 extern int parallelDevs(const devMerge *f1, const devMerge *f2);
 extern int nodeHspiceName(char *s);

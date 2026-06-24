@@ -1028,24 +1028,21 @@ spcdevHierVisit(
 		if (sdM != 1.0)
 		    fprintf(esSpiceF, " M=%g", sdM);
 	    }
+	    else
+	    {
+		spcdevResPi(hc->hc_hierName, gate->dterm_node->efnode_name->efnn_hier,
+			source->dterm_node->efnode_name->efnn_hier,
+			drain->dterm_node->efnode_name->efnn_hier,
+			"subckt");
+	    }
 	    break;
 
 	case DEV_RES:
 	    if (esDoResistorTee)
 	    {
-		/* There are three ways of handling capacitance	*/
-		/* on resistor networks.  One is to ignore it	*/
-		/* (the default; generates "floating" nodes in	*/
-		/* the SPICE output) which is okay for LVS. 	*/
-		/* Another way is the Pi network, in which the	*/
-		/* capacitance is split evenly between the	*/
-		/* terminals.  Again, the resistor node is left	*/
-		/* floating.  The third is the Tee network, in	*/
-		/* which the resistance is split in two parts,	*/
-		/* connecting to a capacitor to ground in the	*/
-		/* middle.  This is the best solution but plays	*/
-		/* havoc with LVS.  So, the choice is a command	*/
-		/* line option.					*/
+		/* There are two ways of handling resistor	*/
+		/* capacitance to substrate:  The Pi model and	*/
+		/* the Tee model (see ext2spice.c).		*/
 
 		esOutputHierResistor(hc, dev, scale, gate, source, has_model,
 			l, w, 2);
@@ -1061,6 +1058,11 @@ spcdevHierVisit(
 	    {
 		esOutputHierResistor(hc, dev, scale, source, drain, has_model,
 			l, w, 1);
+
+		spcdevResPi(hc->hc_hierName, gate->dterm_node->efnode_name->efnn_hier,
+			source->dterm_node->efnode_name->efnn_hier,
+			drain->dterm_node->efnode_name->efnn_hier,
+			"subckt");
 	    }
 	    break;
 
