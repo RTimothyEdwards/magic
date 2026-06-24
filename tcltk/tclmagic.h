@@ -34,8 +34,9 @@ extern const char *Tclmagic_InitStubsVersion;
 
 extern void TclmagicRegisterCommands(Tcl_Interp *interp);
 
+#ifndef MAGIC_NO_TK
 extern Tk_RestrictAction RestrictInputProc(ClientData, XEvent *);
-
+#endif
 
 #endif	/* MAGIC_WRAPPER */
 #endif /* _MAGIC__TCLTK__TCLMAGIC_H */

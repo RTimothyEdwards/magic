@@ -722,6 +722,7 @@ CIFGenSubcells(
     bool longTime = FALSE;
 
 #ifdef MAGIC_WRAPPER
+#ifndef MAGIC_NO_TK
     /* This routine may be long-running and events to refresh the
      * console will be periodically run to allow the progress status
      * to be displayed.  Force a restriction on event processing to
@@ -733,6 +734,7 @@ CIFGenSubcells(
 
     if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
 	oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
+#endif /* MAGIC_NO_TK */
 #endif /* MAGIC_WRAPPER */
 
     UndoDisable();
@@ -884,9 +886,11 @@ CIFGenSubcells(
     if (longTime) TxPrintf("Completed 100%%\n");
 
 #ifdef MAGIC_WRAPPER
+#ifndef MAGIC_NO_TK
     /* Restore full event access */
     if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
 	Tk_RestrictEvents(oldProc, oldArg, &oldArg);
+#endif /* MAGIC_NO_TK */
 #endif /* MAGIC_WRAPPER */
 
     UndoEnable();
