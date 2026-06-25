@@ -1516,6 +1516,8 @@ Tclmagic_SafeInit(interp)
     return Tclmagic_Init(interp);
 }
 
+#ifndef MAGIC_NO_TK
+
 /* Procedure to set up restricted Tk event processing to allow window
  * exposure and updates to occur while deferring key and button press
  * events.  This allows window updates during potentially long-running
@@ -1544,3 +1546,4 @@ RestrictInputProc(
     }
 }
 
+#endif /* MAGIC_NO_TK */
