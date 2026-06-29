@@ -286,6 +286,19 @@ extern char AbortMessage[];
   #endif
 #endif
 
+
+/*
+ * In GCC <= 14, flexible arrays are not supported in unions because of a parser
+ * limitation.
+ * 
+ * This is a hack that declares an anonymous struct, which itself can contain
+ * a flexible array but still be a member of a union. Another empty element is
+ * included because structs that only contain a flexible array are also invalid.
+ */
+#define FLEX_UNION_MEMBER(member, member_no) struct {\
+    char __empty ## member_no [0]; member;\
+}
+
 /* ------------------ End of Machine Configuration Section ----------------- */
 
 #endif /* _MAGIC__UTILS__MAGIC_H */
