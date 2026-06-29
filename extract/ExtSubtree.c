@@ -918,8 +918,7 @@ extSubtreeFunc(scx, ha)
 			extFoundProc, (ClientData)NULL) == 0)
 		     continue;
 		
-		n = sizeof (Label) + strlen(lab->lab_text)
-			- sizeof lab->lab_text + 1;
+		n = labelSize(strlen(lab->lab_text));
 
 		newlab = (Label *)mallocMagic(n);
 		newlab->lab_type = lab->lab_type;

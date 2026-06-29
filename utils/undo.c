@@ -79,7 +79,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 	UndoType	 iue_type;	/* Event type */
 	struct ue	*iue_back;	/* Previous event on list */
 	struct ue	*iue_forw;	/* Next event on list */
-	int		 iue_client;	/* Client data area.  This is merely a
+	char		 iue_client[];	/* Client data area.  This is merely a
 					 * dummy placeholder; the actual size
 					 * of one of these structures is
 					 * determined at the time of
@@ -95,8 +95,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * n bytes.
  */
 
-#define	undoSize(n)	(sizeof (struct ue) + (n) \
-			    - sizeof (((struct ue *) 0)->iue_client))
+#define	undoSize(n)	(sizeof (struct ue) + n)
 
 /*
  * Mapping between internal and external undo event pointers.

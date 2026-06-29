@@ -436,14 +436,6 @@ typedef  Label labelUE;
 #define  lue_text   lab_text
 #define  lue_port   lab_port
 
-    /*
-     * labelSize(n) is the size of a labelUE large enough to hold
-     * a string of n characters.  Space for the trailing NULL byte
-     * is allocated automatically.
-     */
-
-#define	labelSize(n)	(sizeof (labelUE) - 3 + (n))
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -614,14 +606,14 @@ dbUndoLabelBack(up)
 	Rect		 cue_bbox;
 	Rect		 cue_extended;
 	unsigned char	 cue_flags;
-	char		 cue_id[4];
+	char		 cue_id[]; /* Flexible array, must be last element */
     } cellUE;
 
-    /*
-     * Compute the size of a cellUE, with sufficient space
-     * at the end to store the use id.
-     */
-#define	cellSize(n)	(sizeof (cellUE) - 3 + (n))
+/*
+* Compute the size of a cellUE, with sufficient space
+* at the end to store the use id (not including the NULL byte)
+*/
+#define	cellSize(n)	(sizeof (cellUE) + n + 1)
 
 /*
  * ----------------------------------------------------------------------------
@@ -894,16 +886,6 @@ findUse(up, matchName)
  * ============================================================================
  */
 
-    typedef struct
-    {
-	char	 eue_name[4];	/* Name of cell def edited.  This is
-				 * a place holder only, the actual
-				 * structure is allocated to hold all
-				 * the bytes in the def name, plus
-				 * the null byte.
-				 */
-    } editUE;
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -926,7 +908,7 @@ void
 dbUndoEdit(new)
     CellDef *new;
 {
-    editUE *up;
+    char *up;
     CellDef *old = dbUndoLastCell;
 
     ASSERT(new != old, "dbUndoEdit");
@@ -938,18 +920,18 @@ dbUndoEdit(new)
      */
     if (old)
     {
-	up = (editUE *) UndoNewEvent(dbUndoIDCloseCell,
+	up = (char *) UndoNewEvent(dbUndoIDCloseCell,
 			(unsigned) strlen(old->cd_name) + 1);
-	if (up == (editUE *) NULL)
+	if (up == (char *) NULL)
 	    return;
-	strcpy(up->eue_name, old->cd_name);
+	strcpy(up, old->cd_name);
     }
 
-    up = (editUE *) UndoNewEvent(dbUndoIDOpenCell,
+    up = (char *) UndoNewEvent(dbUndoIDOpenCell,
 		(unsigned) strlen(new->cd_name) + 1);
-    if (up == (editUE *) NULL)
+    if (up == (char *) NULL)
 	return;
-    strcpy(up->eue_name, new->cd_name);
+    strcpy(up, new->cd_name);
     dbUndoLastCell = new;
 }
 
@@ -971,11 +953,11 @@ dbUndoEdit(new)
 
 void
 dbUndoOpenCell(eup)
-    editUE *eup;
+    char *eup;
 {
     CellDef *newDef;
 
-    newDef = DBCellLookDef(eup->eue_name);
+    newDef = DBCellLookDef(eup);
     ASSERT(newDef != (CellDef *) NULL, "dbUndoOpenCell");
     dbUndoLastCell = newDef;
 }

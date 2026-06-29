@@ -2567,8 +2567,7 @@ CmdDoProperty(
 	    if (proptype == PROPERTY_TYPE_STRING)
 	    {
 		proplen = strlen(cmd->tx_argv[argstart + 1]);
-		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) -
-			7 + proplen);
+		proprec = (PropertyRecord *)mallocMagic(strPropertyRecordSize(proplen));
 		proprec->prop_type = proptype;
 		proprec->prop_len = proplen;
 		strcpy(proprec->prop_value.prop_string, cmd->tx_argv[argstart + 1]);
@@ -2586,17 +2585,17 @@ CmdDoProperty(
 		{
 		    proplen = locargc - 2;
 		    if (proptype == PROPERTY_TYPE_DOUBLE)
-		        proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-				(proplen - 1)*sizeof(dlong));
+		        proprec = (PropertyRecord *)mallocMagic(
+		            dlongPropertyRecordSize(proplen));
 		    else if (proptype == PROPERTY_TYPE_PLANE)
 		    {
 		        proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
-			plane = DBNewPlane((ClientData)TT_SPACE);
-			proprec->prop_value.prop_plane = plane;
+		        plane = DBNewPlane((ClientData)TT_SPACE);
+		        proprec->prop_value.prop_plane = plane;
 		    }
 		    else
-		        proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-				(proplen - 2)*sizeof(int));
+		        proprec = (PropertyRecord *)mallocMagic(
+		            intPropertyRecordSize(proplen));
 		    proprec->prop_type = proptype;
 		    proprec->prop_len = proplen;
 
@@ -2680,9 +2679,8 @@ CmdDoProperty(
 			    plane = DBNewPlane((ClientData)TT_SPACE);
 			    proprec->prop_value.prop_plane = plane;
 			} else {
-			    proprec = (PropertyRecord *)mallocMagic(
-					sizeof(PropertyRecord) +
-					(proplen - 2) * sizeof(int));
+		        proprec = (PropertyRecord *)mallocMagic(
+		            intPropertyRecordSize(proplen));
 			}
 			proprec->prop_type = proptype;
 			proprec->prop_len = proplen;

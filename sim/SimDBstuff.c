@@ -866,10 +866,9 @@ SimPutLabel(
     TileType type)	/* Type of tile to be labeled */
 {
     Label *lab;
-    int len, x1, x2, y1, y2, tmp, labx, laby;
+    int x1, x2, y1, y2, tmp, labx, laby;
 
-    len = strlen(text) + sizeof (Label) - sizeof lab->lab_text + 1;
-    lab = (Label *) mallocMagic((unsigned) len);
+    lab = (Label *) mallocMagic((unsigned)labelSize(strlen(text)));
     strcpy(lab->lab_text, text);
 
     /* Pick a nice alignment if the caller didn't give one.  If the

@@ -327,7 +327,7 @@ extHardSetLabel(scx, reg, arg)
     len = strlen(oldlab->lab_text) + prefixlen;
 
     /* Allocate a Label big enough to hold the complete path */
-    newlab = (Label *) mallocMagic((unsigned) (sizeof (Label) + len - 3));
+    newlab = (Label *) mallocMagic((unsigned)labelSize(len));
     r=oldlab->lab_rect;
     if (!GEO_SURROUND(&scx->scx_area,&r))
     {
@@ -431,7 +431,7 @@ extHardGenerateLabel(scx, reg, arg)
 
     prefixlen = tpath->tp_next - tpath->tp_first;
     len = strlen(gen) + prefixlen;
-    newlab = (Label *) mallocMagic((unsigned) (sizeof (Label) + len - 3));
+    newlab = (Label *) mallocMagic((unsigned)labelSize(len));
     r.r_ll = reg->treg_tile->ti_ll;
     r.r_ur.p_x = r.r_ll.p_x+1;
     r.r_ur.p_y = r.r_ll.p_y+1;

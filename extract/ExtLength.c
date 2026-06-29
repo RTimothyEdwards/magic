@@ -497,7 +497,6 @@ extLengthLabelsFunc(scx, label, tpath)
 {
     Label *newLab;
     HashEntry *he;
-    int len;
 
     /* Concatenate the prefix and label to get the full hierarchical name */
     (void) strcpy(tpath->tp_next, label->lab_text);
@@ -511,9 +510,7 @@ extLengthLabelsFunc(scx, label, tpath)
     HashSetValue(he, (ClientData) 1);
 
     /* Allocate and fill in a new hierarchical label */
-    len = strlen(tpath->tp_first) + sizeof (Label)
-	- sizeof newLab->lab_text + 1;
-    newLab = (Label *) mallocMagic((unsigned) len);
+    newLab = (Label *) mallocMagic((unsigned)labelSize(strlen(tpath->tp_first)));
     newLab->lab_type = label->lab_type;
     newLab->lab_just = GeoTransPos(&scx->scx_trans, label->lab_just);
     GeoTransRect(&scx->scx_trans, &label->lab_rect, &newLab->lab_rect);
@@ -587,10 +584,8 @@ extPathLabelFunc(rect, text, childLab, pLabList)
 			 */
 {
     Label *lab;
-    int len;
 
-    len = strlen(text) + sizeof (Label) - sizeof lab->lab_text + 1;
-    lab = (Label *) mallocMagic((unsigned) len);
+    lab = (Label *) mallocMagic((unsigned)labelSize(strlen(text)));
     lab->lab_type = childLab->lab_type;
     lab->lab_rect = *rect;
     lab->lab_just = GEO_CENTER;	/* Irrelevant */
