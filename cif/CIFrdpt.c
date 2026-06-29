@@ -274,8 +274,7 @@ CIFPropRecordPath(
 	pathp = pathp->cifp_next;
     }
     /* Allocate enough space to hold 2 * N points. */
-    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-		((components - 1) * 2) * sizeof(int));
+    proprec = (PropertyRecord *)mallocMagic(intPropertyRecordSize(components * 2));
     proprec->prop_type = PROPERTY_TYPE_DIMENSION;
     proprec->prop_len = components * 2;
 

@@ -1066,7 +1066,7 @@ cifMakeBoundaryFunc(
 	}
     }
 
-    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) + 2 * sizeof(int));
+    proprec = (PropertyRecord *)mallocMagic(intPropertyRecordSize(4));
     proprec->prop_type = PROPERTY_TYPE_DIMENSION;
     proprec->prop_len = 4;
     proprec->prop_value.prop_integer[0] = area.r_xbot;

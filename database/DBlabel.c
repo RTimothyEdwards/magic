@@ -149,10 +149,8 @@ DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags,
     unsigned int port;	/* Port index (if label is a port, per the flags) */
 {
     Label *lab;
-    int len, x1, x2, y1, y2, tmp, labx, laby;
-
-    len = strlen(text) + sizeof (Label) - sizeof lab->lab_text + 1;
-    lab = (Label *) mallocMagic ((unsigned) len);
+    int x1, x2, y1, y2, tmp, labx, laby;
+    lab = (Label *) mallocMagic ((unsigned)labelSize(strlen(text)));
     strcpy(lab->lab_text, text);
 
     /* Pick a nice alignment if the caller didn't give one.  If the

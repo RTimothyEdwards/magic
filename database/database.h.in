@@ -257,14 +257,17 @@ typedef struct label
 					 */
     unsigned int    lab_port;		/* Port number, if label is a port */
     struct label   *lab_next;      	/* Next label in list */
-    char            lab_text[4];   	/* Actual text of label.  This field
-                                         * is just a place-holder: the actual
-                                         * field will be large enough to
-                                         * contain the label name.  This
-                                         * MUST be the last field in the
-                                         * structure.
-                                         */
+    char            lab_text[];   	/* Actual text of label. This
+                                     * MUST be the last field in the
+                                     * structure.
+                                     */
 } Label;
+
+/*
+ * Size of a Label big enough to hold a string containing
+ * n bytes (not including the NULL byte).
+ */
+#define labelSize(n) (sizeof(Label) + n + 1)
 
 /*
  * Label flags bit fields
@@ -731,12 +734,23 @@ typedef struct
     int		prop_type;	/* See codes below; e.g., PROPERTY_TYPE_STRING */
     int		prop_len;	/* String length or number of values */
     union {
-	char  prop_string[8];	/* For PROPERTY_TYPE_STRING */
-	int   prop_integer[2];	/* For PROPERTY_TYPE_INTEGER or _DIMENSION */
-	dlong prop_double[1];	/* For PROPERTY_TYPE_DOUBLE */
-	Plane *prop_plane;	/* For PROPERTY_TYPE_PLANE */
+        Plane *prop_plane;	/* For PROPERTY_TYPE_PLANE */
+        int   prop_integer[];	/* For PROPERTY_TYPE_INTEGER or _DIMENSION */
+        dlong prop_double[];	/* For PROPERTY_TYPE_DOUBLE */
+        char  prop_string[];	/* For PROPERTY_TYPE_STRING, must be last in
+                                 * struct and union */
     } prop_value;
 } PropertyRecord;
+
+#define intPropertyRecordSize(n) ( \
+    sizeof(PropertyRecord) + n * sizeof(int) \
+    - sizeof(((PropertyRecord *) 0)->prop_value))
+#define dlongPropertyRecordSize(n) ( \
+    sizeof(PropertyRecord) + n * sizeof(dlong) \
+    - sizeof(((PropertyRecord *) 0)->prop_value))
+#define strPropertyRecordSize(n) ( \
+    sizeof(PropertyRecord) + n + 1 - \
+    sizeof(((PropertyRecord *) 0)->prop_value))
 
 /* -------------- Undo information passed to DBPaintPlane ------------- */
 

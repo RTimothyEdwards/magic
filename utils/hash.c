@@ -418,7 +418,13 @@ next:
     switch (table->ht_ptrKeys)
     {
 	case HT_STRINGKEYS:
-	    h = (HashEntry *) mallocMagic((unsigned) (sizeof(HashEntry)+strlen(key)-3));
+		// n char entries
+		h = (HashEntry *) mallocMagic((unsigned)(
+			sizeof(HashEntry)
+			+ strlen(key) // key
+			+ 1 // NUL char
+			- sizeof(h->h_key) // redundant pointer alloc
+		));
 	    (void) strcpy(h->h_key.h_name, key);
 	    break;
 	case HT_CLIENTKEYS:
@@ -434,17 +440,25 @@ next:
 	    h->h_key.h_ptr = key;
 	    break;
 	case HT_STRUCTKEYS:
-	    h = (HashEntry *) mallocMagic(
-		    (unsigned) (sizeof (HashEntry) + sizeof (unsigned)));
+		// exactly two unsigned entries
+		h = (HashEntry *) mallocMagic((unsigned)(
+			sizeof (HashEntry)
+			+ 2 * sizeof (unsigned)
+			- sizeof(h->h_key) // redundant pointer alloc
+		));
 	    up = h->h_key.h_words;
 	    kp = (unsigned *) key;
 	    *up++ = *kp++;
 	    *up = *kp;
 	    break;
 	default:
-	    n = table->ht_ptrKeys;
-	    h = (HashEntry *) mallocMagic(
-		    (unsigned) (sizeof(HashEntry) + (n-1) * sizeof (unsigned)));
+		// n unsigned entries
+		n = table->ht_ptrKeys;
+		h = (HashEntry *) mallocMagic((unsigned)(
+			sizeof(HashEntry) +
+			n * sizeof (unsigned) +
+			-sizeof(h->h_key) // redundant pointer alloc
+		));
 	    up = h->h_key.h_words;
 	    kp = (unsigned *) key;
 	    do { *up++ = *kp++; } while (--n);

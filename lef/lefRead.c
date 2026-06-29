@@ -2191,8 +2191,8 @@ LefReadMacro(
 		    sprintf(tsave + strlen(tsave), " %s", token);
 		    token = LefNextToken(f, TRUE);
 		}
-		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-				strlen(tsave + 1) - 7);
+		proprec = (PropertyRecord *)mallocMagic(
+			strPropertyRecordSize(strlen(tsave + 1)));
 		proprec->prop_type = PROPERTY_TYPE_STRING;
 		proprec->prop_len = strlen(tsave + 1);
 		strcpy(proprec->prop_value.prop_string, tsave + 1);
@@ -2240,8 +2240,8 @@ origin_error:
 		    sprintf(tsave + strlen(tsave), " %s", token);
 		    token = LefNextToken(f, TRUE);
 		}
-		proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-				strlen(tsave + 1) - 7);
+		proprec = (PropertyRecord *)mallocMagic(
+			strPropertyRecordSize(strlen(tsave + 1)));
 		proprec->prop_type = PROPERTY_TYPE_STRING;
 		proprec->prop_len = strlen(tsave + 1);
 		strcpy(proprec->prop_value.prop_string, tsave + 1);
@@ -2257,8 +2257,8 @@ origin_error:
 		token = LefNextToken(f, TRUE);
 		if (*token != '\n')
 		{
-		    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-				strlen(token) - 7);
+		    proprec = (PropertyRecord *)mallocMagic(
+				strPropertyRecordSize(strlen(token)));
 		    proprec->prop_type = PROPERTY_TYPE_STRING;
 		    proprec->prop_len = strlen(token);
 		    strcpy(proprec->prop_value.prop_string, token);
@@ -2281,8 +2281,16 @@ origin_error:
 		    sprintf(tsave, "%.127s", token);
 		    token = LefNextToken(f, TRUE);
 		    
-		    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-				propsize + strlen(tsave) + strlen(token) - 3);
+		    proprec = (PropertyRecord *)mallocMagic(
+				// stores three separate strings contiguously…
+				sizeof(PropertyRecord) +
+				propsize + 1 +
+				strlen(tsave) + 1 +
+				strlen(token) + 1
+				+ 1 // the prop_len was + 4 before I edited this and I'm not
+					// really tempted to set it to + 3 and find out why. I'm
+					// just going to allocate the extra byte.
+			);
 		    proprec->prop_type = PROPERTY_TYPE_STRING;
 		    proprec->prop_len = propsize + strlen(tsave) + strlen(token) + 4;
 
@@ -2368,8 +2376,7 @@ foreign_error:
 	if (has_size)
 	{
 	    lefMacro->cd_flags |= CDFIXEDBBOX;
-	    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-			(2 * sizeof(int)));
+	    proprec = (PropertyRecord *)mallocMagic(intPropertyRecordSize(4));
 	    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
 	    proprec->prop_len = 4;
 	    proprec->prop_value.prop_integer[0] = lefBBox.r_xbot;
@@ -2387,8 +2394,7 @@ foreign_error:
 	if (has_size)
 	{
 	    lefMacro->cd_flags |= CDFIXEDBBOX;
-	    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-			(2 * sizeof(int)));
+	    proprec = (PropertyRecord *)mallocMagic(intPropertyRecordSize(4));
 	    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
 	    proprec->prop_len = 4;
 	    proprec->prop_value.prop_integer[0] = lefBBox.r_xbot;
@@ -2406,8 +2412,7 @@ foreign_error:
 	    /* Set the placement bounding box property to the current bounding box */
 	    lefMacro->cd_flags |= CDFIXEDBBOX;
 	    lefMacro->cd_flags |= CDFIXEDBBOX;
-	    proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) +
-			(2 * sizeof(int)));
+	    proprec = (PropertyRecord *)mallocMagic(intPropertyRecordSize(4));
 	    proprec->prop_type = PROPERTY_TYPE_DIMENSION;
 	    proprec->prop_len = 4;
 	    proprec->prop_value.prop_integer[0] = lefMacro->cd_bbox.r_xbot;
@@ -2431,7 +2436,7 @@ foreign_error:
 
     if (!is_imported)
     {
-	proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+	proprec = (PropertyRecord *)mallocMagic(strPropertyRecordSize(4));
 	proprec->prop_type = PROPERTY_TYPE_STRING;
 	proprec->prop_len = 4;
 	strcpy(proprec->prop_value.prop_string, "TRUE");

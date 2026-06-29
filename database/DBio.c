@@ -2538,8 +2538,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 				propertyname);
 			/* Unable to parse correctly.  Save as a string value */
 			proplen = strlen(pvalueptr);
-			proprec = (PropertyRecord *)mallocMagic(
-				sizeof(PropertyRecord) - 7 + proplen);
+			proprec = (PropertyRecord *)mallocMagic(strPropertyRecordSize(proplen));
 			proprec->prop_type = PROPERTY_TYPE_STRING;
 			proprec->prop_len = proplen;
 			strcpy(proprec->prop_value.prop_string, pvalueptr);
@@ -2565,8 +2564,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			if (propertyname[0] == 'F')
 			    cellDef->cd_flags |= CDFIXEDBBOX;
 
-			proprec = (PropertyRecord *)mallocMagic(
-				sizeof(PropertyRecord) + 2 * sizeof(int));
+			proprec = (PropertyRecord *)mallocMagic(intPropertyRecordSize(4));
 			proprec->prop_type = PROPERTY_TYPE_DIMENSION;
 			proprec->prop_len = 4;
 			proprec->prop_value.prop_integer[0] = locbbox.r_xbot;
@@ -2651,8 +2649,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 				propertyname);
 			/* Unable to parse correctly.  Save as a string value */
 			proplen = strlen(pvalueptr);
-			proprec = (PropertyRecord *)mallocMagic(
-				sizeof(PropertyRecord) - 7 + proplen);
+			proprec = (PropertyRecord *)mallocMagic(strPropertyRecordSize(proplen));
 			proprec->prop_type = PROPERTY_TYPE_STRING;
 			proprec->prop_len = proplen;
 			strcpy(proprec->prop_value.prop_string, pvalueptr);
@@ -2661,7 +2658,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		    }
 		    else
 		    {
-			proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+			proprec = (PropertyRecord *)mallocMagic(dlongPropertyRecordSize(1));
 			proprec->prop_type = PROPERTY_TYPE_DOUBLE;
 			proprec->prop_len = 1;
 			proprec->prop_value.prop_double[0] = dval;
@@ -2671,8 +2668,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		else
 		{
 		    proplen = strlen(pvalueptr);
-		    proprec = (PropertyRecord *)mallocMagic(
-				sizeof(PropertyRecord) - 7 + proplen);
+			proprec = (PropertyRecord *)mallocMagic(strPropertyRecordSize(proplen));
 		    proprec->prop_type = PROPERTY_TYPE_STRING;
 		    proprec->prop_len = proplen;
 		    strcpy(proprec->prop_value.prop_string, pvalueptr);
@@ -2703,8 +2699,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			{
 			    /* Unable to parse correctly.  Save as a string value */
 			    proplen = strlen(pvalueptr);
-			    proprec = (PropertyRecord *)mallocMagic(
-					sizeof(PropertyRecord) - 7 + proplen);
+			    proprec = (PropertyRecord *)mallocMagic(strPropertyRecordSize(proplen));
 			    proprec->prop_type = PROPERTY_TYPE_STRING;
 			    proprec->prop_len = proplen;
 			    strcpy(proprec->prop_value.prop_string, pvalueptr);
@@ -2717,8 +2712,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		}
 
 		pptr = pvalueptr;
-		proprec = (PropertyRecord *)mallocMagic(
-			sizeof(PropertyRecord) + ((numvals - 2) * sizeof(int)));
+		proprec = (PropertyRecord *)mallocMagic(intPropertyRecordSize(numvals));
 		proprec->prop_type = PROPERTY_TYPE_INTEGER;
 		proprec->prop_len = numvals;
 
@@ -2762,8 +2756,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			{
 			    /* Unable to parse correctly.  Save as a string value */
 			    proplen = strlen(pvalueptr);
-			    proprec = (PropertyRecord *)mallocMagic(
-					sizeof(PropertyRecord) - 7 + proplen);
+			    proprec = (PropertyRecord *)mallocMagic(strPropertyRecordSize(proplen));
 			    proprec->prop_type = PROPERTY_TYPE_STRING;
 			    proprec->prop_len = proplen;
 			    strcpy(proprec->prop_value.prop_string, pvalueptr);
@@ -2776,8 +2769,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		}
 
 		pptr = pvalueptr;
-		proprec = (PropertyRecord *)mallocMagic(
-			sizeof(PropertyRecord) + ((numvals - 1) * sizeof(dlong)));
+		proprec = (PropertyRecord *)mallocMagic(dlongPropertyRecordSize(numvals));
 		proprec->prop_type = PROPERTY_TYPE_DOUBLE;
 		proprec->prop_len = numvals;
 
@@ -2821,8 +2813,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			{
 			    /* Unable to parse correctly.  Save as a string value */
 			    proplen = strlen(pvalueptr);
-			    proprec = (PropertyRecord *)mallocMagic(
-					sizeof(PropertyRecord) - 7 + proplen);
+			    proprec = (PropertyRecord *)mallocMagic(strPropertyRecordSize(proplen));
 			    proprec->prop_type = PROPERTY_TYPE_STRING;
 			    proprec->prop_len = proplen;
 			    strcpy(proprec->prop_value.prop_string, pvalueptr);
@@ -2835,8 +2826,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		}
 
 		pptr = pvalueptr;
-		proprec = (PropertyRecord *)mallocMagic(
-			sizeof(PropertyRecord) + ((numvals - 2) * sizeof(int)));
+		proprec = (PropertyRecord *)mallocMagic(intPropertyRecordSize(numvals));
 		proprec->prop_type = PROPERTY_TYPE_DIMENSION;
 		proprec->prop_len = numvals;
 

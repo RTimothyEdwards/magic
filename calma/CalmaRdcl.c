@@ -513,7 +513,7 @@ calmaParseStructure(
 	/* the same way that cell references are handled in .mag files.	*/
 	DBPathSubstitute(filename, cstring, cifReadCellDef);
 
-	proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+	proprec = (PropertyRecord *)mallocMagic(dlongPropertyRecordSize(1));
 	proprec->prop_type = PROPERTY_TYPE_DOUBLE;
 	proprec->prop_len = 1;
 	proprec->prop_value.prop_double[0] = filepos;
@@ -521,14 +521,14 @@ calmaParseStructure(
 
 	filepos = FTELL(calmaInputFile);
 
-	proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord));
+	proprec = (PropertyRecord *)mallocMagic(dlongPropertyRecordSize(1));
 	proprec->prop_type = PROPERTY_TYPE_DOUBLE;
 	proprec->prop_len = 1;
 	proprec->prop_value.prop_double[0] = filepos;
 	DBPropPut(cifReadCellDef, "GDS_END", (ClientData)proprec);
 
-	proprec = (PropertyRecord *)mallocMagic(sizeof(PropertyRecord) - 7 +
-		strlen(cstring));
+	proprec = (PropertyRecord *)mallocMagic(
+		strPropertyRecordSize(strlen(cstring)));
 	proprec->prop_type = PROPERTY_TYPE_STRING;
 	proprec->prop_len = 1;
 	strcpy(proprec->prop_value.prop_string, cstring);

@@ -63,14 +63,10 @@ typedef struct
     CellDef	*e_parentDef;	/* Parent def of the editcell, or NULL if the
 				 * edit cell was a root itself.
 				 */
-    char	 e_useId[4];	/* Use identifier.  This is a place holder
-				 * only; the actual structure is allocated to
-				 * hold all the bytes in the use id, plus the
-				 * null byte.
-				 */
+    char	 e_useId[];	/* Use identifier. Dynamically allocated. */
 } editUE;
 
-#define	editSize(n)	(sizeof (editUE) - 3 + (n))
+#define	editSize(n)	(sizeof (editUE) + n + 1)
 
 /* Structure used for undo-ing changes in the box.  It just holds the
  * box's old and new locations.

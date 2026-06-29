@@ -33,18 +33,11 @@ typedef struct h1
 {
     char *h_pointer;		/* Pointer to anything. */
     struct h1 *h_next;		/* Next element, zero for end. */
-    union
-    {
+    union {
 	const char *h_ptr;	/* One-word key value to identify entry. */
-	unsigned h_words[1];	/* N-word key value.  Note: the actual
-				 * size may be longer if necessary to hold
-				 * the entire key.
-				 */
-	char h_name[4];		/* Text name of this entry.  Note: the
-				 * actual size may be longer if necessary
-				 * to hold the whole string. This MUST be
-				 * the last entry in the structure!!!
-				 */
+    /* Following members must be the last part of the struct and union:*/
+	unsigned h_words[];	/* N-word key value. */
+	char h_name[];		/* Text name of this entry. */
     } h_key;
 } HashEntry;
 

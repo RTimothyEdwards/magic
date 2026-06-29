@@ -74,14 +74,14 @@ typedef struct hiername
 {
     struct hiername	*hn_parent;	/* Back-pointer toward root */
     int			 hn_hash;	/* For speed in hashing */
-    char		 hn_name[4];	/* String is allocated here */
+    char		 hn_name[];	/* String is allocated here */
 } HierName;
 
 /*
  * Size of a HierName big enough to hold a string containing
  * n bytes (not including the NULL byte).
  */
-#define	HIERNAMESIZE(n)	((n) + sizeof (HierName) - 3)
+#define	HIERNAMESIZE(n)	(sizeof (HierName) + n + 1)
 
 /* Indicates where the HierName was allocated: passed to EFHNFree() */
 #define	HN_ALLOC	0	/* Normal name (FromStr) */
@@ -96,14 +96,14 @@ typedef struct efattr
     struct efattr	*efa_next;	/* Next in list */
     Rect		 efa_loc;	/* Location of attr label */
     int			 efa_type;	/* Tile type attr attached to */
-    char		 efa_text[4];	/* String is allocated here */
+    char		 efa_text[];	/* String is allocated here */
 } EFAttr;
 
 /*
  * Size of an EFAttr big enough to hold a string containing
  * n bytes (not including the NULL byte).
  */
-#define	ATTRSIZE(n)	((n) + sizeof (EFAttr) - 3)
+#define	ATTRSIZE(n)	(sizeof (EFAttr) + n + 1)
 
 /* ------------------- Hierarchical and flat nodes -------------------- */
 
@@ -289,14 +289,14 @@ typedef struct dev
     int		 dev_length;
     int		 dev_width;
     DevParam	 *dev_params;	/* List of subcircuit parameters to output */
-    DevTerm	 dev_terms[1];	/* Terminals.  The actual number will depend
+    DevTerm	 dev_terms[];	/* Terminals.  The actual number will depend
 				 * on dev_nterm above, so the size of this
 				 * structure will vary.
 				 */
 } Dev;
 
 /* Size of a Dev structure for 'n' terminals (including the "gate") */
-#define	DevSize(n)	(sizeof (Dev) + ((n)-1)*sizeof (DevTerm))
+#define	DevSize(n)	(sizeof (Dev) + n * sizeof (DevTerm))
 
 /* -------------------------------------------------------------------- */
 

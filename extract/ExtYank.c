@@ -79,7 +79,7 @@ extHierCopyLabels(sourceDef, targetDef)
     firstLab = lastLab = (Label *) NULL;
     for (lab = sourceDef->cd_labels; lab; lab = lab->lab_next)
     {
-	n = sizeof (Label) + strlen(lab->lab_text) - sizeof lab->lab_text + 1;
+	n = labelSize(strlen(lab->lab_text));
 	newlab = (Label *) mallocMagic((unsigned) n);
 	bcopy((char *) lab, (char *) newlab, (int) n);
 
@@ -228,7 +228,7 @@ extHierLabelFunc(scx, label, tpath, targetDef)
     len += srcp - tpath->tp_first + 1;
 
     /* Allocate new label at correct location */
-    newlab = (Label *) mallocMagic((unsigned) (sizeof (Label) + len - 4));
+    newlab = (Label *) mallocMagic((unsigned)labelSize(len - 1));
     GeoTransRect(&scx->scx_trans, &label->lab_rect, &newlab->lab_rect);
     newlab->lab_just = GeoTransPos(&scx->scx_trans, label->lab_just);
     newlab->lab_type = label->lab_type;
