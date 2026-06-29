@@ -34,10 +34,10 @@ typedef struct h1
     char *h_pointer;		/* Pointer to anything. */
     struct h1 *h_next;		/* Next element, zero for end. */
     union {
-	const char *h_ptr;	/* One-word key value to identify entry. */
-    /* Following members must be the last part of the struct and union:*/
-	unsigned h_words[];	/* N-word key value. */
-	char h_name[];		/* Text name of this entry. */
+        const char *h_ptr;	/* One-word key value to identify entry. */
+        /* Following members must be the last part of the struct and union:*/
+        FLEX_UNION_MEMBER(unsigned h_words[], 0);	/* N-word key value. */
+        FLEX_UNION_MEMBER(char h_name[], 1);		/* Text name of this entry. */
     } h_key;
 } HashEntry;
 

@@ -735,10 +735,10 @@ typedef struct
     int		prop_len;	/* String length or number of values */
     union {
         Plane *prop_plane;	/* For PROPERTY_TYPE_PLANE */
-        int   prop_integer[];	/* For PROPERTY_TYPE_INTEGER or _DIMENSION */
-        dlong prop_double[];	/* For PROPERTY_TYPE_DOUBLE */
-        char  prop_string[];	/* For PROPERTY_TYPE_STRING, must be last in
-                                 * struct and union */
+        FLEX_UNION_MEMBER(int prop_integer[], 0);	/* For PROPERTY_TYPE_INTEGER or _DIMENSION */
+        FLEX_UNION_MEMBER(dlong prop_double[], 1);	/* For PROPERTY_TYPE_DOUBLE */
+        FLEX_UNION_MEMBER(char  prop_string[], 2);	/* For PROPERTY_TYPE_STRING, must be last in
+                                * struct and union */
     } prop_value;
 } PropertyRecord;
 
