@@ -645,7 +645,7 @@ ResTriangleCheck(resptr)
 
 		    n3->rn_less = NULL;
 		    n3->rn_more = ResNodeList;
-		    ResNodeList->rn_less = n3;
+		    if (ResNodeList != NULL) ResNodeList->rn_less = n3;
 		    ResNodeList = n3;
 		    if (resptr == rr1->rr_connection1)
 		    {
@@ -780,7 +780,7 @@ ResTriangleCheck(resptr)
 
 		n3->rn_less = NULL;
 		n3->rn_more = ResNodeList;
-		ResNodeList->rn_less = n3;
+		if (ResNodeList != NULL) ResNodeList->rn_less = n3;
 		ResNodeList = n3;
 		if (resptr == rr1->rr_connection1)
 		{
