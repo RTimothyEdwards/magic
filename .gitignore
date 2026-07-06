@@ -61,3 +61,10 @@ net2ir/net2ir.wasm
 
 # Generated test output
 npm/examples/output/
+
+# AI stuff
+.claude/
+.claude_agent/
+.claudeignore
+CLAUDE.md
+CLAUDE.local.md
