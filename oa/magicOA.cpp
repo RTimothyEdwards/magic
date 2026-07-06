@@ -13,7 +13,38 @@
 #ifndef rsize_t
 #define rsize_t size_t
 #endif
-EXTERN_C /*errno_t*/ int strcpy_s(char *__restrict dest, rsize_t destsz, const char *__restrict src); // FIXME glibc does not include
+EXTERN_C /*errno_t*/ int strcpy_s(char *__restrict dest, rsize_t destsz, const char *__restrict src); // glibc does not provide C11 Annex K
+
+#ifndef __STDC_LIB_EXT1__
+/*
+ * Inline fallback for platforms whose C library does not implement the C11
+ * Annex K bounds-checked interfaces (notably glibc, which never defines
+ * __STDC_LIB_EXT1__).  Without this the declaration above would be an
+ * unresolved symbol at link time.  Copies src into dest (capacity destsz,
+ * including the terminating NUL); on a bad argument or on truncation it empties
+ * dest and returns non-zero, matching strcpy_s's error contract closely enough
+ * for our use.
+ */
+EXTERN_C int strcpy_s(char *__restrict dest, rsize_t destsz, const char *__restrict src) {
+    rsize_t i;
+    if (dest == NULL || destsz == 0) {
+	return 22;			/* ~EINVAL */
+    }
+    if (src == NULL) {
+	dest[0] = '\0';
+	return 22;			/* ~EINVAL */
+    }
+    for (i = 0; i + 1 < destsz && src[i] != '\0'; i++) {
+	dest[i] = src[i];
+    }
+    if (src[i] != '\0') {		/* src did not fit */
+	dest[0] = '\0';
+	return 34;			/* ~ERANGE */
+    }
+    dest[i] = '\0';
+    return 0;
+}
+#endif /* __STDC_LIB_EXT1__ */
 
 using namespace std;
 
@@ -24,9 +55,8 @@ oaCellView *curCellView;
 int
 getTechInfo (const char *techName)
 {
-  char argvbuf[32];
-  snprintf(argvbuf, sizeof(argvbuf), "tclsh");
-  char *argArray[] = {&argvbuf[0]};
+  char argvbuf[] = "tclsh";	/* mutable: oaDBInit takes char** */
+  char *argArray[] = {argvbuf};
   int argCount = 1;
   // initialize OA DB
   oaDBInit( &argCount, argArray );
