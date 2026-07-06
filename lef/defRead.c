@@ -2536,7 +2536,7 @@ DefRead(
      * corrupt the database during DEF reads.
      */
 
-    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+    if (TxTkConsole)		/* only when a Tk console exists (never in -dnull) */
 	oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
 #endif /* MAGIC_NO_TK */
 #endif /* MAGIC_WRAPPER */
@@ -2764,7 +2764,7 @@ DefRead(
 #ifdef MAGIC_WRAPPER
 #ifndef MAGIC_NO_TK
     /* Restore full event access */
-    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+    if (TxTkConsole)		/* only when a Tk console exists (never in -dnull) */
 	Tk_RestrictEvents(oldProc, oldArg, &oldArg);
 #endif /* MAGIC_NO_TK */
 #endif /* MAGIC_WRAPPER */

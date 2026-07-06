@@ -42,6 +42,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "utils/malloc.h"
 #include "textio/textio.h"
+#include "utils/main.h"
 #include "debug/debug.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
@@ -190,7 +191,7 @@ extSubtree(parentUse, reg, f)
     Tk_RestrictProc *oldProc;
     ClientData oldArg;
 
-    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+    if (TxTkConsole)		/* only when a Tk console exists (never in -dnull) */
 	oldProc = Tk_RestrictEvents(RestrictInputProc, (ClientData)NULL, &oldArg);
 #endif /* MAGIC_NO_TK */
 #endif /* MAGIC_WRAPPER */
@@ -389,7 +390,7 @@ done:
 #ifdef MAGIC_WRAPPER
 #ifndef MAGIC_NO_TK
     /* Restore full event access */
-    if (SigInterruptOnSigIO != -1)	/* Check for batch mode */
+    if (TxTkConsole)		/* only when a Tk console exists (never in -dnull) */
 	Tk_RestrictEvents(oldProc, oldArg, &oldArg);
 #endif /* MAGIC_NO_TK */
 #endif /* MAGIC_WRAPPER */
