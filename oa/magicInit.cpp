@@ -301,10 +301,9 @@ int Magicoa_Init(Tcl_Interp *interp) {
       return TCL_ERROR;
 #endif
 	try {
-	char argvbuf[32];
+	char argvbuf[] = "tclsh";	/* mutable: oaDBInit takes char** */
 	int args=1;
-	snprintf(argvbuf, sizeof(argvbuf), "tclsh");
-	char *argv[] = {&argvbuf[0]};
+	char *argv[] = {argvbuf};
 	oaDBInit(&args, argv);
 
 	} CATCH
