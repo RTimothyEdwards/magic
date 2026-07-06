@@ -92,7 +92,7 @@ global bool SigIOReady = FALSE;
 
 /* If set to 1, we will set SigInterruptPending whenever we set SigIOReady. */
 /* If set to -1, then SigInterruptPending is never set */
-global char SigInterruptOnSigIO;
+global signed char SigInterruptOnSigIO;
 
 /*
  * Set to true when we recieve a SIGWINCH/SIGWINDOW signal
