@@ -131,6 +131,9 @@ typedef struct
 /* Length of record header */
 #define	CALMAHEADERLENGTH	4
 
+/* Largest possible record (limited by the 16-bit record length field) */
+#define	CALMARECORDMAX		65535
+
 /* Label types
  *  The intention is all the values can be stored/converted with unsigned char type,
  *  C23 allows us to be explicit with the type but C99 does not, so a comment for now.

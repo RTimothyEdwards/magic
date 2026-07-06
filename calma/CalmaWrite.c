@@ -347,7 +347,7 @@ CalmaWrite(
      * to insure that each child cell is output before it is used.  The
      * root cell is output last.
      */
-    calmaProcessDef(rootDef, f, CalmaDoLibrary);
+    good = (calmaProcessDef(rootDef, f, CalmaDoLibrary) == 0) ? TRUE : FALSE;
 
     /*
      * Check for any cells that were instanced in the output definition
@@ -366,7 +366,10 @@ CalmaWrite(
 
 	    extraDef = DBCellLookDef((char *)he->h_key.h_name);
 	    if (extraDef != NULL)
-		calmaProcessDef(extraDef, f, FALSE);
+	    {
+		if (calmaProcessDef(extraDef, f, FALSE) != 0)
+		    good = FALSE;
+	    }
 	    else
 	    	TxError("Error:  Cell %s is not defined in the output file!\n",
 				refname + 1);
@@ -376,7 +379,7 @@ CalmaWrite(
     /* Finish up by outputting the end-of-library marker */
     calmaOutRH(4, CALMA_ENDLIB, CALMA_NODATA, f);
     fflush(f);
-    good = !ferror(f);
+    if (ferror(f)) good = FALSE;
 
     /* See if any problems occurred */
     if ((problems = (DBWFeedbackCount - oldCount)))
@@ -975,11 +978,10 @@ calmaProcessDef(
 
     if (isReadOnly && hasContent)
     {
-	char *buffer, *offptr, *retfilename;
+	char *buffer, *retfilename;
 	size_t defsize, numbytes;
-	off_t cellstart, cellend, structstart;
+	off_t cellstart, cellend;
  	dlong cval;
-	int namelen;
 	FILETYPE fi;
 
 	/* Give some feedback to the user */
@@ -1039,72 +1041,109 @@ calmaProcessDef(
 	    cellend = (off_t)cval;
 	    cval = DBPropGetDouble(def, "GDS_BEGIN", &oldStyle);
 	    if (!oldStyle)
-	    {
 		cval = DBPropGetDouble(def, "GDS_START", NULL);
-
-		/* Write our own header and string name, to ensure	*/
-		/* that the magic cell name and GDS name match.		*/
-
-		/* Output structure header */
-		calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
-    		if (CalmaDateStamp != NULL)
-		    calmaOutDate(*CalmaDateStamp, outf);
-		else
-		    calmaOutDate(def->cd_timestamp, outf);
-		calmaOutDate(time((time_t *) 0), outf);
-
-		/* Name structure the same as the magic cellname */
-		calmaOutStructName(CALMA_STRNAME, def, outf);
-	    }
 
 	    cellstart = (off_t)cval;
 
-	    /* GDS_START has been defined as the start of data after the cell	*/
-	    /* structure name.  However, a sanity check is wise, so move back	*/
-	    /* that far and make sure the structure name is there.		*/
-	    structstart = cellstart - (off_t)(strlen(def->cd_name));
-	    if (strlen(def->cd_name) & 0x1) structstart--;
-	    structstart -= 2;
+	    /* Sanity check:  The structure must be long enough to	*/
+	    /* hold at least an ENDSTR record.				*/
 
-	    FSEEK(fi, structstart, SEEK_SET);
-
-	    /* Read the structure name and check against the CellDef name */
-	    defsize = (size_t)(cellstart - structstart);
-	    buffer = (char *)mallocMagic(defsize + 1);
-	    numbytes = magicFREAD(buffer, sizeof(char), (size_t)defsize, fi);
-	    if (numbytes == defsize)
-	    {
-		buffer[defsize] = '\0';
-		if (buffer[0] != 0x06 || buffer[1] != 0x06)
-		{
-		    TxError("Calma output error:  Structure name not found"
-				" at GDS file position %"DLONG_PREFIX"d\n", cellstart);
-		    TxError("Calma output error:  Can't write cell from vendor GDS."
-				"  Using magic's internal definition\n");
-		    isReadOnly = FALSE;
-		}
-		else if (strcmp(&buffer[2], def->cd_name))
-		{
-		    TxError("Calma output warning:  Structure definition has name"
-				" %s but cell definition has name %s.\n",
-				&buffer[2], def->cd_name);
-		    TxError("The structure definition will be given the cell name.\n");
-		}
-	    }
-	    else
-	    {
-		TxError("Calma output error:  Can't read cell from vendor GDS."
-				"  Using magic's internal definition\n");
-		isReadOnly = FALSE;
-	    }
-	    freeMagic(buffer);
-
-	    if (cellend < cellstart)	/* Sanity check */
+	    if (cellend < cellstart + 4)
 	    {
 		TxError("Calma output error:  Bad vendor GDS file reference!\n");
 		isReadOnly = FALSE;
 	    }
+
+	    if (isReadOnly && !oldStyle)
+	    {
+		/* GDS_START has been defined as the start of data after the	*/
+		/* cell structure name.  A sanity check is wise, so search	*/
+		/* backward from that position for the STRNAME record header.	*/
+		/* Note that the length of the structure name in the file	*/
+		/* cannot be assumed to be the length of the cell name in	*/
+		/* magic, because the cell may have been renamed after the	*/
+		/* GDS file was read.						*/
+
+		off_t blockstart;
+		size_t blocksize;
+		int reclen;
+		char *sptr = NULL;
+
+		blockstart = cellstart - (off_t)CALMARECORDMAX;
+		if (blockstart < 0) blockstart = (off_t)0;
+		blocksize = (size_t)(cellstart - blockstart);
+
+		FSEEK(fi, blockstart, SEEK_SET);
+		buffer = (char *)mallocMagic(blocksize + 1);
+		numbytes = magicFREAD(buffer, sizeof(char), blocksize, fi);
+		if (numbytes == blocksize)
+		{
+		    buffer[blocksize] = '\0';
+
+		    /* Scan candidate record lengths from shortest to longest.	*/
+		    /* A structure name contains only printable characters, so	*/
+		    /* the first match found is the STRNAME record header.	*/
+
+		    for (reclen = 6; reclen <= (int)blocksize; reclen += 2)
+		    {
+			char *tptr = buffer + blocksize - reclen;
+			if (((unsigned char)tptr[0] == (unsigned char)(reclen >> 8))
+				&& ((unsigned char)tptr[1] == (unsigned char)(reclen & 0xff))
+				&& (tptr[2] == CALMA_STRNAME)
+				&& (tptr[3] == CALMA_ASCII))
+			{
+			    sptr = tptr;
+			    break;
+			}
+		    }
+		    if (sptr == NULL)
+		    {
+			TxError("Calma output error:  Structure name not found"
+				" ending at GDS file position %"DLONG_PREFIX"d\n",
+				(dlong)cellstart);
+			TxError("Calma output error:  Can't write cell from vendor GDS."
+				"  Using magic's internal definition\n");
+			isReadOnly = FALSE;
+		    }
+		    else if (strcmp(sptr + 4, def->cd_name))
+		    {
+			TxError("Calma output warning:  Structure definition has name"
+				" %s but cell definition has name %s.\n",
+				sptr + 4, def->cd_name);
+			TxError("The structure definition will be given the cell name.\n");
+		    }
+		}
+		else
+		{
+		    TxError("Calma output error:  Can't read cell from vendor GDS."
+				"  Using magic's internal definition\n");
+		    isReadOnly = FALSE;
+		}
+		freeMagic(buffer);
+	    }
 	    else if (isReadOnly)
+	    {
+		/* Old-style GDS_BEGIN points to the start of the structure	*/
+		/* (BGNSTR record), which is copied verbatim including the	*/
+		/* structure name;  check that the BGNSTR record is there.	*/
+
+		char header[4];
+
+		FSEEK(fi, cellstart, SEEK_SET);
+		numbytes = magicFREAD(header, sizeof(char), 4, fi);
+		if ((numbytes != 4) || (header[2] != CALMA_BGNSTR)
+				|| (header[3] != CALMA_I2))
+		{
+		    TxError("Calma output error:  Structure definition not found"
+				" at GDS file position %"DLONG_PREFIX"d\n",
+				(dlong)cellstart);
+		    TxError("Calma output error:  Can't write cell from vendor GDS."
+				"  Using magic's internal definition\n");
+		    isReadOnly = FALSE;
+		}
+	    }
+
+	    if (isReadOnly)
 	    {
 		/* Important note:  mallocMagic() is limited to size integer.	*/
 		/* This will fail on a structure larger than ~2GB.		*/
@@ -1112,45 +1151,73 @@ calmaProcessDef(
 		defsize = (size_t)(cellend - cellstart);
 		buffer = (char *)mallocMagic(defsize);
 
+		FSEEK(fi, cellstart, SEEK_SET);
 		numbytes = magicFREAD(buffer, sizeof(char), (size_t)defsize, fi);
 
-		if (numbytes == defsize)
-		{
-		    /* Sanity check:  buffer must end with a structure	*/
-		    /* definition end (record 0x07).			*/
-
-		    if (buffer[defsize - 4] != 0x00 ||
-				buffer[defsize - 3] != 0x04 ||
-				buffer[defsize - 2] != 0x07 ||
-				buffer[defsize - 1] != 0x00)
-		    {
-			TxError("Calma output error:  Structure end definition not found"
-				" at GDS file position %"DLONG_PREFIX"d\n", cellend);
-			TxError("Calma output error:  Can't write cell from vendor GDS."
-				"  Using magic's internal definition\n");
-			isReadOnly = FALSE;
-		    }
-		    else
-		    {
-		    	numbytes = fwrite(buffer, sizeof(char), (size_t)defsize, outf);
-		    	if (numbytes <= 0)
-		    	{
-			    TxError("Calma output error:  Can't write cell from "
-					"vendor GDS.  Using magic's internal "
-					"definition\n");
-			    isReadOnly = FALSE;
-		    	}
-		    }
-		}
-		else
+		if (numbytes != defsize)
 		{
 		    TxError("Calma output error:  Can't read cell from vendor GDS."
 				"  Using magic's internal definition\n");
 
 		    /* Additional information as to why data did not match */
-		    TxError("Size of data requested: %"DLONG_PREFIX"d", defsize);
-		    TxError("Length of data read: %"DLONG_PREFIX"d", numbytes);
+		    TxError("Size of data requested: %"DLONG_PREFIX"d", (dlong)defsize);
+		    TxError("Length of data read: %"DLONG_PREFIX"d", (dlong)numbytes);
 		    isReadOnly = FALSE;
+		}
+		else if (buffer[defsize - 4] != 0x00 ||
+				buffer[defsize - 3] != 0x04 ||
+				buffer[defsize - 2] != 0x07 ||
+				buffer[defsize - 1] != 0x00)
+		{
+		    /* Sanity check:  buffer must end with a structure	*/
+		    /* definition end (record 0x07).			*/
+
+		    TxError("Calma output error:  Structure end definition not found"
+				" at GDS file position %"DLONG_PREFIX"d\n", cellend);
+		    TxError("Calma output error:  Can't write cell from vendor GDS."
+				"  Using magic's internal definition\n");
+		    isReadOnly = FALSE;
+		}
+		else
+		{
+		    /* All sanity checks have passed, so the structure header,	*/
+		    /* name, and data can be written.  Nothing may be written	*/
+		    /* to the output before this point, so that a failed check	*/
+		    /* above falls back on the cell definition in magic without	*/
+		    /* leaving a partial structure in the output.		*/
+
+		    if (!oldStyle)
+		    {
+			/* Write our own header and string name, to ensure	*/
+			/* that the magic cell name and GDS name match.		*/
+
+			/* Output structure header */
+			calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
+			if (CalmaDateStamp != NULL)
+			    calmaOutDate(*CalmaDateStamp, outf);
+			else
+			    calmaOutDate(def->cd_timestamp, outf);
+			calmaOutDate(time((time_t *) 0), outf);
+
+			/* Name structure the same as the magic cellname */
+			calmaOutStructName(CALMA_STRNAME, def, outf);
+		    }
+
+		    numbytes = fwrite(buffer, sizeof(char), (size_t)defsize, outf);
+		    if (numbytes != defsize)
+		    {
+			/* The structure header has already been written, so	*/
+			/* it is not possible to fall back on the internal	*/
+			/* cell definition;  the output is corrupt and the	*/
+			/* error is fatal.					*/
+
+			TxError("Calma output error:  Failed to write cell \"%s\""
+				" from vendor GDS.  Output is invalid!\n",
+				def->cd_name);
+			freeMagic(buffer);
+			FCLOSE(fi);
+			return 1;
+		    }
 		}
 		freeMagic(buffer);
 	    }
