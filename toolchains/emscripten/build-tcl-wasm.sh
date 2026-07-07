@@ -93,6 +93,18 @@ cd "$OUT"
 # --disable-shared      we statically link libtcl into magic.wasm.
 # --disable-load        no dynamic loading inside wasm.
 # --enable-symbols=no   release (-O2). Override CFLAGS to add -g for debug.
+#
+# ac_cv_header_sys_epoll_h=no forces TCL onto its select()-based notifier.
+# On a Linux host, TCL's configure runs `AC_CHECK_HEADERS([sys/epoll.h])` and,
+# if found, defines NOTIFIER_EPOLL and compiles tclEpollNotfy.c. Emscripten
+# 6.0.2 started shipping a <sys/epoll.h> stub in its sysroot (6.0.1 did not),
+# so that probe now passes — but tclEpollNotfy.c also needs <sys/queue.h>,
+# which emscripten does NOT provide, so the build dies with
+#   tclEpollNotfy.c: fatal error: 'sys/queue.h' file not found
+# The select() notifier is the correct choice for single-threaded WASM anyway
+# (emscripten's epoll is a stub), so we pin it here rather than track the
+# emscripten sysroot. Overriding the autoconf cache var is cleaner than
+# patching the read-only TCL source tree.
 if [ ! -f Makefile ]; then
   echo "=== emconfigure ==="
   CFLAGS="-O2 -sUSE_ZLIB=1" \
@@ -101,7 +113,8 @@ if [ ! -f Makefile ]; then
       --disable-load \
       --enable-symbols=no \
       --host=wasm32-unknown-emscripten \
-      --prefix="$OUT/install"
+      --prefix="$OUT/install" \
+      ac_cv_header_sys_epoll_h=no
 fi
 
 # emconfigure writes tclConfig.sh into the build dir. If it is missing, the
