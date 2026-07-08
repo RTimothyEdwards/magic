@@ -595,9 +595,23 @@ ResTriangleCheck(resptr)
 		if (TTMaskHasType(ResNoMergeMask + rr1->rr_tt, rr3->rr_tt))
 		    continue;
 
+		/* rr3 must span two distinct neighbors of resptr, so	*/
+		/* skip rr3 if it is the resistor connecting resptr	*/
+		/* and n1.						*/
+		if (rr3 == rr1) continue;
+
 		/* One connection is always n1;  find the other one */
 		n2 = rr3->rr_connection1;
 		if (n2 == n1) n2 = rr3->rr_connection2;
+
+		/* A resistor with both connections on n1 is a loop,	*/
+		/* pending elimination when n1 is processed, and is	*/
+		/* not a triangle side.  Without this check, the hash	*/
+		/* lookup of n2 (== n1) finds n1's own table entry,	*/
+		/* the "triangle" degenerates with rr2 == rr1, and the	*/
+		/* network is corrupted, eventually causing a double	*/
+		/* free of rr1 (preceded by "Missing rptr" messages).	*/
+		if (n2 == n1) continue;
 
 		he2 = HashLookOnly(&NodeResTable, (char *)n2);
 		if (he2)

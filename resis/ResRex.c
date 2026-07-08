@@ -1155,7 +1155,7 @@ ResProcessNode(
 		t2 = ptr->nextDev->thisDev;
 		if (t1->gate != t2->gate) break;
 		if ((t1->source != t2->source || t1->drain != t2->drain) &&
-			(t1->source != t2->drain || t2->drain != t2->source))
+			(t1->source != t2->drain || t1->drain != t2->source))
 		    break;
 
 		/* Sum the W/L value of devices in parallel */
@@ -1911,6 +1911,21 @@ devSortFunc(rec1, rec2)
 		rd1->source >  rd2->source))
 	{
 	    return 1;
+	}
+	else if ((dev1->terminal == SOURCE &&
+		dev2->terminal == SOURCE &&
+		rd1->drain == rd2->drain)    ||
+		(dev1->terminal == SOURCE &&
+		dev2->terminal == DRAIN &&
+		rd1->drain == rd2->source)    ||
+		(dev1->terminal == DRAIN &&
+		dev2->terminal == SOURCE &&
+		rd1->source == rd2->drain)    ||
+		(dev1->terminal == DRAIN &&
+		dev2->terminal == DRAIN &&
+		rd1->source == rd2->source))
+	{
+	    return 0;
 	}
     }
     return -1;
