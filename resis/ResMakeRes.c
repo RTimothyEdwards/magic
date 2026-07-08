@@ -147,7 +147,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     p1 = info->breakList;
     if   (p1->br_next == NULL)
     {
-	p1->br_this->rn_float.rn_area += height * (LEFT(tile) - RIGHT(tile));
+	p1->br_this->rn_float.rn_area += height * (RIGHT(tile) - LEFT(tile));
 	freeMagic((char *)p1);
 	info->breakList = NULL;
 	return(merged);
