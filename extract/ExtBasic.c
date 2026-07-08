@@ -5294,6 +5294,151 @@ extSubsFunc3(tile, dinfo, clientdata)
     return 1;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extNodeCornerCap --
+ *
+ * Check the endpoints of a horizontal perimeter segment for convex and
+ * concave corners of the node region, and adjust the substrate fringe
+ * capacitance of the region accordingly.  Called from extNodeAreaFunc()
+ * for each segment between 'tile' (inside the region) and 'tp' (the
+ * neighbor above or below), when option EXT_DOCORNERS is set and the
+ * segment has nonzero perimeter capacitance.  Since every corner joins
+ * exactly one horizontal and one vertical edge, checking only horizontal
+ * segments considers each corner exactly once.
+ *
+ * The perimeter capacitance models the fringe field perpendicular to an
+ * edge, so the field in the quadrant diagonal to a convex corner is not
+ * counted, while the field in the free quadrant at a concave corner is
+ * counted once by each of the two edges meeting at the corner.  The
+ * total fringe capacitance of an unobstructed corner quadrant is modeled
+ * as that of a straight edge of length (ExtCornerFactor / mult), where
+ * "mult" is the fringe halo multiplier to the substrate;  this amount is
+ * added for each convex corner and subtracted for each concave corner.
+ * Portions of the corner fringe blocked by shapes between the corner and
+ * the substrate are adjusted in extCornerOverlap() (see ExtCouple.c)
+ * when coupling capacitance is extracted.
+ *
+ * A convex corner is one where the tile beyond the endpoint on the
+ * inside of the segment and the tile diagonally beyond the endpoint are
+ * both space;  a concave corner is one where both of those tiles are
+ * material connected to the region.  Anything else (a segment fractured
+ * by tile splits, or shapes of different nodes meeting at a point) is
+ * left uncorrected, as are corners adjacent to non-Manhattan geometry
+ * (work to be done, eventually).
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	May adjust reg->nreg_cap.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extNodeCornerCap(
+    Tile *tile,		/* Tile inside the node region */
+    Tile *tp,		/* Neighbor tile outside the segment */
+    bool topside,	/* TRUE if tp is above 'tile', FALSE if below */
+    NodeRegion *reg,	/* Node region being accumulated */
+    TileType residue,	/* Type of 'tile', with contacts reverted to residues */
+    TileTypeBitMask *mask,  /* Connectivity mask of the type of 'tile' */
+    CapValue capval)	/* Perimeter capacitance per unit length of the edge */
+{
+    int end, cx, cy;
+    double mult;
+    Tile *t2, *tcont, *tdiag;
+    TileType conttype, diagtype;
+    CapValue cornercap;
+
+    mult = (double)ExtCurStyle->exts_overlapMult[residue][0];
+    if (mult <= 0) return;
+
+    /* Corners adjacent to non-Manhattan geometry are not handled. */
+    if (IsSplit(tile) || IsSplit(tp)) return;
+
+    cy = (topside) ? TOP(tile) : BOTTOM(tile);
+    cornercap = capval * (ExtCornerFactor / mult);
+
+    for (end = 0; end < 2; end++)	/* 0 = left endpoint, 1 = right */
+    {
+	cx = (end == 1) ? MIN(RIGHT(tile), RIGHT(tp))
+			: MAX(LEFT(tile), LEFT(tp));
+
+	/* When extracting within a clip area, count only corners	*/
+	/* inside the area, treating the area as half-open so that	*/
+	/* corners on a boundary between abutting clip areas are	*/
+	/* counted exactly once.					*/
+
+	if (extNodeClipArea)
+	    if ((cx < extNodeClipArea->r_xbot) || (cx >= extNodeClipArea->r_xtop)
+			|| (cy < extNodeClipArea->r_ybot)
+			|| (cy >= extNodeClipArea->r_ytop))
+		continue;
+
+	/* Find the tile continuing beyond the endpoint on the inside	*/
+	/* side of the segment (tcont), and the tile diagonally beyond	*/
+	/* the endpoint on the outside side (tdiag), using the corner	*/
+	/* stitches of the two tiles.					*/
+
+	if (end == 1)		/* Right endpoint */
+	{
+	    if (RIGHT(tile) > cx)
+		tcont = tile;
+	    else if (topside)
+		tcont = TR(tile);
+	    else
+	    {
+		for (t2 = TR(tile); BOTTOM(t2) > cy; t2 = LB(t2));
+		tcont = t2;
+	    }
+
+	    if (RIGHT(tp) > cx)
+		tdiag = tp;
+	    else if (topside)
+	    {
+		for (t2 = TR(tp); BOTTOM(t2) > cy; t2 = LB(t2));
+		tdiag = t2;
+	    }
+	    else
+		tdiag = TR(tp);
+	}
+	else			/* Left endpoint */
+	{
+	    if (LEFT(tile) < cx)
+		tcont = tile;
+	    else if (topside)
+	    {
+		for (t2 = BL(tile); TOP(t2) < cy; t2 = RT(t2));
+		tcont = t2;
+	    }
+	    else
+		tcont = BL(tile);
+
+	    if (LEFT(tp) < cx)
+		tdiag = tp;
+	    else if (topside)
+		tdiag = BL(tp);
+	    else
+	    {
+		for (t2 = BL(tp); TOP(t2) < cy; t2 = RT(t2));
+		tdiag = t2;
+	    }
+	}
+
+	if (IsSplit(tcont) || IsSplit(tdiag)) continue;
+	conttype = TiGetTypeExact(tcont);
+	diagtype = TiGetTypeExact(tdiag);
+
+	if ((conttype == TT_SPACE) && (diagtype == TT_SPACE))
+	    reg->nreg_cap += cornercap;		/* Convex corner */
+	else if (TTMaskHasType(mask, conttype) && TTMaskHasType(mask, diagtype))
+	    reg->nreg_cap -= cornercap;		/* Concave corner */
+    }
+}
+
 int
 extNodeAreaFunc(tile, dinfo, arg)
     Tile *tile;
@@ -5311,6 +5456,14 @@ extNodeAreaFunc(tile, dinfo, arg)
     NodeRegion *old;
     Rect r;
     PlaneAndArea pla;
+    bool doCorners;
+
+    /* Extract corner fringe capacitance to substrate only when	*/
+    /* selected by "extract do corners", and only with the distributed	*/
+    /* (halo) fringe capacitance model.					*/
+
+    doCorners = ((ExtOptions & EXT_DOCORNERS) && (ExtOptions & EXT_DOFRINGEHALO)
+		&& (ExtCurStyle->exts_sideCoupleHalo > 0)) ? TRUE : FALSE;
 
     if (tile && IsSplit(tile))
     {
@@ -5489,7 +5642,11 @@ topside:
 	    }
 	    tres = (DBIsContact(t)) ? DBPlaneToResidue(t, tilePlaneNum) : t;
 	    if ((capval = ExtCurStyle->exts_perimCap[residue][tres]) != (CapValue) 0)
+	    {
 		reg->nreg_cap += capval * len;
+		if (doCorners)
+		    extNodeCornerCap(tile, tp, TRUE, reg, residue, mask, capval);
+	    }
 	    if (TTMaskHasType(resMask, tres) && resistClass != -1)
 		extResistPerim[resistClass] += len;
 	}
@@ -5590,7 +5747,11 @@ bottomside:
 	    }
 	    tres = (DBIsContact(t)) ? DBPlaneToResidue(t, tilePlaneNum) : t;
 	    if ((capval = ExtCurStyle->exts_perimCap[residue][tres]) != (CapValue) 0)
+	    {
 		reg->nreg_cap += capval * len;
+		if (doCorners)
+		    extNodeCornerCap(tile, tp, FALSE, reg, residue, mask, capval);
+	    }
 	    if (TTMaskHasType(resMask, tres) && resistClass != -1)
 		extResistPerim[resistClass] += len;
 	}

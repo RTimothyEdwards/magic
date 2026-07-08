@@ -58,6 +58,17 @@ int ExtDoWarn = EXTWARN_DUP|EXTWARN_FETS;
 int ExtOptions = EXT_DOALL|EXT_DOLABELCHECK|EXT_DOALIASES;
 char *ExtLocalPath = NULL;
 
+    /*
+     * Scale factor "k" for the corner fringe capacitance model (see
+     * ExtCouple.c), used when option EXT_DOCORNERS is set.  The total
+     * capacitance of an unobstructed convex corner is modeled as the
+     * capacitance of a straight edge of length k / mult, where "mult"
+     * is the fringe halo multiplier for the coupling layers.  The
+     * value can be set with "extract do corners <value>" and is meant
+     * to be calibrated against field equation solver results.
+     */
+double ExtCornerFactor = 1.0;
+
 /* --------------------------- Global data ---------------------------- */
 
     /* Cumulative yank buffer for hierarchical circuit extraction */

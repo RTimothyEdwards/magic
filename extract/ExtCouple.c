@@ -51,6 +51,9 @@ int extAddOverlap(), extAddCouple();
 int extSideLeft(), extSideRight(), extSideBottom(), extSideTop();
 int extWalkLeft(), extWalkRight(), extWalkBottom(), extWalkTop();
 int extSideOverlap(), extSideOverlapHalo(), extFindOverlap();
+int extCornerOverlap(), extSubtractCornerOverlap(), extSubtractCornerOverlap2();
+double extCornerFrac();
+void extAddCornerCouple();
 void extSideCommon();
 
 /* Structure to pass on to the coupling and sidewall capacitance	*/
@@ -85,6 +88,24 @@ typedef struct _esws {
     EdgeCap  *extOverlapList;	/* List of overlap capacitance rules */
     CellDef  *def;
 } extSidewallStruct;
+
+/* Structure to pass information about a corner of a node region	*/
+/* found at the endpoint of a boundary, for computing corner fringe	*/
+/* capacitance (see extAddCornerCouple).				*/
+
+typedef struct _ecns {
+    extSidewallStruct *ec_esws;	/* Info from the boundary owning the corner */
+    Point     ec_corner;	/* Position of the corner */
+    int       ec_quadrant;	/* Quadrant of the fringe field relative to
+				 * the corner (GEO_NORTHEAST, etc.)
+				 */
+    int       ec_sign;		/* +1 for a convex corner (fringe cap is
+				 * added), -1 for a concave corner (fringe
+				 * cap double-counted by the two edges
+				 * meeting at the corner is subtracted).
+				 */
+    Rect      ec_area;		/* Quadrant halo search area */
+} extCornerStruct;
 
 /* --------------------- Debugging stuff ---------------------- */
 #define CAP_DEBUG	FALSE
@@ -410,6 +431,17 @@ struct sideoverlap
     PlaneMask		  so_pmask;
     TileTypeBitMask	  so_tmask;
     TileType		  so_ctype;
+};
+
+struct corneroverlap
+{
+    Rect		  co_clip;
+    double		  co_coupfrac;
+    double		  co_subfrac;
+    extCornerStruct	 *co_ecos;
+    PlaneMask		  co_pmask;
+    TileTypeBitMask	  co_tmask;
+    TileType		  co_ctype;
 };
 
 int
@@ -1186,6 +1218,21 @@ extAddCouple(bp, ecs)
 			extSideBottom, bp, &esws);
 	    break;
     }
+
+    /* If corner extraction is selected ("extract do corners"), check	*/
+    /* the endpoints of horizontal boundaries for convex and concave	*/
+    /* corners of the node region, and add (convex) or subtract	*/
+    /* (concave) the corner fringe capacitance.  Only horizontal	*/
+    /* boundaries are checked;  since every corner joins exactly one	*/
+    /* horizontal and one vertical edge, this considers each corner	*/
+    /* exactly once.  The corner model only applies to the distributed	*/
+    /* (halo) fringe model.						*/
+
+    if ((ExtOptions & EXT_DOCORNERS) && esws.fringe_halo
+		&& (esws.extOverlapList != NULL))
+	if ((bp->b_direction == BD_TOP) || (bp->b_direction == BD_BOTTOM))
+	    extAddCornerCouple(&esws, tin, tout);
+
     return 0;
 }
 
@@ -1732,6 +1779,623 @@ extSideOverlap(tp, dinfo, esws)
 	extSetCapValue(he, cap + extGetCapValue(he));
     }
     return (0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extCornerFrac --
+ *
+ * Compute the fraction of the fringe capacitance field from a corner of
+ * a node region that is intercepted by the rectangle 'r', which must lie
+ * within the quadrant 'quadrant' (GEO_NORTHEAST, etc.) diagonal to the
+ * corner point 'corner'.  Following the superposition model, the corner
+ * field is the product of the fields of the two edges meeting at the
+ * corner, each modeled as an arctangent with halo multiplier 'mult':
+ *
+ *	Fx * Fy, where Fx = 0.6366 * (atan(mult * dxfar) - atan(mult * dxnear))
+ *
+ * and dxnear, dxfar are the distances of the near and far sides of 'r'
+ * from the vertical edge at the corner (likewise Fy for the horizontal
+ * edge).  The product approaches 1 for a rectangle filling the entire
+ * quadrant.
+ *
+ * Results:
+ *	The fraction (0.0 to 1.0) of the corner fringe cap seen by 'r'.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+double
+extCornerFrac(
+    Rect *r,		/* Area intercepting the corner fringe field */
+    Point *corner,	/* Position of the corner */
+    int quadrant,	/* Quadrant of the field relative to the corner */
+    double mult)	/* Fringe halo multiplier */
+{
+    int dxnear, dxfar, dynear, dyfar;
+    double fx, fy;
+
+    switch (quadrant)
+    {
+	case GEO_NORTHEAST:
+	case GEO_SOUTHEAST:	/* r is to the right of the corner */
+	    dxnear = r->r_xbot - corner->p_x;
+	    dxfar = r->r_xtop - corner->p_x;
+	    break;
+	default:		/* r is to the left of the corner */
+	    dxnear = corner->p_x - r->r_xtop;
+	    dxfar = corner->p_x - r->r_xbot;
+	    break;
+    }
+    switch (quadrant)
+    {
+	case GEO_NORTHEAST:
+	case GEO_NORTHWEST:	/* r is above the corner */
+	    dynear = r->r_ybot - corner->p_y;
+	    dyfar = r->r_ytop - corner->p_y;
+	    break;
+	default:		/* r is below the corner */
+	    dynear = corner->p_y - r->r_ytop;
+	    dyfar = corner->p_y - r->r_ybot;
+	    break;
+    }
+    if (dxnear < 0) dxnear = 0;		/* Don't count underlap */
+    if (dynear < 0) dynear = 0;
+
+    fx = 0.6366 * (atan(mult * dxfar) - atan(mult * dxnear));
+    fy = 0.6366 * (atan(mult * dyfar) - atan(mult * dynear));
+    return fx * fy;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extSubtractCornerOverlap --
+ *
+ * Corner version of extSubtractSideOverlap.  The fraction of the corner
+ * fringe capacitance shielded by this tile's area is added to the running
+ * totals cov->co_coupfrac (using the halo multiplier of the coupling
+ * layer) and cov->co_subfrac (using the halo multiplier of the substrate),
+ * so that it can be subtracted from the unshielded corner fraction.
+ *
+ * Results:
+ *	Returns 0 to keep DBSrPaintArea() going.
+ *
+ * Side effects:
+ *	Updates cov->co_coupfrac and cov->co_subfrac.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extSubtractCornerOverlap(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    struct corneroverlap *cov)
+{
+    extCornerStruct *ecos = cov->co_ecos;
+    Boundary *bp = ecos->ec_esws->bp;
+    Rect r;
+    TileType ta, tb;
+    double mult;
+
+    TITORECT(tile, &r);
+    GEOCLIP(&r, &cov->co_clip);
+    if ((r.r_xtop <= r.r_xbot) || (r.r_ytop <= r.r_ybot)) return 0;
+
+    ta = TiGetType(bp->b_inside);
+    tb = cov->co_ctype;
+
+    mult = (double)ExtCurStyle->exts_overlapMult[ta][0];
+    if (mult > 0)
+	cov->co_subfrac += extCornerFrac(&r, &ecos->ec_corner,
+			ecos->ec_quadrant, mult);
+
+    /* Do the same calculation with the overlap multiplier for the	*/
+    /* coupling layer, since the fringe capacitance has a different	*/
+    /* halo than for the substrate.					*/
+
+    mult = (double)ExtCurStyle->exts_overlapMult[ta][tb];
+    if (mult > 0)
+	cov->co_coupfrac += extCornerFrac(&r, &ecos->ec_corner,
+			ecos->ec_quadrant, mult);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extSubtractCornerOverlap2 --
+ *
+ * Recursive shielding corner overlap check;  the corner version of
+ * extSubtractSideOverlap2.  If the tile shields, then the shielded
+ * fraction is accumulated.  If not, then this routine is called
+ * recursively on the next shielding plane.
+ *
+ * Results:
+ *	Returns 0 to keep DBSrPaintArea() going.
+ *
+ * Side effects:
+ *	Updates cov->co_coupfrac and cov->co_subfrac.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extSubtractCornerOverlap2(
+    Tile *tile,
+    TileType dinfo,
+    struct corneroverlap *cov)
+{
+    TileType ttype;
+    struct corneroverlap covnew;
+    int pNum;
+    Rect r;
+
+    if (IsSplit(tile))
+	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
+    else
+	ttype = TiGetTypeExact(tile);
+
+    TITORECT(tile, &r);
+    GEOCLIP(&r, &cov->co_clip);
+    if ((r.r_xtop <= r.r_xbot) || (r.r_ytop <= r.r_ybot)) return 0;
+
+    /* This tile shields everything below */
+    if (TTMaskHasType(&cov->co_tmask, ttype))
+    {
+	extSubtractCornerOverlap(tile, dinfo, cov);
+	return 0;
+    }
+
+    /* Tile doesn't shield, so search next plane */
+    covnew = *cov;
+    covnew.co_clip = r;
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+	if (!PlaneMaskHasPlane(covnew.co_pmask, pNum)) continue;
+	covnew.co_pmask &= ~(PlaneNumToMaskBit(pNum));
+	if (covnew.co_pmask == 0)
+	{
+	    (void) DBSrPaintArea((Tile *) NULL,
+		extOverlapDef->cd_planes[pNum], &covnew.co_clip, &covnew.co_tmask,
+		extSubtractCornerOverlap, (ClientData) &covnew);
+	}
+	else
+	{
+	    (void) DBSrPaintArea((Tile *) NULL,
+		extOverlapDef->cd_planes[pNum], &covnew.co_clip, &DBAllTypeBits,
+		extSubtractCornerOverlap2, (ClientData) &covnew);
+	}
+	break;
+    }
+    cov->co_coupfrac = covnew.co_coupfrac;
+    cov->co_subfrac = covnew.co_subfrac;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extCornerOverlap --
+ *
+ * A corner of the node region of tile esws->bp->b_inside (described by
+ * 'ecos') has fringe capacitance into the quadrant ecos->ec_area, where
+ * the tile 'tp' has been found on another plane.  Compute the fraction
+ * of the corner fringe capacitance coupling to 'tp' using the
+ * superposition product model (see extCornerFrac), reduced by any
+ * shielding layers, and update the coupling capacitance hash table.
+ * The total capacitance of an unobstructed corner is modeled as that of
+ * a straight edge of length (ExtCornerFactor / mult), where "mult" is
+ * the fringe halo multiplier of the coupling layers.
+ *
+ * For a concave corner (ecos->ec_sign < 0), the fringe capacitance in
+ * the quadrant has been counted twice, once by each of the two edges
+ * meeting at the corner, so the corner term is subtracted instead of
+ * added.
+ *
+ * The corner fringe capacitance to the substrate, which was added
+ * (convex) or subtracted (concave) along with the perimeter capacitance
+ * in extNodeCornerCap() (see ExtBasic.c), is likewise adjusted here for
+ * the portion blocked by the coupling tile when the tile lies between
+ * the corner and the substrate.
+ *
+ * Results:
+ *	Returns 0 to keep DBSrPaintArea() going.
+ *
+ * Side effects:
+ *	Updates the coupling capacitance between node(bp->b_inside) and
+ *	node(tp) if the two nodes are different.  May update the
+ *	substrate capacitance of node(bp->b_inside).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extCornerOverlap(
+    Tile *tp,			/* Coupling tile in the corner quadrant */
+    TileType dinfo,		/* Split tile information */
+    extCornerStruct *ecos)	/* Corner and boundary information */
+{
+    extSidewallStruct *esws = ecos->ec_esws;
+    Boundary *bp = esws->bp;	/* Boundary owning the corner */
+    NodeRegion *rtp = (NodeRegion *) ExtGetRegion(tp, dinfo);
+    NodeRegion *rbp = (NodeRegion *) ExtGetRegion(bp->b_inside, (TileType)0);
+    TileType ta, tb;
+    struct corneroverlap cov;
+    HashEntry *he;
+    EdgeCap *e;
+    int pNum;
+    double mult, cfrac, subfrac;
+    CapValue cap;
+    CoupleKey ck;
+
+    /* Nothing to do for space tiles, so just return. */
+    if (IsSplit(tp))
+	tb = (dinfo & TT_SIDE) ? TiGetRightType(tp) : TiGetLeftType(tp);
+    else
+	tb = TiGetTypeExact(tp);
+    if (tb == TT_SPACE) return 0;
+
+    /* Get the area of the coupling tile, clipped to the corner quadrant */
+    TITORECT(tp, &cov.co_clip);
+    GEOCLIP(&cov.co_clip, &ecos->ec_area);
+    if ((cov.co_clip.r_xtop <= cov.co_clip.r_xbot) ||
+		(cov.co_clip.r_ytop <= cov.co_clip.r_ybot))
+	return 0;
+
+    /* ta is the tile type of the region corner generating the fringe cap. */
+    ta = TiGetType(bp->b_inside);
+
+    /* Revert any contacts to their residues */
+    if (DBIsContact(ta))
+	ta = DBPlaneToResidue(ta, esws->plane_of_boundary);
+    if (DBIsContact(tb))
+	tb = DBPlaneToResidue(tb, esws->plane_checked);
+
+    /* Apply each rule, incorporating shielding into the fraction. */
+    cap = (CapValue) 0;
+    subfrac = (double)0.0;
+    for (e = esws->extOverlapList; e; e = e->ec_next)
+    {
+	/* Only apply rules for the plane in which they are declared */
+	if (!PlaneMaskHasPlane(e->ec_pmask, esws->plane_checked)) continue;
+
+	/* Does this rule "e" include the tile we found? */
+	if (TTMaskHasType(&e->ec_near, tb))
+	{
+	    mult = (double)ExtCurStyle->exts_overlapMult[ta][tb];
+	    if (mult <= 0) continue;
+
+	    cfrac = extCornerFrac(&cov.co_clip, &ecos->ec_corner,
+			ecos->ec_quadrant, mult);
+
+	    /* We have a possible capacitor, but are the tiles shielded
+	     * from each other part of the way?
+	     */
+	    cov.co_ecos = ecos;
+	    cov.co_ctype = tb;
+	    cov.co_coupfrac = (double)0.0;
+	    cov.co_subfrac = (double)0.0;
+	    cov.co_pmask = ExtCurStyle->exts_sideOverlapShieldPlanes[ta][tb];
+	    if (cov.co_pmask)
+	    {
+		cov.co_tmask = e->ec_far;  /* Actually shieldtypes. */
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    /* Each call to DBSrPaintArea has an opportunity to
+		     * subtract a partial capacitance from the total.
+		     */
+		    if (!PlaneMaskHasPlane(cov.co_pmask, pNum)) continue;
+		    cov.co_pmask &= ~(PlaneNumToMaskBit(pNum));
+		    if (cov.co_pmask == 0)
+		    {
+			(void) DBSrPaintArea((Tile *) NULL,
+			    extOverlapDef->cd_planes[pNum], &cov.co_clip,
+			    &cov.co_tmask, extSubtractCornerOverlap,
+			    (ClientData) &cov);
+		    }
+		    else
+		    {
+			(void) DBSrPaintArea((Tile *) NULL,
+			    extOverlapDef->cd_planes[pNum], &cov.co_clip,
+			    &DBAllTypeBits,
+			    extSubtractCornerOverlap2, (ClientData) &cov);
+		    }
+		    break;
+		}
+	    }
+	    cfrac -= cov.co_coupfrac;
+	    if (cfrac < 0) cfrac = 0;
+
+	    if (rtp != rbp)
+	    {
+		cap += e->ec_cap * (ExtCornerFactor / mult) * cfrac;
+		subfrac += cov.co_subfrac;  /* Just add the shielded fraction */
+	    }
+	}
+    }
+
+    if (rbp != (NodeRegion *)CLIENTDEFAULT)
+    {
+	int oa = ExtCurStyle->exts_planeOrder[esws->plane_of_boundary];
+	int ob = ExtCurStyle->exts_planeOrder[esws->plane_checked];
+	if (oa > ob)
+	{
+	    /* The overlapped tile is between the substrate and the
+	     * corner, and blocks the corner fringe capacitance to the
+	     * substrate, which was added (convex) or subtracted
+	     * (concave) with the perimeter capacitance in
+	     * extNodeCornerCap() (see ExtBasic.c).  For a convex
+	     * corner, subtract the blocked portion.  For a concave
+	     * corner, each of the two edges meeting at the corner will
+	     * have subtracted the blocked substrate fringe capacitance
+	     * over this (shared) area, so add one portion back.
+	     */
+	    mult = (double)ExtCurStyle->exts_overlapMult[ta][0];
+	    if (mult > 0)
+	    {
+		CapValue subcap;
+		double sfrac;
+
+		sfrac = extCornerFrac(&cov.co_clip, &ecos->ec_corner,
+				ecos->ec_quadrant, mult);
+		sfrac -= subfrac;
+		if (sfrac < 0) sfrac = 0;
+
+		subcap = (CapValue)ecos->ec_sign *
+				ExtCurStyle->exts_perimCap[ta][0] *
+				(ExtCornerFactor / mult) * sfrac;
+		rbp->nreg_cap -= subcap;
+		/* Ignore residual error at ~zero zeptoFarads */
+		if ((rbp->nreg_cap > -0.001) && (rbp->nreg_cap < 0.001))
+		    rbp->nreg_cap = 0;
+		if (CAP_DEBUG)
+		    extNregAdjustCap(rbp, -subcap, "corner_subcap");
+	    }
+	}
+    }
+
+    /* Add (convex) or subtract (concave) the corner capacitance. */
+
+    if (cap == (CapValue) 0) return 0;
+    if (rtp == rbp) return 0;
+    if (rtp == (NodeRegion *)CLIENTDEFAULT) return 0;
+    if (rbp == (NodeRegion *)CLIENTDEFAULT) return 0;
+
+    if (rtp < rbp)
+    {
+	ck.ck_1 = rtp;
+	ck.ck_2 = rbp;
+    }
+    else
+    {
+	ck.ck_1 = rbp;
+	ck.ck_2 = rtp;
+    }
+    cap *= (CapValue)ecos->ec_sign;
+    he = HashFind(extCoupleHashPtr, (char *) &ck);
+    if (CAP_DEBUG) extAdjustCouple(he, cap, "corneroverlap");
+    extSetCapValue(he, cap + extGetCapValue(he));
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extAddCornerCouple --
+ *
+ * Check the two endpoints of the horizontal boundary esws->bp for convex
+ * and concave corners of the node region of bp->b_inside, and for each
+ * corner found, search the quadrant of the fringe halo diagonal to the
+ * corner for tiles on other planes that couple to the corner fringe
+ * capacitance (see extCornerOverlap).  Called only for boundaries with
+ * direction BD_TOP or BD_BOTTOM;  since every corner joins exactly one
+ * horizontal and one vertical edge, checking only horizontal boundaries
+ * considers each corner exactly once.
+ *
+ * A convex corner is one where the tile beyond the endpoint on the
+ * inside of the boundary and the tile diagonally beyond the endpoint
+ * are both space;  the corner fringe occupies the quadrant diagonally
+ * outward from the corner and is added to the coupling capacitance.
+ * A concave corner is one where both of those tiles belong to the same
+ * node region as bp->b_inside;  the fringe capacitance in the free
+ * quadrant between the two edges meeting at the corner has been counted
+ * once by each edge, so the corner term is subtracted.  Anything else
+ * (a boundary fractured by tile splits, or shapes of different nodes
+ * meeting at a point) is left uncorrected.
+ *
+ * In-plane material within the quadrant does not clip the corner fringe
+ * (unlike the edge fringe, which is clipped to the nearest coupling
+ * neighbor by extWalk*());  this is a second-order effect of a second-
+ * order correction.  Shielding by layers on planes between the corner
+ * and the coupling tile is handled.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	See extCornerOverlap().
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extAddCornerCouple(
+    extSidewallStruct *esws,	/* Boundary and plane information */
+    TileType tin,		/* Type inside boundary (residue if contact) */
+    TileType tout)		/* Type outside boundary (residue if contact) */
+{
+    Boundary *bp = esws->bp;
+    NodeRegion *rbp;
+    PlaneMask pMask;
+    int halo = ExtCurStyle->exts_sideCoupleHalo;
+    int end, pNum, cx, cy;
+    extCornerStruct ecos;
+
+    pMask = ExtCurStyle->exts_sideOverlapOtherPlanes[tin][tout];
+    if (pMask == 0) return;
+
+    /* Corners adjacent to non-Manhattan geometry are not handled. */
+    if (IsSplit(bp->b_inside) || IsSplit(bp->b_outside)) return;
+
+    rbp = (NodeRegion *) ExtGetRegion(bp->b_inside, (TileType)0);
+
+    cy = (bp->b_direction == BD_TOP) ?
+		bp->b_segment.r_ur.p_y : bp->b_segment.r_ll.p_y;
+
+    for (end = 0; end < 2; end++)	/* 0 = left endpoint, 1 = right */
+    {
+	Tile *tp, *tcont, *tdiag;
+	bool contsame, diagsame;
+
+	cx = (end == 1) ? bp->b_segment.r_xtop : bp->b_segment.r_xbot;
+
+	/* Find the tile continuing beyond the endpoint on the inside	*/
+	/* side of the boundary (tcont), and the tile diagonally	*/
+	/* beyond the endpoint on the outside side (tdiag), using the	*/
+	/* corner stitches of the boundary tiles.			*/
+
+	if (end == 1)		/* Right endpoint */
+	{
+	    if (RIGHT(bp->b_inside) > cx)
+		tcont = bp->b_inside;
+	    else if (bp->b_direction == BD_TOP)
+		tcont = TR(bp->b_inside);
+	    else
+	    {
+		for (tp = TR(bp->b_inside); BOTTOM(tp) > cy; tp = LB(tp));
+		tcont = tp;
+	    }
+
+	    if (RIGHT(bp->b_outside) > cx)
+		tdiag = bp->b_outside;
+	    else if (bp->b_direction == BD_TOP)
+	    {
+		for (tp = TR(bp->b_outside); BOTTOM(tp) > cy; tp = LB(tp));
+		tdiag = tp;
+	    }
+	    else
+		tdiag = TR(bp->b_outside);
+	}
+	else			/* Left endpoint */
+	{
+	    if (LEFT(bp->b_inside) < cx)
+		tcont = bp->b_inside;
+	    else if (bp->b_direction == BD_TOP)
+	    {
+		for (tp = BL(bp->b_inside); TOP(tp) < cy; tp = RT(tp));
+		tcont = tp;
+	    }
+	    else
+		tcont = BL(bp->b_inside);
+
+	    if (LEFT(bp->b_outside) < cx)
+		tdiag = bp->b_outside;
+	    else if (bp->b_direction == BD_TOP)
+		tdiag = BL(bp->b_outside);
+	    else
+	    {
+		for (tp = BL(bp->b_outside); TOP(tp) < cy; tp = RT(tp));
+		tdiag = tp;
+	    }
+	}
+
+	if (IsSplit(tcont) || IsSplit(tdiag)) continue;
+
+	contsame = (ExtGetRegion(tcont, (TileType)0) == (ExtRegion *)rbp)
+			? TRUE : FALSE;
+	diagsame = (ExtGetRegion(tdiag, (TileType)0) == (ExtRegion *)rbp)
+			? TRUE : FALSE;
+
+	if (!contsame && !diagsame)
+	{
+	    /* Convex corner, but only if the corner faces open space */
+	    if ((TiGetTypeExact(tcont) != TT_SPACE) ||
+			(TiGetTypeExact(tdiag) != TT_SPACE))
+		continue;
+
+	    /* Fringe quadrant is diagonally outward from the corner */
+	    ecos.ec_sign = 1;
+	    if (bp->b_direction == BD_TOP)
+		ecos.ec_quadrant = (end == 1) ? GEO_NORTHEAST : GEO_NORTHWEST;
+	    else
+		ecos.ec_quadrant = (end == 1) ? GEO_SOUTHEAST : GEO_SOUTHWEST;
+	}
+	else if (contsame && diagsame)
+	{
+	    /* Concave corner, but only if the free quadrant between	*/
+	    /* the two edges is open space (which is the tile on the	*/
+	    /* outside of the boundary).				*/
+	    if (TiGetTypeExact(bp->b_outside) != TT_SPACE)
+		continue;
+
+	    /* Free quadrant is on the outside of the boundary, on the	*/
+	    /* segment side of the endpoint.				*/
+	    ecos.ec_sign = -1;
+	    if (bp->b_direction == BD_TOP)
+		ecos.ec_quadrant = (end == 1) ? GEO_NORTHWEST : GEO_NORTHEAST;
+	    else
+		ecos.ec_quadrant = (end == 1) ? GEO_SOUTHWEST : GEO_SOUTHEAST;
+	}
+	else
+	{
+	    /* Straight continuation of the edge (boundary fractured	*/
+	    /* by a tile split on the other side), or shapes meeting	*/
+	    /* only at a point;  no corner processing.			*/
+	    continue;
+	}
+
+	ecos.ec_esws = esws;
+	ecos.ec_corner.p_x = cx;
+	ecos.ec_corner.p_y = cy;
+
+	switch (ecos.ec_quadrant)
+	{
+	    case GEO_NORTHEAST:
+		ecos.ec_area.r_xbot = cx;
+		ecos.ec_area.r_ybot = cy;
+		ecos.ec_area.r_xtop = cx + halo;
+		ecos.ec_area.r_ytop = cy + halo;
+		break;
+	    case GEO_NORTHWEST:
+		ecos.ec_area.r_xbot = cx - halo;
+		ecos.ec_area.r_ybot = cy;
+		ecos.ec_area.r_xtop = cx;
+		ecos.ec_area.r_ytop = cy + halo;
+		break;
+	    case GEO_SOUTHEAST:
+		ecos.ec_area.r_xbot = cx;
+		ecos.ec_area.r_ybot = cy - halo;
+		ecos.ec_area.r_xtop = cx + halo;
+		ecos.ec_area.r_ytop = cy;
+		break;
+	    case GEO_SOUTHWEST:
+		ecos.ec_area.r_xbot = cx - halo;
+		ecos.ec_area.r_ybot = cy - halo;
+		ecos.ec_area.r_xtop = cx;
+		ecos.ec_area.r_ytop = cy;
+		break;
+	}
+
+	extOverlapDef = esws->def;
+	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    if (PlaneMaskHasPlane(pMask, pNum))
+	    {
+		esws->plane_checked = pNum;
+		(void) DBSrPaintArea((Tile *) NULL, esws->def->cd_planes[pNum],
+			&ecos.ec_area,
+			&ExtCurStyle->exts_sideOverlapOtherTypes[tin][tout],
+			extCornerOverlap, (ClientData) &ecos);
+	    }
+    }
 }
 
 /*

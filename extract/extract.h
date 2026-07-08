@@ -77,9 +77,14 @@ extern const char * const extDevTable[];
 #define EXT_DOALIASES		0x080	/* Output all node aliases */
 #define EXT_DOEXTRESIST		0x200	/* Do full R-C extraction */
 #define EXT_DOUNIQNOTOPPORTS	0x400	/* Ignore top cell ports w/EXT_DOUNIQUE */
+#define EXT_DOCORNERS		0x800	/* Extract fringe capacitance at shape
+					 * corners.  Adds compute time, and so
+					 * is not included in EXT_DOALL.
+					 */
 
 extern int ExtOptions;		/* Bitmask of above */
-extern char *ExtLocalPath;	/* If non-NULL, location to write .ext files */ 
+extern char *ExtLocalPath;	/* If non-NULL, location to write .ext files */
+extern double ExtCornerFactor;	/* Scale factor for corner fringe cap model */
 
 /* Options for "extract unique" */
 #define EXT_UNIQ_ALL		0

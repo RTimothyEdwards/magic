@@ -45,6 +45,26 @@ Circuit netlist extractor
 		  <DT> <B>coupling</B>
 		  <DD> Extract the parasitic coupling capacitance between
 			nodes.
+		  <DT> <B>corners</B> [<I>value</I>]
+		  <DD> (Added in magic version 8.3.672) Extract the fringe
+			capacitance at the corners of shapes.  The fringe
+			capacitance model measures capacitance outward from
+			shape edges, which does not account for the part of
+			the fringe field at a convex corner that couples to
+			shapes diagonal to the corner, or for the
+			double-counting of the fringe field from the two
+			edges meeting at a concave corner.  With this option
+			enabled, the corner fringe capacitance is modeled as
+			a superposition of the fields of the two edges
+			meeting at each corner, and is added to (convex) or
+			subtracted from (concave) both the substrate
+			capacitance and the coupling capacitance.
+			The optional <I>value</I> (default 1.0) is a
+			dimensionless scale factor on the corner capacitance
+			model.  This is a second-order correction which
+			increases extraction time, so it is disabled by
+			default, and is not included in the options enabled
+			by "<B>all</B>".
 		  <DT> <B>lumped</B>
 		  <DD> Extract lumped resistance values.
 			The values extracted are "lumped" resistance and

@@ -1039,15 +1039,16 @@ cmdExpandFunc(
 #define	DOADJUST	0
 #define	DOALL		1
 #define	DOCAPACITANCE	2
-#define	DOCOUPLING	3
-#define	DOEXTRESIST	4
-#define	DOLENGTH	5
-#define	DOLOCAL		6
-#define	DORESISTANCE	7
-#define	DOLABELCHECK	8
-#define	DOALIASES	9
-#define	DOUNIQUE       10
-#define	DOEXTRESIST2   11
+#define	DOCORNERS	3
+#define	DOCOUPLING	4
+#define	DOEXTRESIST	5
+#define	DOLENGTH	6
+#define	DOLOCAL		7
+#define	DORESISTANCE	8
+#define	DOLABELCHECK	9
+#define	DOALIASES      10
+#define	DOUNIQUE       11
+#define	DOEXTRESIST2   12
 
 #define	LENCLEAR	0
 #define	LENDRIVER	1
@@ -1089,6 +1090,8 @@ CmdExtract(
 	"adjust			compensate R and C hierarchically",
 	"all			all options",
 	"capacitance		extract substrate capacitance",
+	"corners [value]	extract corner fringe capacitance,\n"
+	"			optionally setting the model scale factor",
 	"coupling		extract coupling capacitance",
 	"extresist		extract resistance",
 	"length			compute driver-receiver pathlengths",
@@ -1397,6 +1400,8 @@ CmdExtract(
 		TxPrintf("The following are the extractor option settings:\n");
 		TxPrintf("%s adjust\n", OPTSET(EXT_DOADJUST));
 		TxPrintf("%s capacitance\n", OPTSET(EXT_DOCAPACITANCE));
+		TxPrintf("%s corners (scale factor %g)\n", OPTSET(EXT_DOCORNERS),
+			ExtCornerFactor);
 		TxPrintf("%s coupling\n", OPTSET(EXT_DOCOUPLING));
 		TxPrintf("%s length\n", OPTSET(EXT_DOLENGTH));
 		TxPrintf("%s lumped R\n", OPTSET(EXT_DORESISTANCE));
@@ -1429,6 +1434,20 @@ CmdExtract(
 		case DOADJUST:		option = EXT_DOADJUST; break;
 		case DOALL:		option = EXT_DOALL; break;
 		case DOCAPACITANCE:	option = EXT_DOCAPACITANCE; break;
+		case DOCORNERS:
+		    if (argc == 4)
+		    {
+			double kval;
+			if (sscanf(argv[3], "%lf", &kval) == 1)
+			    ExtCornerFactor = kval;
+			else
+			{
+			    TxError("Usage:  extract do corners [value]\n");
+			    return;
+			}
+		    }
+		    option = EXT_DOCORNERS;
+		    break;
 		case DOCOUPLING:	option = EXT_DOCOUPLING; break;
 		case DOLENGTH:		option = EXT_DOLENGTH; break;
 		case DORESISTANCE:	option = EXT_DORESISTANCE; break;
