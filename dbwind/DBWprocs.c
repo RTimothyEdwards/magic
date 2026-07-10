@@ -863,6 +863,7 @@ dbwPrintValue0(int value,	/* value to print, in internal units */
 	    break;
 
 	case DBW_UNITS_USER:
+	    crec = (DBWclientRec *)w->w_clientData;
 	    if (is_square)
 	    {
 		oscale = (float)((crec->dbw_gridRect.r_xtop -
@@ -880,7 +881,7 @@ dbwPrintValue0(int value,	/* value to print, in internal units */
 		oscale = (float)(crec->dbw_gridRect.r_ytop -
 			 crec->dbw_gridRect.r_ybot);
 	    }
-	    fvalue = (float)value * oscale * dscale;
+	    fvalue = (float)value * dscale / oscale;
 	    if (is_square)
 	    {
 		fvalue *= dscale;
