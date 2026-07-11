@@ -265,13 +265,14 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
     NodeRegion *newNode;
     int quad, pNum, n, nclasses;
     Point p;
-    bool found;
+    bool found, connected;
     TileType extSubType = 0;
     LabelList *retList = NULL;
 
     for (lab = def->cd_labels; lab; lab = lab->lab_next)
     {
 	found = FALSE;
+	connected = FALSE;
 	pNum = DBPlane(lab->lab_type);
 	if (lab->lab_type == TT_SPACE || pNum < PL_TECHDEPBASE)
 	    continue;
@@ -284,6 +285,8 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 
 	for (quad = 0; quad < 4; quad++)
 	{
+	    bool locconn;
+
 	    /*
 	     * Visit each of the four quadrants surrounding the center
 	     * point of the label, searching for a tile whose type matches
@@ -296,8 +299,9 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	    tp = PlaneGetHint(def->cd_planes[pNum]);
 	    GOTOPOINT(tp, &p);
 	    PlaneSetHint(def->cd_planes[pNum], tp);
-	    if (extConnectsTo(TiGetType(tp), lab->lab_type, connTo)
-		    && extHasRegion(tp, CLIENTDEFAULT))
+
+	    locconn = extConnectsTo(TiGetType(tp), lab->lab_type, connTo);
+	    if (locconn && extHasRegion(tp, CLIENTDEFAULT))
 	    {
 		found = TRUE;
 		reg = (LabRegion *) ExtGetRegion(tp, (TileType)0);
@@ -327,20 +331,27 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 		}
 		break;
 	    }
+	    else if (locconn)
+		/* Label connects to a tile here (but it is not a
+		 * substrate region).
+		 */
+		connected = TRUE;
 	}
 	if (found == FALSE)
 	{
 	    /* Handle unconnected node label. */
 
-	    /* If the label is the substrate type and is over	*/
-	    /* space, then assign the label to the default	*/
-	    /* substrate region.  The label need not be in the	*/
-	    /* clip area.					*/
+	    /* If the label is the substrate type and is over space,
+	     * then assign the label to the default substrate region.
+	     * The label need not be in the clip area.  The check for
+	     * "connected" eliminates labels attached to isolated
+	     * substrate regions (the label is not over space).
+	     */
 
 	    ll = (LabelList *)NULL;
 	    if ((pNum == ExtCurStyle->exts_globSubstratePlane) &&
 			TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes,
-			lab->lab_type))
+			lab->lab_type) && (connected == FALSE))
 	    {
 		if (nodeList != NULL)
 		{
