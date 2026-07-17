@@ -247,10 +247,8 @@ extHardProc(scx, arg)
 			reg->treg_labels = NULL;
 		    }
 
-	if (subList != NULL) freeMagic(subList);
-
 	/* No luck; it's as though there was no geometry at all */
-	extHardFreeAll(def, labRegList);
+	extHardFreeAll(def, labRegList, subList);
     }
 
     /* No luck; check our subcells recursively */
@@ -259,8 +257,7 @@ extHardProc(scx, arg)
     goto done;
 
 success:
-    if (subList != NULL) freeMagic(subList);
-    extHardFreeAll(def, labRegList);
+    extHardFreeAll(def, labRegList, subList);
     ret = 1;
 
 done:
@@ -480,13 +477,15 @@ extHardGenerateLabel(scx, reg, arg)
  */
 
 void
-extHardFreeAll(def, tReg)
+extHardFreeAll(def, tReg, subList)
     CellDef *def;
     TransRegion *tReg;
+    LabelList *subList;
 {
     TransRegion *reg;
     LabelList *ll;
     FindRegion arg;
+    bool subFound = FALSE;
 
     /* Don't need to initialize arg.fra_first below */
     arg.fra_connectsTo = ExtCurStyle->exts_nodeConn;
@@ -512,10 +511,12 @@ extHardFreeAll(def, tReg)
 	    {
 		if (ll->ll_label->lab_flags & LABEL_GENERATE) freeMagic(ll->ll_label);
 		freeMagic1(&mm1_, (char *) ll);
+		if (ll == subList) subFound = TRUE;
 	    }
 	    freeMagic1_end(&mm1_);
 	}
 	freeMagic1(&mm1, (char *) reg);
     }
     freeMagic1_end(&mm1);
+    if (!subFound && (subList != NULL)) freeMagic(subList);
 }
