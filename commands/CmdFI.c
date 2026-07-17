@@ -814,7 +814,9 @@ CmdFindLabel(
     int found, occur, plainargs;
     bool doglob = FALSE;   /* csh-style glob matching (see utils/match.c) */
     LabSearchRec lsr;
-    int dbListLabels(SearchContext *scx, Label *label, TerminalPath *tpath, ClientData cdarg);	   /* forward declaration */
+
+    /* Forward declaration */
+    int dbListLabels(SearchContext *scx, Label *label, TerminalPath *tpath, int *occur);
 
     plainargs = cmd->tx_argc;
     if ((plainargs > 2) && !strncmp(cmd->tx_argv[1], "-glob", 5))
@@ -825,10 +827,10 @@ CmdFindLabel(
     if ((plainargs != 2) && (plainargs != 3))
 	goto usage;
 
-    occur = 0;
+    occur = -1;
     if (plainargs == 3)
     {
-	char *occurstr = cmd->tx_argv[plainargs - 1];
+	char *occurstr = cmd->tx_argv[cmd->tx_argc - 1];
 	if (StrIsInt(occurstr))
 	    occur = atoi(occurstr);
     }
@@ -867,12 +869,13 @@ CmdFindLabel(
 	scx.scx_trans = GeoIdentityTransform;
 
 	DBSearchLabel(&scx, &DBAllButSpaceAndDRCBits, 0, labname,
-		dbListLabels, (ClientData) 0);
+		dbListLabels, (ClientData)&occur);
     }
     else
     {
 	/* Exact-match label search (corrected by Nishit, 10/14/04) */
 
+	if (occur < 0) occur = 0;
 	lsr.lsr_occur = occur;
 
 	found = DBSrLabelLoc(labUse, labname, cmdFindLabelFunc,
@@ -897,8 +900,22 @@ usage:
 }
 
 /*
+ * ----------------------------------------------------------------------------
+ *
+ * dbListLabels --
+ *
  * Callback routine for listing pattern-matched labels.
- * Always return zero to keep the search going.
+ * If "occur" is -1, then list every pattern-matched label found.
+ * Otherwise, if "occur" is >= 0, list only the matched label at this
+ * index (if any).
+ *
+ * Results:
+ *	Always return zero to keep the search going.
+ *
+ * Side effects:
+ *	Client data "occur" is decremented if it is >= 0.
+ *
+ * ----------------------------------------------------------------------------
  */
 
 int
@@ -906,20 +923,35 @@ dbListLabels(
     SearchContext *scx,
     Label *label,			/* Pointer to label structure	*/
     TerminalPath *tpath,		/* Full pathname of terminal	*/
-    ClientData cdarg)			/* (unused)			*/
+    int *occur)				/* If >= 0, find nth occurrence */
 {
     char *n = tpath->tp_next;
     char c = *n;
+
     strcpy(n, label->lab_text);
+    if (((*occur) == 0) || ((*occur) == -1))
+    {
 #ifdef MAGIC_WRAPPER
-    Tcl_AppendElement(magicinterp, tpath->tp_first);
+	Tcl_AppendElement(magicinterp, tpath->tp_first);
 #else
-    TxPrintf("%s\n", tpath->tp_first);
+	TxPrintf("%s\n", tpath->tp_first);
 #endif
+	if ((*occur) == 0)
+	{
+	    Rect r;
+
+	    (*occur) = -2;
+	    r = label->lab_rect;
+	    if (r.r_xbot == r.r_xtop) r.r_xtop++;
+	    if (r.r_ybot == r.r_ytop) r.r_ytop++;
+	    ToolMoveBox(TOOL_BL, &r.r_ll, FALSE, scx->scx_use->cu_def);
+	    ToolMoveCorner(TOOL_TR, &r.r_ur, FALSE, scx->scx_use->cu_def);
+	}
+    }
+    if ((*occur) > 0) (*occur)--;
     *n = c;
     return 0;
 }
-
 
 /*
  * ----------------------------------------------------------------------------
