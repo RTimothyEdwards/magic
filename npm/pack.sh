@@ -20,4 +20,4 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 find . -exec touch {} +
-SOURCE_DATE_EPOCH=$(date +%s) npm pack
+SOURCE_DATE_EPOCH=$(date +%s) npm pack "$@"

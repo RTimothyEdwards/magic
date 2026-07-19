@@ -203,13 +203,37 @@ jobs:
           npm version "$VERSION" --no-git-tag-version --allow-same-version
 
       - name: Pack
-        run: ./npm/pack.sh
+        run: |
+          mkdir -p npm_pack_dest
+          npm/pack.sh --pack-destination "${GITHUB_WORKSPACE}/npm_pack_dest"
+          # Guessing a little at the filename we get out
+          filename=$(find "${GITHUB_WORKSPACE}/npm_pack_dest" -mindepth 1 -maxdepth 1 -type f -name "*.tgz" -printf "%f\n" | head -1)
+
+          if [ -n "$filename" ]
+          then
+            echo "NPM_MODULE_FILENAME=$filename" >> $GITHUB_ENV
+
+            mkdir -p npm_pack
+            tar -zxvf "${GITHUB_WORKSPACE}/npm_pack_dest/$filename" -C npm_pack
+          fi
+          if [ -n "$GITHUB_REPOSITORY_OWNER" ]
+          then
+            echo "NPM_MODULE_PREFIX=${GITHUB_REPOSITORY_OWNER}-" >> $GITHUB_ENV
+          fi
 
       - name: Upload tarball as artifact
         uses: actions/upload-artifact@v7
+        if: env.NPM_MODULE_FILENAME != ''
         with:
-          name: magic-vlsi-wasm-npm
-          path: npm/*.tgz
+          path: npm_pack_dest/${{ env.NPM_MODULE_FILENAME }}
+          archive: false
+
+      - name: Upload npm module contents as standard artifact zip
+        uses: actions/upload-artifact@v7
+        if: env.NPM_MODULE_FILENAME != ''
+        with:
+          name: ${{ env.NPM_MODULE_PREFIX }}magic-vlsi-wasm-npm-${{ steps.release.outputs.version }}
+          path: npm_pack
 
       - name: Publish to GitHub Packages
         if: steps.release.outputs.publish == 'true' && github.event.inputs.dry_run != 'true'
@@ -225,12 +249,14 @@ jobs:
         env:
           TCL_REF:      ${{ steps.resolve-tcl.outputs.tcl_ref }}
           TCL_REPO_URL: ${{ steps.resolve-tcl.outputs.tcl_repo_url }}
+          VERSION:      ${{ steps.release.outputs.version }}
         run: |
           source ./emsdk/emsdk_env.sh 2>/dev/null || true
           EMCC_VER=$(emcc --version 2>/dev/null | head -1 || echo "unavailable")
           GCC_VER=$(gcc  --version 2>/dev/null | head -1 || echo "unavailable")
           NODE_VER=$(node --version 2>/dev/null || echo "unavailable")
           MAGIC_VER=$(cat VERSION 2>/dev/null || echo "unavailable")
+          NPM_MODULE_FILENAME=${NPM_MODULE_FILENAME:-unavailable}
           if [ -d ../tcl/.git ]; then
             TCL_SHA=$(cd ../tcl && git rev-parse HEAD)
             TCL_DATE=$(cd ../tcl && git log -1 --format="%ci")
@@ -238,9 +264,10 @@ jobs:
           else
             TCL_SHA="(not cloned)"; TCL_DATE=""; TCL_SUBJECT=""
           fi
-          printf '## Build info\n\n'                                   >> "$GITHUB_STEP_SUMMARY"
+          printf '## Build info: %s\n\n'    "$VERSION"                >> "$GITHUB_STEP_SUMMARY"
           printf '| Component | Details |\n'                          >> "$GITHUB_STEP_SUMMARY"
           printf '|-----------|----------|\n'                         >> "$GITHUB_STEP_SUMMARY"
+          printf '| Output | `%s` |\n'      "$NPM_MODULE_FILENAME"   >> "$GITHUB_STEP_SUMMARY"
           printf '| Magic | `%s` |\n'       "$MAGIC_VER"             >> "$GITHUB_STEP_SUMMARY"
           printf '| Emscripten | %s |\n'    "$EMCC_VER"              >> "$GITHUB_STEP_SUMMARY"
           printf '| GCC | %s |\n'           "$GCC_VER"               >> "$GITHUB_STEP_SUMMARY"
