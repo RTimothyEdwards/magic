@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Get Dependencies
         shell: bash # default shell has unwanted broken pipe indication
@@ -236,7 +236,7 @@ jobs:
           cp *.LOG dist/BUILD-INFO/
 
       - name: Upload archive magic-macos15
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: magic-macos15
           path: |
@@ -247,7 +247,7 @@ jobs:
     timeout-minutes: 30 # arm64 seems SSD based (faster)
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Get Dependencies
         shell: bash # default shell has unwanted broken pipe indication
@@ -468,7 +468,7 @@ jobs:
           cp *.LOG dist/BUILD-INFO/
 
       - name: Upload archive magic-macos
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: magic-macos
           path: |

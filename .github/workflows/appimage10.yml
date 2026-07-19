@@ -17,7 +17,7 @@ jobs:
       contents: write # action-gh-release
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 149 # enough to cover between tags
           #fetch-tags: true # this should work see actions/checkout~issue#1471
@@ -154,7 +154,7 @@ jobs:
 
       - name: Upload Release Asset
         if: ${{ env.MY_GITHUB_TAG != '' }} # if: ${{ github.ref_type == 'tag' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           body_path: ${{ github.workspace }}/appimage/10/RELEASE-NOTES-GH.txt
           files: |
@@ -163,7 +163,7 @@ jobs:
 
       - name: Upload Artifact
         #if: ${{ env.MY_GITHUB_TAG == '' }} # commented out to always upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
           path: |
