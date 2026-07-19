@@ -12,40 +12,83 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04]
+        os: [ubuntu-26.04, ubuntu-24.04, ubuntu-22.04]
         # Configure Options
         #                                                       X11          OGL    CAIRO
         pkgs: [all, none, no_tk_tcl_rl, no_tk_tcl_brl, no_zlib, no_gc_gl_gu, no_gc, no_gl_gu]
-        # Toolchain
-        #  ubuntu-20.04 [gcc-9,  clang-10]
-        #  ubuntu-22.04 [gcc-11, clang-14]
-        #  ubuntu-24.04 [gcc-13, clang-18]
-        tc:  [default, gcc-10, gcc-11, gcc-12, gcc-13, gcc-14, clang-14, clang-15, clang-17, clang-18, clang-19]
+        # Toolchain:
+        #  ubuntu-20.04 [gcc-9,  clang-10] # gcc-7  .. gcc-10 / clang-7  .. clang-12 + clang-18
+        #  ubuntu-22.04 [gcc-11, clang-14] # gcc-9  .. gcc-12 / clang-11 .. clang-15
+        #  ubuntu-24.04 [gcc-13, clang-18] # gcc-9  .. gcc-14 / clang-14 .. clang-20
+        #  ubuntu-26.04 [gcc-15, clang-21] # gcc-11 .. gcc-16 / clang-17 .. clang-22
+        tc:  [default, gcc-10, gcc-11, gcc-12, gcc-13, gcc-14, gcc-15, gcc-16, clang-14, clang-15, clang-16, clang-17, clang-18, clang-19, clang-20, clang-21, clang-22]
         exclude:
+          # These exclusions are mainly because they are unavailable or already covered
+          # gcc-10 .. gcc-12
           - os: ubuntu-22.04
-            tc: gcc-13
+            tc: gcc-13		# unavail (too new)
           - os: ubuntu-22.04
-            tc: gcc-14
+            tc: gcc-14		# unavail (too new)
           - os: ubuntu-22.04
-            tc: clang-17
+            tc: gcc-15		# unavail (too new)
+          - os: ubuntu-22.04
+            tc: gcc-16		# unavail (too new)
+          # clang-14 .. clang-15
+          - os: ubuntu-22.04
+            tc: clang-16	# unavail (too new)
+          - os: ubuntu-22.04
+            tc: clang-17	# unavail (too new)
           - os: ubuntu-22.04 # some sources show this as present but not found
-            tc: clang-18
+            tc: clang-18	# unavail (too new)
           - os: ubuntu-22.04
-            tc: clang-19
+            tc: clang-19	# unavail (too new)
+          - os: ubuntu-22.04
+            tc: clang-20	# unavail (too new)
+          - os: ubuntu-22.04
+            tc: clang-21	# unavail (too new)
+          - os: ubuntu-22.04
+            tc: clang-22	# unavail (too new)
 
           - os: ubuntu-24.04
-            tc: gcc-10
+            tc: gcc-10		# covered with 22.04
           - os: ubuntu-24.04
-            tc: gcc-11
+            tc: gcc-11		# covered with 22.04
+          # gcc-12 .. gcc-14
           - os: ubuntu-24.04
-            tc: clang-14
+            tc: gcc-15		# unavail (too new)
           - os: ubuntu-24.04
-            tc: clang-15
+            tc: gcc-16		# unavail (too new)
+          - os: ubuntu-24.04
+            tc: clang-14	# covered with 22.04
+          - os: ubuntu-24.04
+            tc: clang-15	# covered with 22.04
+          # clang-16 .. clang-20
+          - os: ubuntu-24.04
+            tc: clang-21	# unavail (too new)
+          - os: ubuntu-24.04
+            tc: clang-22	# unavail (too new)
+
+          - os: ubuntu-26.04
+            tc: gcc-10		# unavail (too old)
+          - os: ubuntu-26.04
+            tc: gcc-11		# covered with 22.04
+          - os: ubuntu-26.04
+            tc: gcc-12		# covered with 24.04
+          - os: ubuntu-26.04
+            tc: gcc-13		# covered with 24.04
+          # gcc-14 .. gcc-16
+          - os: ubuntu-26.04
+            tc: clang-14	# unavail
+          - os: ubuntu-26.04
+            tc: clang-15	# unavail
+          - os: ubuntu-26.04
+            tc: clang-16	# unavail
+          # clang-17 .. clang-22
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Matrix Check
         env:
@@ -128,6 +171,11 @@ jobs:
 
           echo "CONFIGURE_ARGS=${_configure_args[*]}" >> $GITHUB_ENV
 
+          # -std=c17 needed by gcc-15 gcc-16
+          echo "BUILD_CFLAGS=-std=c17 -D_DEFAULT_SOURCE=1" >> $GITHUB_ENV
+          #echo "BUILD_CXXFLAGS=" >> $GITHUB_ENV
+          #echo "BUILD_LDFLAGS=" >> $GITHUB_ENV
+
       - name: Setup Toolchain
         env:
           MATRIX_TC: ${{ matrix.tc }}
@@ -208,8 +256,25 @@ jobs:
             export CPP="clang-cpp-${BUILD_CLANG_VERSION}"
           fi
 
+          if [ -n "$BUILD_CFLAGS" ]
+          then
+            export CFLAGS="${BUILD_CFLAGS}"
+          fi
+          if [ -n "$BUILD_CXXFLAGS" ]
+          then
+            export CXXFLAGS="${BUILD_CXXFLAGS}"
+          fi
+          if [ -n "$BUILD_LDFLAGS" ]
+          then
+            export LDFLAGS="${BUILD_LDFLAGS}"
+          fi
+
           set -o pipefail # due to pipe inside CI
           ./configure $CONFIGURE_ARGS 2>&1 | tee CONFIGURE.LOG
+
+          unset CFLAGS
+          unset CXXFLAGS
+          unset LDFLAGS
 
           egrep "^(CPP|CXX|CC)\s" defs.mak
 
