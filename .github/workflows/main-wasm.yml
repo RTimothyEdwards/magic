@@ -35,12 +35,6 @@ on:
         type: boolean
         default: true
 
-# actions/upload-artifact@v5 still runs on Node.js 20. Force Node 24 to
-# silence the deprecation warning until upload-artifact ships a Node-24
-# release. Drop this once upgraded.
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 permissions:
   contents: read
   packages: write
@@ -55,9 +49,9 @@ jobs:
           fetch-depth: 2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://npm.pkg.github.com'
 
       - name: Install emsdk
