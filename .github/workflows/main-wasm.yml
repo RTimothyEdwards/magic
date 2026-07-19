@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
@@ -210,7 +210,7 @@ jobs:
         run: ./npm/pack.sh
 
       - name: Upload tarball as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: magic-vlsi-wasm-npm
           path: npm/*.tgz

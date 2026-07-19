@@ -9,7 +9,7 @@ jobs:
   simple_build_linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Get Dependencies
         run: |
           sudo apt-get update
