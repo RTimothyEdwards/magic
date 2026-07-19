@@ -94,6 +94,8 @@ jobs:
             TCL_REF=$(git ls-remote --tags --sort=-version:refname "$TCL_REPO_URL" \
                         'refs/tags/core-9-0-*' \
                       | grep -v '\^{}' \
+                      | grep -P "core-.*?-\d+$" \
+                      | sort -k +2 -r -V \
                       | head -1 \
                       | awk '{print $2}' \
                       | sed 's|refs/tags/||')
