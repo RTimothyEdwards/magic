@@ -281,6 +281,8 @@ jobs:
           echo "| AppImageTool URL | ${APPIMAGETOOL_DOWNLOAD_URL} |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build project
+        env:
+          UPDATEINFORMATION: gh-releases-zsync|${{ github.repository_owner }}|${{ github.event.repository.name }}|latest|Magic-*EL8.AppImage.zsync
         run: |
           cd appimage/8
           make \
@@ -290,12 +292,19 @@ jobs:
             TCL_TARBALL_URL="${TCL_TARBALL_URL}" \
             TK_TARBALL_URL="${TK_TARBALL_URL}" \
             TCL_TARBALL_SHA256="${TCL_TARBALL_SHA256}" \
-            TK_TARBALL_SHA256="${TK_TARBALL_SHA256}"
+            TK_TARBALL_SHA256="${TK_TARBALL_SHA256}" \
+            UPDATEINFORMATION="${UPDATEINFORMATION}"
 
           ln -v Magic-x86_64.AppImage "${MAGIC_APPIMAGE_OUTPUT_FILENAME}"
           ls -l *.AppImage
           sha256sum *.AppImage
           pwd
+
+      - name: Validate AppImage
+        run: |
+          sudo apt-get install -y --no-install-recommends desktop-file-utils appstream
+          cd appimage/8
+          make validate
 
       - name: Create RELEASE-NOTES.txt
         run: |
