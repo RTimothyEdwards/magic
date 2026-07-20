@@ -154,14 +154,16 @@ jobs:
 
           if [ "$source_method" = "github" ]; then
             tcl_tmpdir=$(mktemp -d)
+            cleanup_tcl_tmpdir() { rm -rf "$tcl_tmpdir"; }
+            trap cleanup_tcl_tmpdir EXIT
             if ! git -c advice.detachedHead=false clone --depth 1 --single-branch --branch "$tcl_ref" https://github.com/tcltk/tcl.git "$tcl_tmpdir"; then
-              rm -rf "$tcl_tmpdir"
               echo "Failed to clone Tcl ref $tcl_ref" >&2
               exit 1
             fi
             tcl_commit=$(git -C "$tcl_tmpdir" rev-parse HEAD)
             tcl_commit_date=$(git -C "$tcl_tmpdir" log -1 --format=%ci)
-            rm -rf "$tcl_tmpdir"
+            trap - EXIT
+            cleanup_tcl_tmpdir
           else
             tcl_commit=""
             tcl_commit_date=""
