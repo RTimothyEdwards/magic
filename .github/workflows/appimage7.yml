@@ -123,7 +123,10 @@ jobs:
               echo "Using workflow_dispatch TCL ref: $tcl_ref"
             else
               tcl_ref=$(retry_ls_remote "refs/tags/${TCL_TAG_GLOB}" | awk '{print $2}' | sed 's#refs/tags/##' | sort -V | tail -1)
-              test -n "$tcl_ref"
+              if [ -z "$tcl_ref" ]; then
+                echo "No matching Tcl tags found for pattern ${TCL_TAG_GLOB}" >&2
+                exit 1
+              fi
               echo "Auto-resolved latest Tcl ref: $tcl_ref"
             fi
 
@@ -162,8 +165,8 @@ jobs:
             fi
             tcl_commit=$(git -C "$tcl_tmpdir" rev-parse HEAD)
             tcl_commit_date=$(git -C "$tcl_tmpdir" log -1 --format=%ci)
-            trap - EXIT
             cleanup_tcl_tmpdir
+            trap - EXIT
           else
             tcl_commit=""
             tcl_commit_date=""
