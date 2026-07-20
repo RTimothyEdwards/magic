@@ -59,6 +59,9 @@ RUN set -eux; \
     ./configure --prefix=/prefix --with-tcl=/prefix/lib; \
     make; \
     make install
+RUN install -d /prefix/share/licenses/tcl /prefix/share/licenses/tk \
+    && install -m 0644 /tcl/license.terms /prefix/share/licenses/tcl/license.terms \
+    && install -m 0644 /tk/license.terms /prefix/share/licenses/tk/license.terms
 
 WORKDIR /prefix/bin
 RUN cp ./wish8.6 ./wish
@@ -75,7 +78,9 @@ RUN ./configure \
     && make clean \
     && make database/database.h \
     && make -j$(nproc) \
-    && make install
+    && make install \
+    && install -d /prefix/share/licenses/magic \
+    && install -m 0644 /magic/LICENSE /prefix/share/licenses/magic/LICENSE
 
 # Produce summary of what was created and confirm their DSOs
 RUN echo "### filesystem:" \
