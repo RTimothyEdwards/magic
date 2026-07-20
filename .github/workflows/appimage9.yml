@@ -12,7 +12,7 @@ on:
           - github
         default: 'tarball'
       tcl_ref:
-        description: 'Tcl/Tk ref for github source (e.g. core-8-6-18); blank auto-resolves latest stable tag in series'
+        description: 'Tcl/Tk ref for github source (e.g. core-9-0-4); blank auto-resolves latest stable tag in series'
         type: string
         default: ''
       tcl_version_override:
