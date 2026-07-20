@@ -306,11 +306,6 @@ jobs:
           cd appimage/10
           make validate
 
-      - name: Extract AppImage for SBOM scan
-        run: |
-          cd appimage/10
-          ./${MAGIC_APPIMAGE_OUTPUT_FILENAME} --appimage-extract
-
       - name: Create RELEASE-NOTES.txt
         run: |
           cd appimage/10
@@ -406,7 +401,7 @@ jobs:
       - name: Generate SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
-          path: ${{ github.workspace }}/appimage/10/squashfs-root
+          image: docker:magic_build
           format: spdx-json
           output-file: ${{ github.workspace }}/appimage/10/sbom-${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}.spdx.json
           upload-artifact: false
