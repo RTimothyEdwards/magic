@@ -42,6 +42,7 @@ INSTALL_SCMDIR         = ${INSTALL_LIBDIR}/magic/scm
 INSTALL_TCLDIR         = ${INSTALL_LIBDIR}/magic/tcl
 
 MAIN_EXTRA_LIBS	       = @extra_libs@
+LD_FIRST_LIBS          = @ld_first_libs@
 LD_EXTRA_LIBS	       = @ld_extra_libs@
 LD_SHARED	       = @ld_extra_objs@
 TOP_EXTRA_LIBS	       = @top_extra_libs@

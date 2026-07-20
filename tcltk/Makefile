@@ -63,12 +63,12 @@ install-tcl: magicexec magicdnull ${BIN_FILES} ${TCL_FILES}
 
 magicexec: magicexec.c ${MAGICDIR}/defs.mak
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} magicexec.c \
-		-o magicexec ${LD_RUN_PATH} ${LIB_SPECS_NOSTUB} ${ZLIB_FLAG} \
+		-o magicexec ${LD_RUN_PATH} ${LD_FIRST_LIBS} ${LIB_SPECS_NOSTUB} ${ZLIB_FLAG} \
 		${LIBS} ${GR_LIBS}
 
 magicdnull: magicdnull.c ${MAGICDIR}/defs.mak
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} magicdnull.c \
-		-o magicdnull ${LD_RUN_PATH} ${LIB_SPECS_GRNULL} ${ZLIB_FLAG} \
+		-o magicdnull ${LD_RUN_PATH} ${LD_FIRST_LIBS} ${LIB_SPECS_GRNULL} ${ZLIB_FLAG} \
 		${LIBS}
 
 magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICDIR}/VERSION

@@ -316,6 +316,7 @@ cadinstall=""
 extra_libs=""
 top_extra_libs=""
 sub_extra_libs=""
+ld_first_libs=""
 ld_extra_libs=""
 ld_extra_objs=""
 programs=""
@@ -1920,6 +1921,7 @@ AC_SUBST(extra_defs)
 AC_SUBST(stub_defs)
 AC_SUBST(DEBUG_defs)
 AC_SUBST(NDEBUG_defs)
+AC_SUBST(ld_first_libs)
 AC_SUBST(ld_extra_libs)
 AC_SUBST(ld_extra_objs)
 AC_SUBST(top_extra_libs)
