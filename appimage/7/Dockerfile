@@ -26,7 +26,6 @@ RUN yum install -y cairo-devel freeglut-devel gcc make git tcsh \
     && echo "### rpm -qa:" \
     && rpm -qa | sort \
     && echo ""
-#RUN dnf group install -y "Development Tools"
 
 # Tcl/Tk
 WORKDIR /tcl

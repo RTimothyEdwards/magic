@@ -17,7 +17,6 @@ RUN dnf install -y python311 zlib-devel ncurses-devel readline-devel cairo-devel
     && echo "### rpm -qa:" \
     && rpm -qa | sort \
     && echo ""
-#RUN dnf group install -y "Development Tools"
 
 # Tcl/Tk
 WORKDIR /tcl
