@@ -149,7 +149,7 @@ jobs:
           if [ -n "$tcl_sha" ] && [ -n "$tk_sha" ]; then
             sha_status="verified against known SHA"
           else
-            sha_status="best-effort — no known SHA (actual SHA is printed during Docker build)"
+            sha_status="best-effort — no known SHA (actual SHA will be printed during Docker build)"
           fi
 
           if [ "$source_method" = "github" ]; then
