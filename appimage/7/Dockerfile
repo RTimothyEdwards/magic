@@ -13,26 +13,63 @@ RUN ls -l /etc/yum.repos.d/ \
     && yum -y update \
     && rm -f /tmp/CentOS-Base.repo.old
 
+ARG TCL_SOURCE=tarball
+ARG TCL_VERSION=8.6.18
+ARG TCL_REF=core-8-6-18
+ARG TCL_TARBALL_URL=https://codeload.github.com/tcltk/tcl/tar.gz/refs/tags/core-8-6-18
+ARG TK_TARBALL_URL=https://codeload.github.com/tcltk/tk/tar.gz/refs/tags/core-8-6-18
+ARG TCL_TARBALL_SHA256=
+ARG TK_TARBALL_SHA256=
+
 # Build Dependencies (and dump version to logging)
-RUN yum install -y cairo-devel freeglut-devel gcc make tcsh \
+RUN yum install -y cairo-devel freeglut-devel gcc make git tcsh \
     && echo "### rpm -qa:" \
     && rpm -qa | sort \
     && echo ""
+#RUN dnf group install -y "Development Tools"
 
 # Tcl/Tk
 WORKDIR /tcl
-RUN curl -L https://prdownloads.sourceforge.net/tcl/tcl8.6.16-src.tar.gz | tar --strip-components=1 -xzC . \
-    && cd unix \
-    && ./configure --prefix=/prefix \
-    && make \
-    && make install
+RUN set -eux; \
+    if [ "$TCL_SOURCE" = "github" ]; then \
+      git clone --filter=blob:none https://github.com/tcltk/tcl.git .; \
+      git checkout --detach "$TCL_REF"; \
+    else \
+      curl -fsSL "$TCL_TARBALL_URL" -o /tmp/tcl-src.tar.gz; \
+      actual_tcl_sha=$(sha256sum /tmp/tcl-src.tar.gz | cut -d' ' -f1); \
+      if [ -n "$TCL_TARBALL_SHA256" ]; then \
+        echo "$TCL_TARBALL_SHA256  /tmp/tcl-src.tar.gz" | sha256sum --check -; \
+      else \
+        echo "WARNING: no known SHA for Tcl tarball ($TCL_TARBALL_URL)"; \
+        echo "WARNING: actual Tcl tarball SHA256 is $actual_tcl_sha"; \
+      fi; \
+      tar --strip-components=1 -xzf /tmp/tcl-src.tar.gz -C .; \
+    fi; \
+    cd unix; \
+    ./configure --prefix=/prefix; \
+    make; \
+    make install
 
 WORKDIR /tk
-RUN curl -L https://prdownloads.sourceforge.net/tcl/tk8.6.16-src.tar.gz | tar --strip-components=1 -xzC . \
-    && cd unix \
-    && ./configure --prefix=/prefix --with-tcl=/prefix/lib \
-    && make \
-    && make install
+RUN set -eux; \
+    if [ "$TCL_SOURCE" = "github" ]; then \
+      git clone --filter=blob:none https://github.com/tcltk/tk.git .; \
+      git checkout --detach "$TCL_REF"; \
+    else \
+      curl -fsSL "$TK_TARBALL_URL" -o /tmp/tk-src.tar.gz; \
+      actual_tk_sha=$(sha256sum /tmp/tk-src.tar.gz | cut -d' ' -f1); \
+      if [ -n "$TK_TARBALL_SHA256" ]; then \
+        echo "$TK_TARBALL_SHA256  /tmp/tk-src.tar.gz" | sha256sum --check -; \
+      else \
+        echo "WARNING: no known SHA for Tk tarball ($TK_TARBALL_URL)"; \
+        echo "WARNING: actual Tk tarball SHA256 is $actual_tk_sha"; \
+      fi; \
+      tar --strip-components=1 -xzf /tmp/tk-src.tar.gz -C .; \
+    fi; \
+    cd unix; \
+    ./configure --prefix=/prefix --with-tcl=/prefix/lib; \
+    make; \
+    make install
 
 WORKDIR /prefix/bin
 RUN cp ./wish8.6 ./wish
@@ -56,9 +93,9 @@ RUN ./configure \
 RUN echo "### filesystem:" \
     find /prefix -printf "%y/%M/%m %i/%n %l %u/%U %g/%G %s/%b %T+/%T@\t%p\n"; \
     ls -lR /prefix; \
-    find /prefix -type f -perm /111 -exec bash -c "echo \#\#\# {}; ldd -v {}" \; 2>/dev/null; \
+    find /prefix -type f -perm /111 -exec bash -c "echo \\#\\#\\# {}; ldd -v {}" \; 2>/dev/null; \
     for name in libgcc_s libstdc++ libpng liblzma libxml2 libz libcairo libGL libGLU; do \
-      find /lib64 /usr/lib64 -maxdepth 2 -name "*.so" -name "${name}*" -exec bash -c "echo \#\#\# {}; ldd -v {}" \; 2>/dev/null; \
+      find /lib64 /usr/lib64 -maxdepth 2 -name "*.so" -name "${name}*" -exec bash -c "echo \\#\\#\\# {}; ldd -v {}" \; 2>/dev/null; \
     done; \
     echo "###"
 
