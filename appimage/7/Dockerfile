@@ -22,7 +22,7 @@ ARG TCL_TARBALL_SHA256=
 ARG TK_TARBALL_SHA256=
 
 # Build Dependencies (and dump version to logging)
-# git is required to support TCL_SOURCE=github overrides from workflow_dispatch.
+# git is installed unconditionally so workflow_dispatch can switch TCL_SOURCE to github when needed.
 RUN yum install -y cairo-devel freeglut-devel gcc make git tcsh \
     && echo "### rpm -qa:" \
     && rpm -qa | sort \
