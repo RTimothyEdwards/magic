@@ -25,7 +25,7 @@ tclroute.o: tclroute.c
 tclroute${SHDLIB_EXT}: tclroute.o ${OBJS}
 	@echo --- making Tcl auto-load module \(tclroute${SHDLIB_EXT}\)
 	${RM} tclroute${SHDLIB_EXT}
-	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} tclroute.o ${OBJS} \
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDFLAGS} ${LDDL_FLAGS} tclroute.o ${OBJS} \
 		 ${EXTRA_LIBS} -lc ${LIBS}
 
 install-tcl: $(DESTDIR)${TCLDIR}/tclroute${SHDLIB_EXT}

@@ -33,7 +33,7 @@ simwrap.o: ext2sim.c
 exttosim${SHDLIB_EXT}: simwrap.o ${MAGICDIR}/extflat/libextflat.o
 	@echo --- making exttosim Tcl library \(exttosim${SHDLIB_EXT}\)
 	${RM} exttosim${SHDLIB_EXT}
-	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} simwrap.o \
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDFLAGS} ${LDDL_FLAGS} simwrap.o \
 		${MAGICDIR}/extflat/libextflat.o ${LD_SHARED} ${LD_FIRST_LIBS} -lc ${LIBS}
 
 install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT}

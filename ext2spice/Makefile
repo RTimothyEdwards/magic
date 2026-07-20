@@ -29,7 +29,7 @@ ext2spice_main.o: ext2spice.c
 exttospice${SHDLIB_EXT}: spicewrap.o spicehier.o ${MAGICDIR}/extflat/libextflat.o
 	@echo --- making exttospice Tcl library \(exttospice${SHDLIB_EXT}\)
 	${RM} exttospice${SHDLIB_EXT}
-	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} spicewrap.o spicehier.o \
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDFLAGS} ${LDDL_FLAGS} spicewrap.o spicehier.o \
 		${MAGICDIR}/extflat/libextflat.o ${LD_SHARED} -lc ${LIBS}
 
 install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${INSTALL_BINDIR}/spice2sim 

@@ -19,7 +19,7 @@ tcllef.o: tcllef.c
 magiclef${SHDLIB_EXT}: tcllef.o ${OBJS}
 	@echo --- making Tcl auto-load module \(magiclef${SHDLIB_EXT}\)
 	${RM} magiclef${SHDLIB_EXT}
-	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} tcllef.o ${OBJS} \
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDFLAGS} ${LDDL_FLAGS} tcllef.o ${OBJS} \
 		 ${EXTRA_LIBS} -lc ${LIBS}
 
 install-tcl: $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}

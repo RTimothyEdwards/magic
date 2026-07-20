@@ -76,9 +76,9 @@ tcl-main: tclmagic${SHDLIB_EXT} proto.magicrc
 tclmagic${SHDLIB_EXT}: ${EXTRA_LIBS}
 	@echo --- making magic Tcl library \(tclmagic${SHDLIB_EXT}\)
 	${RM} tclmagic${SHDLIB_EXT}
-	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} ${LD_RUN_PATH} \
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDFLAGS} ${LDDL_FLAGS} ${LD_RUN_PATH} \
 		${LD_FIRST_LIBS} ${EXTRA_LIBS} ${LD_EXTRA_LIBS} \
-		-lc ${LIBS} ${LIB_SPECS} ${LDFLAGS}
+		-lc ${LIBS} ${LIB_SPECS}
 
 proto.magicrc: proto.magicrc.in
 	${MCPP} ${GR_DFLAGS} ${DFLAGS} proto.magicrc.in > proto.magicrc
