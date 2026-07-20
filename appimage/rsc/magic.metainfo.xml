@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="console-application">
   <id>org.opencircuitdesign.magic</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <developer id="org.opencircuitdesign">
+    <name>OpenCircuitDesign</name>
+  </developer>
 
   <name>Magic</name>
   <summary>A VLSI Layout System</summary>
@@ -19,8 +23,9 @@
     </p>
   </description>
 
-  <url type="homepage">http://opencircuitdesign.com/magic/</url>
+  <url type="homepage">https://opencircuitdesign.com/magic/</url>
   <url type="bugtracker">https://github.com/RTimothyEdwards/magic/issues</url>
+  <url type="vcs-browser">https://github.com/RTimothyEdwards/magic</url>
 
   <categories>
     <category>Development</category>
