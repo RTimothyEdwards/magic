@@ -78,6 +78,15 @@ jobs:
           set -euo pipefail
 
           known_sha() {
+            case "$1/$2" in
+              tcl/8.6.18) echo "8b9b554f3539b37bea20ee6cef14faa63df1259896e466328f596eca9f0c49a5" ;;
+              tk/8.6.18)  echo "8c1d775126c39124c89752737c32c23636b3cd308d0445977aec58cfbc42c46c" ;;
+              tcl/9.0.4)  echo "8c01bac92a9a8ce271b63d3aa28f09cde2c6762d6719ca671cdc8aee25391234" ;;
+              tk/9.0.4)   echo "ab9bd89fcff2e1248b7a9c097035f817fa0725285028c95686fdb92db65bc148" ;;
+              *)          echo "" ;;
+            esac
+          }
+
           retry_ls_remote() {
             local refs="$1"
             local attempt
@@ -102,15 +111,6 @@ jobs:
               sleep "$attempt"
             done
             return 1
-          }
-
-            case "$1/$2" in
-              tcl/8.6.18) echo "8b9b554f3539b37bea20ee6cef14faa63df1259896e466328f596eca9f0c49a5" ;;
-              tk/8.6.18)  echo "8c1d775126c39124c89752737c32c23636b3cd308d0445977aec58cfbc42c46c" ;;
-              tcl/9.0.4)  echo "8c01bac92a9a8ce271b63d3aa28f09cde2c6762d6719ca671cdc8aee25391234" ;;
-              tk/9.0.4)   echo "ab9bd89fcff2e1248b7a9c097035f817fa0725285028c95686fdb92db65bc148" ;;
-              *)          echo "" ;;
-            esac
           }
 
           source_method="${TCL_SOURCE_INPUT:-$DEFAULT_TCL_SOURCE}"
