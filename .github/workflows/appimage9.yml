@@ -78,6 +78,32 @@ jobs:
           set -euo pipefail
 
           known_sha() {
+          retry_ls_remote() {
+            local refs="$1"
+            local attempt
+            for attempt in 1 2 3; do
+              if git ls-remote --tags --refs https://github.com/tcltk/tcl.git "$refs"; then
+                return 0
+              fi
+              echo "Retry $attempt/3 failed for tcl ls-remote $refs" >&2
+              sleep "$attempt"
+            done
+            return 1
+          }
+
+          tk_tag_exists() {
+            local ref="$1"
+            local attempt
+            for attempt in 1 2 3; do
+              if git ls-remote --tags --refs https://github.com/tcltk/tk.git "refs/tags/$ref" | grep -q .; then
+                return 0
+              fi
+              echo "Retry $attempt/3 failed for tk ls-remote refs/tags/$ref" >&2
+              sleep "$attempt"
+            done
+            return 1
+          }
+
             case "$1/$2" in
               tcl/8.6.18) echo "8b9b554f3539b37bea20ee6cef14faa63df1259896e466328f596eca9f0c49a5" ;;
               tk/8.6.18)  echo "8c1d775126c39124c89752737c32c23636b3cd308d0445977aec58cfbc42c46c" ;;
@@ -96,12 +122,12 @@ jobs:
               tcl_ref="$TCL_REF_INPUT"
               echo "Using workflow_dispatch TCL ref: $tcl_ref"
             else
-              tcl_ref=$(git ls-remote --tags --refs https://github.com/tcltk/tcl.git "refs/tags/${TCL_TAG_GLOB}" | awk '{print $2}' | sed 's#refs/tags/##' | sort -V | tail -1)
+              tcl_ref=$(retry_ls_remote "refs/tags/${TCL_TAG_GLOB}" | awk '{print $2}' | sed 's#refs/tags/##' | sort -V | tail -1)
               test -n "$tcl_ref"
               echo "Auto-resolved latest Tcl ref: $tcl_ref"
             fi
 
-            if ! git ls-remote --tags --refs https://github.com/tcltk/tk.git "refs/tags/$tcl_ref" | grep -q .; then
+            if ! tk_tag_exists "$tcl_ref"; then
               echo "Missing matching Tk tag for Tcl ref: $tcl_ref" >&2
               exit 1
             fi

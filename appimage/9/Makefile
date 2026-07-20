@@ -45,7 +45,7 @@ prefix/bin/magic: Dockerfile Makefile
 	docker cp $$id:/prefix ./prefix ; \
 	docker rm -v $$id
 	mkdir -p prefix/lib/tcl$(TCL_VERSION)
-	if [ -d "prefix/lib/tcl$(TCL_ABI_VERSION)" ]; then cp -r "prefix/lib/tcl$(TCL_ABI_VERSION)" "prefix/lib/tcl$(TCL_VERSION)/library"; fi
+	if [ -d "prefix/lib/tcl$(TCL_ABI_VERSION)" ]; then cp -r "prefix/lib/tcl$(TCL_ABI_VERSION)" "prefix/lib/tcl$(TCL_VERSION)/library"; else echo "Missing expected Tcl ABI directory: prefix/lib/tcl$(TCL_ABI_VERSION)" >&2; exit 1; fi
 
 appimagetool:
 	curl -L "$(APPIMAGETOOL_DOWNLOAD_URL)" > ./appimagetool
