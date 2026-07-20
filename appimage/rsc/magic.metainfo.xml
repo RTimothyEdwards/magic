@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="console-application">
+  <id>org.opencircuitdesign.magic</id>
+
+  <name>Magic</name>
+  <summary>A VLSI Layout System</summary>
+
+  <description>
+    <p>
+      Magic is an open-source VLSI (Very Large Scale Integration) layout tool that
+      allows users to design and verify integrated circuit layouts.  It supports
+      design rule checking (DRC), extraction of circuit netlists, and provides
+      interfaces to SPICE and other common EDA tools.
+    </p>
+    <p>
+      Originally developed at UC Berkeley, Magic has been maintained and extended
+      by the open hardware community and is widely used in academic and hobbyist
+      chip design projects.
+    </p>
+  </description>
+
+  <url type="homepage">http://opencircuitdesign.com/magic/</url>
+  <url type="bugtracker">https://github.com/RTimothyEdwards/magic/issues</url>
+
+  <categories>
+    <category>Development</category>
+    <category>Electronics</category>
+  </categories>
+
+  <provides>
+    <binary>magic</binary>
+  </provides>
+
+  <content_rating type="oars-1.1"/>
+</component>

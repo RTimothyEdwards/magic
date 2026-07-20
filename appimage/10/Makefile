@@ -52,17 +52,44 @@ prefix/bin/magic: Dockerfile Makefile
 		exit 1; \
 	fi
 
+# Optional: embed AppImage update info (enables delta-update support via zsync).
+# Set to e.g. gh-releases-zsync|owner|repo|latest|Magic-*EL10.AppImage.zsync
+UPDATEINFORMATION ?=
+
 appimagetool:
 	curl -L "$(APPIMAGETOOL_DOWNLOAD_URL)" > ./appimagetool
 	chmod +x ./appimagetool
 
 $(APPIMAGE): prefix/bin/magic appimagetool $(RESOURCES)
 	cp $(RESOURCES) ./prefix/
-	./appimagetool prefix
+	mkdir -p prefix/usr/share/metainfo
+	cp ../rsc/magic.metainfo.xml prefix/usr/share/metainfo/org.opencircuitdesign.magic.metainfo.xml
+	if [ -n "$(UPDATEINFORMATION)" ]; then \
+		./appimagetool --updateinformation "$(UPDATEINFORMATION)" prefix; \
+		if command -v zsyncmake >/dev/null 2>&1; then \
+			zsyncmake $(APPIMAGE) -u "$(UPDATEINFORMATION)"; \
+		fi; \
+	else \
+		./appimagetool prefix; \
+	fi
 
 PREFIX ?= /usr/local
 install:
 	install $(APPIMAGE) $(PREFIX)/bin/magic
+
+.PHONY: validate
+validate: $(APPIMAGE)
+	@echo "Validating AppImage: $(APPIMAGE)"
+	@if command -v desktop-file-validate >/dev/null 2>&1; then \
+		desktop-file-validate prefix/magic.desktop && echo "desktop-file-validate: OK"; \
+	else \
+		echo "desktop-file-validate: not installed, skipping"; \
+	fi
+	@if command -v appstreamcli >/dev/null 2>&1; then \
+		appstreamcli validate prefix/usr/share/metainfo/org.opencircuitdesign.magic.metainfo.xml && echo "appstreamcli: OK"; \
+	else \
+		echo "appstreamcli: not installed, skipping"; \
+	fi
 
 .PHONY: clean
 clean:
