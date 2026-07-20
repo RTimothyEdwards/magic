@@ -19,7 +19,7 @@ tcl-main: exttosim${SHDLIB_EXT}
 
 # Not linkable due to libutils.a needing more hierarchical separation
 ext2sim_main: ext2sim_main.o ${EXTRA_LIBS} ${MAGICDIR}/tiles/libtiles.o
-	${CC} ${LDFLAGS} ${CFLAGS} -o $@ $^ ${LIBS} -lX11 -lz
+	${CC} ${LDFLAGS} ${CFLAGS} -o $@ $^ ${LD_FIRST_LIBS} ${LIBS} -lX11 -lz
 
 ext2sim_main.o: ext2sim.c
 	${CC} ${CFLAGS} -I${MAGICDIR} -DEXT2SIM_MAIN -c -o $@ $^
@@ -34,7 +34,7 @@ exttosim${SHDLIB_EXT}: simwrap.o ${MAGICDIR}/extflat/libextflat.o
 	@echo --- making exttosim Tcl library \(exttosim${SHDLIB_EXT}\)
 	${RM} exttosim${SHDLIB_EXT}
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} simwrap.o \
-		${MAGICDIR}/extflat/libextflat.o ${LD_SHARED} -lc ${LIBS}
+		${MAGICDIR}/extflat/libextflat.o ${LD_SHARED} ${LD_FIRST_LIBS} -lc ${LIBS}
 
 install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT}
 
