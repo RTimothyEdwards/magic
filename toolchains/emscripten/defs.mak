@@ -23,7 +23,7 @@ MAKE_WASM = 1
 # to add --strip-debug to wasm-ld, discarding the DWARF produced by -g in
 # CFLAGS. That leaves magic.wasm without debug sections, making -gsource-map
 # produce an empty source map at the final link.
-LINK = $(LD) -r -g
+LINK = $(LD) -r $(LDFLAGS)
 
 # Emscripten linker flags.
 # The link step runs from the magic/ subdirectory, so embed-file paths
