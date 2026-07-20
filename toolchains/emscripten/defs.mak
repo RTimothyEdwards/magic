@@ -18,6 +18,13 @@
 # Activate the WASM link target in magic/Makefile.
 MAKE_WASM = 1
 
+# Preserve DWARF debug info through emcc -r (partial-link) steps.
+# Without -g, emcc -r defaults to GENERATE_DWARF=0, which causes building.py
+# to add --strip-debug to wasm-ld, discarding the DWARF produced by -g in
+# CFLAGS. That leaves magic.wasm without debug sections, making -gsource-map
+# produce an empty source map at the final link.
+LINK = $(LD) -r -g
+
 # Emscripten linker flags.
 # The link step runs from the magic/ subdirectory, so embed-file paths
 # are relative to that directory (../scmos, ../windows/...).
