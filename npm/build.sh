@@ -95,8 +95,21 @@ sed_strip_cr() {
 
 if [ $OPT_RELEASE -eq 1 ]; then
   EXTRA_CFLAGS="-O2"
+  EXTRA_LDFLAGS=""
 else
   EXTRA_CFLAGS="-g"
+  EXTRA_LDFLAGS="-gsource-map"
+
+  # Exists to document some options maybe placement sensitive on linker command
+  # line and need to appear first.
+  # See toolchains/emscripten/defs.mak this is just picked up from the environment during make
+  #export TOP_FIRST_LIBS_WASM="-g3 -fsanitize=address"
+
+  # Exists to document maybe you need both these to get the intended effect
+  # but expect the performance hit / larger codegen at runtime when you do.
+  # See toolchains/emscripten/defs.mak this is just picked up from the environment during make
+  #EXTRA_CONFIGURE_ARGS="--enable-assertions"
+  #export TOP_EXTRA_LIBS_WASM="-sASSERTIONS=1" # emscripten default value: 1
 fi
 
 # --- TCL fork: clone and prebuild (TCL variant only) ------------------------
@@ -163,6 +176,7 @@ build_variant() {
   if [ "$variant" = "tcl" ]; then
     ensure_tcl_built
     CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 ${EXTRA_CFLAGS}" \
+    LDFLAGS="${EXTRA_LDFLAGS}" \
       emconfigure ./configure \
         --without-cairo --without-opengl --without-x --without-tk \
         --with-tcl="$TCL_WASM_PREFIX/lib" \
@@ -170,18 +184,26 @@ build_variant() {
         --with-tcllibs="$TCL_WASM_PREFIX/lib" \
         --disable-readline --disable-compression \
         --host=asmjs-unknown-emscripten \
-        --target=asmjs-unknown-emscripten
+        --target=asmjs-unknown-emscripten \
+        ${EXTRA_CONFIGURE_ARGS:-}
   else
     CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 ${EXTRA_CFLAGS}" \
+    LDFLAGS="${EXTRA_LDFLAGS}" \
       emconfigure ./configure \
         --without-cairo --without-opengl --without-x \
         --without-tk --without-tcl \
         --disable-readline --disable-compression \
         --host=asmjs-unknown-emscripten \
-        --target=asmjs-unknown-emscripten
+        --target=asmjs-unknown-emscripten \
+        ${EXTRA_CONFIGURE_ARGS:-}
   fi
 
   cat toolchains/emscripten/defs.mak >> defs.mak
+
+  #
+  echo "===== defs.mak ====="
+  cat defs.mak
+  echo "===== defs.mak ====="
 
   emmake make depend
   emmake make -j"$(ncpu)" modules libs
@@ -191,6 +213,7 @@ build_variant() {
   mkdir -p "$out_dir"
   cp magic/magic.js   "$out_dir/"
   cp magic/magic.wasm "$out_dir/"
+  test -f magic/magic.wasm.map && cp magic/magic.wasm.map "$out_dir/"
   echo "Copied magic.js + magic.wasm into npm/$variant/"
 }
 

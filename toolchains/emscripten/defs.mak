@@ -4,6 +4,7 @@
 #
 #   source <emsdk>/emsdk_env.sh
 #   CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 -g" \
+#   LDFLAGS="-gsource-maps" \
 #     emconfigure ./configure --without-cairo --without-opengl --without-x \
 #                             --without-tk   --without-tcl  \
 #                             --disable-readline --disable-compression \
@@ -30,6 +31,7 @@ MAKE_WASM = 1
 # consumers passing locateFile/arguments/etc. keep working) and re-add
 # wasmBinary. Keep this in sync with emscripten's default if it grows.
 TOP_EXTRA_LIBS += \
+    ${TOP_FIRST_LIBS_WASM} \
     -sWASM=1 \
     -sMODULARIZE=1 \
     -sEXPORT_ES6=1 \
@@ -40,9 +42,9 @@ TOP_EXTRA_LIBS += \
     -sALLOW_MEMORY_GROWTH=1 \
     -sINITIAL_MEMORY=67108864 \
     -Wl,-z,stack-size=10485760 \
-    -sASSERTIONS=1 \
     -sENVIRONMENT=node,web,worker \
     -sFORCE_FILESYSTEM=1 \
+    ${TOP_EXTRA_LIBS_WASM} \
     --embed-file ../scmos@/magic/sys/current \
     --embed-file ../windows/windows7.glyphs@/magic/sys/windows7.glyphs \
     --embed-file ../windows/windows7.glyphs@/magic/sys/bw.glyphs

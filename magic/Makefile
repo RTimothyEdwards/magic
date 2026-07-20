@@ -60,9 +60,9 @@ ifneq (${TCL_LIB_DIR},)
 # the stub-bootstrap archive (-ltclstub). Both are required: magic's objects
 # use USE_TCL_STUBS macros (resolved by tclStubsPtr from libtclstub.a), and
 # tclStubsPtr itself must point into the real TCL implementation (libtcl9.x.a).
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS} ${LIB_SPECS_NOSTUB} -L${TCL_LIB_DIR} -ltclstub
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${LDFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS} ${LIB_SPECS_NOSTUB} -L${TCL_LIB_DIR} -ltclstub
 else
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS}
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${LDFLAGS} lib${MODULE}.o ${EXTRA_LIBS} -o magic.js ${LIBS}
 endif
 endif
 

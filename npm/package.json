@@ -17,8 +17,10 @@
     "notcl.js",
     "tcl/magic.js",
     "tcl/magic.wasm",
+    "tcl/magic.wasm.map",
     "notcl/magic.js",
     "notcl/magic.wasm",
+    "notcl/magic.wasm.map",
     "examples/",
     "LICENSE",
     "README.md"
