@@ -25,7 +25,7 @@ tclplot.o: tclplot.c
 tclplot${SHDLIB_EXT}: tclplot.o ${OBJS}
 	@echo --- making Tcl auto-load module \(tclplot${SHDLIB_EXT}\)
 	${RM} tclplot${SHDLIB_EXT}
-	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} tclplot.o ${OBJS} \
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDFLAGS} ${LDDL_FLAGS} tclplot.o ${OBJS} \
 		 ${EXTRA_LIBS} -lc ${LIBS}
 
 install-tcl: $(DESTDIR)${INSTALL_TCLDIR}/tclplot${SHDLIB_EXT}
