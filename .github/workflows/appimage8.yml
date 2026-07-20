@@ -3,6 +3,22 @@ on:
     tags:
       - "*"
   workflow_dispatch:
+    inputs:
+      tcl_source:
+        description: 'Tcl/Tk source: tarball or github'
+        type: choice
+        options:
+          - tarball
+          - github
+        default: 'github'
+      tcl_ref:
+        description: 'Tcl/Tk ref for github source (e.g. core-8-6-18); blank auto-resolves latest stable tag in series'
+        type: string
+        default: ''
+      tcl_version_override:
+        description: 'Tarball version override (e.g. 8.6.18 or 9.0.4); blank uses locked default'
+        type: string
+        default: ''
 
 name: CI-appimage8
 
@@ -48,10 +64,114 @@ jobs:
             fi
           fi
 
+      - name: Resolve TCL/TK source
+        id: resolve_tcl
+        env:
+          DEFAULT_TCL_SOURCE: github
+          TCL_LOCKED_VERSION: 8.6.18
+          TCL_TAG_GLOB: core-8-6-*
+          TCL_TAG_REGEX: '^core-8-6-[0-9]+$'
+          TCL_REF_INPUT: ${{ github.event.inputs.tcl_ref || '' }}
+          TCL_SOURCE_INPUT: ${{ github.event.inputs.tcl_source || '' }}
+          TCL_VERSION_OVERRIDE: ${{ github.event.inputs.tcl_version_override || '' }}
+        run: |
+          set -euo pipefail
+
+          known_sha() {
+            case "$1/$2" in
+              tcl/8.6.18) echo "8b9b554f3539b37bea20ee6cef14faa63df1259896e466328f596eca9f0c49a5" ;;
+              tk/8.6.18)  echo "8c1d775126c39124c89752737c32c23636b3cd308d0445977aec58cfbc42c46c" ;;
+              tcl/9.0.4)  echo "8c01bac92a9a8ce271b63d3aa28f09cde2c6762d6719ca671cdc8aee25391234" ;;
+              tk/9.0.4)   echo "ab9bd89fcff2e1248b7a9c097035f817fa0725285028c95686fdb92db65bc148" ;;
+              *)          echo "" ;;
+            esac
+          }
+
+          source_method="${TCL_SOURCE_INPUT:-$DEFAULT_TCL_SOURCE}"
+          tcl_version="${TCL_VERSION_OVERRIDE:-$TCL_LOCKED_VERSION}"
+          tcl_ref="core-${tcl_version//./-}"
+
+          if [ "$source_method" = "github" ]; then
+            if [ -n "$TCL_REF_INPUT" ]; then
+              tcl_ref="$TCL_REF_INPUT"
+              echo "Using workflow_dispatch TCL ref: $tcl_ref"
+            else
+              tcl_ref=$(git ls-remote --tags --refs https://github.com/tcltk/tcl.git "refs/tags/${TCL_TAG_GLOB}"                 | awk '{print $2}' | sed 's#refs/tags/##' | sort -V | tail -1)
+              test -n "$tcl_ref"
+              echo "Auto-resolved latest Tcl ref: $tcl_ref"
+            fi
+
+            if ! git ls-remote --tags --refs https://github.com/tcltk/tk.git "refs/tags/$tcl_ref" | grep -q .; then
+              echo "Missing matching Tk tag for Tcl ref: $tcl_ref" >&2
+              exit 1
+            fi
+
+            if echo "$tcl_ref" | grep -Eq "$TCL_TAG_REGEX"; then
+              tcl_version=$(echo "$tcl_ref" | sed -E 's/^core-([0-9]+)-([0-9]+)-([0-9]+)$/\1.\2.\3/')
+            else
+              echo "Warning: ref $tcl_ref does not match expected stable tag pattern; keeping Tcl version=$tcl_version"
+            fi
+          fi
+
+          tcl_ref_tag="core-${tcl_version//./-}"
+          tcl_tarball_url="https://codeload.github.com/tcltk/tcl/tar.gz/refs/tags/$tcl_ref_tag"
+          tk_tarball_url="https://codeload.github.com/tcltk/tk/tar.gz/refs/tags/$tcl_ref_tag"
+
+          tcl_sha=$(known_sha tcl "$tcl_version")
+          tk_sha=$(known_sha tk "$tcl_version")
+
+          if [ -n "$tcl_sha" ] && [ -n "$tk_sha" ]; then
+            sha_status="verified against known SHA"
+          else
+            sha_status="best-effort — no known SHA (actual SHA is printed during Docker build)"
+          fi
+
+          if [ "$source_method" = "github" ]; then
+            tcl_tmpdir=$(mktemp -d)
+            git -c advice.detachedHead=false clone --depth 1 --branch "$tcl_ref" https://github.com/tcltk/tcl.git "$tcl_tmpdir"
+            tcl_commit=$(git -C "$tcl_tmpdir" rev-parse HEAD)
+            tcl_commit_date=$(git -C "$tcl_tmpdir" log -1 --format=%ci)
+            rm -rf "$tcl_tmpdir"
+          else
+            tcl_commit=""
+            tcl_commit_date=""
+          fi
+
+          echo "TCL_SOURCE=$source_method" >> "$GITHUB_ENV"
+          echo "TCL_VERSION=$tcl_version" >> "$GITHUB_ENV"
+          echo "TCL_REF=$tcl_ref" >> "$GITHUB_ENV"
+          echo "TCL_TARBALL_URL=$tcl_tarball_url" >> "$GITHUB_ENV"
+          echo "TK_TARBALL_URL=$tk_tarball_url" >> "$GITHUB_ENV"
+          echo "TCL_TARBALL_SHA256=$tcl_sha" >> "$GITHUB_ENV"
+          echo "TK_TARBALL_SHA256=$tk_sha" >> "$GITHUB_ENV"
+          echo "TCL_SHA_STATUS=$sha_status" >> "$GITHUB_ENV"
+          echo "TCL_COMMIT=$tcl_commit" >> "$GITHUB_ENV"
+          echo "TCL_COMMIT_DATE=$tcl_commit_date" >> "$GITHUB_ENV"
+
+          echo "## Tcl/Tk source" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| :-- | :-- |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Source method | $source_method |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tcl/Tk version | $tcl_version |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tcl ref | $tcl_ref |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| SHA status | $sha_status |" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$tcl_commit" ]; then
+            echo "| Tcl commit | $tcl_commit |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tcl commit date | $tcl_commit_date |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Build project
         run: |
           cd appimage/8
-          make
+          make \
+            TCL_SOURCE="${TCL_SOURCE}" \
+            TCL_VERSION="${TCL_VERSION}" \
+            TCL_REF="${TCL_REF}" \
+            TCL_TARBALL_URL="${TCL_TARBALL_URL}" \
+            TK_TARBALL_URL="${TK_TARBALL_URL}" \
+            TCL_TARBALL_SHA256="${TCL_TARBALL_SHA256}" \
+            TK_TARBALL_SHA256="${TK_TARBALL_SHA256}"
 
           ln -v Magic-x86_64.AppImage "${MAGIC_APPIMAGE_OUTPUT_FILENAME}"
           ls -l *.AppImage
@@ -138,6 +258,18 @@ jobs:
           cat RELEASE-NOTES-CL.txt >> RELEASE-NOTES-GH.txt
 
           # Show in action/artifact output
+          echo "## TCL/TK BUILD INFO" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Source: ${TCL_SOURCE}" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${TCL_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- Ref: ${TCL_REF}" >> $GITHUB_STEP_SUMMARY
+          echo "- SHA status: ${TCL_SHA_STATUS}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${TCL_COMMIT}" ]; then
+            echo "- TCL commit: ${TCL_COMMIT}" >> $GITHUB_STEP_SUMMARY
+            echo "- TCL commit date: ${TCL_COMMIT_DATE}" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           echo "## RELEASE NOTES" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat RELEASE-NOTES-EL8.txt >> $GITHUB_STEP_SUMMARY
