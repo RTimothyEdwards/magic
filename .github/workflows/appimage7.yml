@@ -128,7 +128,7 @@ jobs:
 
           if [ "$source_method" = "github" ]; then
             tcl_tmpdir=$(mktemp -d)
-            git -c advice.detachedHead=false clone --depth 1 --branch "$tcl_ref" https://github.com/tcltk/tcl.git "$tcl_tmpdir"
+            git -c advice.detachedHead=false clone --depth 1 --single-branch --branch "$tcl_ref" https://github.com/tcltk/tcl.git "$tcl_tmpdir"
             tcl_commit=$(git -C "$tcl_tmpdir" rev-parse HEAD)
             tcl_commit_date=$(git -C "$tcl_tmpdir" log -1 --format=%ci)
             rm -rf "$tcl_tmpdir"
