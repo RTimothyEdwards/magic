@@ -253,7 +253,7 @@ jobs:
           echo "TK_COMMIT=$tk_commit" >> "$GITHUB_ENV"
           echo "TK_COMMIT_DATE=$tk_commit_date" >> "$GITHUB_ENV"
 
-          echo "## Tcl/Tk source" >> "$GITHUB_STEP_SUMMARY"
+          echo "## TCL/TK BUILD INFO" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "| :-- | :-- |" >> "$GITHUB_STEP_SUMMARY"
@@ -277,6 +277,8 @@ jobs:
             echo "| Tk tarball URL | $tk_tarball_url |" >> "$GITHUB_STEP_SUMMARY"
             echo "| Tk SHA256 | $tk_sha_display |" >> "$GITHUB_STEP_SUMMARY"
           fi
+          echo "| AppImageTool release | ${APPIMAGETOOL_RELEASE} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| AppImageTool URL | ${APPIMAGETOOL_DOWNLOAD_URL} |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build project
         run: |
@@ -373,45 +375,6 @@ jobs:
           echo "" >> RELEASE-NOTES-GH.txt
           cat RELEASE-NOTES-DOCS.txt >> RELEASE-NOTES-GH.txt
           cat RELEASE-NOTES-CL.txt >> RELEASE-NOTES-GH.txt
-
-          # Show in action/artifact output
-          echo "## TCL/TK BUILD INFO" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Source: ${TCL_SOURCE}" >> $GITHUB_STEP_SUMMARY
-          echo "- Tcl version: ${TCL_VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "- Tk version: ${TK_VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "- AppImageTool release: ${APPIMAGETOOL_RELEASE:-continuous}" >> $GITHUB_STEP_SUMMARY
-          echo "- AppImageTool URL: ${APPIMAGETOOL_DOWNLOAD_URL}" >> $GITHUB_STEP_SUMMARY
-          if [ "${TCL_SOURCE}" = "github" ]; then
-            echo "- Tcl clone URL: https://github.com/tcltk/tcl.git" >> $GITHUB_STEP_SUMMARY
-            echo "- Tcl ref: ${TCL_REF}" >> $GITHUB_STEP_SUMMARY
-            if [ -n "${TCL_COMMIT}" ]; then
-              echo "- Tcl commit: ${TCL_COMMIT}" >> $GITHUB_STEP_SUMMARY
-              echo "- Tcl commit date: ${TCL_COMMIT_DATE}" >> $GITHUB_STEP_SUMMARY
-            fi
-            echo "- Tk clone URL: https://github.com/tcltk/tk.git" >> $GITHUB_STEP_SUMMARY
-            echo "- Tk ref: ${TK_REF}" >> $GITHUB_STEP_SUMMARY
-            if [ -n "${TK_COMMIT}" ]; then
-              echo "- Tk commit: ${TK_COMMIT}" >> $GITHUB_STEP_SUMMARY
-              echo "- Tk commit date: ${TK_COMMIT_DATE}" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "- Tcl tarball: ${TCL_TARBALL_FILENAME}" >> $GITHUB_STEP_SUMMARY
-            echo "- Tcl tarball URL: ${TCL_TARBALL_URL}" >> $GITHUB_STEP_SUMMARY
-            if [ -n "${TCL_TARBALL_SHA256}" ]; then
-              echo "- Tcl SHA256: ${TCL_TARBALL_SHA256} (SHA matches expected value)" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- Tcl SHA256: expected SHA not known, please update workflow .yml" >> $GITHUB_STEP_SUMMARY
-            fi
-            echo "- Tk tarball: ${TK_TARBALL_FILENAME}" >> $GITHUB_STEP_SUMMARY
-            echo "- Tk tarball URL: ${TK_TARBALL_URL}" >> $GITHUB_STEP_SUMMARY
-            if [ -n "${TK_TARBALL_SHA256}" ]; then
-              echo "- Tk SHA256: ${TK_TARBALL_SHA256} (SHA matches expected value)" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- Tk SHA256: expected SHA not known, please update workflow .yml" >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "## RELEASE NOTES" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
