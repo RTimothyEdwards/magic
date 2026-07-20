@@ -149,10 +149,18 @@ jobs:
           tcl_sha=$(known_sha tcl "$tcl_version")
           tk_sha=$(known_sha tk "$tcl_version")
 
-          if [ -n "$tcl_sha" ] && [ -n "$tk_sha" ]; then
-            sha_status="verified against known SHA"
+          tcl_tarball_filename="tcl-${tcl_ref_tag}.tar.gz"
+          tk_tarball_filename="tk-${tcl_ref_tag}.tar.gz"
+
+          if [ -n "$tcl_sha" ]; then
+            tcl_sha_display="$tcl_sha (SHA matches expected value)"
           else
-            sha_status="best-effort — no known SHA (actual SHA will be printed during Docker build)"
+            tcl_sha_display="expected SHA not known, please update workflow .yml"
+          fi
+          if [ -n "$tk_sha" ]; then
+            tk_sha_display="$tk_sha (SHA matches expected value)"
+          else
+            tk_sha_display="expected SHA not known, please update workflow .yml"
           fi
 
           if [ "$source_method" = "github" ]; then
@@ -177,9 +185,10 @@ jobs:
           echo "TCL_REF=$tcl_ref" >> "$GITHUB_ENV"
           echo "TCL_TARBALL_URL=$tcl_tarball_url" >> "$GITHUB_ENV"
           echo "TK_TARBALL_URL=$tk_tarball_url" >> "$GITHUB_ENV"
+          echo "TCL_TARBALL_FILENAME=$tcl_tarball_filename" >> "$GITHUB_ENV"
+          echo "TK_TARBALL_FILENAME=$tk_tarball_filename" >> "$GITHUB_ENV"
           echo "TCL_TARBALL_SHA256=$tcl_sha" >> "$GITHUB_ENV"
           echo "TK_TARBALL_SHA256=$tk_sha" >> "$GITHUB_ENV"
-          echo "TCL_SHA_STATUS=$sha_status" >> "$GITHUB_ENV"
           echo "TCL_COMMIT=$tcl_commit" >> "$GITHUB_ENV"
           echo "TCL_COMMIT_DATE=$tcl_commit_date" >> "$GITHUB_ENV"
 
@@ -189,11 +198,18 @@ jobs:
           echo "| :-- | :-- |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Source method | $source_method |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Tcl/Tk version | $tcl_version |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Tcl ref | $tcl_ref |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| SHA status | $sha_status |" >> "$GITHUB_STEP_SUMMARY"
-          if [ -n "$tcl_commit" ]; then
+          if [ "$source_method" = "github" ]; then
+            echo "| Tcl clone URL | https://github.com/tcltk/tcl.git |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tcl ref | $tcl_ref |" >> "$GITHUB_STEP_SUMMARY"
             echo "| Tcl commit | $tcl_commit |" >> "$GITHUB_STEP_SUMMARY"
             echo "| Tcl commit date | $tcl_commit_date |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Tcl tarball | $tcl_tarball_filename |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tcl tarball URL | $tcl_tarball_url |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tcl SHA256 | $tcl_sha_display |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tk tarball | $tk_tarball_filename |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tk tarball URL | $tk_tarball_url |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tk SHA256 | $tk_sha_display |" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Build project
@@ -297,11 +313,28 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- Source: ${TCL_SOURCE}" >> $GITHUB_STEP_SUMMARY
           echo "- Version: ${TCL_VERSION}" >> $GITHUB_STEP_SUMMARY
-          echo "- Ref: ${TCL_REF}" >> $GITHUB_STEP_SUMMARY
-          echo "- SHA status: ${TCL_SHA_STATUS}" >> $GITHUB_STEP_SUMMARY
-          if [ -n "${TCL_COMMIT}" ]; then
-            echo "- TCL commit: ${TCL_COMMIT}" >> $GITHUB_STEP_SUMMARY
-            echo "- TCL commit date: ${TCL_COMMIT_DATE}" >> $GITHUB_STEP_SUMMARY
+          if [ "${TCL_SOURCE}" = "github" ]; then
+            echo "- Tcl clone URL: https://github.com/tcltk/tcl.git" >> $GITHUB_STEP_SUMMARY
+            echo "- Tcl ref: ${TCL_REF}" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${TCL_COMMIT}" ]; then
+              echo "- Tcl commit: ${TCL_COMMIT}" >> $GITHUB_STEP_SUMMARY
+              echo "- Tcl commit date: ${TCL_COMMIT_DATE}" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "- Tcl tarball: ${TCL_TARBALL_FILENAME}" >> $GITHUB_STEP_SUMMARY
+            echo "- Tcl tarball URL: ${TCL_TARBALL_URL}" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${TCL_TARBALL_SHA256}" ]; then
+              echo "- Tcl SHA256: ${TCL_TARBALL_SHA256} (SHA matches expected value)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- Tcl SHA256: expected SHA not known, please update workflow .yml" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "- Tk tarball: ${TK_TARBALL_FILENAME}" >> $GITHUB_STEP_SUMMARY
+            echo "- Tk tarball URL: ${TK_TARBALL_URL}" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${TK_TARBALL_SHA256}" ]; then
+              echo "- Tk SHA256: ${TK_TARBALL_SHA256} (SHA matches expected value)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- Tk SHA256: expected SHA not known, please update workflow .yml" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
