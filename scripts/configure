@@ -653,6 +653,7 @@ sub_extra_libs
 top_extra_libs
 ld_extra_objs
 ld_extra_libs
+ld_first_libs
 NDEBUG_defs
 DEBUG_defs
 stub_defs
@@ -6254,6 +6255,7 @@ cadinstall=""
 extra_libs=""
 top_extra_libs=""
 sub_extra_libs=""
+ld_first_libs=""
 ld_extra_libs=""
 ld_extra_objs=""
 programs=""
@@ -9239,6 +9241,7 @@ fi
 if test "$GCC" = "yes" ; then
    DEPEND_FLAG="-MM"
 fi
+
 
 
 
