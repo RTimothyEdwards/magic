@@ -96,7 +96,7 @@ jobs:
               tcl_ref="$TCL_REF_INPUT"
               echo "Using workflow_dispatch TCL ref: $tcl_ref"
             else
-              tcl_ref=$(git ls-remote --tags --refs https://github.com/tcltk/tcl.git "refs/tags/${TCL_TAG_GLOB}"                 | awk '{print $2}' | sed 's#refs/tags/##' | sort -V | tail -1)
+              tcl_ref=$(git ls-remote --tags --refs https://github.com/tcltk/tcl.git "refs/tags/${TCL_TAG_GLOB}" | awk '{print $2}' | sed 's#refs/tags/##' | sort -V | tail -1)
               test -n "$tcl_ref"
               echo "Auto-resolved latest Tcl ref: $tcl_ref"
             fi

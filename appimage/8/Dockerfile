@@ -2,7 +2,7 @@ FROM almalinux:8
 
 USER root
 
-ARG TCL_SOURCE=tarball
+ARG TCL_SOURCE=github
 ARG TCL_VERSION=8.6.18
 ARG TCL_REF=core-8-6-18
 ARG TCL_TARBALL_URL=https://codeload.github.com/tcltk/tcl/tar.gz/refs/tags/core-8-6-18
@@ -16,7 +16,6 @@ RUN dnf install -y python311 zlib-devel ncurses-devel readline-devel cairo-devel
     && echo "### rpm -qa:" \
     && rpm -qa | sort \
     && echo ""
-#RUN dnf group install -y "Development Tools"
 
 # Tcl/Tk
 WORKDIR /tcl
