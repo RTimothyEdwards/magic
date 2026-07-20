@@ -408,9 +408,50 @@ jobs:
         with:
           path: ${{ github.workspace }}/appimage/7/squashfs-root
           format: spdx-json
-          artifact-name: sbom-${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}.spdx.json
-          upload-artifact: true
-          upload-release-assets: ${{ env.MY_GITHUB_TAG != '' }}
+          output-file: ${{ github.workspace }}/appimage/7/sbom-${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Apply SBOM license metadata
+        run: |
+          cd appimage/7
+          sbom_file="sbom-${MAGIC_APPIMAGE_OUTPUT_FILENAME}.spdx.json"
+          jq '
+            def is_tcltk:
+              (.name | test("(^|/)(tclsh|wish)[0-9.]*$|(^|/)libtcl[^/]*\\.so(\\.[0-9.]+)*$|(^|/)libtk[^/]*\\.so(\\.[0-9.]+)*$"));
+            def is_magic_linked:
+              (.name | test("(^|/)(magicexec|magicdnull|tclmagic\\.so)$"));
+            .packages |= map(
+              if is_magic_linked then
+                . + {
+                  licenseConcluded: "HPND-UC-export-US AND TCL",
+                  licenseDeclared: "HPND-UC-export-US AND TCL"
+                }
+              elif is_tcltk then
+                . + {
+                  licenseConcluded: "TCL",
+                  licenseDeclared: "TCL"
+                }
+              else
+                .
+              end
+            )
+          ' "$sbom_file" > "$sbom_file.tmp"
+          mv "$sbom_file.tmp" "$sbom_file"
+
+      - name: Upload SBOM Release Asset
+        if: ${{ env.MY_GITHUB_TAG != '' }}
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            ${{ github.workspace }}/appimage/7/sbom-${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}.spdx.json
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}.spdx.json
+          path: |
+            ${{ github.workspace }}/appimage/7/sbom-${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}.spdx.json
 
       - name: Upload Artifact
         #if: ${{ env.MY_GITHUB_TAG == '' }} # commented out to always upload
