@@ -19,6 +19,10 @@ on:
         description: 'Tarball version override (e.g. 8.6.18 or 9.0.4); blank uses locked default'
         type: string
         default: ''
+      appimagetool_release:
+        description: 'AppImageTool release channel/tag (default: continuous)'
+        type: string
+        default: 'continuous'
 
 name: CI-appimage8
 
@@ -64,6 +68,15 @@ jobs:
             fi
           fi
 
+      - name: Resolve AppImageTool download URL
+        env:
+          APPIMAGETOOL_RELEASE_INPUT: ${{ github.event.inputs.appimagetool_release || '' }}
+        run: |
+          appimagetool_release="${APPIMAGETOOL_RELEASE_INPUT:-continuous}"
+          appimagetool_url="https://github.com/AppImage/appimagetool/releases/download/${appimagetool_release}/appimagetool-x86_64.AppImage"
+          echo "APPIMAGETOOL_RELEASE=${appimagetool_release}" >> "$GITHUB_ENV"
+          echo "APPIMAGETOOL_DOWNLOAD_URL=${appimagetool_url}" >> "$GITHUB_ENV"
+
       - name: Resolve TCL/TK source
         id: resolve_tcl
         env:
@@ -88,19 +101,46 @@ jobs:
           }
 
           retry_ls_remote() {
-            local refs="$1"
+            local repo="$1"
+            local refs="$2"
             local attempt
             for attempt in 1 2 3; do
-              if git ls-remote --tags --refs https://github.com/tcltk/tcl.git "$refs"; then
+              if git ls-remote --tags --refs "https://github.com/tcltk/${repo}.git" "$refs"; then
                 return 0
               fi
-              echo "Retry $attempt/3 failed for tcl ls-remote $refs" >&2
+              echo "Retry $attempt/3 failed for ${repo} ls-remote $refs" >&2
               sleep "$attempt"
             done
             return 1
           }
 
-          tk_tag_exists() {
+          resolve_latest_shared_tag() {
+            local tcl_tags
+            local tk_tags
+            local shared_tags
+
+            tcl_tags=$(retry_ls_remote tcl "refs/tags/${TCL_TAG_GLOB}" \
+              | awk '{print $2}' \
+              | sed 's#refs/tags/##' \
+              | grep -E "${TCL_TAG_REGEX}" || true)
+            tk_tags=$(retry_ls_remote tk "refs/tags/${TCL_TAG_GLOB}" \
+              | awk '{print $2}' \
+              | sed 's#refs/tags/##' \
+              | grep -E "${TCL_TAG_REGEX}" || true)
+
+            if [ -z "$tcl_tags" ] || [ -z "$tk_tags" ]; then
+              return 1
+            fi
+
+            shared_tags=$(grep -Fx -f <(printf '%s\n' "$tcl_tags") <(printf '%s\n' "$tk_tags") || true)
+            if [ -z "$shared_tags" ]; then
+              return 1
+            fi
+
+            printf '%s\n' "$shared_tags" | sort -V | tail -1
+          }
+
+          tk_ref_exists() {
             local ref="$1"
             local attempt
             for attempt in 1 2 3; do
@@ -116,38 +156,43 @@ jobs:
           source_method="${TCL_SOURCE_INPUT:-$DEFAULT_TCL_SOURCE}"
           tcl_version="${TCL_VERSION_OVERRIDE:-$TCL_LOCKED_VERSION}"
           tcl_ref="core-${tcl_version//./-}"
+          tk_version="$tcl_version"
+          tk_ref="$tcl_ref"
 
           if [ "$source_method" = "github" ]; then
             if [ -n "$TCL_REF_INPUT" ]; then
               tcl_ref="$TCL_REF_INPUT"
-              echo "Using workflow_dispatch TCL ref: $tcl_ref"
-            else
-              tcl_ref=$(retry_ls_remote "refs/tags/${TCL_TAG_GLOB}" | awk '{print $2}' | sed 's#refs/tags/##' | sort -V | tail -1)
-              if [ -z "$tcl_ref" ]; then
-                echo "No matching Tcl tags found for pattern ${TCL_TAG_GLOB}" >&2
+              tk_ref="$tcl_ref"
+              echo "Using workflow_dispatch Tcl/Tk ref: $tcl_ref"
+              if ! tk_ref_exists "$tk_ref"; then
+                echo "Missing matching Tk tag for Tcl ref: $tcl_ref" >&2
                 exit 1
               fi
-              echo "Auto-resolved latest Tcl ref: $tcl_ref"
-            fi
-
-            if ! tk_tag_exists "$tcl_ref"; then
-              echo "Missing matching Tk tag for Tcl ref: $tcl_ref" >&2
-              exit 1
+            else
+              tcl_ref=$(resolve_latest_shared_tag || true)
+              tk_ref="$tcl_ref"
+              if [ -z "$tcl_ref" ]; then
+                echo "No overlapping stable Tcl/Tk tags found for pattern ${TCL_TAG_GLOB}" >&2
+                exit 1
+              fi
+              echo "Auto-resolved latest shared stable Tcl/Tk ref: $tcl_ref"
             fi
 
             if echo "$tcl_ref" | grep -Eq "$TCL_TAG_REGEX"; then
               tcl_version=$(echo "$tcl_ref" | sed -E 's/^core-([0-9]+)-([0-9]+)-([0-9]+)$/\1.\2.\3/')
+              tk_version="$tcl_version"
             else
-              echo "Warning: ref $tcl_ref does not match expected stable tag pattern; keeping Tcl version=$tcl_version"
+              echo "Warning: ref $tcl_ref does not match expected stable tag pattern; keeping Tcl/Tk version=$tcl_version"
             fi
           fi
 
           tcl_ref_tag="core-${tcl_version//./-}"
+          tk_ref_tag="core-${tk_version//./-}"
           tcl_tarball_url="https://codeload.github.com/tcltk/tcl/tar.gz/refs/tags/$tcl_ref_tag"
-          tk_tarball_url="https://codeload.github.com/tcltk/tk/tar.gz/refs/tags/$tcl_ref_tag"
+          tk_tarball_url="https://codeload.github.com/tcltk/tk/tar.gz/refs/tags/$tk_ref_tag"
 
           tcl_sha=$(known_sha tcl "$tcl_version")
-          tk_sha=$(known_sha tk "$tcl_version")
+          tk_sha=$(known_sha tk "$tk_version")
 
           tcl_tarball_filename="tcl-${tcl_ref_tag}.tar.gz"
           tk_tarball_filename="tk-${tcl_ref_tag}.tar.gz"
@@ -165,24 +210,38 @@ jobs:
 
           if [ "$source_method" = "github" ]; then
             tcl_tmpdir=$(mktemp -d)
-            cleanup_tcl_tmpdir() { rm -rf "$tcl_tmpdir"; }
-            trap cleanup_tcl_tmpdir EXIT
+            tk_tmpdir=$(mktemp -d)
+            cleanup_tmpdirs() { rm -rf "$tcl_tmpdir" "$tk_tmpdir"; }
+            trap cleanup_tmpdirs EXIT
+
             if ! git -c advice.detachedHead=false clone --depth 1 --single-branch --branch "$tcl_ref" https://github.com/tcltk/tcl.git "$tcl_tmpdir"; then
               echo "Failed to clone Tcl ref $tcl_ref" >&2
               exit 1
             fi
+            if ! git -c advice.detachedHead=false clone --depth 1 --single-branch --branch "$tk_ref" https://github.com/tcltk/tk.git "$tk_tmpdir"; then
+              echo "Failed to clone Tk ref $tk_ref" >&2
+              exit 1
+            fi
+
             tcl_commit=$(git -C "$tcl_tmpdir" rev-parse HEAD)
             tcl_commit_date=$(git -C "$tcl_tmpdir" log -1 --format=%ci)
-            cleanup_tcl_tmpdir
+            tk_commit=$(git -C "$tk_tmpdir" rev-parse HEAD)
+            tk_commit_date=$(git -C "$tk_tmpdir" log -1 --format=%ci)
+
+            cleanup_tmpdirs
             trap - EXIT
           else
             tcl_commit=""
             tcl_commit_date=""
+            tk_commit=""
+            tk_commit_date=""
           fi
 
           echo "TCL_SOURCE=$source_method" >> "$GITHUB_ENV"
           echo "TCL_VERSION=$tcl_version" >> "$GITHUB_ENV"
+          echo "TK_VERSION=$tk_version" >> "$GITHUB_ENV"
           echo "TCL_REF=$tcl_ref" >> "$GITHUB_ENV"
+          echo "TK_REF=$tk_ref" >> "$GITHUB_ENV"
           echo "TCL_TARBALL_URL=$tcl_tarball_url" >> "$GITHUB_ENV"
           echo "TK_TARBALL_URL=$tk_tarball_url" >> "$GITHUB_ENV"
           echo "TCL_TARBALL_FILENAME=$tcl_tarball_filename" >> "$GITHUB_ENV"
@@ -191,18 +250,25 @@ jobs:
           echo "TK_TARBALL_SHA256=$tk_sha" >> "$GITHUB_ENV"
           echo "TCL_COMMIT=$tcl_commit" >> "$GITHUB_ENV"
           echo "TCL_COMMIT_DATE=$tcl_commit_date" >> "$GITHUB_ENV"
+          echo "TK_COMMIT=$tk_commit" >> "$GITHUB_ENV"
+          echo "TK_COMMIT_DATE=$tk_commit_date" >> "$GITHUB_ENV"
 
           echo "## Tcl/Tk source" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "| :-- | :-- |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Source method | $source_method |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Tcl/Tk version | $tcl_version |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tcl version | $tcl_version |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tk version | $tk_version |" >> "$GITHUB_STEP_SUMMARY"
           if [ "$source_method" = "github" ]; then
             echo "| Tcl clone URL | https://github.com/tcltk/tcl.git |" >> "$GITHUB_STEP_SUMMARY"
             echo "| Tcl ref | $tcl_ref |" >> "$GITHUB_STEP_SUMMARY"
             echo "| Tcl commit | $tcl_commit |" >> "$GITHUB_STEP_SUMMARY"
             echo "| Tcl commit date | $tcl_commit_date |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tk clone URL | https://github.com/tcltk/tk.git |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tk ref | $tk_ref |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tk commit | $tk_commit |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Tk commit date | $tk_commit_date |" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "| Tcl tarball | $tcl_tarball_filename |" >> "$GITHUB_STEP_SUMMARY"
             echo "| Tcl tarball URL | $tcl_tarball_url |" >> "$GITHUB_STEP_SUMMARY"
@@ -312,13 +378,22 @@ jobs:
           echo "## TCL/TK BUILD INFO" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- Source: ${TCL_SOURCE}" >> $GITHUB_STEP_SUMMARY
-          echo "- Version: ${TCL_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tcl version: ${TCL_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tk version: ${TK_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- AppImageTool release: ${APPIMAGETOOL_RELEASE:-continuous}" >> $GITHUB_STEP_SUMMARY
+          echo "- AppImageTool URL: ${APPIMAGETOOL_DOWNLOAD_URL}" >> $GITHUB_STEP_SUMMARY
           if [ "${TCL_SOURCE}" = "github" ]; then
             echo "- Tcl clone URL: https://github.com/tcltk/tcl.git" >> $GITHUB_STEP_SUMMARY
             echo "- Tcl ref: ${TCL_REF}" >> $GITHUB_STEP_SUMMARY
             if [ -n "${TCL_COMMIT}" ]; then
               echo "- Tcl commit: ${TCL_COMMIT}" >> $GITHUB_STEP_SUMMARY
               echo "- Tcl commit date: ${TCL_COMMIT_DATE}" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "- Tk clone URL: https://github.com/tcltk/tk.git" >> $GITHUB_STEP_SUMMARY
+            echo "- Tk ref: ${TK_REF}" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${TK_COMMIT}" ]; then
+              echo "- Tk commit: ${TK_COMMIT}" >> $GITHUB_STEP_SUMMARY
+              echo "- Tk commit date: ${TK_COMMIT_DATE}" >> $GITHUB_STEP_SUMMARY
             fi
           else
             echo "- Tcl tarball: ${TCL_TARBALL_FILENAME}" >> $GITHUB_STEP_SUMMARY
