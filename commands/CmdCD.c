@@ -3819,7 +3819,8 @@ CmdCrosshair(
 	TxError("Usage: %s off|x y \n", cmd->tx_argv[0]);
 	return;
     }
-    DBWSetCrosshair(w, &pos);
+    if (w)
+	DBWSetCrosshair(w, &pos);
 }
 
 

@@ -558,6 +558,9 @@ DBWSetCrosshair(window, pos)
     MagWindow *window;
     Point *pos;			/* New crosshair location in coords of rootDef. */
 {
+    assert(window);
+    assert(pos);
+
     bool needUpdate = FALSE;
 
     if (WINDOW_DEF(window) != curCrosshair.def) needUpdate = TRUE;
