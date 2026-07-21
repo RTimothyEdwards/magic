@@ -20,7 +20,7 @@ Tcl console banner can also provide version information, also using the `version
 command.
 
 * Based on AlmaLinux 8 (EL8)
-* Tcl/Tk 8.6.16
+* Tcl/Tk 8.6.18+ (automatically uses github.com/tktcl/{tcl,tk} core-8-6-* release)
 * and Magic 8.x
 * all default modules enabled (including all Display drivers cairo/X11/OpenGL)
 

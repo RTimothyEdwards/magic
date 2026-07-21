@@ -20,7 +20,7 @@ command.
 # Build Info
 
 * Based on AlmaLinux 10 (EL10)
-* Tcl/Tk 9.0.1
+* Tcl/Tk 9.0.4+ (automatically uses github.com/tktcl/{tcl,tk} core-9-0-* release)
 * and Magic 8.x
 * all default modules enabled (including all Display drivers cairo/X11/OpenGL)
 
@@ -130,6 +130,6 @@ Transitive/Third-Party Runtime Dependencies (for information only):
 | libgcc_s.so.1          | GCC_4.2.0           | libgcc_s-14-20250110 |
 | libxml2.so.2           | LIBXML2_2.6.0       | libxml2-2.12.5-5     |
 | libpng16.so.16         | PNG16_0             | libpng-2:1.6.40-8    |
-| liblzma.so.5           | XZ_5.0              | xz-devel-1:5.6.2-4   |
+| liblzma.so.5           | XZ_5.0              | xz-libs-1:5.6.2-4    |
 | libz.so.1              | ZLIB_1.2.9          | zlib-ng-2.2.3-1      |
 |                        |                     | zlib-ng-compat-2.2.3-1 |
