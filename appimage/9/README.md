@@ -44,19 +44,27 @@ Example startup with command line options:
 # FAQ: How to use (inside docker / podman)
 
 ```
+echo DISPLAY=$DISPLAY # should look like :0
+xauth list # find the correct cookie for display :0 ; dnf install xauth
+export X11_AUTHORITY_COOKIE="00112233445566778899aabbccddeeff" # fixup with your exact cookie
+
 chmod +x Magic-x86_64.AppImage
 
 ### Podman or Docker, use :Z when rootless with selinux enabled
 podman run --rm --device /dev/fuse --privileged \
   -v "$(pwd):/tmp/work:Z" -v "/tmp/.X11-unix/X0:/tmp/.X11-unix/X0:Z" \
-  -e DISPLAY -ti almalinux:9
+  -e DISPLAY -e X11_AUTHORITY_COOKIE -ti almalinux:9
 
 ### Inside Docker:
 dnf update -y
 
-dnf install -y fuse libX11 cairo libGL libGLU
+dnf install -y fuse libX11 cairo libGL libGLU xauth
 
 cd /tmp/work
+
+echo DISPLAY=$DISPLAY # should look like :0
+echo X11_AUTHORITY_COOKIE=$X11_AUTHORITY_COOKIE # should look like hex-string
+xauth -q add "$DISPLAY" "MIT-MAGIC-COOKIE-1" "$X11_AUTHORITY_COOKIE"
 
 ./Magic-x86_64.AppImage -d XR -T scmos
 ```
