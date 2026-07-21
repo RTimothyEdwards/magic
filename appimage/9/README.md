@@ -22,7 +22,7 @@ command.
 # Build Info
 
 * Based on AlmaLinux 9 (EL9)
-* Tcl/Tk 9.0.1
+* Tcl/Tk 9.0.4+ (provided build)
 * and Magic 8.x
 * all default modules enabled (including all Display drivers cairo/X11/OpenGL)
 

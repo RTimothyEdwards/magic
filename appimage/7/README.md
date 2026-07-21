@@ -20,7 +20,7 @@ command.
 # Build Info
 
 * Based on CentOS 7 (EL7)
-* Tcl/Tk 8.6.16
+* Tcl/Tk 8.6.18+ (provided build)
 * and Magic 8.x
 * all default modules enabled, but without OpenGL (includes Display drivers cairo/X11)
 
