@@ -23,6 +23,11 @@ on:
         description: 'AppImageTool release channel/tag (default: continuous)'
         type: string
         default: 'continuous'
+      # NOTE: SBOM generation is experimental and not ready for production use
+      generate_sbom:
+        description: 'Generate SBOM (Software Bill of Materials) - experimental, not for production use'
+        type: boolean
+        default: false
 
 name: CI-appimage9
 
@@ -399,6 +404,7 @@ jobs:
             ${{ github.workspace }}/appimage/9/RELEASE-NOTES-EL9.txt
 
       - name: Generate SBOM
+        if: ${{ inputs.generate_sbom }}
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: docker:magic_build
@@ -408,6 +414,7 @@ jobs:
           upload-release-assets: false
 
       - name: Apply SBOM license metadata
+        if: ${{ inputs.generate_sbom }}
         run: |
           cd appimage/9
           sbom_file="sbom-${MAGIC_APPIMAGE_OUTPUT_FILENAME}.spdx.json"
@@ -435,13 +442,14 @@ jobs:
           mv "$sbom_file.tmp" "$sbom_file"
 
       - name: Upload SBOM Release Asset
-        if: ${{ env.MY_GITHUB_TAG != '' }}
+        if: ${{ env.MY_GITHUB_TAG != '' && inputs.generate_sbom }}
         uses: softprops/action-gh-release@v3
         with:
           files: |
             ${{ github.workspace }}/appimage/9/sbom-${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}.spdx.json
 
       - name: Upload SBOM Artifact
+        if: ${{ inputs.generate_sbom }}
         uses: actions/upload-artifact@v7
         with:
           name: sbom-${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}.spdx.json
