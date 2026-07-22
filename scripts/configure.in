@@ -2003,6 +2003,10 @@ dnl places it next to the generated defs.mak so a single ${MAGICDIR} resolves
 dnl both `include`s in every subdir Makefile out-of-tree).
 AC_CONFIG_FILES([rules.mak:rules.mak])
 
+dnl Per-module Makefiles (Makefile.in migration).  Each converted module lists
+dnl its Makefile here; config.status creates the build subdir and the Makefile.
+AC_CONFIG_FILES([tiles/Makefile:tiles/Makefile.in])
+
 dnl Emit an autoconf config header, available to the tree as
 dnl   #include <magic/autoconf/config.h>
 dnl It carries every autoconf define (i.e. at least all the -D options that

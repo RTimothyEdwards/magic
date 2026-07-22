@@ -9399,6 +9399,9 @@ ac_config_files="$ac_config_files scripts/makedbh:scripts/makedbh.in"
 ac_config_files="$ac_config_files rules.mak:rules.mak"
 
 
+ac_config_files="$ac_config_files tiles/Makefile:tiles/Makefile.in"
+
+
 if test "`cd $srcdir && pwd`" = "`pwd`" ; then
   magic_config_header=magic/autoconf/config.h
 else
@@ -10127,6 +10130,7 @@ do
     "defs.mak") CONFIG_FILES="$CONFIG_FILES defs.mak:scripts/defs.mak.in" ;;
     "scripts/makedbh") CONFIG_FILES="$CONFIG_FILES scripts/makedbh:scripts/makedbh.in" ;;
     "rules.mak") CONFIG_FILES="$CONFIG_FILES rules.mak:rules.mak" ;;
+    "tiles/Makefile") CONFIG_FILES="$CONFIG_FILES tiles/Makefile:tiles/Makefile.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

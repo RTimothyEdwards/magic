@@ -19,7 +19,8 @@ reconfigure.sh
 # "<dir>/Makefile" here in the *same commit*, so an in-tree build never lets a
 # generated Makefile be committed.  (Top-level /Makefile is handled above;
 # readline/ is intentionally NOT converted and keeps its tracked static Makefile.)
-# --- converted dirs below (none yet) ---
+# --- converted dirs below ---
+tiles/Makefile
 
 # Compiled objects / libraries
 *.o
