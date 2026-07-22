@@ -68,7 +68,7 @@ endif
 
 main: magic proto.magicrc
 ifeq (${MAKE_WASM},1)
-	@bash ${MAGICDIR}/toolchains/emscripten/post-build.sh magic.js magic.wasm
+	@bash ${MAGICSRC}/toolchains/emscripten/post-build.sh magic.js magic.wasm
 endif
 
 tcl-main: tclmagic${SHDLIB_EXT} proto.magicrc
