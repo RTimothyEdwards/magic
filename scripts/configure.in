@@ -2006,6 +2006,27 @@ AC_CONFIG_FILES([rules.mak:rules.mak])
 dnl Per-module Makefiles (Makefile.in migration).  Each converted module lists
 dnl its Makefile here; config.status creates the build subdir and the Makefile.
 AC_CONFIG_FILES([tiles/Makefile:tiles/Makefile.in])
+AC_CONFIG_FILES([bplane/Makefile:bplane/Makefile.in])
+AC_CONFIG_FILES([calma/Makefile:calma/Makefile.in])
+AC_CONFIG_FILES([cif/Makefile:cif/Makefile.in])
+AC_CONFIG_FILES([cmwind/Makefile:cmwind/Makefile.in])
+AC_CONFIG_FILES([dbwind/Makefile:dbwind/Makefile.in])
+AC_CONFIG_FILES([debug/Makefile:debug/Makefile.in])
+AC_CONFIG_FILES([drc/Makefile:drc/Makefile.in])
+AC_CONFIG_FILES([extflat/Makefile:extflat/Makefile.in])
+AC_CONFIG_FILES([extract/Makefile:extract/Makefile.in])
+AC_CONFIG_FILES([garouter/Makefile:garouter/Makefile.in])
+AC_CONFIG_FILES([gcr/Makefile:gcr/Makefile.in])
+AC_CONFIG_FILES([grouter/Makefile:grouter/Makefile.in])
+AC_CONFIG_FILES([irouter/Makefile:irouter/Makefile.in])
+AC_CONFIG_FILES([mzrouter/Makefile:mzrouter/Makefile.in])
+AC_CONFIG_FILES([netmenu/Makefile:netmenu/Makefile.in])
+AC_CONFIG_FILES([plow/Makefile:plow/Makefile.in])
+AC_CONFIG_FILES([resis/Makefile:resis/Makefile.in])
+AC_CONFIG_FILES([select/Makefile:select/Makefile.in])
+AC_CONFIG_FILES([sim/Makefile:sim/Makefile.in])
+AC_CONFIG_FILES([textio/Makefile:textio/Makefile.in])
+AC_CONFIG_FILES([wiring/Makefile:wiring/Makefile.in])
 
 dnl Emit an autoconf config header, available to the tree as
 dnl   #include <magic/autoconf/config.h>

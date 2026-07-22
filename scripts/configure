@@ -9401,6 +9401,48 @@ ac_config_files="$ac_config_files rules.mak:rules.mak"
 
 ac_config_files="$ac_config_files tiles/Makefile:tiles/Makefile.in"
 
+ac_config_files="$ac_config_files bplane/Makefile:bplane/Makefile.in"
+
+ac_config_files="$ac_config_files calma/Makefile:calma/Makefile.in"
+
+ac_config_files="$ac_config_files cif/Makefile:cif/Makefile.in"
+
+ac_config_files="$ac_config_files cmwind/Makefile:cmwind/Makefile.in"
+
+ac_config_files="$ac_config_files dbwind/Makefile:dbwind/Makefile.in"
+
+ac_config_files="$ac_config_files debug/Makefile:debug/Makefile.in"
+
+ac_config_files="$ac_config_files drc/Makefile:drc/Makefile.in"
+
+ac_config_files="$ac_config_files extflat/Makefile:extflat/Makefile.in"
+
+ac_config_files="$ac_config_files extract/Makefile:extract/Makefile.in"
+
+ac_config_files="$ac_config_files garouter/Makefile:garouter/Makefile.in"
+
+ac_config_files="$ac_config_files gcr/Makefile:gcr/Makefile.in"
+
+ac_config_files="$ac_config_files grouter/Makefile:grouter/Makefile.in"
+
+ac_config_files="$ac_config_files irouter/Makefile:irouter/Makefile.in"
+
+ac_config_files="$ac_config_files mzrouter/Makefile:mzrouter/Makefile.in"
+
+ac_config_files="$ac_config_files netmenu/Makefile:netmenu/Makefile.in"
+
+ac_config_files="$ac_config_files plow/Makefile:plow/Makefile.in"
+
+ac_config_files="$ac_config_files resis/Makefile:resis/Makefile.in"
+
+ac_config_files="$ac_config_files select/Makefile:select/Makefile.in"
+
+ac_config_files="$ac_config_files sim/Makefile:sim/Makefile.in"
+
+ac_config_files="$ac_config_files textio/Makefile:textio/Makefile.in"
+
+ac_config_files="$ac_config_files wiring/Makefile:wiring/Makefile.in"
+
 
 if test "`cd $srcdir && pwd`" = "`pwd`" ; then
   magic_config_header=magic/autoconf/config.h
@@ -10131,6 +10173,27 @@ do
     "scripts/makedbh") CONFIG_FILES="$CONFIG_FILES scripts/makedbh:scripts/makedbh.in" ;;
     "rules.mak") CONFIG_FILES="$CONFIG_FILES rules.mak:rules.mak" ;;
     "tiles/Makefile") CONFIG_FILES="$CONFIG_FILES tiles/Makefile:tiles/Makefile.in" ;;
+    "bplane/Makefile") CONFIG_FILES="$CONFIG_FILES bplane/Makefile:bplane/Makefile.in" ;;
+    "calma/Makefile") CONFIG_FILES="$CONFIG_FILES calma/Makefile:calma/Makefile.in" ;;
+    "cif/Makefile") CONFIG_FILES="$CONFIG_FILES cif/Makefile:cif/Makefile.in" ;;
+    "cmwind/Makefile") CONFIG_FILES="$CONFIG_FILES cmwind/Makefile:cmwind/Makefile.in" ;;
+    "dbwind/Makefile") CONFIG_FILES="$CONFIG_FILES dbwind/Makefile:dbwind/Makefile.in" ;;
+    "debug/Makefile") CONFIG_FILES="$CONFIG_FILES debug/Makefile:debug/Makefile.in" ;;
+    "drc/Makefile") CONFIG_FILES="$CONFIG_FILES drc/Makefile:drc/Makefile.in" ;;
+    "extflat/Makefile") CONFIG_FILES="$CONFIG_FILES extflat/Makefile:extflat/Makefile.in" ;;
+    "extract/Makefile") CONFIG_FILES="$CONFIG_FILES extract/Makefile:extract/Makefile.in" ;;
+    "garouter/Makefile") CONFIG_FILES="$CONFIG_FILES garouter/Makefile:garouter/Makefile.in" ;;
+    "gcr/Makefile") CONFIG_FILES="$CONFIG_FILES gcr/Makefile:gcr/Makefile.in" ;;
+    "grouter/Makefile") CONFIG_FILES="$CONFIG_FILES grouter/Makefile:grouter/Makefile.in" ;;
+    "irouter/Makefile") CONFIG_FILES="$CONFIG_FILES irouter/Makefile:irouter/Makefile.in" ;;
+    "mzrouter/Makefile") CONFIG_FILES="$CONFIG_FILES mzrouter/Makefile:mzrouter/Makefile.in" ;;
+    "netmenu/Makefile") CONFIG_FILES="$CONFIG_FILES netmenu/Makefile:netmenu/Makefile.in" ;;
+    "plow/Makefile") CONFIG_FILES="$CONFIG_FILES plow/Makefile:plow/Makefile.in" ;;
+    "resis/Makefile") CONFIG_FILES="$CONFIG_FILES resis/Makefile:resis/Makefile.in" ;;
+    "select/Makefile") CONFIG_FILES="$CONFIG_FILES select/Makefile:select/Makefile.in" ;;
+    "sim/Makefile") CONFIG_FILES="$CONFIG_FILES sim/Makefile:sim/Makefile.in" ;;
+    "textio/Makefile") CONFIG_FILES="$CONFIG_FILES textio/Makefile:textio/Makefile.in" ;;
+    "wiring/Makefile") CONFIG_FILES="$CONFIG_FILES wiring/Makefile:wiring/Makefile.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

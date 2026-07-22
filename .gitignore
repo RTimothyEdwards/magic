@@ -21,6 +21,27 @@ reconfigure.sh
 # readline/ is intentionally NOT converted and keeps its tracked static Makefile.)
 # --- converted dirs below ---
 tiles/Makefile
+bplane/Makefile
+calma/Makefile
+cif/Makefile
+cmwind/Makefile
+dbwind/Makefile
+debug/Makefile
+drc/Makefile
+extflat/Makefile
+extract/Makefile
+garouter/Makefile
+gcr/Makefile
+grouter/Makefile
+irouter/Makefile
+mzrouter/Makefile
+netmenu/Makefile
+plow/Makefile
+resis/Makefile
+select/Makefile
+sim/Makefile
+textio/Makefile
+wiring/Makefile
 
 # Compiled objects / libraries
 *.o
