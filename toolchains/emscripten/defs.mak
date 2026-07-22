@@ -26,8 +26,11 @@ MAKE_WASM = 1
 LINK = $(LD) -r $(LDFLAGS)
 
 # Emscripten linker flags.
-# The link step runs from the magic/ subdirectory, so embed-file paths
-# are relative to that directory (../scmos, ../windows/...).
+# The link step runs from the magic/ build subdirectory.  Embed-file inputs
+# must name the *right tree*: generated data (the scmos tech files, produced by
+# `make techs`) lives in the build tree, so use ${MAGICDIR} (the build top);
+# verbatim data (the window glyphs, shipped as source) lives in the source tree,
+# so use ${MAGICSRC}.  In-tree the two coincide.
 #
 # INCOMING_MODULE_JS_API is emscripten's default list plus `wasmBinary`.
 # Our JS loaders (npm/examples/*.js) pass Module.wasmBinary to embed the .wasm,
@@ -52,6 +55,6 @@ TOP_EXTRA_LIBS += \
     -sENVIRONMENT=node,web,worker \
     -sFORCE_FILESYSTEM=1 \
     ${TOP_EXTRA_LIBS_WASM} \
-    --embed-file ../scmos@/magic/sys/current \
-    --embed-file ../windows/windows7.glyphs@/magic/sys/windows7.glyphs \
-    --embed-file ../windows/windows7.glyphs@/magic/sys/bw.glyphs
+    --embed-file ${MAGICDIR}/scmos@/magic/sys/current \
+    --embed-file ${MAGICSRC}/windows/windows7.glyphs@/magic/sys/windows7.glyphs \
+    --embed-file ${MAGICSRC}/windows/windows7.glyphs@/magic/sys/bw.glyphs
