@@ -42,6 +42,19 @@ select/Makefile
 sim/Makefile
 textio/Makefile
 wiring/Makefile
+utils/Makefile
+windows/Makefile
+commands/Makefile
+database/Makefile
+lef/Makefile
+plot/Makefile
+router/Makefile
+ext2spice/Makefile
+ext2sim/Makefile
+extcheck/Makefile
+net2ir/Makefile
+graphics/Makefile
+oa/Makefile
 
 # Compiled objects / libraries
 *.o

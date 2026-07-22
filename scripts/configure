@@ -9443,6 +9443,32 @@ ac_config_files="$ac_config_files textio/Makefile:textio/Makefile.in"
 
 ac_config_files="$ac_config_files wiring/Makefile:wiring/Makefile.in"
 
+ac_config_files="$ac_config_files utils/Makefile:utils/Makefile.in"
+
+ac_config_files="$ac_config_files windows/Makefile:windows/Makefile.in"
+
+ac_config_files="$ac_config_files commands/Makefile:commands/Makefile.in"
+
+ac_config_files="$ac_config_files database/Makefile:database/Makefile.in"
+
+ac_config_files="$ac_config_files lef/Makefile:lef/Makefile.in"
+
+ac_config_files="$ac_config_files plot/Makefile:plot/Makefile.in"
+
+ac_config_files="$ac_config_files router/Makefile:router/Makefile.in"
+
+ac_config_files="$ac_config_files ext2spice/Makefile:ext2spice/Makefile.in"
+
+ac_config_files="$ac_config_files ext2sim/Makefile:ext2sim/Makefile.in"
+
+ac_config_files="$ac_config_files extcheck/Makefile:extcheck/Makefile.in"
+
+ac_config_files="$ac_config_files net2ir/Makefile:net2ir/Makefile.in"
+
+ac_config_files="$ac_config_files graphics/Makefile:graphics/Makefile.in"
+
+ac_config_files="$ac_config_files oa/Makefile:oa/Makefile.in"
+
 
 if test "`cd $srcdir && pwd`" = "`pwd`" ; then
   magic_config_header=magic/autoconf/config.h
@@ -10194,6 +10220,19 @@ do
     "sim/Makefile") CONFIG_FILES="$CONFIG_FILES sim/Makefile:sim/Makefile.in" ;;
     "textio/Makefile") CONFIG_FILES="$CONFIG_FILES textio/Makefile:textio/Makefile.in" ;;
     "wiring/Makefile") CONFIG_FILES="$CONFIG_FILES wiring/Makefile:wiring/Makefile.in" ;;
+    "utils/Makefile") CONFIG_FILES="$CONFIG_FILES utils/Makefile:utils/Makefile.in" ;;
+    "windows/Makefile") CONFIG_FILES="$CONFIG_FILES windows/Makefile:windows/Makefile.in" ;;
+    "commands/Makefile") CONFIG_FILES="$CONFIG_FILES commands/Makefile:commands/Makefile.in" ;;
+    "database/Makefile") CONFIG_FILES="$CONFIG_FILES database/Makefile:database/Makefile.in" ;;
+    "lef/Makefile") CONFIG_FILES="$CONFIG_FILES lef/Makefile:lef/Makefile.in" ;;
+    "plot/Makefile") CONFIG_FILES="$CONFIG_FILES plot/Makefile:plot/Makefile.in" ;;
+    "router/Makefile") CONFIG_FILES="$CONFIG_FILES router/Makefile:router/Makefile.in" ;;
+    "ext2spice/Makefile") CONFIG_FILES="$CONFIG_FILES ext2spice/Makefile:ext2spice/Makefile.in" ;;
+    "ext2sim/Makefile") CONFIG_FILES="$CONFIG_FILES ext2sim/Makefile:ext2sim/Makefile.in" ;;
+    "extcheck/Makefile") CONFIG_FILES="$CONFIG_FILES extcheck/Makefile:extcheck/Makefile.in" ;;
+    "net2ir/Makefile") CONFIG_FILES="$CONFIG_FILES net2ir/Makefile:net2ir/Makefile.in" ;;
+    "graphics/Makefile") CONFIG_FILES="$CONFIG_FILES graphics/Makefile:graphics/Makefile.in" ;;
+    "oa/Makefile") CONFIG_FILES="$CONFIG_FILES oa/Makefile:oa/Makefile.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
