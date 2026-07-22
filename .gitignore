@@ -6,6 +6,10 @@ config.log
 scripts/config.log
 scripts/config.status
 scripts/defs.mak
+# Generated at the build top (in-tree = source top): the top Makefile is now
+# produced from Makefile.in, and config.status runs in the build directory.
+/Makefile
+/config.status
 install.log
 make.log
 reconfigure.sh
