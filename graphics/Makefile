@@ -57,7 +57,7 @@ main: ${GR_HELPER_PROG}
 ${GR_HELPER_PROG}: ${GR_HELPER_SRCS}
 	@echo --- building main ${GR_HELPER_PROG}
 	${RM} ${GR_HELPER_PROG}
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${GR_HELPER_SRCS} \
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} $(addprefix $(srcdir)/,${GR_HELPER_SRCS}) \
 		-o ${GR_HELPER_PROG} ${LIBS}
 
 install: $(DESTDIR)${INSTALL_BINDIR}/${GR_HELPER_PROG} glyphs fonts
@@ -71,11 +71,11 @@ $(DESTDIR)${INSTALL_BINDIR}/${GR_HELPER_PROG}: ${GR_HELPER_PROG}
 glyphs: ${GLYPHS}
 	for i in ${GLYPHS}; do \
 	${RM} $(DESTDIR)${INSTALL_SYSDIR}/$$i; \
-	${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
+	${CP} $(srcdir)/$$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 fonts: ${OUTLINE_FONTS}
 	for i in ${OUTLINE_FONTS}; do \
 	${RM} $(DESTDIR)${INSTALL_SYSDIR}/$$i; \
-	${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
+	${CP} $(srcdir)/$$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 include ${MAGICDIR}/rules.mak

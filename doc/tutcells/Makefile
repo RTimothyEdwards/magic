@@ -34,4 +34,4 @@ make-tut-dirs:
 	${SCRIPTS}/mkdirs $(DESTDIR)${TUTDIR}
 
 $(DESTDIR)${TUTDIR}/%: % $(DESTDIR)${TUTDIR}
-	${CP} $* $(DESTDIR)${TUTDIR}/$*
+	${CP} $< $(DESTDIR)${TUTDIR}/$*

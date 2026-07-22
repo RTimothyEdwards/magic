@@ -50,7 +50,7 @@ ifeq (${MAKE_WASM},1)
 magicWasm.o: magicWasm.c
 	@echo --- compiling magic/magicWasm.o '(no Tcl stubs)'
 	${RM} magicWasm.o
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} -c magicWasm.c
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} -c $< -o $@
 
 magic.js: lib${MODULE}.o ${EXTRA_LIBS}
 	@echo --- building main magic WASM
@@ -81,7 +81,7 @@ tclmagic${SHDLIB_EXT}: ${EXTRA_LIBS}
 		-lc ${LIBS} ${LIB_SPECS}
 
 proto.magicrc: proto.magicrc.in
-	${MCPP} ${GR_DFLAGS} ${DFLAGS} proto.magicrc.in > proto.magicrc
+	${MCPP} ${GR_DFLAGS} ${DFLAGS} $< > proto.magicrc
 
 install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${INSTALL_SYSDIR}/.magicrc \
 	$(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
@@ -95,7 +95,7 @@ $(DESTDIR)${INSTALL_TCLDIR}/tclmagic${SHDLIB_EXT}: tclmagic${SHDLIB_EXT}
 
 $(DESTDIR)${INSTALL_TCLDIR}/bitmaps/%: bitmaps/%
 	${RM} $(DESTDIR)${INSTALL_TCLDIR}/bitmaps/$*
-	${CP} bitmaps/$* $(DESTDIR)${INSTALL_TCLDIR}/bitmaps/$*
+	${CP} $< $(DESTDIR)${INSTALL_TCLDIR}/bitmaps/$*
 
 $(DESTDIR)${INSTALL_SYSDIR}/.magicrc: proto.magicrc
 	${RM} $(DESTDIR)${INSTALL_SYSDIR}/.magicrc
@@ -103,11 +103,11 @@ $(DESTDIR)${INSTALL_SYSDIR}/.magicrc: proto.magicrc
 
 $(DESTDIR)${INSTALL_SYSDIR}/.initrc: proto.initrc
 	${RM} $(DESTDIR)${INSTALL_SYSDIR}/.initrc
-	${CP} proto.initrc $(DESTDIR)${INSTALL_SYSDIR}/.initrc
+	${CP} $< $(DESTDIR)${INSTALL_SYSDIR}/.initrc
 
 $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro: magicps.pro
 	${RM} $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
-	${CP} magicps.pro $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
+	${CP} $< $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
 
 include ${MAGICDIR}/rules.mak
 

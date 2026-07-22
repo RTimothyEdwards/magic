@@ -15,17 +15,15 @@ GRN=grn -Ppsc
 TBL=tbl -Ppsc
 EQN=eqn -Ppsc
 
+DOC_SUBDIRS = latexfiles man tutcells html
+
 install-tcl:
-	cd latexfiles && ${MAKE} install
-	cd man && ${MAKE} install
-	cd tutcells && ${MAKE} install
-	cd html && ${MAKE} install
+	for dir in ${DOC_SUBDIRS}; do \
+		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/doc/$$dir/Makefile install; done
 
 install:
-	cd latexfiles && ${MAKE} install
-	cd man && ${MAKE} install
-	cd tutcells && ${MAKE} install
-	cd html && ${MAKE} install
+	for dir in ${DOC_SUBDIRS}; do \
+		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/doc/$$dir/Makefile install; done
 
 print_only:  force
 	lpr -h ${PSDIR}/copyright.ps

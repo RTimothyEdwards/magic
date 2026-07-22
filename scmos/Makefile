@@ -17,7 +17,7 @@ MAGICDIR = ..
 
 include ${MAGICDIR}/defs.mak
 
-SC_PP = ${MCPP} -I./extract_template
+SC_PP = ${MCPP} -I$(srcdir)/extract_template
 
 FILES = mos.7bit.dstyle mos.7bit.std.cmap \
 	mos.24bit.dstyle mos.24bit.std.cmap \
@@ -52,43 +52,45 @@ all: $(OBJS) $(DEPEND) ${TECHFILES}
 
 install-tcl: all
 	for i in ${FILES} ${TECHFILES}; do \
-		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
+		f=$$i; test -f $$f || f=$(srcdir)/$$i; \
+		${CP} $$f $(DESTDIR)${INSTALL_SYSDIR}; done
 
 install: all
 	for i in ${FILES} ${TECHFILES}; do \
-		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
+		f=$$i; test -f $$f || f=$(srcdir)/$$i; \
+		${CP} $$f $(DESTDIR)${INSTALL_SYSDIR}; done
 
 scmos.tech: $(OBJS)
-	$(MSED) scmos.tech.in > scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
 	$(SC_PP) -DV5 -DSTANDARD scmos.tech.out > scmos.tech
 	$(RM) scmos.tech.out
 
 scmos-tm.tech: $(OBJS)
-	$(MSED) scmos.tech.in > scmos.tech.out
-	cat scmos.tech.in > scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
+	cat $(srcdir)/scmos.tech.in > scmos.tech.out
 	$(SC_PP) -DV5 -DHPTECH -DTIGHTMETAL scmos.tech.out > scmos-tm.tech
 	$(RM) scmos.tech.out
 
 scmos-sub.tech: $(OBJS)
-	$(MSED) scmos.tech.in > scmos.tech.out
-	cat scmos.tech.in > scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
+	cat $(srcdir)/scmos.tech.in > scmos.tech.out
 	$(SC_PP) -DV5 -DSUBMICRON scmos.tech.out > scmos-sub.tech
 	$(RM) scmos.tech.out
 
 scmosWR.tech: $(OBJS)
-	$(MSED) scmos.tech.in > scmos.tech.out
-	cat scmos.tech.in > scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
+	cat $(srcdir)/scmos.tech.in > scmos.tech.out
 	$(SC_PP) -DV5 -DSTANDARD -DWELL_ROUTE_CHECK scmos.tech.out > scmosWR.tech
 	$(RM) scmos.tech.out
 
 minimum.tech: minimum.tech.in
-	$(SC_PP) minimum.tech.in > minimum.tech
+	$(SC_PP) $< > minimum.tech
 
 gdsquery.tech: gdsquery.tech.in
-	$(SC_PP) gdsquery.tech.in > gdsquery.tech
+	$(SC_PP) $< > gdsquery.tech
 
 nmos.tech: nmos.tech.in
-	$(CP) nmos.tech.in nmos.tech
+	$(CP) $< nmos.tech
 
 $(CIFin):
 $(CIFout):
@@ -98,11 +100,13 @@ $(HCIFin):
 $(HCIFout):
 $(SCIFin):
 $(SCIFout):
-	cd cif_template && ${MAKE} clean && ${MAKE}
+	mkdir -p cif_template
+	${MAKE} -C cif_template -f ${MAGICSRC}/scmos/cif_template/Makefile clean
+	${MAKE} -C cif_template -f ${MAGICSRC}/scmos/cif_template/Makefile
 
 $(DESTDIR)${INSTALL_SYSDIR}/%: %
-	cp $* $(DESTDIR)${INSTALL_SYSDIR}/$*
+	cp $< $(DESTDIR)${INSTALL_SYSDIR}/$*
 
 clean:;
 	-$(RM) *.tech *.tech27
-	cd cif_template && ${MAKE} clean
+	test -d cif_template && ${MAKE} -C cif_template -f ${MAGICSRC}/scmos/cif_template/Makefile clean || true

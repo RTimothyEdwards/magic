@@ -58,41 +58,42 @@ install-tcl: magicexec magicdnull ${BIN_FILES} ${TCL_FILES}
 	${CP} magicdnull $(DESTDIR)${INSTALL_TCLDIR}/magicdnull
 	(cd $(DESTDIR)${INSTALL_TCLDIR}; ${RM} ${TCL_FILES})
 	for i in ${TCL_FILES}; do \
-		${CP} $$i $(DESTDIR)${INSTALL_TCLDIR}; done
+		f=$$i; test -f $$f || f=$(srcdir)/$$i; \
+		${CP} $$f $(DESTDIR)${INSTALL_TCLDIR}; done
 	(cd $(DESTDIR)${INSTALL_TCLDIR}; chmod 0755 tkcon.tcl tkshell.tcl)
 
 magicexec: magicexec.c ${MAGICDIR}/defs.mak
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} magicexec.c \
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} $< \
 		-o magicexec ${LD_RUN_PATH} ${LD_FIRST_LIBS} ${LIB_SPECS_NOSTUB} ${ZLIB_FLAG} \
 		${LIBS} ${GR_LIBS}
 
 magicdnull: magicdnull.c ${MAGICDIR}/defs.mak
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} magicdnull.c \
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} $< \
 		-o magicdnull ${LD_RUN_PATH} ${LD_FIRST_LIBS} ${LIB_SPECS_GRNULL} ${ZLIB_FLAG} \
 		${LIBS}
 
-magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICDIR}/VERSION
+magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICSRC}/VERSION
 	${SED} -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
 	    -e /MAGIC_REVISION/s%MAGIC_REVISION%${MAGIC_REVISION}%g \
 	    -e /MAGIC_COMMIT/s%MAGIC_COMMIT%${MAGIC_COMMIT}%g \
-	    magic.tcl.in > magic.tcl
+	    $< > magic.tcl
 
 magic.sh: magic.sh.in ${MAGICDIR}/defs.mak
 	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
 	    -e /TCLLIB_DIR/s%TCLLIB_DIR%${TCL_LIB_DIR}%g \
-	    -e /WISH_EXE/s%WISH_EXE%${WISH_EXE}%g magic.sh.in > magic.sh
+	    -e /WISH_EXE/s%WISH_EXE%${WISH_EXE}%g $< > magic.sh
 
 ext2spice.sh: ext2spice.sh.in ${MAGICDIR}/defs.mak
 	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
-	    ext2spice.sh.in > ext2spice.sh
+	    $< > ext2spice.sh
 
 ext2sim.sh: ext2sim.sh.in ${MAGICDIR}/defs.mak
 	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
-	    ext2sim.sh.in > ext2sim.sh
+	    $< > ext2sim.sh
 
 $(DESTDIR)${INSTALL_TCLDIR}/%: %
 	${RM} $(DESTDIR)${INSTALL_TCLDIR}/$*
-	${CP} $* $(DESTDIR)${INSTALL_TCLDIR}/$*
+	${CP} $< $(DESTDIR)${INSTALL_TCLDIR}/$*
 
 $(DESTDIR)${INSTALL_BINDIR}/magic.sh: magic.sh
 	${RM} $(DESTDIR)${INSTALL_BINDIR}/magic.sh $(DESTDIR)${INSTALL_BINDIR}/magic
@@ -110,6 +111,6 @@ $(DESTDIR)${INSTALL_BINDIR}/ext2sim.sh: ext2sim.sh
 	(cd $(DESTDIR)${INSTALL_BINDIR}; chmod 0755 ext2sim)
 
 # An additional dependency on the VERSION file
-${OBJS}: ${MAGICDIR}/VERSION
+${OBJS}: ${MAGICSRC}/VERSION
 
 include ${MAGICDIR}/rules.mak

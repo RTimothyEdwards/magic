@@ -380,7 +380,7 @@ if test "x${PYTHON3}" == "xno"; then
    fi
 
 else
-   MCPP="${PYTHON3} \${MAGICDIR}/scripts/preproc.py -ccomm"
+   MCPP="${PYTHON3} \${MAGICSRC}/scripts/preproc.py -ccomm"
    MSED="cat"
    usingPython3=1
 fi
@@ -1889,7 +1889,7 @@ if test $usingTcl ; then
     esac
   fi
   if test "$with_gnu_ld" = "yes" ; then
-    LDDL_FLAGS="${LDDL_FLAGS} -Wl,--version-script=\${MAGICDIR}/magic/symbol.map"
+    LDDL_FLAGS="${LDDL_FLAGS} -Wl,--version-script=\${MAGICSRC}/magic/symbol.map"
   fi
 
   AC_SUBST(SHDLIB_EXT)

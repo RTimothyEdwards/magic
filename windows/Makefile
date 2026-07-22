@@ -18,10 +18,10 @@ install-tcl:
 	@echo --- installing glyphs to $(DESTDIR)${INSTALL_SYSDIR}
 	for i in ${GLYPHS} ${FONTS}; do \
 		(cd $(DESTDIR)${INSTALL_SYSDIR} && ${RM} $$i); \
-		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
+		${CP} $(srcdir)/$$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 install:
 	@echo --- installing glyphs to $(DESTDIR)${INSTALL_SYSDIR}
 	for i in ${GLYPHS} ${FONTS}; do \
 		(cd $(DESTDIR)${INSTALL_SYSDIR} && ${RM} $$i); \
-		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
+		${CP} $(srcdir)/$$i $(DESTDIR)${INSTALL_SYSDIR}; done

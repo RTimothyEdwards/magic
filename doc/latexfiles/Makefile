@@ -2,7 +2,9 @@ MAGICDIR = ../..
 
 include $(MAGICDIR)/defs.mak
 
-PS_SRCDIR=../psfiles
+# Pre-built PostScript ships in the source tree; regenerating it (the .tex.ps
+# rule / `all` target) still writes back into the source psfiles dir.
+PS_SRCDIR=${MAGICSRC}/doc/psfiles
 PS_INSTDIR=$(INSTALL_LIBDIR)/magic/doc
 
 .SUFFIXES: .dvi .tex .ps
