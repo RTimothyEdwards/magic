@@ -53,15 +53,31 @@ defs.mak:
 config:
 	${MAGICSRC}/configure
 
-tcllibrary: ${DATABASE_H} modules
-	@echo --- making Tcl shared libraries
-	for dir in ${PROGRAMS}; do \
-		$(call submake,$$dir,tcl-main) || exit 1; done
+# ---------------------------------------------------------------------------
+# Declarative subdir recursion.
+#
+# Each (phase, dir) pair is a PHONY target "<phase>@<dir>" whose recipe recurses
+# into <dir> with that phase's goal via $(submake) (so readline/ still takes the
+# -f path).  A phase aggregate (depend, modules, libs, ...) is then just a list
+# of its per-dir targets as prerequisites -- no shell `for` loops, no FORCE
+# pattern-rule hack.  Ordering between phases is expressed as prerequisites on the
+# per-dir targets (e.g. every module@ waits for `depend`), so the graph is correct
+# under `make -jN`, not just left-to-right in a serial build.  '@' never appears
+# in a real target name, so it is a safe namespace separator.
+# ---------------------------------------------------------------------------
 
-mains: ${DATABASE_H} modules libs
-	@echo --- making main programs
-	for dir in ${PROGRAMS}; do \
-		$(call submake,$$dir,main) || exit 1; done
+# main@<prog> / tcl-main@<prog>: link the final program(s) (PROGRAMS is "magic").
+MAIN_TARGETS    := $(addprefix main@,${PROGRAMS})
+TCLMAIN_TARGETS := $(addprefix tcl-main@,${PROGRAMS})
+.PHONY: $(MAIN_TARGETS) $(TCLMAIN_TARGETS)
+$(MAIN_TARGETS): main@%: ${DATABASE_H} modules libs
+	@$(call submake,$*,main)
+$(TCLMAIN_TARGETS): tcl-main@%: ${DATABASE_H} modules
+	@$(call submake,$*,tcl-main)
+
+.PHONY: tcllibrary mains
+tcllibrary: $(TCLMAIN_TARGETS)
+mains: $(MAIN_TARGETS)
 
 # makedbh is the one generated helper script; it lives in the *build* tree.
 # ${DATABASE_H} is $(builddir)/database/database.h in-tree, or
@@ -79,24 +95,26 @@ ${DATABASE_H}: ${MAGICSRC}/database/database.h.in
 .PHONY: prepare
 prepare: ${DATABASE_H}
 
-# tiles xyz => tiles/libtiles.o xyz/libxyz.o
-MODULES_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.o"; done)
-# tiles xyz => tiles/libtiles.a xyz/libxyz.a
-LIBS_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.a"; done)
-
-.PHONY: FORCE
-${MODULES_SUBDIR}: FORCE
-	@$(call submake,$(patsubst %/,%,$(dir $@)),module)
+# module@<dir> builds <dir>/lib<dir>.o; lib@<dir> builds <dir>/lib<dir>.a.
+# Every module@/lib@ waits for the whole `depend` phase first (it used to be a
+# prereq of the `modules`/`libs` aggregates; moving it onto each per-dir target
+# keeps depend before compilation even under -j).
+MODULE_TARGETS := $(addprefix module@,${MODULES})
+LIB_TARGETS    := $(addprefix lib@,${MODULES})
+.PHONY: $(MODULE_TARGETS) $(LIB_TARGETS)
+$(MODULE_TARGETS): module@%: depend
+	@$(call submake,$*,module)
+$(LIB_TARGETS): lib@%: depend
+	@$(call submake,$*,lib)
 
 .PHONY: modules
-modules: ${DATABASE_H} depend ${MODULES_SUBDIR}
+modules: $(MODULE_TARGETS)
 
-${LIBS_SUBDIR}: FORCE
-	@$(call submake,$(patsubst %/,%,$(dir $@)),lib)
-
-# Force the tiles/utils modules to exist first for libdatabase.a
 .PHONY: libs
-libs: ${DATABASE_H} depend tiles/libtiles.o utils/libutils.o ${LIBS_SUBDIR}
+# libdatabase.a needs the tiles/utils module objects first.  Listing them before
+# $(LIB_TARGETS) orders a serial build correctly; the explicit per-target -j edge
+# is added in a later commit.
+libs: module@tiles module@utils $(LIB_TARGETS)
 
 #
 # extcheck - utility tool
@@ -120,11 +138,14 @@ ${SUBDIRS_DEPEND}: ${DATABASE_H}
 .PHONY: depend
 depend: defs.mak ${SUBDIRS_DEPEND}
 
+# tech@<dir>: build a technology dir (goal "all").
+TECH_TARGETS := $(addprefix tech@,${TECHS})
+.PHONY: $(TECH_TARGETS)
+$(TECH_TARGETS): tech@%: depend
+	@$(call submake,$*,all)
+
 .PHONY: techs
-techs: depend
-	@echo --- making techs
-	for dir in ${TECHS}; do \
-		$(call submake,$$dir,all) || exit 1; done
+techs: $(TECH_TARGETS)
 
 # Regenerate the PostScript documentation from its .tex sources (only reached
 # from "all" when configure found latex+dvips; see DOCS_TARGET).
@@ -141,11 +162,13 @@ install-magic:
 	@echo --- installing runtime files to $(DESTDIR)${INSTALL_LIBDIR}
 	@${MAKE} install-real
 
-install-real: install-dirs
-	for dir in ${INSTALL_CAD_DIRS}; do \
-		$(call submake,$$dir,install); done
-	for dir in ${PROGRAMS}; do \
-		$(call submake,$$dir,install); done
+# install@<dir>: install one subdir's artifacts (CAD dirs, then the programs).
+INSTALL_TARGETS := $(addprefix install@,${INSTALL_CAD_DIRS} ${PROGRAMS})
+.PHONY: $(INSTALL_TARGETS)
+$(INSTALL_TARGETS): install@%: install-dirs
+	@$(call submake,$*,install)
+
+install-real: $(INSTALL_TARGETS)
 
 install-tcl-dirs:
 	${SCRIPTS}/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
@@ -162,17 +185,26 @@ install-tcl:
 	@echo --- installing runtime files to $(DESTDIR)${INSTALL_LIBDIR}
 	@${MAKE} install-tcl-real
 
-install-tcl-real: install-tcl-dirs
-	for dir in ${INSTALL_CAD_DIRS} ${PROGRAMS}; do \
-		$(call submake,$$dir,install-tcl); done
+# install-tcl@<dir>: install one subdir's Tcl-flavoured artifacts.
+INSTALLTCL_TARGETS := $(addprefix install-tcl@,${INSTALL_CAD_DIRS} ${PROGRAMS})
+.PHONY: $(INSTALLTCL_TARGETS)
+$(INSTALLTCL_TARGETS): install-tcl@%: install-tcl-dirs
+	@$(call submake,$*,install-tcl)
 
-clean:
-	@# clean must not create dirs: skip absent ones.  Recurse natively;
-	@# readline/ is the one unconverted module, so it uses -f (mirrors $(submake)).
-	for dir in ${SUBDIRS_FILTERED} ${TECHS} ${BUNDLED_MODULES}; do \
-		test -d $$dir || continue; \
-		if test "x$$dir" = xreadline; then ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile clean; \
-		else ${MAKE} -C $$dir clean; fi || true; done
+install-tcl-real: $(INSTALLTCL_TARGETS)
+
+# clean@<dir>: clean one subdir if it exists.  Must not create dirs (skip absent
+# ones) and must not fail the build (|| true).  readline/ uses the -f path
+# (mirrors $(submake); it is the one unconverted module).
+CLEAN_TARGETS := $(addprefix clean@,$(sort ${SUBDIRS_FILTERED} ${TECHS} ${BUNDLED_MODULES}))
+.PHONY: $(CLEAN_TARGETS)
+$(CLEAN_TARGETS): clean@%:
+	@test -d $* || exit 0; \
+	if test "x$*" = xreadline; then ${MAKE} -C $* -f ${MAGICSRC}/$*/Makefile clean; \
+	else ${MAKE} -C $* clean; fi || true
+
+.PHONY: clean
+clean: $(CLEAN_TARGETS)
 	${RM} *.tmp */*.tmp *.sav */*.sav *.log TAGS tags
 
 distclean:
@@ -199,8 +231,7 @@ dist:
 	    magic-${VERSION}
 
 clean-mains:
-	for dir in ${PROGRAMS}; do \
-		${RM} $$dir/$$dir; done
+	${RM} $(foreach p,${PROGRAMS},$p/$p)
 
 tags:
 	${RM} tags
