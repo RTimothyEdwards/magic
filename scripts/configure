@@ -9469,6 +9469,16 @@ ac_config_files="$ac_config_files graphics/Makefile:graphics/Makefile.in"
 
 ac_config_files="$ac_config_files oa/Makefile:oa/Makefile.in"
 
+ac_config_files="$ac_config_files magic/Makefile:magic/Makefile.in"
+
+ac_config_files="$ac_config_files tcltk/Makefile:tcltk/Makefile.in"
+
+ac_config_files="$ac_config_files scmos/Makefile:scmos/Makefile.in"
+
+ac_config_files="$ac_config_files doc/Makefile:doc/Makefile.in"
+
+ac_config_files="$ac_config_files lisp/Makefile:lisp/Makefile.in"
+
 
 if test "`cd $srcdir && pwd`" = "`pwd`" ; then
   magic_config_header=magic/autoconf/config.h
@@ -10233,6 +10243,11 @@ do
     "net2ir/Makefile") CONFIG_FILES="$CONFIG_FILES net2ir/Makefile:net2ir/Makefile.in" ;;
     "graphics/Makefile") CONFIG_FILES="$CONFIG_FILES graphics/Makefile:graphics/Makefile.in" ;;
     "oa/Makefile") CONFIG_FILES="$CONFIG_FILES oa/Makefile:oa/Makefile.in" ;;
+    "magic/Makefile") CONFIG_FILES="$CONFIG_FILES magic/Makefile:magic/Makefile.in" ;;
+    "tcltk/Makefile") CONFIG_FILES="$CONFIG_FILES tcltk/Makefile:tcltk/Makefile.in" ;;
+    "scmos/Makefile") CONFIG_FILES="$CONFIG_FILES scmos/Makefile:scmos/Makefile.in" ;;
+    "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile:doc/Makefile.in" ;;
+    "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile:lisp/Makefile.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

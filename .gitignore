@@ -55,6 +55,11 @@ extcheck/Makefile
 net2ir/Makefile
 graphics/Makefile
 oa/Makefile
+magic/Makefile
+tcltk/Makefile
+scmos/Makefile
+doc/Makefile
+lisp/Makefile
 
 # Compiled objects / libraries
 *.o

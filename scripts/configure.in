@@ -2040,6 +2040,11 @@ AC_CONFIG_FILES([extcheck/Makefile:extcheck/Makefile.in])
 AC_CONFIG_FILES([net2ir/Makefile:net2ir/Makefile.in])
 AC_CONFIG_FILES([graphics/Makefile:graphics/Makefile.in])
 AC_CONFIG_FILES([oa/Makefile:oa/Makefile.in])
+AC_CONFIG_FILES([magic/Makefile:magic/Makefile.in])
+AC_CONFIG_FILES([tcltk/Makefile:tcltk/Makefile.in])
+AC_CONFIG_FILES([scmos/Makefile:scmos/Makefile.in])
+AC_CONFIG_FILES([doc/Makefile:doc/Makefile.in])
+AC_CONFIG_FILES([lisp/Makefile:lisp/Makefile.in])
 
 dnl Emit an autoconf config header, available to the tree as
 dnl   #include <magic/autoconf/config.h>
