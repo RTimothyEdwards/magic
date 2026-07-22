@@ -3,7 +3,11 @@
 #
 
 MODULE    = lisp
-MAGICDIR  = ..
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
 SRCS      = lispMain.c lispEval.c lispPrint.c lispParse.c lispA-Z.c \
             lispGC.c lispFrame.c lispTrace.c lispMagic.c lispArith.c \
             lispString.c lispIO.c
