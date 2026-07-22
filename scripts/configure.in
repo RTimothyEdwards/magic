@@ -1982,6 +1982,10 @@ dnl build directory (config.status' CWD): defs.mak at the build top, makedbh
 dnl under build/scripts/ (matching ${SCRIPTS}/makedbh = ${MAGICDIR}/scripts).
 AC_CONFIG_FILES([defs.mak:scripts/defs.mak.in])
 AC_CONFIG_FILES([scripts/makedbh:scripts/makedbh.in], [chmod +x scripts/makedbh])
+dnl Copy rules.mak into the build top (it has no @...@ substitutions; this just
+dnl places it next to the generated defs.mak so a single ${MAGICDIR} resolves
+dnl both `include`s in every subdir Makefile out-of-tree).
+AC_CONFIG_FILES([rules.mak:rules.mak])
 AC_OUTPUT
 
 dnl 

@@ -8,6 +8,27 @@
 
 SHELL                  = @SHELL@
 
+# --- out-of-tree (VPATH) support ------------------------------------------
+# MAGICDIR is set by each subdir Makefile to the relative path back to the
+# *build* top (that is where the generated defs.mak / rules.mak live, and where
+# the generated database/database.h is written).  MAGICSRC is the absolute path
+# to the *source* top.  For an in-tree build the two trees coincide.
+MAGICSRC               = @abs_top_srcdir@
+
+# Derive this module's source directory (and VPATH) from where make is running
+# (CURDIR, a build directory) relative to the build top (abspath of MAGICDIR):
+#   build top  = $(abspath $(MAGICDIR))
+#   subpath    = "/tiles", or "" at the top
+#   srcdir     = $(MAGICSRC)$(subpath)
+BUILD_TOP              := $(abspath $(MAGICDIR))
+# Anchored prefix strip (patsubst matches the whole word, so BUILD_TOP must be a
+# leading prefix): "" at the build top, "/tiles" in a subdir.  Unlike $(subst …)
+# this cannot mis-fire if BUILD_TOP happens to recur later in the path.
+MODULE_SUBPATH         := $(patsubst $(BUILD_TOP)%,%,$(CURDIR))
+srcdir                 := $(MAGICSRC)$(MODULE_SUBPATH)
+VPATH                  := $(srcdir)
+# --------------------------------------------------------------------------
+
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
@@ -79,9 +100,9 @@ LIB_SPECS_GRNULL       = @LIB_SPECS_GRNULL@
 WISH_EXE	       = @WISH_EXE@
 TCL_LIB_DIR	       = @TCL_LIB_DIR@
 
-MAGIC_VERSION	       ?= $(shell cat ${MAGICDIR}/VERSION | cut -d. -f1-2)
-MAGIC_REVISION	       ?= $(shell cat ${MAGICDIR}/VERSION | cut -d. -f3)
-MAGIC_COMMIT	       ?= $(shell git rev-parse HEAD)
+MAGIC_VERSION	       ?= $(shell cat ${MAGICSRC}/VERSION | cut -d. -f1-2)
+MAGIC_REVISION	       ?= $(shell cat ${MAGICSRC}/VERSION | cut -d. -f3)
+MAGIC_COMMIT	       ?= $(shell git -C ${MAGICSRC} rev-parse HEAD)
 MAGIC_BUILDDATE	       ?= $(shell date | tr -d '\r\n')
 
 # This allow inheritence of the values from toplevel Makefile
@@ -111,7 +132,10 @@ CXX		       = @CXX@
 ###   Status: NOT-STABILITY-AFFECTING (if your binary links you are good to continue)
 #FEATURE_FLAGS += -DSUPPORT_REMOVE_MALLOC_LEGACY
 
-CPPFLAGS               = -I${MAGICDIR} @CPPFLAGS@
+# -I${MAGICDIR}: build top, for the generated database/database.h
+# -I${MAGICSRC}: source top, for "<module>/<header>.h" includes
+# -I${srcdir}:   this module's source dir, for same-directory headers
+CPPFLAGS               = -I${MAGICDIR} -I${MAGICSRC} -I${srcdir} @CPPFLAGS@
 CXXFLAGS               = @CXXFLAGS@
 DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
 DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"

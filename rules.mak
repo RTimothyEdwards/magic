@@ -16,7 +16,7 @@ depend: ${DEPEND_FILE}
 # corrupting the output, the final MV is transactional. If that is needed
 # it indicates a missing dependency somewhere in a upstream/parent Makefile.
 ${DEPEND_FILE}: ${DEPSRCS}
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${DEPSRCS} > ${DEPEND_FILE}$$PPID.tmp
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} $(addprefix $(srcdir)/,${DEPSRCS}) > ${DEPEND_FILE}$$PPID.tmp
 	${SED} -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" -i ${DEPEND_FILE}$$PPID.tmp
 	${MV} -f ${DEPEND_FILE}$$PPID.tmp ${DEPEND_FILE}
 
@@ -26,7 +26,7 @@ ${DEPEND_FILE}: ${DEPSRCS}
 %.o: %.c
 	@echo --- compiling ${MODULE}/$*.o
 	${RM} $*.o
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS}  -c $*.c
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS}  -c $< -o $@
 
 lib${MODULE}.o: ${OBJS}
 	@echo --- linking lib${MODULE}.o
@@ -55,7 +55,7 @@ clean:
 	${RM} ${CLEANS}
 
 tags: ${SRCS} ${LIB_SRCS}
-	ctags ${SRCS} ${LIB_SRCS}
+	ctags $(addprefix $(srcdir)/,${SRCS} ${LIB_SRCS})
 
 # Depends are a somewhat optional part of the build process that are only useful when incremental
 # building.  If the file is here it's here, if not continue with build optimistically
