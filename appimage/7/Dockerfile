@@ -28,6 +28,14 @@ RUN yum install -y cairo-devel freeglut-devel gcc make git tcsh \
     && rpm -qa | sort \
     && echo ""
 
+# LaTeX + dvips (optional).  When present, the default "make" regenerates the
+# PostScript documentation from source (configure prints "LaTeX docs: yes");
+# otherwise the pre-built PostScript shipped in the source tree is installed.
+# Kept non-fatal so an unavailable package can never break the release image --
+# the documentation is shipped either way.
+RUN yum install -y texlive-latex texlive-dvips texlive-collection-fontsrecommended \
+    || echo "texlive unavailable; shipping the pre-built PostScript documentation"
+
 # Tcl/Tk
 WORKDIR /tcl
 RUN set -eux; \
