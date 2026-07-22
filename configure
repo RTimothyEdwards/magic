@@ -9,5 +9,9 @@
 # script itself.  It also sets up CFLAGS without the default optimizer
 # flag (-O2).
 
-basedir=$(dirname "$0")
-( CFLAGS=${CFLAGS:-"-g"}; export CFLAGS; cd "${basedir}/scripts" ; ./configure "$@" )
+# Run the generated config.status in the *current* directory (which may be a
+# separate build directory), with --srcdir pointing back at the source tree, so
+# that generated files (defs.mak, makedbh, ...) land in the build directory
+# rather than in the source tree.
+basedir=$(cd "$(dirname "$0")" && pwd)
+( CFLAGS=${CFLAGS:-"-g"}; export CFLAGS; exec "${basedir}/scripts/configure" --srcdir="${basedir}" "$@" )

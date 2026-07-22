@@ -734,7 +734,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -843,7 +842,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1096,15 +1094,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1242,7 +1231,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1395,7 +1384,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -2598,7 +2586,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 ac_aux_dir=
-for ac_dir in . "$srcdir"/.; do
+for ac_dir in scripts "$srcdir"/scripts; do
   if test -f "$ac_dir/install-sh"; then
     ac_aux_dir=$ac_dir
     ac_install_sh="$ac_aux_dir/install-sh -c"
@@ -2614,7 +2602,7 @@ for ac_dir in . "$srcdir"/.; do
   fi
 done
 if test -z "$ac_aux_dir"; then
-  as_fn_error $? "cannot find install-sh, install.sh, or shtool in . \"$srcdir\"/." "$LINENO" 5
+  as_fn_error $? "cannot find install-sh, install.sh, or shtool in scripts \"$srcdir\"/scripts" "$LINENO" 5
 fi
 
 # These three variables are undocumented and unsupported,
@@ -9308,9 +9296,9 @@ MAKE_CAIRO=$usingCairo
 MAKE_READLINE=$use_bundled_readline
 
 
-ac_config_files="$ac_config_files defs.mak"
+ac_config_files="$ac_config_files defs.mak:scripts/defs.mak.in"
 
-ac_config_files="$ac_config_files makedbh"
+ac_config_files="$ac_config_files scripts/makedbh:scripts/makedbh.in"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -10019,8 +10007,8 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
-    "defs.mak") CONFIG_FILES="$CONFIG_FILES defs.mak" ;;
-    "makedbh") CONFIG_FILES="$CONFIG_FILES makedbh" ;;
+    "defs.mak") CONFIG_FILES="$CONFIG_FILES defs.mak:scripts/defs.mak.in" ;;
+    "scripts/makedbh") CONFIG_FILES="$CONFIG_FILES scripts/makedbh:scripts/makedbh.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -10441,7 +10429,7 @@ which seems to be undefined.  Please make sure it is defined" >&2;}
 
 
   case $ac_file$ac_mode in
-    "makedbh":F) chmod +x makedbh ;;
+    "scripts/makedbh":F) chmod +x scripts/makedbh ;;
 
   esac
 done # for ac_tag
@@ -10591,4 +10579,3 @@ echo
 echo "-----------------------------------------------------------"
 echo
 
-cp defs.mak ..

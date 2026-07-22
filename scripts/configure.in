@@ -4,7 +4,12 @@ dnl Use autoconf 2.52 or newer.
 AC_INIT(magic,, magic-hackers@csl.cornell.edu)
 AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR(rules.mak)
-AC_CONFIG_AUX_DIR(.)
+dnl configure.in lives in scripts/, but the source root is its parent (that is
+dnl where rules.mak is, so srcdir resolves there).  The aux scripts (install-sh,
+dnl config.sub, config.guess, missing, mkinstalldirs) live in scripts/, which is
+dnl "scripts" relative to that srcdir -- not ".".  Using "." breaks out-of-tree
+dnl configure with "cannot find install-sh".
+AC_CONFIG_AUX_DIR(scripts)
 
 AC_CANONICAL_SYSTEM
 
@@ -1971,8 +1976,12 @@ AC_SUBST(MAKE_GLU,      [$usingGLU])
 AC_SUBST(MAKE_CAIRO,    [$usingCairo])
 AC_SUBST(MAKE_READLINE, [$use_bundled_readline])
 
-AC_CONFIG_FILES([defs.mak])
-AC_CONFIG_FILES([makedbh], [chmod +x makedbh])
+dnl Name the .in templates explicitly (relative to srcdir) so config.status can
+dnl find them when run from a separate build directory.  Outputs land in the
+dnl build directory (config.status' CWD): defs.mak at the build top, makedbh
+dnl under build/scripts/ (matching ${SCRIPTS}/makedbh = ${MAGICDIR}/scripts).
+AC_CONFIG_FILES([defs.mak:scripts/defs.mak.in])
+AC_CONFIG_FILES([scripts/makedbh:scripts/makedbh.in], [chmod +x scripts/makedbh])
 AC_OUTPUT
 
 dnl 
@@ -2087,5 +2096,6 @@ echo
 echo "-----------------------------------------------------------"
 echo
 
-dnl Put "defs.mak" in the top-level directory
-cp defs.mak ..
+dnl "defs.mak" is now generated directly into the build top (config.status'
+dnl CWD), so the old `cp defs.mak ..` is gone -- from a separate build directory
+dnl it would clobber the source tree's copy.
