@@ -3,7 +3,11 @@
 #
 
 MODULE    = bplane
-MAGICDIR  = ..
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
 SRCS	  = bpDump.c bpUtils.c bpBins.c bpEnum.c bpMain.c bpStat.c
 
 include ${MAGICDIR}/defs.mak

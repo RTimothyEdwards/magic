@@ -3,7 +3,11 @@
 #
 
 MODULE    = netmenu
-MAGICDIR  = ..
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
 SRCS      = NMbutton.c NMcmdAK.c NMcmdLZ.c NMlabel.c NMmain.c \
             NMnetlist.c NMshowpt.c NMshowcell.c NMundo.c NMwiring.c
 

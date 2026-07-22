@@ -3,7 +3,11 @@
 #
 
 MODULE    = dbwind
-MAGICDIR  = ..
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
 SRCS      = DBWcommands.c DBWdisplay.c DBWbuttons.c DBWelement.c \
 	    DBWfdback.c DBWhlights.c DBWprocs.c DBWtools.c DBWundo.c
 
