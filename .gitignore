@@ -61,6 +61,10 @@ magic/magic.js.symbols
 magic/magic.symbols
 magic/magic.wasm
 build-tcl-wasm/
+# Out-of-source WASM build directories created by npm/build.sh (one per variant;
+# fixed names build-wasm-<tcl|notcl>).  Disposable, recreated each run.
+build-wasm-tcl/
+build-wasm-notcl/
 net2ir/net2ir
 net2ir/net2ir.js
 net2ir/net2ir.wasm
