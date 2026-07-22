@@ -34,4 +34,4 @@ LIB_OBJS += ${MAGICDIR}/tiles/libtiles.o ${MAGICDIR}/utils/libutils.o
 database.h: ${MAGICSRC}/database/database.h.in
 	${MAKE} -C ${MAGICDIR} $(patsubst ${MAGICDIR}/%,%,${DATABASE_H})
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

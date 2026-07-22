@@ -82,4 +82,4 @@ fonts: ${OUTLINE_FONTS}
 	${RM} $(DESTDIR)${INSTALL_SYSDIR}/$$i; \
 	${CP} $(srcdir)/$$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

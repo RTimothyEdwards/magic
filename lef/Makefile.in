@@ -32,4 +32,4 @@ $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}: magiclef${SHDLIB_EXT}
 	${RM} $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}
 	${CP} magiclef${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

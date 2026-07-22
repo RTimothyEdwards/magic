@@ -48,4 +48,4 @@ module-clean:
 	${RM} -r .deps
 
 #------------------------------------------------------
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

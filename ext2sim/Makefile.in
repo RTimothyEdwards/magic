@@ -48,4 +48,4 @@ $(DESTDIR)${INSTALL_TCLDIR}/exttosim${SHDLIB_EXT}: exttosim${SHDLIB_EXT}
 	${RM} $(DESTDIR)${INSTALL_TCLDIR}/exttosim${SHDLIB_EXT}
 	${CP} exttosim${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/exttosim${SHDLIB_EXT}
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

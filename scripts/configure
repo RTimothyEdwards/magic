@@ -9396,8 +9396,6 @@ ac_config_files="$ac_config_files defs.mak:scripts/defs.mak.in"
 
 ac_config_files="$ac_config_files scripts/makedbh:scripts/makedbh.in"
 
-ac_config_files="$ac_config_files rules.mak:rules.mak"
-
 
 ac_config_files="$ac_config_files tiles/Makefile:tiles/Makefile.in"
 
@@ -10217,7 +10215,6 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile:Makefile.in" ;;
     "defs.mak") CONFIG_FILES="$CONFIG_FILES defs.mak:scripts/defs.mak.in" ;;
     "scripts/makedbh") CONFIG_FILES="$CONFIG_FILES scripts/makedbh:scripts/makedbh.in" ;;
-    "rules.mak") CONFIG_FILES="$CONFIG_FILES rules.mak:rules.mak" ;;
     "tiles/Makefile") CONFIG_FILES="$CONFIG_FILES tiles/Makefile:tiles/Makefile.in" ;;
     "bplane/Makefile") CONFIG_FILES="$CONFIG_FILES bplane/Makefile:bplane/Makefile.in" ;;
     "calma/Makefile") CONFIG_FILES="$CONFIG_FILES calma/Makefile:calma/Makefile.in" ;;

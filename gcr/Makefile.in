@@ -13,4 +13,4 @@ SRCS      = gcrChannel.c gcrColl.c gcrDebug.c gcrEdge.c gcrFeas.c \
             gcrUnsplit.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

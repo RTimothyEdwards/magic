@@ -178,9 +178,9 @@ clean:
 distclean:
 	touch defs.mak
 	@${MAKE} clean
-	# NB: do NOT remove rules.mak here.  In-tree (build == source) it is the
-	# tracked source file, not a generated one; out-of-tree the build dir is
-	# disposable, so leaving its generated copy is harmless.
+	# rules.mak is no longer copied into the build top (subdir Makefiles include
+	# ${MAGICSRC}/rules.mak straight from the source tree), so there is nothing to
+	# remove for it here; defs.mak is the only generated make fragment.
 	${RM} defs.mak old.defs.mak
 	${RM} scripts/makedbh scripts/default.conf
 	${RM} config.log config.status

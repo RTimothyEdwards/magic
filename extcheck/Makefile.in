@@ -23,4 +23,4 @@ install: $(DESTDIR)${BINDIR}/${MODULE}${EXEEXT}
 install-tcl:
 	echo "Nothing to do here"
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

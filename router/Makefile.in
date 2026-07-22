@@ -38,4 +38,4 @@ $(DESTDIR)${TCLDIR}/tclroute${SHDLIB_EXT}: tclroute${SHDLIB_EXT}
 	${RM} $(DESTDIR)${TCLDIR}/tclroute${SHDLIB_EXT}
 	${CP} tclroute${SHDLIB_EXT} $(DESTDIR)${TCLDIR}/tclroute${SHDLIB_EXT}
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

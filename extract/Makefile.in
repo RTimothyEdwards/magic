@@ -14,4 +14,4 @@ SRCS      = ExtArray.c ExtBasic.c ExtCell.c ExtCouple.c ExtHard.c \
             ExtInter.c ExtUnique.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

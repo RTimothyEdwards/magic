@@ -11,4 +11,4 @@ MAGICDIR  = @top_builddir@
 SRCS =      CalmaRead.c CalmaRdcl.c CalmaRdio.c CalmaRdpt.c CalmaWrite.c CalmaWriteZ.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

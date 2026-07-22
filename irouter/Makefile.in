@@ -11,4 +11,4 @@ MAGICDIR  = @top_builddir@
 SRCS      = irCommand.c irMain.c irRoute.c irTestCmd.c irUtils.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

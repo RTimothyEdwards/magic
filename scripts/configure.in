@@ -1998,10 +1998,9 @@ dnl under build/scripts/ (matching ${SCRIPTS}/makedbh = ${MAGICDIR}/scripts).
 AC_CONFIG_FILES([Makefile:Makefile.in])
 AC_CONFIG_FILES([defs.mak:scripts/defs.mak.in])
 AC_CONFIG_FILES([scripts/makedbh:scripts/makedbh.in], [chmod +x scripts/makedbh])
-dnl Copy rules.mak into the build top (it has no @...@ substitutions; this just
-dnl places it next to the generated defs.mak so a single ${MAGICDIR} resolves
-dnl both `include`s in every subdir Makefile out-of-tree).
-AC_CONFIG_FILES([rules.mak:rules.mak])
+dnl rules.mak is included straight from the source tree (${MAGICSRC}/rules.mak),
+dnl so it is NOT copied into the build top.  Only defs.mak (which has @...@
+dnl substitutions) is generated there.
 
 dnl Per-module Makefiles (Makefile.in migration).  Each converted module lists
 dnl its Makefile here; config.status creates the build subdir and the Makefile.

@@ -14,4 +14,4 @@ SRCS      = mzBlock.c mzDebug.c mzEstimate.c mzXtndDown.c \
             mzWalk.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

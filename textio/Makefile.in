@@ -11,4 +11,4 @@ MAGICDIR  = @top_builddir@
 SRCS      = txCommands.c txInput.c txMain.c txMore.c txOutput.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

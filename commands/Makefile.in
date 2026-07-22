@@ -21,4 +21,4 @@ ${MAGICDIR}/readline/readline:
 	${MAKE} -C ${MAGICDIR}/readline readline-create-symlinks
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

@@ -13,4 +13,4 @@ SRCS      = ResMain.c ResJunct.c ResMakeRes.c ResSimple.c ResPrint.c \
             ResFract.c ResUtils.c ResDebug.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

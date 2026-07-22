@@ -48,4 +48,4 @@ $(DESTDIR)${INSTALL_BINDIR}/spice2sim: spice2sim
 	${RM} $(DESTDIR)${INSTALL_BINDIR}/spice2sim
 	${CP} $< $(DESTDIR)${INSTALL_BINDIR}/spice2sim
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

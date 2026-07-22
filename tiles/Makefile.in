@@ -11,4 +11,4 @@ MAGICDIR  = @top_builddir@
 SRCS      = tile.c search.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

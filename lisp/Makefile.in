@@ -37,4 +37,4 @@ $(DESTDIR)${INSTALL_SCMDIR}/%: scm/%
 	test -d "$(DESTDIR)$(INSTALL_SCMDIR)" || mkdir -p "$(DESTDIR)$(INSTALL_SCMDIR)"
 	${CP} scm/$* $(DESTDIR)$(INSTALL_SCMDIR)/$*
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

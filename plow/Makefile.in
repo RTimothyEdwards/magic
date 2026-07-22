@@ -13,4 +13,4 @@ SRCS      = PlowCmd.c PlowJogs.c PlowMain.c PlowQueue.c PlowRandom.c \
             PlowTest.c PlowWidth.c PlowYank.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

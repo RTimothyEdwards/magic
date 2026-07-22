@@ -22,4 +22,4 @@ include ${MAGICDIR}/defs.mak
 DFLAGS += ${GR_DFLAGS}
 CFLAGS += ${GR_CFLAGS}
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

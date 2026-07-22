@@ -38,4 +38,4 @@ $(DESTDIR)${INSTALL_TCLDIR}/tclplot${SHDLIB_EXT}: tclplot${SHDLIB_EXT}
 	${RM} $(DESTDIR)${INSTALL_TCLDIR}/tclplot${SHDLIB_EXT}
 	${CP} tclplot${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/tclplot${SHDLIB_EXT}
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

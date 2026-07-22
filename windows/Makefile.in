@@ -16,7 +16,7 @@ GLYPHS    = windows7.glyphs windows11.glyphs windows14.glyphs windows22.glyphs
 FONTS	  = vfont.B.12 vfont.I.12 vfont.R.8
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak
 
 install-tcl:
 	@echo --- installing glyphs to $(DESTDIR)${INSTALL_SYSDIR}

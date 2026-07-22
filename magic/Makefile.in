@@ -112,7 +112,7 @@ $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro: magicps.pro
 	${RM} $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
 	${CP} $< $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak
 
 ifeq (${MAKE_WASM},1)
 # rules.mak defines `${MODULE}` (= `magic`) with a recipe that links a native

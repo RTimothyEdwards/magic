@@ -11,4 +11,4 @@ MAGICDIR  = @top_builddir@
 SRCS     =  CMWmain.c CMWcmmnds.c CMWundo.c CMWrgbhsv.c
 
 include ${MAGICDIR}/defs.mak
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

@@ -117,4 +117,4 @@ $(DESTDIR)${INSTALL_BINDIR}/ext2sim.sh: ext2sim.sh
 # An additional dependency on the VERSION file
 ${OBJS}: ${MAGICSRC}/VERSION
 
-include ${MAGICDIR}/rules.mak
+include ${MAGICSRC}/rules.mak

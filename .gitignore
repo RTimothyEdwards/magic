@@ -140,3 +140,6 @@ doc/latexfiles/psfiles/
 doc/latexfiles/*.dvi
 doc/latexfiles/*.aux
 doc/latexfiles/*.log
+
+# Out-of-tree build directory (generated; was accidentally committed in e7fd0e90)
+/build-alt/
