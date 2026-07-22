@@ -107,14 +107,18 @@ $(MODULE_TARGETS): module@%: depend
 $(LIB_TARGETS): lib@%: depend
 	@$(call submake,$*,lib)
 
+# Cross-module archive edge (-j correctness): libdatabase.a physically archives
+# tiles/libtiles.o and utils/libutils.o (database/Makefile.in: LIB_OBJS += ...),
+# so lib@database must not run until those module objects exist.  A serial build
+# got this from prerequisite order; under -j it needs the explicit edge.  No other
+# default-built module archives another module's objects.
+lib@database: module@tiles module@utils
+
 .PHONY: modules
 modules: $(MODULE_TARGETS)
 
 .PHONY: libs
-# libdatabase.a needs the tiles/utils module objects first.  Listing them before
-# $(LIB_TARGETS) orders a serial build correctly; the explicit per-target -j edge
-# is added in a later commit.
-libs: module@tiles module@utils $(LIB_TARGETS)
+libs: $(LIB_TARGETS)
 
 #
 # extcheck - utility tool
@@ -148,11 +152,15 @@ $(TECH_TARGETS): tech@%: depend
 techs: $(TECH_TARGETS)
 
 # Regenerate the PostScript documentation from its .tex sources (only reached
-# from "all" when configure found latex+dvips; see DOCS_TARGET).
+# from "all" when configure found latex+dvips; see DOCS_TARGET).  Force -j1: the
+# latexfiles rules share per-run aux files (.aux/.log) in one directory and are
+# not parallel-safe, so under a parallel top-level build they would race and drop
+# documents.  Doc regeneration is best-effort anyway (pre-built PostScript is the
+# install fallback), so serializing it costs nothing and keeps -j deterministic.
 .PHONY: docs
 docs:
 	@echo --- making documentation
-	@${MAKE} -k -C doc/latexfiles all || \
+	@${MAKE} -j1 -k -C doc/latexfiles all || \
 	    echo "--- WARNING: some documents did not regenerate; the pre-built PostScript will be used for those at 'make install'"
 
 install: $(INSTALL_TARGET)
