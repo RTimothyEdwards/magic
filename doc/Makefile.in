@@ -23,11 +23,11 @@ DOC_SUBDIRS = latexfiles man tutcells html
 
 install-tcl:
 	for dir in ${DOC_SUBDIRS}; do \
-		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/doc/$$dir/Makefile install; done
+		${MAKE} -C $$dir install; done
 
 install:
 	for dir in ${DOC_SUBDIRS}; do \
-		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/doc/$$dir/Makefile install; done
+		${MAKE} -C $$dir install; done
 
 print_only:  force
 	lpr -h ${PSDIR}/copyright.ps

@@ -103,13 +103,12 @@ $(HCIFin):
 $(HCIFout):
 $(SCIFin):
 $(SCIFout):
-	mkdir -p cif_template
-	${MAKE} -C cif_template -f ${MAGICSRC}/scmos/cif_template/Makefile clean
-	${MAKE} -C cif_template -f ${MAGICSRC}/scmos/cif_template/Makefile
+	${MAKE} -C cif_template clean
+	${MAKE} -C cif_template
 
 $(DESTDIR)${INSTALL_SYSDIR}/%: %
 	cp $< $(DESTDIR)${INSTALL_SYSDIR}/$*
 
 clean:;
 	-$(RM) *.tech *.tech27
-	test -d cif_template && ${MAKE} -C cif_template -f ${MAGICSRC}/scmos/cif_template/Makefile clean || true
+	test -d cif_template && ${MAKE} -C cif_template clean || true

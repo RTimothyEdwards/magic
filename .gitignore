@@ -60,6 +60,11 @@ tcltk/Makefile
 scmos/Makefile
 doc/Makefile
 lisp/Makefile
+scmos/cif_template/Makefile
+doc/man/Makefile
+doc/tutcells/Makefile
+doc/html/Makefile
+doc/latexfiles/Makefile
 
 # Compiled objects / libraries
 *.o

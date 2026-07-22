@@ -131,8 +131,7 @@ techs: depend
 .PHONY: docs
 docs:
 	@echo --- making documentation
-	@mkdir -p doc/latexfiles
-	@${MAKE} -k -C doc/latexfiles -f ${MAGICSRC}/doc/latexfiles/Makefile all || \
+	@${MAKE} -k -C doc/latexfiles all || \
 	    echo "--- WARNING: some documents did not regenerate; the pre-built PostScript will be used for those at 'make install'"
 
 install: $(INSTALL_TARGET)

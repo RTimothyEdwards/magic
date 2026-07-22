@@ -2045,6 +2045,11 @@ AC_CONFIG_FILES([tcltk/Makefile:tcltk/Makefile.in])
 AC_CONFIG_FILES([scmos/Makefile:scmos/Makefile.in])
 AC_CONFIG_FILES([doc/Makefile:doc/Makefile.in])
 AC_CONFIG_FILES([lisp/Makefile:lisp/Makefile.in])
+AC_CONFIG_FILES([scmos/cif_template/Makefile:scmos/cif_template/Makefile.in])
+AC_CONFIG_FILES([doc/man/Makefile:doc/man/Makefile.in])
+AC_CONFIG_FILES([doc/tutcells/Makefile:doc/tutcells/Makefile.in])
+AC_CONFIG_FILES([doc/html/Makefile:doc/html/Makefile.in])
+AC_CONFIG_FILES([doc/latexfiles/Makefile:doc/latexfiles/Makefile.in])
 
 dnl Emit an autoconf config header, available to the tree as
 dnl   #include <magic/autoconf/config.h>

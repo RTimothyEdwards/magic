@@ -9479,6 +9479,16 @@ ac_config_files="$ac_config_files doc/Makefile:doc/Makefile.in"
 
 ac_config_files="$ac_config_files lisp/Makefile:lisp/Makefile.in"
 
+ac_config_files="$ac_config_files scmos/cif_template/Makefile:scmos/cif_template/Makefile.in"
+
+ac_config_files="$ac_config_files doc/man/Makefile:doc/man/Makefile.in"
+
+ac_config_files="$ac_config_files doc/tutcells/Makefile:doc/tutcells/Makefile.in"
+
+ac_config_files="$ac_config_files doc/html/Makefile:doc/html/Makefile.in"
+
+ac_config_files="$ac_config_files doc/latexfiles/Makefile:doc/latexfiles/Makefile.in"
+
 
 if test "`cd $srcdir && pwd`" = "`pwd`" ; then
   magic_config_header=magic/autoconf/config.h
@@ -10248,6 +10258,11 @@ do
     "scmos/Makefile") CONFIG_FILES="$CONFIG_FILES scmos/Makefile:scmos/Makefile.in" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile:doc/Makefile.in" ;;
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile:lisp/Makefile.in" ;;
+    "scmos/cif_template/Makefile") CONFIG_FILES="$CONFIG_FILES scmos/cif_template/Makefile:scmos/cif_template/Makefile.in" ;;
+    "doc/man/Makefile") CONFIG_FILES="$CONFIG_FILES doc/man/Makefile:doc/man/Makefile.in" ;;
+    "doc/tutcells/Makefile") CONFIG_FILES="$CONFIG_FILES doc/tutcells/Makefile:doc/tutcells/Makefile.in" ;;
+    "doc/html/Makefile") CONFIG_FILES="$CONFIG_FILES doc/html/Makefile:doc/html/Makefile.in" ;;
+    "doc/latexfiles/Makefile") CONFIG_FILES="$CONFIG_FILES doc/latexfiles/Makefile:doc/latexfiles/Makefile.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
