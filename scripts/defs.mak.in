@@ -15,28 +15,18 @@ SHELL                  = @SHELL@
 # to the *source* top.  For an in-tree build the two trees coincide.
 MAGICSRC               = @abs_top_srcdir@
 
-# Derive this module's source directory (and VPATH) from where make is running
-# (CURDIR, a build directory) relative to the build top (abspath of MAGICDIR):
-#   build top  = $(abspath $(MAGICDIR))
-#   subpath    = "/tiles", or "" at the top
-#   srcdir     = $(MAGICSRC)$(subpath)
+# BUILD_TOP is the absolute build top; GENINC (below) needs it either way.
 BUILD_TOP              := $(abspath $(MAGICDIR))
-# Dual mode: a module converted to Makefile.in sets `srcdir` (and VPATH) from
-# @srcdir@ *before* including this file, so we only derive them when it did not.
-# This lets the two kinds of Makefile coexist during the migration.  BUILD_TOP
-# (needed by GENINC below) is computed either way.
+# Minimal srcdir fallback.  Every module converted to Makefile.in sets
+# `srcdir` (and VPATH) from @srcdir@ *before* including this file.  The only
+# Makefiles that do NOT are readline/ (intentionally never converted) and the
+# top-level Makefile; neither compiles magic sources through the pattern rules, so
+# neither needs VPATH.  We only default `srcdir` -- derived from where make is
+# running (CURDIR, a build dir) relative to BUILD_TOP -- so that CPPFLAGS, which
+# lists -I${srcdir}, stays well-formed.  The patsubst is an anchored prefix strip:
+# "" at the build top, "/readline" in the readline subdir.
 ifeq ($(origin srcdir),undefined)
-# Anchored prefix strip (patsubst matches the whole word, so BUILD_TOP must be a
-# leading prefix): "" at the build top, "/tiles" in a subdir.  Unlike $(subst …)
-# this cannot mis-fire if BUILD_TOP happens to recur later in the path.
-MODULE_SUBPATH         := $(patsubst $(BUILD_TOP)%,%,$(CURDIR))
-srcdir                 := $(MAGICSRC)$(MODULE_SUBPATH)
-# Only set VPATH inside a module (sub)directory, never at the build top: a
-# top-level VPATH into the source tree could let a stale source-tree
-# database/database.h shadow the copy we must (re)generate in the build tree.
-ifneq ($(MODULE_SUBPATH),)
-VPATH                  := $(srcdir)
-endif
+srcdir                 := $(MAGICSRC)$(patsubst $(BUILD_TOP)%,%,$(CURDIR))
 endif
 
 # Generated headers (currently just database/database.h) are exposed through a
