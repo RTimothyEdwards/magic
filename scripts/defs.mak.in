@@ -32,6 +32,20 @@ srcdir                 := $(MAGICSRC)$(MODULE_SUBPATH)
 ifneq ($(MODULE_SUBPATH),)
 VPATH                  := $(srcdir)
 endif
+
+# Generated headers (currently just database/database.h) are exposed through a
+# single include directory, ${GENINC}:
+#   * in-tree  (build top == source top): the top itself, so the header stays at
+#     $(builddir)/database/database.h and -I${GENINC} == the old -I${MAGICDIR}.
+#   * relocated (out-of-tree): a clean $(builddir)/include, so #include
+#     <database/database.h> resolves under include/ and the raw build top is
+#     never on the compiler search path.
+ifeq ($(BUILD_TOP),$(MAGICSRC))
+GENINC                 := ${MAGICDIR}
+else
+GENINC                 := ${MAGICDIR}/include
+endif
+DATABASE_H             := ${GENINC}/database/database.h
 # --------------------------------------------------------------------------
 
 prefix = @prefix@
@@ -141,10 +155,10 @@ CXX		       = @CXX@
 ###   Status: NOT-STABILITY-AFFECTING (if your binary links you are good to continue)
 #FEATURE_FLAGS += -DSUPPORT_REMOVE_MALLOC_LEGACY
 
-# -I${MAGICDIR}: build top, for the generated database/database.h
+# -I${GENINC}:  generated headers (build top in-tree, build/include relocated)
 # -I${MAGICSRC}: source top, for "<module>/<header>.h" includes
 # -I${srcdir}:   this module's source dir, for same-directory headers
-CPPFLAGS               = -I${MAGICDIR} -I${MAGICSRC} -I${srcdir} @CPPFLAGS@
+CPPFLAGS               = -I${GENINC} -I${MAGICSRC} -I${srcdir} @CPPFLAGS@
 CXXFLAGS               = @CXXFLAGS@
 # Bundled GNU readline: its headers use <readline/*.h> includes, so the readline
 # source's parent directory must be on the include path.  Only for the bundled

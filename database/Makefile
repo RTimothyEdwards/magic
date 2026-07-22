@@ -25,8 +25,9 @@ LIB_OBJS += ${MAGICDIR}/tiles/libtiles.o ${MAGICDIR}/utils/libutils.o
 # start of top level build) and removed last (near the end of a top level clean).
 #CLEANS += database.h
 
-# This is delegated back to the top level Makefile
-database.h: ${MAGICDIR}/database/database.h.in
-	${MAKE} -C ${MAGICDIR} database/database.h
+# This is delegated back to the top level Makefile, which owns ${DATABASE_H}
+# (its location varies with in-tree vs relocated builds -- see defs.mak GENINC).
+database.h: ${MAGICSRC}/database/database.h.in
+	${MAKE} -C ${MAGICDIR} $(patsubst ${MAGICDIR}/%,%,${DATABASE_H})
 
 include ${MAGICDIR}/rules.mak

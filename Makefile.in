@@ -44,21 +44,23 @@ defs.mak:
 config:
 	${MAGICSRC}/configure
 
-tcllibrary: database/database.h modules
+tcllibrary: ${DATABASE_H} modules
 	@echo --- making Tcl shared libraries
 	for dir in ${PROGRAMS}; do \
 		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile tcl-main || exit 1; done
 
-mains: database/database.h modules libs
+mains: ${DATABASE_H} modules libs
 	@echo --- making main programs
 	for dir in ${PROGRAMS}; do \
 		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile main || exit 1; done
 
 # makedbh is the one generated helper script; it lives in the *build* tree.
-database/database.h: ${MAGICSRC}/database/database.h.in
-	@echo --- making header file database/database.h
-	@mkdir -p database
-	${MAGICDIR}/scripts/makedbh ${MAGICSRC}/database/database.h.in database/database.h
+# ${DATABASE_H} is $(builddir)/database/database.h in-tree, or
+# $(builddir)/include/database/database.h when relocated (see defs.mak GENINC).
+${DATABASE_H}: ${MAGICSRC}/database/database.h.in
+	@echo --- making header file ${DATABASE_H}
+	@mkdir -p $(dir ${DATABASE_H})
+	${MAGICDIR}/scripts/makedbh ${MAGICSRC}/database/database.h.in ${DATABASE_H}
 
 # tiles xyz => tiles/libtiles.o xyz/libxyz.o
 MODULES_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.o"; done)
@@ -70,14 +72,14 @@ ${MODULES_SUBDIR}: FORCE
 	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile module
 
 .PHONY: modules
-modules: database/database.h depend ${MODULES_SUBDIR}
+modules: ${DATABASE_H} depend ${MODULES_SUBDIR}
 
 ${LIBS_SUBDIR}: FORCE
 	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile lib
 
 # Force the tiles/utils modules to exist first for libdatabase.a
 .PHONY: libs
-libs: database/database.h depend tiles/libtiles.o utils/libutils.o ${LIBS_SUBDIR}
+libs: ${DATABASE_H} depend tiles/libtiles.o utils/libutils.o ${LIBS_SUBDIR}
 
 #
 # extcheck - utility tool
@@ -94,7 +96,7 @@ SUBDIRS_FILTERED := $(shell echo ${MODULES} ${PROGRAMS} ${SUBDIRS} | tr ' ' '\n'
 
 SUBDIRS_DEPEND = $(addsuffix /Depend, ${SUBDIRS_FILTERED})
 
-${SUBDIRS_DEPEND}: database/database.h
+${SUBDIRS_DEPEND}: ${DATABASE_H}
 	@echo --- making dependencies
 	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile depend
 
@@ -162,7 +164,7 @@ distclean:
 	${RM} defs.mak old.defs.mak
 	${RM} scripts/makedbh scripts/default.conf
 	${RM} config.log config.status
-	${RM} database/database.h
+	${RM} ${DATABASE_H}
 	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
 	${RM} *.log
 
