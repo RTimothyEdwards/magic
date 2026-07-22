@@ -49,19 +49,24 @@ $(DESTDIR)${PS_INSTDIR}/%: $(DESTDIR)${PS_INSTDIR}
 	${CP} $$f $(DESTDIR)${PS_INSTDIR}/$*
 
 # Regenerate a .ps (into the build tree) from its .tex (in the source tree).
+# Several .tex include figures as ../psfigures/*.ps (relative to this dir).
+# Out-of-tree that would resolve into the empty build tree, so point the
+# build-tree ../psfigures at the source copy (a no-op in-tree, where it already
+# exists); both latex and dvips then find the figures, outputs stay in-build.
 ${PS_GENDIR}/%.ps: %.tex
 	@mkdir -p ${PS_GENDIR}
+	@test -e ../psfigures || ln -s ${MAGICSRC}/doc/psfigures ../psfigures
 	@echo "Converting $*.tex -> $*.dvi"
-	@TEXINPUTS=$(srcdir): latex $(srcdir)/$*.tex  < /dev/null > /dev/null
+	@TEXINPUTS=$(srcdir): ${LATEX} $(srcdir)/$*.tex  < /dev/null > /dev/null
 	@if grep 'LaTeX Warn' $*.log; \
 	then \
 		echo "Detected warnings, doing second pass for $*...";\
-		TEXINPUTS=$(srcdir): latex $(srcdir)/$*.tex < /dev/null > /dev/null; \
+		TEXINPUTS=$(srcdir): ${LATEX} $(srcdir)/$*.tex < /dev/null > /dev/null; \
 		(grep 'LaTeX Warn' $*.log || (echo > /dev/null)); \
 		echo; \
 	fi
 	@echo "Converting $*.dvi -> ${PS_GENDIR}/$*.ps"
-	@dvips -t letter $*.dvi -o ${PS_GENDIR}/$*.ps > /dev/null
+	@${DVIPS} -t letter $*.dvi -o ${PS_GENDIR}/$*.ps > /dev/null
 
 clean:
 	${RM} $(GENDVI) $(GEN_GENPS) *.log *.aux

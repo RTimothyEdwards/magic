@@ -23,7 +23,11 @@ INSTALL_CAD_DIRS = windows doc ${TECHS}
 
 -include defs.mak
 
-all:	$(ALL_TARGET) techs
+# "docs" when configure found latex+dvips (regenerate PostScript from .tex into
+# the build tree), empty otherwise (the pre-built PostScript is installed as-is).
+DOCS_TARGET = @DOCS_TARGET@
+
+all:	$(ALL_TARGET) techs $(DOCS_TARGET)
 
 standard: mains
 
@@ -102,6 +106,15 @@ techs: depend
 	@echo --- making techs
 	for dir in ${TECHS}; do \
 		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile all || exit 1; done
+
+# Regenerate the PostScript documentation from its .tex sources (only reached
+# from "all" when configure found latex+dvips; see DOCS_TARGET).
+.PHONY: docs
+docs:
+	@echo --- making documentation
+	@mkdir -p doc/latexfiles
+	@${MAKE} -k -C doc/latexfiles -f ${MAGICSRC}/doc/latexfiles/Makefile all || \
+	    echo "--- WARNING: some documents did not regenerate; the pre-built PostScript will be used for those at 'make install'"
 
 install: $(INSTALL_TARGET)
 

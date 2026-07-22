@@ -359,6 +359,21 @@ dnl Check for gcore, used by niceabort.c
 
 AC_PATH_PROG(GCORE, gcore, [no])
 
+dnl LaTeX + dvips are optional.  When both are present the default "make"
+dnl regenerates the PostScript documentation (doc/latexfiles) from the .tex
+dnl sources into the build tree.  When either is missing, the pre-built
+dnl PostScript shipped in the source tree is installed as-is instead.
+AC_PATH_PROG(LATEX, latex, no)
+AC_PATH_PROG(DVIPS, dvips, no)
+if test "x${LATEX}" != "xno" -a "x${DVIPS}" != "xno" ; then
+   DOCS_TARGET="docs"
+else
+   DOCS_TARGET=""
+fi
+AC_SUBST(LATEX)
+AC_SUBST(DVIPS)
+AC_SUBST(DOCS_TARGET)
+
 dnl Python3 is preferred for running the preprocessor script
 dnl but CPP can be used instead.
 AC_PATH_PROG([PYTHON3], [python3], [no])
@@ -2092,6 +2107,13 @@ else
      echo "  --with-tcl=<DIR> and --with-tk=<DIR>."
      echo
    fi
+fi
+
+${ECHO_N} "LaTeX docs:   "
+if test "x${DOCS_TARGET}" != "x" ; then
+   echo "yes"
+else
+   echo "no  (install 'latex' and 'dvips' to regenerate documentation)"
 fi
 
 echo "-----------------------------------------------------------"

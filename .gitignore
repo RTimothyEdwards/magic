@@ -78,3 +78,10 @@ npm/examples/output/
 .claudeignore
 CLAUDE.md
 CLAUDE.local.md
+# LaTeX documentation build artifacts (an in-tree "make" regenerates the
+# PostScript here when latex+dvips are installed; out-of-tree these live in the
+# build dir instead).  The pre-built PostScript under doc/psfiles/ stays tracked.
+doc/latexfiles/psfiles/
+doc/latexfiles/*.dvi
+doc/latexfiles/*.aux
+doc/latexfiles/*.log

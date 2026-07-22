@@ -13,7 +13,12 @@ jobs:
       - name: Get Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y tcl-dev tk-dev libcairo-dev
+          # tcl/tk + cairo for the build; texlive (latex + dvips) so the default
+          # "make" also regenerates the PostScript documentation.  Docs are
+          # best-effort — a missing texlive package just falls back to the
+          # pre-built PostScript, it does not fail the build.
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev \
+            texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
       - name: Build
         run: |
           ./configure

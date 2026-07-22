@@ -682,6 +682,9 @@ X_PRE_LIBS
 X_CFLAGS
 XMKMF
 PYTHON3
+DOCS_TARGET
+DVIPS
+LATEX
 GCORE
 ALLOCA
 EGREP
@@ -6314,6 +6317,97 @@ fi
 
 
 
+# Extract the first word of "latex", so it can be a program name with args.
+set dummy latex; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_LATEX+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $LATEX in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_LATEX="$LATEX" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_LATEX="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_LATEX" && ac_cv_path_LATEX="no"
+  ;;
+esac
+fi
+LATEX=$ac_cv_path_LATEX
+if test -n "$LATEX"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LATEX" >&5
+$as_echo "$LATEX" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "dvips", so it can be a program name with args.
+set dummy dvips; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_DVIPS+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $DVIPS in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_DVIPS="$DVIPS" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_DVIPS="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_DVIPS" && ac_cv_path_DVIPS="no"
+  ;;
+esac
+fi
+DVIPS=$ac_cv_path_DVIPS
+if test -n "$DVIPS"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DVIPS" >&5
+$as_echo "$DVIPS" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x${LATEX}" != "xno" -a "x${DVIPS}" != "xno" ; then
+   DOCS_TARGET="docs"
+else
+   DOCS_TARGET=""
+fi
+
+
+
+
 # Extract the first word of "python3", so it can be a program name with args.
 set dummy python3; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -10576,6 +10670,13 @@ else
      echo "  --with-tcl=<DIR> and --with-tk=<DIR>."
      echo
    fi
+fi
+
+${ECHO_N} "LaTeX docs:   "
+if test "x${DOCS_TARGET}" != "x" ; then
+   echo "yes"
+else
+   echo "no  (install 'latex' and 'dvips' to regenerate documentation)"
 fi
 
 echo "-----------------------------------------------------------"
