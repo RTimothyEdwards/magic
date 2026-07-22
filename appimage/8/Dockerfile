@@ -84,7 +84,7 @@ RUN ./configure \
     --with-tcl=/prefix/lib \
     --with-tk=/prefix/lib \
     && make clean \
-    && make database/database.h \
+    && make prepare \
     && make -j$(nproc) \
     && make install \
     && install -d /prefix/share/licenses/magic \

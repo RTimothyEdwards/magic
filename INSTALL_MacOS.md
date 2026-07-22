@@ -7,7 +7,7 @@ brew install cairo tcl-tk@8 python3 gnu-sed
 brew install --cask xquartz
 ./scripts/configure_mac
 # If you have both TCL8 and TCL9 installed you may need to verify which was selected.
-make database/database.h
+make prepare
 make -j$(sysctl -n hw.ncpu)
 make install # may need sudo depending on your setup
 ```

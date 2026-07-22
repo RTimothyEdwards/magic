@@ -96,7 +96,7 @@ RUN ./configure \
     --with-tk=/prefix/lib \
     --without-opengl \
     && make clean \
-    && make database/database.h \
+    && make prepare \
     && make -j$(nproc) \
     && make install \
     && install -d /prefix/share/licenses/magic \

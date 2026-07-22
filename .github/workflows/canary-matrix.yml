@@ -285,7 +285,7 @@ jobs:
           #sed -e 's# -Werror=# -Wno-unused-local-typedefs -Werror=#' -i defs.mak
           #sed -e 's# -Werror=# -Wno-unused-label -Werror=#' -i defs.mak
           #sed -e 's# -Werror=# -Wno-unused-but-set-variable -Werror=#' -i defs.mak
-          make database/database.h
+          make prepare
           make -j$(nproc) 2>&1 | tee MAKE.LOG
 
       - name: Summary

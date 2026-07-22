@@ -22,7 +22,7 @@ jobs:
       - name: Build
         run: |
           ./configure
-          make database/database.h
+          make prepare
           make -j$(nproc)
       - name: Build Tcl auto-load modules
         # These per-module Tcl shared libraries are real products but are not
@@ -51,5 +51,5 @@ jobs:
       - name: Build (non-Tcl / standard)
         run: |
           ./configure --without-tcl --without-opengl
-          make database/database.h
+          make prepare
           make -j$(nproc)

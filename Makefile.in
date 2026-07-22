@@ -62,6 +62,14 @@ ${DATABASE_H}: ${MAGICSRC}/database/database.h.in
 	@mkdir -p $(dir ${DATABASE_H})
 	${MAGICDIR}/scripts/makedbh ${MAGICSRC}/database/database.h.in ${DATABASE_H}
 
+# "prepare" is the stable, path-independent way to (re)generate the build-time
+# headers (currently database.h) before compiling -- use it instead of naming
+# the header directly (its path depends on in-tree vs relocated; see GENINC).
+# It is .PHONY so the name is always valid, but its prerequisite ${DATABASE_H}
+# is a real file target, so the header is regenerated only when out of date.
+.PHONY: prepare
+prepare: ${DATABASE_H}
+
 # tiles xyz => tiles/libtiles.o xyz/libxyz.o
 MODULES_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.o"; done)
 # tiles xyz => tiles/libtiles.a xyz/libxyz.a
