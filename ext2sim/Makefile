@@ -13,7 +13,7 @@ include ${MAGICDIR}/defs.mak
 LIBS += -lm ${LD_EXTRA_LIBS} ${SUB_EXTRA_LIBS}
 CLEANS += exttosim${SHDLIB_EXT} simwrap.o finds.o ext2sim_main.o ext2sim_main finds sim2simp
 
-main: finds sim2simp # ext2sim_main # deprecated
+main: finds # sim2simp and ext2sim_main are deprecated/removed
 
 tcl-main: exttosim${SHDLIB_EXT}
 
