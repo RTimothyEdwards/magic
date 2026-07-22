@@ -26,7 +26,12 @@ BUILD_TOP              := $(abspath $(MAGICDIR))
 # this cannot mis-fire if BUILD_TOP happens to recur later in the path.
 MODULE_SUBPATH         := $(patsubst $(BUILD_TOP)%,%,$(CURDIR))
 srcdir                 := $(MAGICSRC)$(MODULE_SUBPATH)
+# Only set VPATH inside a module (sub)directory, never at the build top: a
+# top-level VPATH into the source tree could let a stale source-tree
+# database/database.h shadow the copy we must (re)generate in the build tree.
+ifneq ($(MODULE_SUBPATH),)
 VPATH                  := $(srcdir)
+endif
 # --------------------------------------------------------------------------
 
 prefix = @prefix@
@@ -35,7 +40,9 @@ bindir = @bindir@
 libdir = @libdir@
 mandir = @mandir@
 
-SCRIPTS		       = ${MAGICDIR}/scripts
+# Source-tree helper scripts (mkdirs, printmans, preproc.py, ...).  The one
+# generated script, makedbh, lives in the *build* tree at ${MAGICDIR}/scripts.
+SCRIPTS		       = ${MAGICSRC}/scripts
 
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@

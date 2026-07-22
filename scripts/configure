@@ -9296,6 +9296,8 @@ MAKE_CAIRO=$usingCairo
 MAKE_READLINE=$use_bundled_readline
 
 
+ac_config_files="$ac_config_files Makefile:Makefile.in"
+
 ac_config_files="$ac_config_files defs.mak:scripts/defs.mak.in"
 
 ac_config_files="$ac_config_files scripts/makedbh:scripts/makedbh.in"
@@ -10009,6 +10011,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
+    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile:Makefile.in" ;;
     "defs.mak") CONFIG_FILES="$CONFIG_FILES defs.mak:scripts/defs.mak.in" ;;
     "scripts/makedbh") CONFIG_FILES="$CONFIG_FILES scripts/makedbh:scripts/makedbh.in" ;;
     "rules.mak") CONFIG_FILES="$CONFIG_FILES rules.mak:rules.mak" ;;

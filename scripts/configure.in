@@ -1980,6 +1980,7 @@ dnl Name the .in templates explicitly (relative to srcdir) so config.status can
 dnl find them when run from a separate build directory.  Outputs land in the
 dnl build directory (config.status' CWD): defs.mak at the build top, makedbh
 dnl under build/scripts/ (matching ${SCRIPTS}/makedbh = ${MAGICDIR}/scripts).
+AC_CONFIG_FILES([Makefile:Makefile.in])
 AC_CONFIG_FILES([defs.mak:scripts/defs.mak.in])
 AC_CONFIG_FILES([scripts/makedbh:scripts/makedbh.in], [chmod +x scripts/makedbh])
 dnl Copy rules.mak into the build top (it has no @...@ substitutions; this just

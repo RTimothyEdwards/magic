@@ -3,6 +3,11 @@
 #
 
 MAGICDIR   = .
+# Absolute path to the source tree (config.status substitutes @abs_top_srcdir@).
+# For an in-tree build this is the same directory as the build top.  Every
+# recursion below drives a build subdirectory (created on demand) using the
+# module Makefile from the source tree: -C <builddir> -f ${MAGICSRC}/<dir>/Makefile.
+MAGICSRC   = @abs_top_srcdir@
 PROGRAMS   = magic
 TECHS      = scmos
 LIBRARIES  = database utils extflat
@@ -11,7 +16,7 @@ MODULES    = bplane cmwind commands database dbwind debug drc extflat \
 	     utils windows wiring
 
 # This was `cat VERSION`
-VERSION    := $(shell cat ${MAGICDIR}/VERSION)
+VERSION    := $(shell cat ${MAGICSRC}/VERSION)
 
 MAKEFLAGS  =
 INSTALL_CAD_DIRS = windows doc ${TECHS}
@@ -33,21 +38,23 @@ defs.mak:
 	@exit 1
 
 config:
-	${MAGICDIR}/configure
+	${MAGICSRC}/configure
 
 tcllibrary: database/database.h modules
 	@echo --- making Tcl shared libraries
 	for dir in ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} tcl-main) || exit 1; done
+		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile tcl-main || exit 1; done
 
 mains: database/database.h modules libs
 	@echo --- making main programs
 	for dir in ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} main) || exit 1; done
+		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile main || exit 1; done
 
-database/database.h: ${MAGICDIR}/database/database.h.in
+# makedbh is the one generated helper script; it lives in the *build* tree.
+database/database.h: ${MAGICSRC}/database/database.h.in
 	@echo --- making header file database/database.h
-	${SCRIPTS}/makedbh ${MAGICDIR}/database/database.h.in database/database.h
+	@mkdir -p database
+	${MAGICDIR}/scripts/makedbh ${MAGICSRC}/database/database.h.in database/database.h
 
 # tiles xyz => tiles/libtiles.o xyz/libxyz.o
 MODULES_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.o"; done)
@@ -56,13 +63,13 @@ LIBS_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.a"; done)
 
 .PHONY: FORCE
 ${MODULES_SUBDIR}: FORCE
-	@${MAKE} -C $(dir $@) module
+	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile module
 
 .PHONY: modules
 modules: database/database.h depend ${MODULES_SUBDIR}
 
 ${LIBS_SUBDIR}: FORCE
-	@${MAKE} -C $(dir $@) lib
+	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile lib
 
 # Force the tiles/utils modules to exist first for libdatabase.a
 .PHONY: libs
@@ -85,7 +92,7 @@ SUBDIRS_DEPEND = $(addsuffix /Depend, ${SUBDIRS_FILTERED})
 
 ${SUBDIRS_DEPEND}: database/database.h
 	@echo --- making dependencies
-	${MAKE} -C $(dir $@) depend
+	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile depend
 
 .PHONY: depend
 depend: defs.mak ${SUBDIRS_DEPEND}
@@ -94,7 +101,7 @@ depend: defs.mak ${SUBDIRS_DEPEND}
 techs: depend
 	@echo --- making techs
 	for dir in ${TECHS}; do \
-		(cd $$dir && ${MAKE} all) || exit 1; done
+		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile all || exit 1; done
 
 install: $(INSTALL_TARGET)
 
@@ -105,17 +112,17 @@ install-magic:
 
 install-real: install-dirs
 	for dir in ${INSTALL_CAD_DIRS}; do \
-		(cd $$dir && ${MAKE} install); done
+		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile install; done
 	for dir in ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} install); done
+		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile install; done
 
 install-tcl-dirs:
-	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
+	${SCRIPTS}/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
 	$(DESTDIR)${INSTALL_MANDIR} $(DESTDIR)${INSTALL_SYSDIR} \
 	$(DESTDIR)${INSTALL_TCLDIR} $(DESTDIR)${INSTALL_TCLDIR}/bitmaps
 
 install-dirs:
-	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
+	${SCRIPTS}/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
 	$(DESTDIR)${INSTALL_MANDIR} $(DESTDIR)${INSTALL_SYSDIR} \
 	$(DESTDIR)${INSTALL_SCMDIR}
 
@@ -126,19 +133,22 @@ install-tcl:
 
 install-tcl-real: install-tcl-dirs
 	for dir in ${INSTALL_CAD_DIRS} ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} install-tcl); done
+		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile install-tcl; done
 
 clean:
 	for dir in ${SUBDIRS_FILTERED} ${TECHS} ${BUNDLED_MODULES}; do \
-		(cd $$dir && ${MAKE} clean); done
+		test -d $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile clean || true; done
 	${RM} *.tmp */*.tmp *.sav */*.sav *.log TAGS tags
 
 distclean:
 	touch defs.mak
 	@${MAKE} clean
-	${RM} defs.mak old.defs.mak ${MAGICDIR}/scripts/defs.mak
-	${RM} ${MAGICDIR}/scripts/default.conf
-	${RM} ${MAGICDIR}/scripts/config.log ${MAGICDIR}/scripts/config.status
+	# NB: do NOT remove rules.mak here.  In-tree (build == source) it is the
+	# tracked source file, not a generated one; out-of-tree the build dir is
+	# disposable, so leaving its generated copy is harmless.
+	${RM} defs.mak old.defs.mak
+	${RM} scripts/makedbh scripts/default.conf
+	${RM} config.log config.status
 	${RM} database/database.h
 	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
 	${RM} *.log
@@ -146,7 +156,7 @@ distclean:
 dist:
 	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
 	${SED} -e /@VERSION@/s%@VERSION@%${VERSION}% \
-	    scripts/magic.spec.in > scripts/magic.spec
+	    ${MAGICSRC}/scripts/magic.spec.in > scripts/magic.spec
 	${LN} -nsf . magic-${VERSION}
 	tar zchvf magic-${VERSION}.tgz --exclude CVS \
 	    --exclude magic-${VERSION}/magic-${VERSION} \
@@ -155,15 +165,15 @@ dist:
 
 clean-mains:
 	for dir in ${PROGRAMS}; do \
-		(cd $$dir && ${RM} $$dir); done
+		${RM} $$dir/$$dir; done
 
 tags:
 	${RM} tags
-	find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs ctags -o tags
+	cd ${MAGICSRC} && find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs ctags -o $(CURDIR)/tags
 
 TAGS:
 	${RM} TAGS
-	find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs etags -o TAGS
+	cd ${MAGICSRC} && find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs etags -o $(CURDIR)/TAGS
 
 setup-git:
 	git config --local include.path ../.gitconfig
