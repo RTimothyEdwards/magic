@@ -146,6 +146,12 @@ CXX		       = @CXX@
 # -I${srcdir}:   this module's source dir, for same-directory headers
 CPPFLAGS               = -I${MAGICDIR} -I${MAGICSRC} -I${srcdir} @CPPFLAGS@
 CXXFLAGS               = @CXXFLAGS@
+# Bundled GNU readline: its headers use <readline/*.h> includes, so the readline
+# source's parent directory must be on the include path.  Only for the bundled
+# build (@MAKE_READLINE@ = 1); a no-op with a system or disabled readline.
+ifeq (@MAKE_READLINE@,1)
+CPPFLAGS              += -I${MAGICSRC}/readline
+endif
 DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
 DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"
 DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" @NDEBUG_defs@ @DEBUG_defs@ ${FEATURE_FLAGS}

@@ -62,7 +62,7 @@ build-readline: readline-create-symlinks
 	echo --- building GNU readline ; \
 	$(MKDIR) -p build-readline ; \
 	(cd build-readline && CC="${CC}" CFLAGS="${CFLAGS}" LOCAL_DEFS="${READLINE_DEFS}" \
-	    "../readline/configure" --disable-shared) || exit 1 ; \
+	    "${MAGICSRC}/readline/readline/configure" --disable-shared) || exit 1 ; \
 	fi
 	@(cd build-readline && ${MAKE}) || exit 1
 
