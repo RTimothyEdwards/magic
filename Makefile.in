@@ -27,13 +27,13 @@ INSTALL_CAD_DIRS = windows doc ${TECHS}
 DOCS_TARGET = @DOCS_TARGET@
 
 # $(call submake,<dir>,<goal>) -- recurse into a build subdirectory.
-# Use the generated build Makefile if config.status created one there (a module
-# converted to Makefile.in); otherwise fall back to the source Makefile
-# with -f.  The build subdir is created on demand.  During the
-# Makefile.in migration both kinds coexist; readline/ is intentionally never
-# converted, so it always takes the -f path.
+# Every module is a configure-generated Makefile, so config.status
+# already created the build subdir with its Makefile: recurse natively.  The one
+# exception is readline/, which is intentionally never converted; it has no
+# generated Makefile, so it takes the -f path against the source Makefile (and its
+# build subdir is created on demand).
 define submake
-mkdir -p $(1) && if test -f $(1)/Makefile; then $(MAKE) -C $(1) $(2); else $(MAKE) -C $(1) -f $(MAGICSRC)/$(1)/Makefile $(2); fi
+if test "x$(1)" = xreadline; then mkdir -p $(1) && $(MAKE) -C $(1) -f $(MAGICSRC)/$(1)/Makefile $(2); else $(MAKE) -C $(1) $(2); fi
 endef
 
 all:	$(ALL_TARGET) techs $(DOCS_TARGET)
@@ -167,12 +167,12 @@ install-tcl-real: install-tcl-dirs
 		$(call submake,$$dir,install-tcl); done
 
 clean:
-	@# clean must not create dirs: skip absent ones, and use the generated build
-	@# Makefile if present else the source one (mirrors $(submake) without mkdir).
+	@# clean must not create dirs: skip absent ones.  Recurse natively;
+	@# readline/ is the one unconverted module, so it uses -f (mirrors $(submake)).
 	for dir in ${SUBDIRS_FILTERED} ${TECHS} ${BUNDLED_MODULES}; do \
 		test -d $$dir || continue; \
-		if test -f $$dir/Makefile; then ${MAKE} -C $$dir clean; \
-		else ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile clean; fi || true; done
+		if test "x$$dir" = xreadline; then ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile clean; \
+		else ${MAKE} -C $$dir clean; fi || true; done
 	${RM} *.tmp */*.tmp *.sav */*.sav *.log TAGS tags
 
 distclean:
