@@ -20,7 +20,7 @@ EXTRA_LIBS = ${MAGICDIR}/garouter/libgarouter.o \
 tcl-main: tclroute.o tclroute${SHDLIB_EXT}
 
 tclroute.o: tclroute.c
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} tclroute.c -c -o tclroute.o
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -c $< -o $@
 
 tclroute${SHDLIB_EXT}: tclroute.o ${OBJS}
 	@echo --- making Tcl auto-load module \(tclroute${SHDLIB_EXT}\)

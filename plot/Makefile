@@ -20,7 +20,7 @@ CLEANS += tclplot${SHDLIB_EXT} tclplot.o
 tcl-main: tclplot.o tclplot${SHDLIB_EXT}
 
 tclplot.o: tclplot.c
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} tclplot.c -c -o tclplot.o
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -c $< -o $@
 
 tclplot${SHDLIB_EXT}: tclplot.o ${OBJS}
 	@echo --- making Tcl auto-load module \(tclplot${SHDLIB_EXT}\)

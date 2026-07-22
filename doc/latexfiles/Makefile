@@ -2,9 +2,11 @@ MAGICDIR = ../..
 
 include $(MAGICDIR)/defs.mak
 
-# Pre-built PostScript ships in the source tree; regenerating it (the .tex.ps
-# rule / `all` target) still writes back into the source psfiles dir.
+# PS_SRCDIR: pre-built PostScript shipped in the source tree (read-only, used by
+#            install when a doc has not been regenerated).
+# PS_GENDIR: regenerated PostScript, written into the build tree (never source).
 PS_SRCDIR=${MAGICSRC}/doc/psfiles
+PS_GENDIR=psfiles
 PS_INSTDIR=$(INSTALL_LIBDIR)/magic/doc
 
 .SUFFIXES: .dvi .tex .ps
@@ -25,10 +27,11 @@ GENPS=tut1.ps tut2.ps tut3.ps tut4.ps tut5.ps tut6.ps \
 	tuttcl1.ps tuttcl2.ps tuttcl3.ps tuttcl4.ps tuttcl5.ps \
 	tutwrl1.ps
 
-SRC_GENPS= $(GENPS:%=${PS_SRCDIR}/%)
+GEN_GENPS= $(GENPS:%=${PS_GENDIR}/%)
 INST_GENPS= $(GENPS:%=$(DESTDIR)${PS_INSTDIR}/%)
 
-all: $(SRC_GENPS)
+# Regenerate all PostScript into the build tree (${PS_GENDIR}).
+all: $(GEN_GENPS)
 	@${RM} $(GENDVI) *.log *.aux
 
 install: $(DESTDIR)${PS_INSTDIR} ${INST_GENPS}
@@ -38,21 +41,27 @@ $(DESTDIR)${PS_INSTDIR}: make-doc-dir
 make-doc-dir:
 	${SCRIPTS}/mkdirs $(DESTDIR)${PS_INSTDIR}
 
-$(DESTDIR)${PS_INSTDIR}/%: ${PS_SRCDIR}/% $(DESTDIR)${PS_INSTDIR}
-	${CP} ${PS_SRCDIR}/$* $(DESTDIR)${PS_INSTDIR}/$*
+# Install each PostScript file from the build tree if it was regenerated there,
+# otherwise from the pre-built copy shipped in the source tree.
+$(DESTDIR)${PS_INSTDIR}/%: $(DESTDIR)${PS_INSTDIR}
+	@f=${PS_GENDIR}/$*; test -f $$f || f=${PS_SRCDIR}/$*; \
+	echo "${CP} $$f $(DESTDIR)${PS_INSTDIR}/$*"; \
+	${CP} $$f $(DESTDIR)${PS_INSTDIR}/$*
 
-.tex.ps:
+# Regenerate a .ps (into the build tree) from its .tex (in the source tree).
+${PS_GENDIR}/%.ps: %.tex
+	@mkdir -p ${PS_GENDIR}
 	@echo "Converting $*.tex -> $*.dvi"
-	@latex $*.tex  < /dev/null > /dev/null
+	@TEXINPUTS=$(srcdir): latex $(srcdir)/$*.tex  < /dev/null > /dev/null
 	@if grep 'LaTeX Warn' $*.log; \
 	then \
 		echo "Detected warnings, doing second pass for $*...";\
-		latex $*.tex < /dev/null > /dev/null; \
+		TEXINPUTS=$(srcdir): latex $(srcdir)/$*.tex < /dev/null > /dev/null; \
 		(grep 'LaTeX Warn' $*.log || (echo > /dev/null)); \
 		echo; \
 	fi
-	@echo "Converting $*.dvi -> $(PS_SRCDIR)/$*.ps"
-	@dvips -t letter $*.dvi -o $(PS_SRCDIR)/$*.ps > /dev/null
+	@echo "Converting $*.dvi -> ${PS_GENDIR}/$*.ps"
+	@dvips -t letter $*.dvi -o ${PS_GENDIR}/$*.ps > /dev/null
 
 clean:
-	${RM} $(GENDVI) $(SRC_GENPS) *.log *.aux
+	${RM} $(GENDVI) $(GEN_GENPS) *.log *.aux

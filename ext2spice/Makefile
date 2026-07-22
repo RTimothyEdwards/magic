@@ -18,10 +18,10 @@ main: ext2spice
 tcl-main: exttospice${SHDLIB_EXT}
 
 spicewrap.o: ext2spice.c ext2spice.h
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ext2spice.c -c -o spicewrap.o
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -c $< -o $@
 
 spicehier.o: ext2hier.c ext2spice.h
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ext2hier.c -c -o spicehier.o
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -c $< -o $@
 
 ext2spice_main.o: ext2spice.c
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -DEXT2SPICE_MAIN -c -o $@ $^
@@ -42,6 +42,6 @@ $(DESTDIR)${INSTALL_TCLDIR}/exttospice${SHDLIB_EXT}: exttospice${SHDLIB_EXT}
 
 $(DESTDIR)${INSTALL_BINDIR}/spice2sim: spice2sim
 	${RM} $(DESTDIR)${INSTALL_BINDIR}/spice2sim
-	${CP} spice2sim $(DESTDIR)${INSTALL_BINDIR}/spice2sim
+	${CP} $< $(DESTDIR)${INSTALL_BINDIR}/spice2sim
 
 include ${MAGICDIR}/rules.mak

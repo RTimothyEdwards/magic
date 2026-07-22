@@ -22,13 +22,13 @@ ext2sim_main: ext2sim_main.o ${EXTRA_LIBS} ${MAGICDIR}/tiles/libtiles.o
 	${CC} ${LDFLAGS} ${CFLAGS} -o $@ $^ ${LD_FIRST_LIBS} ${LIBS} -lX11 -lz
 
 ext2sim_main.o: ext2sim.c
-	${CC} ${CFLAGS} -I${MAGICDIR} -DEXT2SIM_MAIN -c -o $@ $^
+	${CC} ${CFLAGS} ${CPPFLAGS} -DEXT2SIM_MAIN -c -o $@ $<
 
 finds: finds.o ${MAGICDIR}/utils/libutils.a
 	${CC} ${LDFLAGS} ${CFLAGS} -o $@ $^
 
 simwrap.o: ext2sim.c
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ext2sim.c -c -o simwrap.o
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -c $< -o $@
 
 exttosim${SHDLIB_EXT}: simwrap.o ${MAGICDIR}/extflat/libextflat.o
 	@echo --- making exttosim Tcl library \(exttosim${SHDLIB_EXT}\)

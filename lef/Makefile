@@ -14,7 +14,7 @@ CLEANS += magiclef${SHDLIB_EXT} tcllef.o
 tcl-main: tcllef.o magiclef${SHDLIB_EXT}
 
 tcllef.o: tcllef.c
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} tcllef.c -c -o tcllef.o
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -c $< -o $@
 
 magiclef${SHDLIB_EXT}: tcllef.o ${OBJS}
 	@echo --- making Tcl auto-load module \(magiclef${SHDLIB_EXT}\)

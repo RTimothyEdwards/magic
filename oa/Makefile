@@ -14,7 +14,10 @@ include ${MAGICDIR}/defs.mak
 ifeq ($(OA),)
 OA := fake_oa_stub
 endif
-CXX_INCLUDES = -I. -I${OA}/oa/include
+# -I$(srcdir): this module's C++ sources/headers (source tree)
+# -I${MAGICDIR}: build top, for the generated database/database.h
+# -I${MAGICSRC}: source top, for "<module>/<header>.h" includes
+CXX_INCLUDES = -I$(srcdir) -I${MAGICDIR} -I${MAGICSRC} -I${OA}/oa/include
 
 DEPS_MAGIC := $(shell mkdir -p .deps > /dev/null 2>&1 || :)
 
