@@ -3,7 +3,11 @@
 #
 
 MODULE    = router
-MAGICDIR  = ..
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
 SRCS      = rtrCmd.c rtrMain.c rtrDcmpose.c rtrFdback.c rtrHazards.c \
             rtrChannel.c rtrPaint.c rtrPin.c rtrSide.c rtrStem.c rtrTech.c \
             rtrVia.c rtrTravers.c

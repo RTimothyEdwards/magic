@@ -3,7 +3,11 @@
 #
  
 MODULE   =  database
-MAGICDIR =  ..
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
 LIB_SRCS =
 SRCS     =  DBbound.c DBcell.c DBcellbox.c DBcellcopy.c \
             DBcellname.c DBcellsrch.c DBcellsel.c DBcellsubr.c \

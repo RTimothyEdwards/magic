@@ -3,7 +3,11 @@
 #
 
 MODULE    = graphics
-MAGICDIR  = ..
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
 BASE_SRCS       = grMain.c grLock.c grDStyle.c grText.c grCMap.c grClip.c \
                   grGlyphs.c grNull.c
 X11_SRCS        = grX11su1.c grX11su2.c grX11su3.c grX11su4.c grX11su5.c

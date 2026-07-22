@@ -3,7 +3,11 @@
 #
 
 MODULE    = utils
-MAGICDIR  = ..
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
 LIB_SRCS  = LIBdbio.c LIBmain.c LIBtextio.c
 SRCS      = args.c child.c dqueue.c finddisp.c flock.c flsbuf.c fraction.c \
             geometry.c getrect.c hash.c heap.c ihash.c list.c lookup.c \
