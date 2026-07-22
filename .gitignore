@@ -14,6 +14,13 @@ install.log
 make.log
 reconfigure.sh
 
+# Generated per-directory Makefiles (Makefile.in migration).  POLICY: whenever a
+# module's Makefile becomes a configure-generated Makefile.in, add its
+# "<dir>/Makefile" here in the *same commit*, so an in-tree build never lets a
+# generated Makefile be committed.  (Top-level /Makefile is handled above;
+# readline/ is intentionally NOT converted and keeps its tracked static Makefile.)
+# --- converted dirs below (none yet) ---
+
 # Compiled objects / libraries
 *.o
 *.a

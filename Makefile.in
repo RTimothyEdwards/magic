@@ -4,9 +4,8 @@
 
 MAGICDIR   = .
 # Absolute path to the source tree (config.status substitutes @abs_top_srcdir@).
-# For an in-tree build this is the same directory as the build top.  Every
-# recursion below drives a build subdirectory (created on demand) using the
-# module Makefile from the source tree: -C <builddir> -f ${MAGICSRC}/<dir>/Makefile.
+# For an in-tree build this is the same directory as the build top.  Recursion
+# into subdirectories goes through $(submake) (defined below).
 MAGICSRC   = @abs_top_srcdir@
 PROGRAMS   = magic
 TECHS      = scmos
@@ -26,6 +25,16 @@ INSTALL_CAD_DIRS = windows doc ${TECHS}
 # "docs" when configure found latex+dvips (regenerate PostScript from .tex into
 # the build tree), empty otherwise (the pre-built PostScript is installed as-is).
 DOCS_TARGET = @DOCS_TARGET@
+
+# $(call submake,<dir>,<goal>) -- recurse into a build subdirectory.
+# Use the generated build Makefile if config.status created one there (a module
+# converted to Makefile.in); otherwise fall back to the source Makefile
+# with -f.  The build subdir is created on demand.  During the
+# Makefile.in migration both kinds coexist; readline/ is intentionally never
+# converted, so it always takes the -f path.
+define submake
+mkdir -p $(1) && if test -f $(1)/Makefile; then $(MAKE) -C $(1) $(2); else $(MAKE) -C $(1) -f $(MAGICSRC)/$(1)/Makefile $(2); fi
+endef
 
 all:	$(ALL_TARGET) techs $(DOCS_TARGET)
 
@@ -47,12 +56,12 @@ config:
 tcllibrary: ${DATABASE_H} modules
 	@echo --- making Tcl shared libraries
 	for dir in ${PROGRAMS}; do \
-		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile tcl-main || exit 1; done
+		$(call submake,$$dir,tcl-main) || exit 1; done
 
 mains: ${DATABASE_H} modules libs
 	@echo --- making main programs
 	for dir in ${PROGRAMS}; do \
-		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile main || exit 1; done
+		$(call submake,$$dir,main) || exit 1; done
 
 # makedbh is the one generated helper script; it lives in the *build* tree.
 # ${DATABASE_H} is $(builddir)/database/database.h in-tree, or
@@ -77,13 +86,13 @@ LIBS_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.a"; done)
 
 .PHONY: FORCE
 ${MODULES_SUBDIR}: FORCE
-	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile module
+	@$(call submake,$(patsubst %/,%,$(dir $@)),module)
 
 .PHONY: modules
 modules: ${DATABASE_H} depend ${MODULES_SUBDIR}
 
 ${LIBS_SUBDIR}: FORCE
-	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile lib
+	@$(call submake,$(patsubst %/,%,$(dir $@)),lib)
 
 # Force the tiles/utils modules to exist first for libdatabase.a
 .PHONY: libs
@@ -106,7 +115,7 @@ SUBDIRS_DEPEND = $(addsuffix /Depend, ${SUBDIRS_FILTERED})
 
 ${SUBDIRS_DEPEND}: ${DATABASE_H}
 	@echo --- making dependencies
-	@d=$(dir $@); mkdir -p $$d && ${MAKE} -C $$d -f ${MAGICSRC}/$${d}Makefile depend
+	@$(call submake,$(patsubst %/,%,$(dir $@)),depend)
 
 .PHONY: depend
 depend: defs.mak ${SUBDIRS_DEPEND}
@@ -115,7 +124,7 @@ depend: defs.mak ${SUBDIRS_DEPEND}
 techs: depend
 	@echo --- making techs
 	for dir in ${TECHS}; do \
-		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile all || exit 1; done
+		$(call submake,$$dir,all) || exit 1; done
 
 # Regenerate the PostScript documentation from its .tex sources (only reached
 # from "all" when configure found latex+dvips; see DOCS_TARGET).
@@ -135,9 +144,9 @@ install-magic:
 
 install-real: install-dirs
 	for dir in ${INSTALL_CAD_DIRS}; do \
-		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile install; done
+		$(call submake,$$dir,install); done
 	for dir in ${PROGRAMS}; do \
-		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile install; done
+		$(call submake,$$dir,install); done
 
 install-tcl-dirs:
 	${SCRIPTS}/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
@@ -156,11 +165,15 @@ install-tcl:
 
 install-tcl-real: install-tcl-dirs
 	for dir in ${INSTALL_CAD_DIRS} ${PROGRAMS}; do \
-		mkdir -p $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile install-tcl; done
+		$(call submake,$$dir,install-tcl); done
 
 clean:
+	@# clean must not create dirs: skip absent ones, and use the generated build
+	@# Makefile if present else the source one (mirrors $(submake) without mkdir).
 	for dir in ${SUBDIRS_FILTERED} ${TECHS} ${BUNDLED_MODULES}; do \
-		test -d $$dir && ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile clean || true; done
+		test -d $$dir || continue; \
+		if test -f $$dir/Makefile; then ${MAKE} -C $$dir clean; \
+		else ${MAKE} -C $$dir -f ${MAGICSRC}/$$dir/Makefile clean; fi || true; done
 	${RM} *.tmp */*.tmp *.sav */*.sav *.log TAGS tags
 
 distclean:

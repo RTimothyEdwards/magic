@@ -21,6 +21,11 @@ MAGICSRC               = @abs_top_srcdir@
 #   subpath    = "/tiles", or "" at the top
 #   srcdir     = $(MAGICSRC)$(subpath)
 BUILD_TOP              := $(abspath $(MAGICDIR))
+# Dual mode: a module converted to Makefile.in sets `srcdir` (and VPATH) from
+# @srcdir@ *before* including this file, so we only derive them when it did not.
+# This lets the two kinds of Makefile coexist during the migration.  BUILD_TOP
+# (needed by GENINC below) is computed either way.
+ifeq ($(origin srcdir),undefined)
 # Anchored prefix strip (patsubst matches the whole word, so BUILD_TOP must be a
 # leading prefix): "" at the build top, "/tiles" in a subdir.  Unlike $(subst …)
 # this cannot mis-fire if BUILD_TOP happens to recur later in the path.
@@ -31,6 +36,7 @@ srcdir                 := $(MAGICSRC)$(MODULE_SUBPATH)
 # database/database.h shadow the copy we must (re)generate in the build tree.
 ifneq ($(MODULE_SUBPATH),)
 VPATH                  := $(srcdir)
+endif
 endif
 
 # Generated headers (currently just database/database.h) are exposed through a
