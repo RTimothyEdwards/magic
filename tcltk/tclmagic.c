@@ -30,6 +30,7 @@
 #endif
 
 #include "tcltk/tclmagic.h"
+#include "tcltk/tcldir.h"
 #include "utils/main.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -1482,7 +1483,15 @@ Tclmagic_Init(interp)
 
     /* Add the magic TCL directory to the Tcl library search path */
 
-    Tcl_Eval(interp, "lappend auto_path " TCL_DIR );
+    {
+	char dir[PATH_MAX], cmd[PATH_MAX];
+	size_t dlen, clen;
+	dlen = MagicTclDir(dir, sizeof(dir), NULL);
+	assert(dlen < sizeof(dir));
+	clen = snprintf(cmd, sizeof(cmd), "lappend auto_path {%s}", dir);
+	assert(clen < sizeof(cmd));
+	Tcl_Eval(interp, cmd);
+    }
 
     /* Get $CAD_ROOT from a Tcl variable, if it exists, and if not, then */
     /* set CAD_ROOT from the environment variable of the same name, if	 */
