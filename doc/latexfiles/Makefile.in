@@ -52,13 +52,22 @@ $(DESTDIR)${PS_INSTDIR}/%: $(DESTDIR)${PS_INSTDIR}
 	${CP} $$f $(DESTDIR)${PS_INSTDIR}/$*
 
 # Regenerate a .ps (into the build tree) from its .tex (in the source tree).
-# Several .tex include figures as ../psfigures/*.ps (relative to this dir).
-# Out-of-tree that would resolve into the empty build tree, so point the
-# build-tree ../psfigures at the source copy (a no-op in-tree, where it already
-# exists); both latex and dvips then find the figures, outputs stay in-build.
+# Several .tex include figures as ../psfigures/*.ps (relative to this dir).  Out
+# of tree that path resolves into the empty build tree, so point the build-tree
+# ../psfigures at the source copy; both latex and dvips then find the figures and
+# outputs stay in-build.  This is a shell test (not a make prerequisite) on
+# purpose: VPATH would otherwise "find" ../psfigures in the source tree and skip
+# creating the build-tree link that latex actually needs.
+#   * `test -d ../psfigures` is true both in-tree (it is the real source dir) and
+#     once the build-tree symlink exists, so the link is created only when absent
+#     and the in-tree source directory is never touched.
+#   * `ln -sfn` (force + no-dereference) makes creation race-safe: if a parallel
+#     job already made the symlink, it is replaced in place rather than nested
+#     inside it (the old `ln -s DIR symlink-to-dir` bug that wrote a stray
+#     doc/psfigures/psfigures into the source tree).
 ${PS_GENDIR}/%.ps: %.tex
 	@mkdir -p ${PS_GENDIR}
-	@test -e ../psfigures || ln -s ${MAGICSRC}/doc/psfigures ../psfigures
+	@test -d ../psfigures || ln -sfn ${MAGICSRC}/doc/psfigures ../psfigures
 	@echo "Converting $*.tex -> $*.dvi"
 	@TEXINPUTS=$(srcdir): ${LATEX} $(srcdir)/$*.tex  < /dev/null > /dev/null
 	@if grep 'LaTeX Warn' $*.log; \
