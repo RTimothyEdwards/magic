@@ -126,6 +126,7 @@ net2ir/net2ir.wasm
 
 # Generated test output
 npm/examples/output/
+npm/examples/output-tcl/
 
 # AI stuff
 .claude/
