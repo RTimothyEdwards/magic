@@ -686,6 +686,7 @@ DOCS_TARGET
 DVIPS
 LATEX
 GCORE
+MAGIC_BUILDDATE_DEFS
 ALLOCA
 EGREP
 GREP
@@ -763,6 +764,7 @@ with_gnu_ld
 enable_assertions
 enable_debug
 enable_compression
+enable_magic_builddate
 with_x
 with_distdir
 with_interpreter
@@ -1426,6 +1428,7 @@ Optional Features:
   --enable-assertions          build with fatal assertions enabled
   --enable-debug               build with fatal debug enabled
   --disable-compression        disable file compression
+  --disable-magic-builddate    omit the build date from the binary (reproducible builds)
   --enable-memdebug            enable memory debugging
   --enable-modular             embed ext2sim and ext2spice packages
   --disable-locking            disable file locking
@@ -6068,6 +6071,20 @@ $as_echo "#define HAVE_ZLIB 1" >>confdefs.h
 fi
 
 fi
+
+# Check whether --enable-magic-builddate was given.
+if test "${enable_magic_builddate+set}" = set; then :
+  enableval=$enable_magic_builddate;
+else
+  enable_magic_builddate=yes
+fi
+
+if test "x$enable_magic_builddate" = "xno" ; then
+    MAGIC_BUILDDATE_DEFS="-DMAGIC_NO_BUILDDATE"
+else
+    MAGIC_BUILDDATE_DEFS=""
+fi
+
 
 
 

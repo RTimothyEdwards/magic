@@ -124,12 +124,19 @@ MAGIC_REVISION	       ?= $(shell cat ${MAGICSRC}/VERSION | cut -d. -f3)
 # git may be absent (source tarball) or ${MAGICSRC} not a work-tree: fall back to
 # empty rather than emitting an error.
 MAGIC_COMMIT	       ?= $(shell git -C ${MAGICSRC} rev-parse HEAD 2>/dev/null)
+# "-DMAGIC_NO_BUILDDATE" when configured with --disable-magic-builddate, else
+# empty.  buildinfo.c reports an empty MagicCompileTime under that define.
+MAGIC_BUILDDATE_DEFS   = @MAGIC_BUILDDATE_DEFS@
+# Only compute the (volatile) build date when it will actually be baked in --
+# skipping it under --disable-magic-builddate avoids the parse-time date spawn.
+ifeq (${MAGIC_BUILDDATE_DEFS},)
 # Honor SOURCE_DATE_EPOCH (reproducible builds -- appimage/npm tarballs) when set,
 # else the current time.  UTC so the stamp does not depend on the builder's zone.
 MAGIC_BUILDDATE	       ?= $(shell if [ -n "$$SOURCE_DATE_EPOCH" ]; then \
 			date -u -d "@$$SOURCE_DATE_EPOCH" 2>/dev/null \
 			|| date -u -r "$$SOURCE_DATE_EPOCH" 2>/dev/null; \
 			else date; fi | tr -d '\r\n')
+endif
 
 # This allow inheritence of the values from toplevel Makefile
 export MAGIC_VERSION
@@ -169,7 +176,10 @@ CXXFLAGS               = @CXXFLAGS@
 ifeq (@MAKE_READLINE@,1)
 CPPFLAGS              += -I${MAGICSRC}/readline
 endif
-DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
+DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" ${MAGIC_BUILDDATE_DEFS}
+ifeq (${MAGIC_BUILDDATE_DEFS},)
+DFLAGS_MAGICVERSION   += "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
+endif
 DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ -DGCORE=\"@GCORE@\"
 DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" @NDEBUG_defs@ @DEBUG_defs@ ${FEATURE_FLAGS}
 DFLAGS_NOSTUB	       = @extra_defs@             @DEFS@ -DGCORE=\"@GCORE@\"
