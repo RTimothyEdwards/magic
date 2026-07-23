@@ -121,8 +121,15 @@ TCL_LIB_DIR	       = @TCL_LIB_DIR@
 
 MAGIC_VERSION	       ?= $(shell cat ${MAGICSRC}/VERSION | cut -d. -f1-2)
 MAGIC_REVISION	       ?= $(shell cat ${MAGICSRC}/VERSION | cut -d. -f3)
-MAGIC_COMMIT	       ?= $(shell git -C ${MAGICSRC} rev-parse HEAD)
-MAGIC_BUILDDATE	       ?= $(shell date | tr -d '\r\n')
+# git may be absent (source tarball) or ${MAGICSRC} not a work-tree: fall back to
+# empty rather than emitting an error.
+MAGIC_COMMIT	       ?= $(shell git -C ${MAGICSRC} rev-parse HEAD 2>/dev/null)
+# Honor SOURCE_DATE_EPOCH (reproducible builds -- appimage/npm tarballs) when set,
+# else the current time.  UTC so the stamp does not depend on the builder's zone.
+MAGIC_BUILDDATE	       ?= $(shell if [ -n "$$SOURCE_DATE_EPOCH" ]; then \
+			date -u -d "@$$SOURCE_DATE_EPOCH" 2>/dev/null \
+			|| date -u -r "$$SOURCE_DATE_EPOCH" 2>/dev/null; \
+			else date; fi | tr -d '\r\n')
 
 # This allow inheritence of the values from toplevel Makefile
 export MAGIC_VERSION
