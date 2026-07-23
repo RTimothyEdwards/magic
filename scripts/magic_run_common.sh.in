@@ -10,15 +10,103 @@
 # $CAD_ROOT/magic/sys/current" (utils/paths.h) for tech/glyphs/fonts/styles, the
 # system .magicrc at $CAD_ROOT/magic/sys/.magicrc, and (since tcltk/tcldir.h)
 # magic.tcl / tclmagic / auto_path at $CAD_ROOT/magic/tcl.
+#
+# ---------------------------------------------------------------------------
+# Environment overrides (every value below can be pre-set in the environment;
+# each is initialized with ${VAR:-<default>} so the caller's value wins):
+#
+#   CAD_ROOT        Root of the staged runtime tree.  Default: the build tree's
+#                   own $builddir/CAD_DIR (a directory of symlinks, created on
+#                   first run).  Point it elsewhere to reuse a shared/installed
+#                   tree instead of staging one.
+#   MAGIC_WISH      The "wish" binary magic uses for the Tk console.  Default:
+#                   WISH, i.e. the wish detected by configure to match the Tcl/Tk
+#                   this build linked against (--with-tk / --with-wish).  A build
+#                   against a non-standard Tk therefore uses the correct absolute
+#                   wish automatically; override to force a different one.
+#   WISH            Same as above; MAGIC_WISH defaults from it.  Baked default is
+#                   the configure-detected wish (may be empty on a --disable-tcl
+#                   build -- the launchers use the self-contained magicexec and do
+#                   not require an external wish).
+#   TCLSH           tclsh matching this build's Tcl (--with-tcl).  Provided for
+#                   convenience/diagnostics; may be empty if configure found none.
+#   MAGIC_BUILDDIR  Absolute build-tree top.  Default: baked @abs_top_builddir@.
+#   MAGIC_SRCDIR    Absolute source-tree top.  Default: baked @abs_top_srcdir@.
+#
+# Any value that is inherited from the environment (or a baked default that no
+# longer resolves) is sanity-checked below; problems are reported on stderr as
+# non-fatal warnings to aid diagnosis -- see magic_check_env().
+# ---------------------------------------------------------------------------
 
-MAGIC_BUILDDIR="@abs_top_builddir@"
-MAGIC_SRCDIR="@abs_top_srcdir@"
-SHDLIB_EXT="@SHDLIB_EXT@"
+# Record which values the caller supplied (vs. the configure-baked default) so
+# diagnostics can name the origin, then fall back to the baked-in defaults.
+# ${VAR+x} is "x" only when VAR is already set -- safe under `set -u`.
+_origin_MAGIC_BUILDDIR="build default"; [ -n "${MAGIC_BUILDDIR+x}" ] && _origin_MAGIC_BUILDDIR=environment
+_origin_MAGIC_SRCDIR="build default";   [ -n "${MAGIC_SRCDIR+x}" ]   && _origin_MAGIC_SRCDIR=environment
+_origin_CAD_ROOT="build default";       [ -n "${CAD_ROOT+x}" ]       && _origin_CAD_ROOT=environment
+_origin_WISH="build default";           [ -n "${WISH+x}" ]           && _origin_WISH=environment
+_origin_MAGIC_WISH="build default";     [ -n "${MAGIC_WISH+x}" ]     && _origin_MAGIC_WISH=environment
+_origin_TCLSH="build default";          [ -n "${TCLSH+x}" ]          && _origin_TCLSH=environment
 
-CAD_ROOT="${MAGIC_BUILDDIR}/CAD_DIR"
+MAGIC_BUILDDIR="${MAGIC_BUILDDIR:-@abs_top_builddir@}"
+MAGIC_SRCDIR="${MAGIC_SRCDIR:-@abs_top_srcdir@}"
+SHDLIB_EXT="${SHDLIB_EXT:-@SHDLIB_EXT@}"
+
+CAD_ROOT="${CAD_ROOT:-${MAGIC_BUILDDIR}/CAD_DIR}"
 export CAD_ROOT
 MAGIC_SYS="${CAD_ROOT}/magic/sys"
 MAGIC_TCL="${CAD_ROOT}/magic/tcl"
+
+# wish/tclsh that match the Tcl/Tk this tree was configured against.
+WISH="${WISH:-@WISH_EXE@}"
+TCLSH="${TCLSH:-@TCLSH_EXE@}"
+# tkcon.tcl launches the console via ${MAGIC_WISH:=wish}; hand it the matching one.
+MAGIC_WISH="${MAGIC_WISH:-$WISH}"
+[ -n "$MAGIC_WISH" ] && export MAGIC_WISH
+
+# One warning helper for all launchers.
+magic_warn() { printf 'run_magic: warning: %s\n' "$*" >&2; }
+
+# _magic_check NAME KIND ORIGIN VALUE
+#   KIND: mustdir  -- must exist and be a directory
+#         newdir   -- may be absent (created later); if present must be a directory
+#         exec     -- must exist, be a regular file, and be executable
+#         optexec  -- empty is fine (feature not configured); else same as exec
+_magic_check() {
+    _n="$1"; _k="$2"; _o="$3"; _v="$4"
+    case "$_k" in
+        optexec) [ -n "$_v" ] || return 0; _k=exec ;;
+    esac
+    case "$_k" in
+        mustdir)
+            [ -d "$_v" ] || magic_warn "\$$_n ($_o) = '$_v' is not a directory (build tree moved or removed?)" ;;
+        newdir)
+            { [ ! -e "$_v" ] || [ -d "$_v" ]; } || \
+                magic_warn "\$$_n ($_o) = '$_v' exists but is not a directory" ;;
+        exec)
+            if [ ! -e "$_v" ]; then
+                magic_warn "\$$_n ($_o) = '$_v' does not exist"
+            elif [ ! -f "$_v" ]; then
+                magic_warn "\$$_n ($_o) = '$_v' is not a regular file"
+            elif [ ! -x "$_v" ]; then
+                magic_warn "\$$_n ($_o) = '$_v' is not executable"
+            fi ;;
+    esac
+}
+
+# Validate the (possibly environment-inherited) configuration and warn -- never
+# fail -- on anything that looks wrong, so a bad override is easy to spot.
+magic_check_env() {
+    _magic_check MAGIC_BUILDDIR mustdir "$_origin_MAGIC_BUILDDIR" "$MAGIC_BUILDDIR"
+    _magic_check MAGIC_SRCDIR   mustdir "$_origin_MAGIC_SRCDIR"   "$MAGIC_SRCDIR"
+    _magic_check CAD_ROOT       newdir  "$_origin_CAD_ROOT"       "$CAD_ROOT"
+    _magic_check WISH           optexec "$_origin_WISH"           "$WISH"
+    # MAGIC_WISH defaults from WISH; only check it separately when it diverges
+    # (an explicit MAGIC_WISH override) to avoid a duplicate warning.
+    [ "$MAGIC_WISH" = "$WISH" ] || \
+        _magic_check MAGIC_WISH optexec "$_origin_MAGIC_WISH"     "$MAGIC_WISH"
+    _magic_check TCLSH          optexec "$_origin_TCLSH"          "$TCLSH"
+}
 
 # (Re)build the symlink layout.  Idempotent; `ln -sf` relinks so a rebuilt target
 # is always current.  Missing globs (a partial build) are tolerated.
@@ -58,3 +146,6 @@ magic_require_built() {
         exit 1
     fi
 }
+
+# Validate the environment as soon as this file is sourced (warnings only).
+magic_check_env
