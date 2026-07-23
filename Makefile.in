@@ -96,15 +96,16 @@ ${DATABASE_H}: ${MAGICSRC}/database/database.h.in
 prepare: ${DATABASE_H}
 
 # module@<dir> builds <dir>/lib<dir>.o; lib@<dir> builds <dir>/lib<dir>.a.
-# Every module@/lib@ waits for the whole `depend` phase first (it used to be a
-# prereq of the `modules`/`libs` aggregates; moving it onto each per-dir target
-# keeps depend before compilation even under -j).
+# The only thing they must wait for is the generated header (${DATABASE_H}).
+# Header *dependencies* are now discovered automatically per source (.deps, see
+# rules.mak), so there is no separate `depend` phase to gate on -- modules start
+# compiling in parallel immediately.
 MODULE_TARGETS := $(addprefix module@,${MODULES})
 LIB_TARGETS    := $(addprefix lib@,${MODULES})
 .PHONY: $(MODULE_TARGETS) $(LIB_TARGETS)
-$(MODULE_TARGETS): module@%: depend
+$(MODULE_TARGETS): module@%: ${DATABASE_H}
 	@$(call submake,$*,module)
-$(LIB_TARGETS): lib@%: depend
+$(LIB_TARGETS): lib@%: ${DATABASE_H}
 	@$(call submake,$*,lib)
 
 # Cross-module archive edge (-j correctness): libdatabase.a physically archives
@@ -129,23 +130,20 @@ SUBDIRS = bplane cmwind commands database dbwind debug drc extflat extract graph
 
 BUNDLED_MODULES = readline lisp
 
-# Unique list of all subdir that might have Depend file, we have to deduplicate otherwise
-# MAKE will warning loudly.  This list is somewhat empty when defs.mak does not exist
+# Unique, deduplicated subdir list (used by the clean fan-out below).
 SUBDIRS_FILTERED := $(shell echo ${MODULES} ${PROGRAMS} ${SUBDIRS} | tr ' ' '\n' | sort | uniq)
 
-SUBDIRS_DEPEND = $(addsuffix /Depend, ${SUBDIRS_FILTERED})
-
-${SUBDIRS_DEPEND}: ${DATABASE_H}
-	@echo --- making dependencies
-	@$(call submake,$(patsubst %/,%,$(dir $@)),depend)
-
+# Dependencies are generated automatically as a side effect of compiling (see
+# rules.mak .deps); there is no depend phase to run.  "make depend" is kept as a
+# no-op so callers that still invoke it (e.g. the WASM build script) do not error.
 .PHONY: depend
-depend: defs.mak ${SUBDIRS_DEPEND}
+depend:
+	@echo "--- dependencies are generated automatically during compilation"
 
 # tech@<dir>: build a technology dir (goal "all").
 TECH_TARGETS := $(addprefix tech@,${TECHS})
 .PHONY: $(TECH_TARGETS)
-$(TECH_TARGETS): tech@%: depend
+$(TECH_TARGETS): tech@%: ${DATABASE_H}
 	@$(call submake,$*,all)
 
 .PHONY: techs
