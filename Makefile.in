@@ -106,7 +106,13 @@ LIB_TARGETS    := $(addprefix lib@,${MODULES})
 .PHONY: $(MODULE_TARGETS) $(LIB_TARGETS)
 $(MODULE_TARGETS): module@%: ${DATABASE_H}
 	@$(call submake,$*,module)
-$(LIB_TARGETS): lib@%: ${DATABASE_H}
+# lib@X depends on module@X (its OWN module): main@ pulls both `modules` and
+# `libs`, so without this `make -C X module` and `make -C X lib` can run in the
+# same directory at once under -j and race on X's shared *.o (each recipe does
+# `rm $*.o; cc -c $*.o`).  Serializing them per-dir removes the race; module@X
+# builds the objects and lib@X then just archives them.  Cross-dir parallelism is
+# unaffected (lib@X only waits on module@X, not the whole modules phase).
+$(LIB_TARGETS): lib@%: ${DATABASE_H} module@%
 	@$(call submake,$*,lib)
 
 # Cross-module archive edge (-j correctness): libdatabase.a physically archives
