@@ -90,7 +90,9 @@ ncpu() {
 sed_strip_cr() {
   local file=$1 tmp
   tmp=$(mktemp)
-  sed 's/\r//' "$file" > "$tmp" && cat "$tmp" > "$file" && rm "$tmp"
+  # Only write back when a CR was actually stripped, so a clean LF checkout is
+  # left untouched (no mtime bump that could perturb a coexisting native build).
+  sed 's/\r//' "$file" > "$tmp" && { cmp -s "$tmp" "$file" || cat "$tmp" > "$file"; } && rm "$tmp"
 }
 
 if [ $OPT_RELEASE -eq 1 ]; then

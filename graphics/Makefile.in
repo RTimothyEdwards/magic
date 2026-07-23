@@ -31,24 +31,6 @@ X11HELP_PROG   = XHelper7
 include ${MAGICDIR}/defs.mak
 
 SRCS    = ${BASE_SRCS} ${GR_SRCS}
-DEPSRCS = ${BASE_SRCS}
-ifeq (${MAKE_X11},1)
-DEPSRCS += ${X11_SRCS} ${TK_SRCS}
-endif
-ifeq (${MAKE_GL},1)
-DEPSRCS += ${OGL_GL_SRCS} ${TOGL_GL_SRCS}
-ifeq (${MAKE_GLU},1)
-DEPSRCS += ${OGL_GLU_SRCS} ${TOGL_GLU_SRCS}
-endif
-DEPSRCS += ${THREE_D_SRCS}
-endif
-ifeq (${MAKE_X11},1)
-DEPSRCS += ${TKCOMMON_SRCS}
-DEPSRCS += ${X11HELPER_SRCS} ${X11THREAD_SRCS}
-endif
-ifeq (${MAKE_CAIRO},1)
-DEPSRCS += ${TCAIRO_SRCS}
-endif
 # Note GR_SRCS is from defs.mak
 OBJS    = ${BASE_SRCS:.c=.o} ${GR_SRCS:.c=.o}
 CFLAGS += ${GR_CFLAGS}

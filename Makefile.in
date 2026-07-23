@@ -61,8 +61,9 @@ config:
 # -f path).  A phase aggregate (depend, modules, libs, ...) is then just a list
 # of its per-dir targets as prerequisites -- no shell `for` loops, no FORCE
 # pattern-rule hack.  Ordering between phases is expressed as prerequisites on the
-# per-dir targets (e.g. every module@ waits for `depend`), so the graph is correct
-# under `make -jN`, not just left-to-right in a serial build.  '@' never appears
+# per-dir targets (e.g. every module@ waits for the generated header ${DATABASE_H}),
+# so the graph is correct under `make -jN`, not just left-to-right in a serial
+# build.  '@' never appears
 # in a real target name, so it is a safe namespace separator.
 # ---------------------------------------------------------------------------
 
@@ -169,7 +170,7 @@ install-magic:
 	@${MAKE} install-real
 
 # install@<dir>: install one subdir's artifacts (CAD dirs, then the programs).
-INSTALL_TARGETS := $(addprefix install@,${INSTALL_CAD_DIRS} ${PROGRAMS})
+INSTALL_TARGETS := $(addprefix install@,$(sort ${INSTALL_CAD_DIRS} ${PROGRAMS}))
 .PHONY: $(INSTALL_TARGETS)
 $(INSTALL_TARGETS): install@%: install-dirs
 	@$(call submake,$*,install)
@@ -192,7 +193,7 @@ install-tcl:
 	@${MAKE} install-tcl-real
 
 # install-tcl@<dir>: install one subdir's Tcl-flavoured artifacts.
-INSTALLTCL_TARGETS := $(addprefix install-tcl@,${INSTALL_CAD_DIRS} ${PROGRAMS})
+INSTALLTCL_TARGETS := $(addprefix install-tcl@,$(sort ${INSTALL_CAD_DIRS} ${PROGRAMS}))
 .PHONY: $(INSTALLTCL_TARGETS)
 $(INSTALLTCL_TARGETS): install-tcl@%: install-tcl-dirs
 	@$(call submake,$*,install-tcl)
