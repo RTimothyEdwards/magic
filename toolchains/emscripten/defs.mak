@@ -59,3 +59,14 @@ TOP_EXTRA_LIBS += \
     --embed-file ${MAGICDIR}/scmos@/magic/sys/current \
     --embed-file ${MAGICSRC}/windows/windows7.glyphs@/magic/sys/windows7.glyphs \
     --embed-file ${MAGICSRC}/windows/windows7.glyphs@/magic/sys/bw.glyphs
+
+# The ${MAGICDIR}/scmos dir embed above supplies the *generated* tech files, but a
+# technology's "styles" section also needs the display styles + colour maps
+# (scmos ${FILES}: mos.*.dstyle / mos.*.cmap).  Those are *source* files, so out
+# of source they are not in the build tree and the embed misses them -- init then
+# fails with "Couldn't open color map file mos.7bit.std.cmap" / "Cannot load
+# technology".  Embed each from the source tree into the same VFS dir.  $(wildcard)
+# matches only files that exist, so a stale/typo'd name in ${FILES} (e.g. the
+# non-existent mos.7bit.mraster_dstyle) can never break the link.
+SCMOS_DISPLAY := $(wildcard ${MAGICSRC}/scmos/mos.*.dstyle ${MAGICSRC}/scmos/mos.*.cmap)
+TOP_EXTRA_LIBS += $(foreach f,$(SCMOS_DISPLAY),--embed-file $(f)@/magic/sys/current/$(notdir $(f)))
