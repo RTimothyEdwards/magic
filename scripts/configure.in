@@ -370,7 +370,7 @@ extra_defs="$extra_defs -DCAD_DIR=\\\"\${LIBDIR}\\\" -DBIN_DIR=\\\"\${BINDIR}\\\
 X_LIBS=
 X_CFLAGS=
 INC_SPECS=
-DEPEND_FLAG=
+AUTODEP_FLAGS=
 SHLIB_CFLAGS=""
 LD_RUN_PATH=""
 WISH_EXE=""
@@ -1987,9 +1987,25 @@ if test $usingTcl ; then
 
 fi
 
-if test "$GCC" = "yes" ; then
-   DEPEND_FLAG="-MM"
-fi
+dnl Automatic per-file dependency generation.  Compilers that support -MMD -MP
+dnl write a .deps/<stem>.d listing the (non-system) headers a source used, as a
+dnl side effect of compiling it -- replacing the old serial "make depend" pass
+dnl and its sed post-processing, and parallelising with the compile.  Best
+dnl effort: empty if unsupported, and the build proceeds without incremental
+dnl header tracking.  Probed (not assumed from $GCC) so clang and others are
+dnl covered only when they actually produce the file.
+AC_MSG_CHECKING([whether $CC generates dependencies with -MMD -MP])
+magic_save_cflags="$CFLAGS"
+CFLAGS="$CFLAGS -MMD -MP -MF conftest.autodep.d"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+    [if test -f conftest.autodep.d ; then
+        AC_MSG_RESULT([yes]); AUTODEP_FLAGS="-MMD -MP"
+     else
+        AC_MSG_RESULT([no (produced no .d)])
+     fi],
+    [AC_MSG_RESULT([no])])
+rm -f conftest.autodep.d
+CFLAGS="$magic_save_cflags"
 
 
 dnl Substitute all variables
@@ -2032,7 +2048,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(CXX)
 AC_SUBST(CXXFLAGS)
-AC_SUBST(DEPEND_FLAG)
+AC_SUBST(AUTODEP_FLAGS)
 AC_SUBST(SHLIB_CFLAGS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(LD_RUN_PATH)

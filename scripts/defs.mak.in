@@ -200,8 +200,10 @@ LDFLAGS                = @LDFLAGS@
 READLINE_DEFS          = @rl_defs@
 READLINE_LIBS          = @rl_libs@
 
-DEPEND_FILE	       = Depend
-DEPEND_FLAG	       = @DEPEND_FLAG@
+# Per-file dependency flags ("-MMD -MP" when the compiler supports it, else
+# empty); used by the %.o rule in rules.mak to write .deps/<stem>.d as a compile
+# side effect.  Replaces the old serial "make depend" / Depend-file machinery.
+AUTODEP_FLAGS	       = @AUTODEP_FLAGS@
 EXEEXT		       = @EXEEXT@
 
 GR_CFLAGS              = @X_CFLAGS@ @gr_cflags@
@@ -214,12 +216,11 @@ GR_HELPER_PROG         = @gr_hprog@
 OA		       = @OA@
 OA_LIBS		       = @OA_LIBS@
 
-DEPSRCS	  = ${SRCS}
 C_OBJS    = ${SRCS:.c=.o}
 CXX_OBJS  = ${CXXSRCS:.cpp=.o}
 OBJS      = ${CXX_OBJS} ${C_OBJS}
 LIB_OBJS  = ${LIB_SRCS:.c=.o}
-CLEANS    = Depend ${OBJS} ${LIB_OBJS} lib${MODULE}.a lib${MODULE}.o ${MODULE}
+CLEANS    = ${OBJS} ${LIB_OBJS} lib${MODULE}.a lib${MODULE}.o ${MODULE}
 
 # allows Makefile to be selective
 MAKE_TCL           = @MAKE_TCL@
