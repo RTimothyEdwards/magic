@@ -26,14 +26,11 @@ INSTALL_CAD_DIRS = windows doc ${TECHS}
 # the build tree), empty otherwise (the pre-built PostScript is installed as-is).
 DOCS_TARGET = @DOCS_TARGET@
 
-# $(call submake,<dir>,<goal>) -- recurse into a build subdirectory.
-# Every module is a configure-generated Makefile, so config.status
-# already created the build subdir with its Makefile: recurse natively.  The one
-# exception is readline/, which is intentionally never converted; it has no
-# generated Makefile, so it takes the -f path against the source Makefile (and its
-# build subdir is created on demand).
+# $(call submake,<dir>,<goal>) -- recurse into a build subdirectory.  Every module
+# is a configure-generated Makefile, so config.status already created
+# the build subdir with its Makefile; recurse into it natively.
 define submake
-if test "x$(1)" = xreadline; then mkdir -p $(1) && $(MAKE) -C $(1) -f $(MAGICSRC)/$(1)/Makefile $(2); else $(MAKE) -C $(1) $(2); fi
+$(MAKE) -C $(1) $(2)
 endef
 
 all:	$(ALL_TARGET) techs $(DOCS_TARGET)
@@ -57,8 +54,8 @@ config:
 # Declarative subdir recursion.
 #
 # Each (phase, dir) pair is a PHONY target "<phase>@<dir>" whose recipe recurses
-# into <dir> with that phase's goal via $(submake) (so readline/ still takes the
-# -f path).  A phase aggregate (depend, modules, libs, ...) is then just a list
+# into <dir> with that phase's goal via $(submake).  A phase aggregate (modules,
+# libs, ...) is then just a list
 # of its per-dir targets as prerequisites -- no shell `for` loops, no FORCE
 # pattern-rule hack.  Ordering between phases is expressed as prerequisites on the
 # per-dir targets (e.g. every module@ waits for the generated header ${DATABASE_H}),
@@ -135,7 +132,7 @@ libs: $(LIB_TARGETS)
 SUBDIRS = bplane cmwind commands database dbwind debug drc extflat extract graphics \
 	  magic netmenu plow resis select sim textio tiles utils windows wiring
 
-BUNDLED_MODULES = readline lisp
+BUNDLED_MODULES = lisp
 
 # Unique, deduplicated subdir list (used by the clean fan-out below).
 SUBDIRS_FILTERED := $(shell echo ${MODULES} ${PROGRAMS} ${SUBDIRS} | tr ' ' '\n' | sort | uniq)
@@ -207,14 +204,11 @@ $(INSTALLTCL_TARGETS): install-tcl@%: install-tcl-dirs
 install-tcl-real: $(INSTALLTCL_TARGETS)
 
 # clean@<dir>: clean one subdir if it exists.  Must not create dirs (skip absent
-# ones) and must not fail the build (|| true).  readline/ uses the -f path
-# (mirrors $(submake); it is the one unconverted module).
+# ones) and must not fail the build (|| true).
 CLEAN_TARGETS := $(addprefix clean@,$(sort ${SUBDIRS_FILTERED} ${TECHS} ${BUNDLED_MODULES}))
 .PHONY: $(CLEAN_TARGETS)
 $(CLEAN_TARGETS): clean@%:
-	@test -d $* || exit 0; \
-	if test "x$*" = xreadline; then ${MAKE} -C $* -f ${MAGICSRC}/$*/Makefile clean; \
-	else ${MAKE} -C $* clean; fi || true
+	@test -d $* || exit 0; ${MAKE} -C $* clean || true
 
 .PHONY: clean
 clean: $(CLEAN_TARGETS)

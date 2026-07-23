@@ -2058,7 +2058,6 @@ AC_SUBST(MAKE_X11,      [$usingX11])
 AC_SUBST(MAKE_GL,       [$usingOGL])
 AC_SUBST(MAKE_GLU,      [$usingGLU])
 AC_SUBST(MAKE_CAIRO,    [$usingCairo])
-AC_SUBST(MAKE_READLINE, [0])
 
 dnl Name the .in templates explicitly (relative to srcdir) so config.status can
 dnl find them when run from a separate build directory.  Outputs land in the

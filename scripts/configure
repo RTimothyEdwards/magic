@@ -622,7 +622,6 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-MAKE_READLINE
 MAKE_CAIRO
 MAKE_GLU
 MAKE_GL
@@ -9501,8 +9500,6 @@ MAKE_GL=$usingOGL
 MAKE_GLU=$usingGLU
 
 MAKE_CAIRO=$usingCairo
-
-MAKE_READLINE=0
 
 
 ac_config_files="$ac_config_files Makefile:Makefile.in"

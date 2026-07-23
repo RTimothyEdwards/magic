@@ -19,12 +19,11 @@ MAGICSRC               = @abs_top_srcdir@
 BUILD_TOP              := $(abspath $(MAGICDIR))
 # Minimal srcdir fallback.  Every module converted to Makefile.in sets
 # `srcdir` (and VPATH) from @srcdir@ *before* including this file.  The only
-# Makefiles that do NOT are readline/ (intentionally never converted) and the
-# top-level Makefile; neither compiles magic sources through the pattern rules, so
-# neither needs VPATH.  We only default `srcdir` -- derived from where make is
-# running (CURDIR, a build dir) relative to BUILD_TOP -- so that CPPFLAGS, which
-# lists -I${srcdir}, stays well-formed.  The patsubst is an anchored prefix strip:
-# "" at the build top, "/readline" in the readline subdir.
+# Makefile that does NOT is the top-level Makefile, which does not compile magic
+# sources through the pattern rules and so needs no VPATH.  We only default
+# `srcdir` -- derived from where make is running (CURDIR, a build dir) relative to
+# BUILD_TOP -- so that CPPFLAGS, which lists -I${srcdir}, stays well-formed.  The
+# patsubst is an anchored prefix strip: "" at the build top.
 ifeq ($(origin srcdir),undefined)
 srcdir                 := $(MAGICSRC)$(patsubst $(BUILD_TOP)%,%,$(CURDIR))
 endif
@@ -186,12 +185,6 @@ CXX		       = @CXX@
 # -I${srcdir}:   this module's source dir, for same-directory headers
 CPPFLAGS               = -I${GENINC} -I${MAGICSRC} -I${srcdir} @CPPFLAGS@
 CXXFLAGS               = @CXXFLAGS@
-# Bundled GNU readline: its headers use <readline/*.h> includes, so the readline
-# source's parent directory must be on the include path.  Only for the bundled
-# build (@MAKE_READLINE@ = 1); a no-op with a system or disabled readline.
-ifeq (@MAKE_READLINE@,1)
-CPPFLAGS              += -I${MAGICSRC}/readline
-endif
 DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" ${MAGIC_BUILDDATE_DEFS}
 ifeq (${MAGIC_BUILDDATE_DEFS},)
 DFLAGS_MAGICVERSION   += "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
@@ -244,4 +237,3 @@ MAKE_X11           = @MAKE_X11@
 MAKE_GL            = @MAKE_GL@
 MAKE_GLU           = @MAKE_GLU@
 MAKE_CAIRO         = @MAKE_CAIRO@
-MAKE_READLINE      = @MAKE_READLINE@
