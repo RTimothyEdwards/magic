@@ -119,26 +119,39 @@ LIB_SPECS_GRNULL       = @LIB_SPECS_GRNULL@
 WISH_EXE	       = @WISH_EXE@
 TCL_LIB_DIR	       = @TCL_LIB_DIR@
 
-MAGIC_VERSION	       ?= $(shell cat ${MAGICSRC}/VERSION | cut -d. -f1-2)
-MAGIC_REVISION	       ?= $(shell cat ${MAGICSRC}/VERSION | cut -d. -f3)
+# Computed once, simply-expanded (:=), and exported below.  Sub-makes inherit the
+# resulting strings and the `ifndef` guards skip recomputation -- so git/date/cat
+# run once at the top instead of being re-spawned every time make rebuilds the
+# recursively-expanded export for a child (a no-op recursive make otherwise spawns
+# each of them hundreds of times).
+ifndef MAGIC_VERSION
+MAGIC_VERSION	       := $(shell cat ${MAGICSRC}/VERSION | cut -d. -f1-2)
+endif
+ifndef MAGIC_REVISION
+MAGIC_REVISION	       := $(shell cat ${MAGICSRC}/VERSION | cut -d. -f3)
+endif
 # git may be absent (source tarball) or ${MAGICSRC} not a work-tree: fall back to
 # empty rather than emitting an error.
-MAGIC_COMMIT	       ?= $(shell git -C ${MAGICSRC} rev-parse HEAD 2>/dev/null)
+ifndef MAGIC_COMMIT
+MAGIC_COMMIT	       := $(shell git -C ${MAGICSRC} rev-parse HEAD 2>/dev/null)
+endif
 # "-DMAGIC_NO_BUILDDATE" when configured with --disable-magic-builddate, else
 # empty.  buildinfo.c reports an empty MagicCompileTime under that define.
 MAGIC_BUILDDATE_DEFS   = @MAGIC_BUILDDATE_DEFS@
 # Only compute the (volatile) build date when it will actually be baked in --
-# skipping it under --disable-magic-builddate avoids the parse-time date spawn.
+# skipping it under --disable-magic-builddate avoids the date spawn entirely.
 ifeq (${MAGIC_BUILDDATE_DEFS},)
+ifndef MAGIC_BUILDDATE
 # Honor SOURCE_DATE_EPOCH (reproducible builds -- appimage/npm tarballs) when set,
 # else the current time.  @SOURCE_DATE_CMD@ is the platform's epoch->UTC-date
 # invocation, chosen by configure (GNU `date -u -d @` / `gdate` vs BSD
 # `date -u -r `); the epoch is appended here.  The SOURCE_DATE_EPOCH branch is
 # UTC so a reproducible stamp does not depend on the builder's zone; the plain
 # `date` fallback is local.
-MAGIC_BUILDDATE	       ?= $(shell if [ -n "$$SOURCE_DATE_EPOCH" ]; then \
+MAGIC_BUILDDATE	       := $(shell if [ -n "$$SOURCE_DATE_EPOCH" ]; then \
 			@SOURCE_DATE_CMD@$$SOURCE_DATE_EPOCH; \
 			else date; fi | tr -d '\r\n')
+endif
 endif
 
 # This allow inheritence of the values from toplevel Makefile
