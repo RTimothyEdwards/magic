@@ -691,6 +691,7 @@ ALLOCA
 EGREP
 GREP
 PERL
+CCACHE
 SED
 RANLIB
 INSTALL_DATA
@@ -760,6 +761,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_ccache
 with_gnu_ld
 enable_assertions
 enable_debug
@@ -1425,6 +1427,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-ccache             do not use ccache even if it is installed
   --enable-assertions          build with fatal assertions enabled
   --enable-debug               build with fatal debug enabled
   --disable-compression        disable file compression
@@ -4232,6 +4235,59 @@ $as_echo "$ac_cv_path_SED" >&6; }
  SED="$ac_cv_path_SED"
   rm -f conftest.sed
 
+
+# Check whether --enable-ccache was given.
+if test "${enable_ccache+set}" = set; then :
+  enableval=$enable_ccache;
+else
+  enable_ccache=yes
+fi
+
+if test "x$enable_ccache" = "xyes"; then
+    # Extract the first word of "ccache", so it can be a program name with args.
+set dummy ccache; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_CCACHE+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$CCACHE"; then
+  ac_cv_prog_CCACHE="$CCACHE" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_CCACHE="ccache"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+CCACHE=$ac_cv_prog_CCACHE
+if test -n "$CCACHE"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CCACHE" >&5
+$as_echo "$CCACHE" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    if test "x$CCACHE" != "x"; then
+        CC="$CCACHE $CC"
+        test "x$CXX" != "x" && CXX="$CCACHE $CXX"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: using ccache: CC=\"$CC\"" >&5
+$as_echo "$as_me: using ccache: CC=\"$CC\"" >&6;}
+    fi
+fi
 
 # Extract the first word of "perl", so it can be a program name with args.
 set dummy perl; ac_word=$2
