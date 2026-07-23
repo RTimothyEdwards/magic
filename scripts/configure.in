@@ -49,6 +49,32 @@ if test "x$enable_ccache" = "xyes"; then
     fi
 fi
 
+dnl Optional: normalize the absolute source-root prefix embedded in compiled
+dnl output (__FILE__, debug info) so a cached object is valid regardless of which
+dnl checkout / build dir produced it -- needed for *correct* cross-tree ccache
+dnl sharing (which also wants CCACHE_BASEDIR=<build top> in the environment at
+dnl build time; see the README).  Off by default: it relativizes debug paths, so
+dnl gdb then needs `set substitute-path . <srcdir>`.  Requires GCC 8+/clang, so
+dnl the flag is probed before use.  Same-tree cache hits do NOT need this (the
+dnl command-line paths already match); it is purely for cross-tree correctness.
+CCACHE_PREFIX_MAP_FLAG=""
+AC_ARG_ENABLE(ccache-prefix-map,
+[  --enable-ccache-prefix-map   relativize embedded source paths for cross-tree ccache (needs ccache; makes debug paths relative)],
+[
+    if test "x$CCACHE" = "x"; then
+        AC_MSG_WARN([--enable-ccache-prefix-map ignored: ccache is not in use])
+    else
+        AC_MSG_CHECKING([whether $CC accepts -ffile-prefix-map])
+        magic_save_cflags="$CFLAGS"
+        CFLAGS="$CFLAGS -ffile-prefix-map=/nonexistent=."
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+            [AC_MSG_RESULT([yes]); CCACHE_PREFIX_MAP_FLAG="-ffile-prefix-map"],
+            [AC_MSG_RESULT([no]); AC_MSG_WARN([compiler lacks -ffile-prefix-map; not relativizing paths])])
+        CFLAGS="$magic_save_cflags"
+    fi
+])
+AC_SUBST(CCACHE_PREFIX_MAP_FLAG)
+
 AC_PATH_PROG(PERL, perl, no)
 AC_SUBST(PERL)
 

@@ -691,6 +691,7 @@ ALLOCA
 EGREP
 GREP
 PERL
+CCACHE_PREFIX_MAP_FLAG
 CCACHE
 SED
 RANLIB
@@ -762,6 +763,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_ccache
+enable_ccache_prefix_map
 with_gnu_ld
 enable_assertions
 enable_debug
@@ -1428,6 +1430,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-ccache             do not use ccache even if it is installed
+  --enable-ccache-prefix-map   relativize embedded source paths for cross-tree ccache (needs ccache; makes debug paths relative)
   --enable-assertions          build with fatal assertions enabled
   --enable-debug               build with fatal debug enabled
   --disable-compression        disable file compression
@@ -4288,6 +4291,45 @@ fi
 $as_echo "$as_me: using ccache: CC=\"$CC\"" >&6;}
     fi
 fi
+
+CCACHE_PREFIX_MAP_FLAG=""
+# Check whether --enable-ccache-prefix-map was given.
+if test "${enable_ccache_prefix_map+set}" = set; then :
+  enableval=$enable_ccache_prefix_map;
+    if test "x$CCACHE" = "x"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --enable-ccache-prefix-map ignored: ccache is not in use" >&5
+$as_echo "$as_me: WARNING: --enable-ccache-prefix-map ignored: ccache is not in use" >&2;}
+    else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC accepts -ffile-prefix-map" >&5
+$as_echo_n "checking whether $CC accepts -ffile-prefix-map... " >&6; }
+        magic_save_cflags="$CFLAGS"
+        CFLAGS="$CFLAGS -ffile-prefix-map=/nonexistent=."
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }; CCACHE_PREFIX_MAP_FLAG="-ffile-prefix-map"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }; { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: compiler lacks -ffile-prefix-map; not relativizing paths" >&5
+$as_echo "$as_me: WARNING: compiler lacks -ffile-prefix-map; not relativizing paths" >&2;}
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+        CFLAGS="$magic_save_cflags"
+    fi
+
+fi
+
+
 
 # Extract the first word of "perl", so it can be a program name with args.
 set dummy perl; ac_word=$2

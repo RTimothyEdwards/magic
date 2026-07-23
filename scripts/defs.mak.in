@@ -186,6 +186,15 @@ DFLAGS_NOSTUB	       = @extra_defs@             @DEFS@ -DGCORE=\"@GCORE@\"
 DFLAGS_NOSTUB	      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" @NDEBUG_defs@ @DEBUG_defs@ ${FEATURE_FLAGS}
 CFLAGS                 = @CFLAGS@ @SHLIB_CFLAGS@ @INC_SPECS@
 
+# Set only by configure --enable-ccache-prefix-map (empty otherwise).  Maps the
+# absolute source root to "." in the compiled output so a cached object carries
+# no tree-specific paths -- required for correct cross-tree ccache sharing (pair
+# with CCACHE_BASEDIR=<build top> in the environment for cross-tree *hits*).
+CCACHE_PREFIX_MAP_FLAG = @CCACHE_PREFIX_MAP_FLAG@
+ifneq (${CCACHE_PREFIX_MAP_FLAG},)
+CFLAGS                += ${CCACHE_PREFIX_MAP_FLAG}=${MAGICSRC}=.
+endif
+
 LDFLAGS                = @LDFLAGS@
 
 READLINE_DEFS          = @rl_defs@
