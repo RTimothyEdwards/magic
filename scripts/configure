@@ -793,7 +793,6 @@ enable_framebuffer_backing_store
 enable_plot
 enable_lef
 enable_readline
-enable_readline_bundled
 enable_threads
 enable_route
 enable_rsim
@@ -1447,8 +1446,8 @@ Optional Features:
   --disable-framebuffer-backing-store     disable OpenGL framebuffer backing store
   --disable-plot               disable plot package
   --disable-lef                disable LEF package
-  --disable-readline           disable readline package
-  --enable-readline-bundled    enable readline bundled package
+  --disable-readline           do not use the system readline library even if
+                                it is present (build without command-line editing)
   --disable-threads            disable threaded graphics
   --disable-route              disable routing package
   --disable-rsim               disable IRSIM tool
@@ -8241,24 +8240,18 @@ else
 fi
 
 
-use_system_readline=yes
-use_bundled_readline=auto
+if test "x$enable_readline" = "xyes" ; then
+                $as_echo "#define USE_READLINE 1" >>confdefs.h
 
-# Check whether --enable-readline-bundled was given.
-if test "${enable_readline_bundled+set}" = set; then :
-  enableval=$enable_readline_bundled;  use_bundled_readline=yes
+    use_system_readline=yes
+    ac_fn_c_check_header_mongrel "$LINENO" "readline/readline.h" "ac_cv_header_readline_readline_h" "$ac_includes_default"
+if test "x$ac_cv_header_readline_readline_h" = xyes; then :
 
 else
-
-  use_bundled_readline=no
-
+  use_system_readline=no
 fi
 
 
-if test "x$enable_readline" = "xyes" ; then
-    $as_echo "#define USE_READLINE 1" >>confdefs.h
-
-    if test $use_bundled_readline != yes ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for rl_pre_input_hook in -lreadline" >&5
 $as_echo_n "checking for rl_pre_input_hook in -lreadline... " >&6; }
 if ${ac_cv_lib_readline_rl_pre_input_hook+:} false; then :
@@ -8296,7 +8289,11 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_pre_input_hook" >&5
 $as_echo "$ac_cv_lib_readline_rl_pre_input_hook" >&6; }
 if test "x$ac_cv_lib_readline_rl_pre_input_hook" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
 
+  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8339,7 +8336,11 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_username_completion_function" >&5
 $as_echo "$ac_cv_lib_readline_rl_username_completion_function" >&6; }
 if test "x$ac_cv_lib_readline_rl_username_completion_function" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
 
+  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8382,7 +8383,11 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_filename_completion_function" >&5
 $as_echo "$ac_cv_lib_readline_rl_filename_completion_function" >&6; }
 if test "x$ac_cv_lib_readline_rl_filename_completion_function" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
 
+  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8425,115 +8430,30 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_attempted_completion_over" >&5
 $as_echo "$ac_cv_lib_readline_rl_attempted_completion_over" >&6; }
 if test "x$ac_cv_lib_readline_rl_attempted_completion_over" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
 
+  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
 fi
 
-    fi
-    if test $use_system_readline = yes && test $use_bundled_readline != yes; then
+    if test $use_system_readline = yes ; then
 	$as_echo "#define HAVE_READLINE 1" >>confdefs.h
 
 	rl_libs="-lreadline"
-        use_bundled_readline=
     else
-	echo "Using bundled readline"
-	$as_echo "#define NEED_READLINE 1" >>confdefs.h
+	as_fn_error $? "no usable GNU readline library found.
 
-	# not readline/libhistory.a (seems subset of libreadline.a)
-	rl_libs="\${MAGICDIR}/readline/libreadline.a"
-	CPPFLAGS="$CPPFLAGS -I\${MAGICDIR}/readline"
-        use_bundled_readline=1
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltermcap" >&5
-$as_echo_n "checking for tgetent in -ltermcap... " >&6; }
-if ${ac_cv_lib_termcap_tgetent+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ltermcap  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char tgetent ();
-int
-main ()
-{
-return tgetent ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_termcap_tgetent=yes
-else
-  ac_cv_lib_termcap_tgetent=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_termcap_tgetent" >&5
-$as_echo "$ac_cv_lib_termcap_tgetent" >&6; }
-if test "x$ac_cv_lib_termcap_tgetent" = xyes; then :
-
-	rl_libs="$rl_libs -ltermcap"
-
-else
-
-	   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -lncurses" >&5
-$as_echo_n "checking for tgetent in -lncurses... " >&6; }
-if ${ac_cv_lib_ncurses_tgetent+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lncurses  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char tgetent ();
-int
-main ()
-{
-return tgetent ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ncurses_tgetent=yes
-else
-  ac_cv_lib_ncurses_tgetent=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ncurses_tgetent" >&5
-$as_echo "$ac_cv_lib_ncurses_tgetent" >&6; }
-if test "x$ac_cv_lib_ncurses_tgetent" = xyes; then :
-
-	      rl_libs="$rl_libs -lncurses"
-
-fi
-
-
-fi
-
-        modules="$modules readline"
+magic needs either Tcl/Tk (recommended) or the system GNU readline development
+package to build an interactive non-Tcl version.  Please do one of:
+  * build with Tcl/Tk (the default when Tcl is installed); or
+  * install the readline development package (e.g. libreadline-dev on Debian/
+    Ubuntu, readline-devel on Fedora/RHEL, or 'brew install readline'); or
+  * re-run configure with --disable-readline to build without command-line
+    editing." "$LINENO" 5
     fi
 else
   unused="$unused readline"
@@ -9582,7 +9502,7 @@ MAKE_GLU=$usingGLU
 
 MAKE_CAIRO=$usingCairo
 
-MAKE_READLINE=$use_bundled_readline
+MAKE_READLINE=0
 
 
 ac_config_files="$ac_config_files Makefile:Makefile.in"

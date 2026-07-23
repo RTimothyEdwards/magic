@@ -153,6 +153,11 @@ jobs:
 
           #
           _configure_args=()
+          # "none" installs no dev packages (no libreadline-dev among them).  Since
+          # configure now requires system readline for a non-Tcl build (unless told
+          # otherwise), the minimal "none" build must pass --disable-readline.
+          if [ "${MATRIX_PKGS}" = "none" ]; then
+            _configure_args+=(--disable-readline); fi
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_zl"; then
             _configure_args+=(--disable-compression); fi
           if echo -n "$MATRIX_PKGS" | grep -q "^no.*_brl"; then
