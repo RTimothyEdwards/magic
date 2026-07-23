@@ -26,11 +26,6 @@ MAKE_WASM = 1
 LINK = $(LD) -r $(LDFLAGS)
 
 # Emscripten linker flags.
-# The link step runs from the magic/ build subdirectory.  Embed-file inputs
-# must name the *right tree*: generated data (the scmos tech files, produced by
-# `make techs`) lives in the build tree, so use ${MAGICDIR} (the build top);
-# verbatim data (the window glyphs, shipped as source) lives in the source tree,
-# so use ${MAGICSRC}.  In-tree the two coincide.
 #
 # INCOMING_MODULE_JS_API is emscripten's default list plus `wasmBinary`.
 # Our JS loaders (npm/examples/*.js) pass Module.wasmBinary to embed the .wasm,
@@ -40,6 +35,12 @@ LINK = $(LD) -r $(LDFLAGS)
 # in INCOMING_MODULE_JS_API". We spell out the full default list (so external
 # consumers passing locateFile/arguments/etc. keep working) and re-add
 # wasmBinary. Keep this in sync with emscripten's default if it grows.
+#
+# The link step runs from the magic/ build subdirectory.  Embed-file inputs
+# must name the *right tree*: generated data (the scmos tech files, produced by
+# `make techs`) lives in the build tree, so use ${MAGICDIR} (the build top);
+# verbatim data (the window glyphs, shipped as source) lives in the source tree,
+# so use ${MAGICSRC}.  In-tree the two coincide.
 TOP_EXTRA_LIBS += \
     ${TOP_FIRST_LIBS_WASM} \
     -sWASM=1 \
