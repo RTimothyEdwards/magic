@@ -25,13 +25,8 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include <string.h>
 
 #ifdef USE_READLINE
-#ifdef HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
-#else
-#include "readline/readline/readline.h"
-#include "readline/readline/history.h"
-#endif
 #endif
 
 #include "tcltk/tclmagic.h"

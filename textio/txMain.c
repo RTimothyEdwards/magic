@@ -46,13 +46,8 @@ global bool TxStdinIsatty;
 global bool TxStdoutIsatty;
 
 #ifdef USE_READLINE
-#ifdef HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
-#else
-#include "readline/readline/readline.h"
-#include "readline/readline/history.h"
-#endif
 
 int TxPrefix(void);
 extern char **magic_completion_function(const char *, int, int);
