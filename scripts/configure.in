@@ -2066,6 +2066,14 @@ dnl under build/scripts/ (matching ${SCRIPTS}/makedbh = ${MAGICDIR}/scripts).
 AC_CONFIG_FILES([Makefile:Makefile.in])
 AC_CONFIG_FILES([defs.mak:scripts/defs.mak.in])
 AC_CONFIG_FILES([scripts/makedbh:scripts/makedbh.in], [chmod +x scripts/makedbh])
+
+dnl Build-tree launch helpers: run magic straight from the build dir (no install)
+dnl by staging a CAD_ROOT symlink tree and exec-ing the right variant.
+AC_CONFIG_FILES([magic_run_common.sh:scripts/magic_run_common.sh.in])
+AC_CONFIG_FILES([run_magic.sh:scripts/run_magic.sh.in], [chmod +x run_magic.sh])
+AC_CONFIG_FILES([run_magicnull.sh:scripts/run_magicnull.sh.in], [chmod +x run_magicnull.sh])
+AC_CONFIG_FILES([run_magic_gdb.sh:scripts/run_magic_gdb.sh.in], [chmod +x run_magic_gdb.sh])
+AC_CONFIG_FILES([run_magic_valgrind.sh:scripts/run_magic_valgrind.sh.in], [chmod +x run_magic_valgrind.sh])
 dnl rules.mak is included straight from the source tree (${MAGICSRC}/rules.mak),
 dnl so it is NOT copied into the build top.  Only defs.mak (which has @...@
 dnl substitutions) is generated there.

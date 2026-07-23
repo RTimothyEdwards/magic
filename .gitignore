@@ -10,6 +10,14 @@ scripts/defs.mak
 # produced from Makefile.in, and config.status runs in the build directory.
 /Makefile
 /config.status
+# Build-tree launch helpers (configure-generated) + the CAD_ROOT symlink tree they
+# stage; in-tree these land in the source root.
+/run_magic.sh
+/run_magicnull.sh
+/run_magic_gdb.sh
+/run_magic_valgrind.sh
+/magic_run_common.sh
+/CAD_DIR/
 install.log
 make.log
 reconfigure.sh
