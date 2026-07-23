@@ -12,6 +12,11 @@ make -j$(sysctl -n hw.ncpu)
 make install # may need sudo depending on your setup
 ```
 
+> Optional: `coreutils` (for GNU `gdate`) is **not required** — reproducible
+> `SOURCE_DATE_EPOCH` builds work with the native BSD `date` too, and `configure`
+> auto-detects either. Install it (`brew install coreutils`) only if you prefer
+> GNU `date`.
+
 ## Without Brew
 Get [XQuartz](https://github.com/XQuartz/XQuartz)
 
