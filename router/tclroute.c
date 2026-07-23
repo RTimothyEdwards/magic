@@ -51,7 +51,7 @@ Tclroute_Init(interp)
 
     /* Sanity checks! */
     if (interp == NULL) return TCL_ERROR;
-    if (Tcl_PkgRequire(interp, "Tclmagic", MAGIC_VERSION, 0) == NULL)
+    if (Tcl_PkgRequire(interp, "Tclmagic", MagicVersion, 0) == NULL)
 	return TCL_ERROR;
     if (Tcl_InitStubs(interp, Tclmagic_InitStubsVersion, 0) == NULL) return TCL_ERROR;
 
@@ -88,7 +88,7 @@ Tclroute_Init(interp)
     invsec &= TechSectionGetMask("router", NULL);
     if (!TechLoad(NULL, invsec)) return TCL_ERROR;
 
-    Tcl_PkgProvide(interp, "Route", MAGIC_VERSION);
+    Tcl_PkgProvide(interp, "Route", MagicVersion);
     return TCL_OK;
 }
 

@@ -163,9 +163,9 @@ ifeq (@MAKE_READLINE@,1)
 CPPFLAGS              += -I${MAGICSRC}/readline
 endif
 DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
-DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"
+DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ -DGCORE=\"@GCORE@\"
 DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" @NDEBUG_defs@ @DEBUG_defs@ ${FEATURE_FLAGS}
-DFLAGS_NOSTUB	       = @extra_defs@             @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"
+DFLAGS_NOSTUB	       = @extra_defs@             @DEFS@ -DGCORE=\"@GCORE@\"
 DFLAGS_NOSTUB	      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" @NDEBUG_defs@ @DEBUG_defs@ ${FEATURE_FLAGS}
 CFLAGS                 = @CFLAGS@ @SHLIB_CFLAGS@ @INC_SPECS@
 

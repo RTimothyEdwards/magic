@@ -52,7 +52,6 @@ char *EFArgTech = NULL;		/* -T: Tech specified on command line */
 
     /* Misc globals */
 float EFScale = 0.0;		/* Uninitialized scale factor */
-char *EFVersion = MAGIC_VERSION;/* Version number of .ext format we read */
 char *EFLibPath = NULL;		/* Library search path for .ext files */
 char *EFTech = NULL;
 char *EFStyle = NULL;		/* Start with no extraction style */

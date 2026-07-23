@@ -9,7 +9,7 @@ srcdir    = @srcdir@
 VPATH     = @srcdir@
 MAGICDIR  = @top_builddir@
 LIB_SRCS  = LIBdbio.c LIBmain.c LIBtextio.c
-SRCS      = args.c child.c dqueue.c finddisp.c flock.c flsbuf.c fraction.c \
+SRCS      = args.c buildinfo.c child.c dqueue.c finddisp.c flock.c flsbuf.c fraction.c \
             geometry.c getrect.c hash.c heap.c ihash.c list.c lookup.c \
 	    lookupany.c lookupfull.c macros.c main.c malloc.c match.c \
 	    maxrect.c netlist.c niceabort.c parser.c path.c pathvisit.c \
@@ -23,3 +23,9 @@ DFLAGS += ${GR_DFLAGS}
 CFLAGS += ${GR_CFLAGS}
 
 include ${MAGICSRC}/rules.mak
+
+# buildinfo.c is the ONLY unit that consumes the version defines; they are no
+# longer on the global DFLAGS (that kept the ever-changing MAGIC_BUILDDATE off
+# every other compile command line, so ccache/sccache keys stay stable).  Apply
+# them just here, target-specifically.
+buildinfo.o: DFLAGS += ${DFLAGS_MAGICVERSION}

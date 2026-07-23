@@ -208,7 +208,7 @@ Exttosim_Init(
 {
     /* Sanity checks! */
     if (interp == NULL) return TCL_ERROR;
-    if (Tcl_PkgRequire(interp, "Tclmagic", MAGIC_VERSION, 0) == NULL)
+    if (Tcl_PkgRequire(interp, "Tclmagic", MagicVersion, 0) == NULL)
 	return TCL_ERROR;
     if (Tcl_InitStubs(interp, Tclmagic_InitStubsVersion, 0) == NULL) return TCL_ERROR;
 
@@ -225,7 +225,7 @@ Exttosim_Init(
     if (WindReplaceCommand(DBWclientID, "ext2sim", CmdExtToSim) < 0)
 	return TCL_ERROR;
 
-    Tcl_PkgProvide(interp, "Exttosim", MAGIC_VERSION);
+    Tcl_PkgProvide(interp, "Exttosim", MagicVersion);
     return TCL_OK;
 }
 

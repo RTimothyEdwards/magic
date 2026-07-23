@@ -44,7 +44,7 @@ Tclplot_Init(interp)
 
     /* Sanity checks! */
     if (interp == NULL) return TCL_ERROR;
-    if (Tcl_PkgRequire(interp, "Tclmagic", MAGIC_VERSION, 0) == NULL)
+    if (Tcl_PkgRequire(interp, "Tclmagic", MagicVersion, 0) == NULL)
 	return TCL_ERROR;
     if (Tcl_InitStubs(interp, Tclmagic_InitStubsVersion, 0) == NULL) return TCL_ERROR;
 
@@ -67,7 +67,7 @@ Tclplot_Init(interp)
     invplot = TechSectionGetMask("plot", NULL);
     if (!TechLoad(NULL, invplot)) return TCL_ERROR;
 
-    Tcl_PkgProvide(interp, "Plot", MAGIC_VERSION);
+    Tcl_PkgProvide(interp, "Plot", MagicVersion);
     return TCL_OK;
 }
 

@@ -48,13 +48,10 @@
 #include "dbwind/dbwind.h"
 
 /*
- * String containing the version number of magic.  Don't change the string
- * here, nor its format.  It is updated by the Makefile in this directory.
+ * MagicVersion / MagicRevision / MagicCompileTime are defined once in
+ * utils/buildinfo.c and declared in utils/magic_buildinfo.h (included via
+ * utils/magic.h).  They no longer need a MAGIC_WRAPPER-guarded definition here.
  */
-
-char *MagicVersion = MAGIC_VERSION;
-char *MagicRevision = MAGIC_REVISION;
-char *MagicCompileTime = MAGIC_BUILDDATE;
 
 #if TCL_MAJOR_VERSION < 9
 const char *Tclmagic_InitStubsVersion = "8.5";
@@ -1500,7 +1497,7 @@ Tclmagic_Init(interp)
 	Tcl_SetVar(interp, "CAD_ROOT", cadroot, TCL_GLOBAL_ONLY);
     }
 
-    Tcl_PkgProvide(interp, "Tclmagic", MAGIC_VERSION);
+    Tcl_PkgProvide(interp, "Tclmagic", MagicVersion);
     return TCL_OK;
 }
 
