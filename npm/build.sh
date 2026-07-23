@@ -84,16 +84,6 @@ ncpu() {
   fi
 }
 
-# Portable in-place sed (BSD sed on macOS disagrees with GNU on -i).
-# Uses redirect-back instead of mv so the file's mode bits are preserved
-# (configure must stay executable across build.sh invocations).
-sed_strip_cr() {
-  local file=$1 tmp
-  tmp=$(mktemp)
-  # Only write back when a CR was actually stripped, so a clean LF checkout is
-  # left untouched (no mtime bump that could perturb a coexisting native build).
-  sed 's/\r//' "$file" > "$tmp" && { cmp -s "$tmp" "$file" || cat "$tmp" > "$file"; } && rm "$tmp"
-}
 
 if [ $OPT_RELEASE -eq 1 ]; then
   EXTRA_CFLAGS="-O2"
@@ -171,10 +161,8 @@ build_variant() {
   rm -rf "$build_dir"
   mkdir -p "$build_dir"
 
-  # Strip Windows CRLF line endings on the configure inputs (in the source tree,
-  # read by configure; no-op on Linux-native files).
-  sed_strip_cr "$REPO_ROOT/configure"
-  find "$REPO_ROOT/scripts/" -type f -print0 | while IFS= read -r -d '' f; do sed_strip_cr "$f"; done
+  # configure and scripts/ are kept LF by .gitattributes (eol=lf), so no CRLF
+  # stripping is needed here even on a Windows checkout with core.autocrlf=true.
 
   cd "$build_dir"
 

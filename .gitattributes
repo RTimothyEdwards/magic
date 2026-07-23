@@ -6,3 +6,14 @@
 Makefile	filter=header
 
 *.gds		diff=gds
+
+# Keep build/shell scripts and makefiles LF even when checked out on Windows
+# (git core.autocrlf=true), or the shell and make reject CRLF.  .gitattributes
+# overrides core.autocrlf, so this is the authoritative fix and the WASM build
+# (npm/build.sh) no longer needs to strip CRs from the source tree.
+/configure	text eol=lf
+/scripts/**	text eol=lf
+*.sh		text eol=lf
+*.mak		text eol=lf
+*.mak.in	text eol=lf
+Makefile.in	text eol=lf
