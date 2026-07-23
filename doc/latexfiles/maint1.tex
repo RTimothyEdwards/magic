@@ -601,7 +601,7 @@ magic under a debugger is the following:
 
 \starti
   \ii set pid=`ps --no-headers -o pid= -C wish` \\
-  \ii gdb program $pid
+  \ii gdb program \$pid
 \endi
 
 which is a simple invocation for Linux systems.  If it is not
@@ -610,11 +610,11 @@ process ID can be obtained visually from the {\bf ps} command
 and given to {\bf gdb} as the process ID to attach to:
 
 \starti
-  \ii ps -C wish
-  \ii gdb program {\itshape process_ID}
+  \ii ps -C wish \\
+  \ii gdb program {\itshape process\_ID}
 \endi
 
-wher the first command returns {\itshape process_ID}, the  process ID of
+wher the first command returns {\itshape process\_ID}, the  process ID of
 the {\bfseries wish} process.  If the
 version of {\bfseries ps} on your system does not support the {\bfseries
 -C} option, there are other options that will report the {\bfseries wish}
@@ -629,10 +629,10 @@ procedure to attach to the process prior to initialization is the
 following:
 
 \starti
-  \ii gdb wish
-  \ii run
-  \ii set argc 3
-  \ii set argv \{-w -d OGL\}
+  \ii gdb wish \\
+  \ii run \\
+  \ii set argc 3 \\
+  \ii set argv \{-w -d OGL\} \\
   \ii source /usr/local/lib/magic/tcl/magic.tcl
 \endi
 
