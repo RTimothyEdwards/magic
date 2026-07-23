@@ -9,12 +9,20 @@
 #   "magicexec".  Symbols come straight from the build tree.
 #
 # USAGE
-#   ./run_magic_gdb.sh [magic-args...]        # then `run` at the (gdb) prompt
-#   For batch/no-GUI debugging (no X display needed, reproducible), debug the null
-#   binary instead:
-#     gdb --args "$MAGIC_TCL/magicdnull" -dnull -nowrapper
+#   ./run_magic_gdb.sh [gdb-opts...] [-- [magic-args...]]
+#
+#   A "--" separates gdb's own options from magic's:
+#       ./run_magic_gdb.sh                         # plain interactive gdb
+#       ./run_magic_gdb.sh foo.mag                 # no "--" => all args go to magic
+#       ./run_magic_gdb.sh -tui -- foo.mag         # gdb gets -tui, magic gets foo.mag
+#       ./run_magic_gdb.sh -ex run -- -dnull       # gdb runs immediately; magic -dnull
+#   With no "--", every argument is passed to magic (the common case).
+#
+#   For batch/no-GUI debugging point it at the null device:  ... -- -dnull
 #
 # ENVIRONMENT OVERRIDES (all optional; each wins over the baked default)
+#   GDB         debugger binary to use (default: gdb on PATH)
+#   GDB_OPTS    default gdb options, prepended before any given on the command line
 #   CAD_ROOT    reuse an alternate runtime tree instead of staging $builddir/CAD_DIR
 #   MAGIC_WISH  wish for the Tk console (default: the configure-matched wish)
 #   WISH TCLSH  wish/tclsh matching this build's Tcl/Tk (--with-tk / --with-tcl)
@@ -25,7 +33,15 @@ set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
 . "$here/magic_run_common.sh"
 
+GDB="${GDB:-gdb}"
+command -v "$GDB" >/dev/null 2>&1 || magic_warn "debugger '$GDB' not found on PATH"
+
 magic_require_built
 magic_stage
+magic_split_args "$@"
 
-exec gdb --args "$MAGIC_TCL/magicexec" -- "$@"
+# gdb <opts> --args magicexec -- <magic-args>
+exec "$GDB" ${GDB_OPTS-} \
+    ${MAGIC_TOOL_OPTS[@]+"${MAGIC_TOOL_OPTS[@]}"} \
+    --args "$MAGIC_TCL/magicexec" -- \
+    ${MAGIC_ARGS[@]+"${MAGIC_ARGS[@]}"}

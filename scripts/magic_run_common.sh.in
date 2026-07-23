@@ -138,6 +138,26 @@ magic_stage() {
     ln -sfn "$s"/magic/bitmaps                            "$MAGIC_TCL"/bitmaps 2>/dev/null || :
 }
 
+# Split a launcher's argv on the first "--":
+#     <tool-opts...> -- <magic-args...>
+# Everything before "--" is for the wrapper tool (gdb/valgrind); everything after
+# is magic's.  With no "--" present, ALL arguments are treated as magic's -- the
+# common case where no tool options are needed.  Results are returned in the
+# arrays MAGIC_TOOL_OPTS and MAGIC_ARGS.
+magic_split_args() {
+    MAGIC_TOOL_OPTS=()
+    MAGIC_ARGS=()
+    local seen=0 a
+    for a in "$@"; do
+        if [ "$seen" -eq 0 ] && [ "$a" = "--" ]; then seen=1; continue; fi
+        if [ "$seen" -eq 1 ]; then MAGIC_ARGS+=("$a"); else MAGIC_TOOL_OPTS+=("$a"); fi
+    done
+    if [ "$seen" -eq 0 ]; then
+        MAGIC_ARGS=(${MAGIC_TOOL_OPTS[@]+"${MAGIC_TOOL_OPTS[@]}"})
+        MAGIC_TOOL_OPTS=()
+    fi
+}
+
 # Fail early with a clear message if the build has not produced the binaries yet.
 magic_require_built() {
     if [ ! -x "$MAGIC_BUILDDIR/tcltk/magicexec" ] && \
