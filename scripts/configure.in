@@ -29,6 +29,23 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_SED
 
+dnl SOURCE_DATE_EPOCH -> UTC date, for reproducible builds.  GNU date (Linux, or
+dnl coreutils `gdate` on macOS) converts an epoch with `-d @EPOCH`; BSD date
+dnl (native macOS/*BSD) uses `-r EPOCH`.  Decide here, at configure time, because
+dnl runtime probing is unreliable: BSD `date -d` silently mis-parses `@EPOCH` (it
+dnl reads -d as a DST flag) and prints the wrong time rather than failing.  Prefer
+dnl `gdate`; else a `date` that really is GNU (verified by the epoch-0 output
+dnl containing 1970); else fall back to BSD `date -r`.
+AC_CHECK_PROGS([GDATE], [gdate])
+if test -n "$GDATE"; then
+    SOURCE_DATE_CMD="$GDATE -u -d @"
+elif date -u -d @0 2>/dev/null | grep -q 1970; then
+    SOURCE_DATE_CMD="date -u -d @"
+else
+    SOURCE_DATE_CMD="date -u -r "
+fi
+AC_SUBST([SOURCE_DATE_CMD])
+
 dnl Prefix the compilers with ccache when it is installed (autodetected; opt out
 dnl with --disable-ccache).  Done after the AC_PROG_C* checks above so those
 dnl feature tests run with the plain compiler; only the substituted @CC@/@CXX@

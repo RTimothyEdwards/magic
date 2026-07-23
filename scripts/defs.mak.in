@@ -131,11 +131,13 @@ MAGIC_BUILDDATE_DEFS   = @MAGIC_BUILDDATE_DEFS@
 # skipping it under --disable-magic-builddate avoids the parse-time date spawn.
 ifeq (${MAGIC_BUILDDATE_DEFS},)
 # Honor SOURCE_DATE_EPOCH (reproducible builds -- appimage/npm tarballs) when set,
-# else the current time.  The SOURCE_DATE_EPOCH branch uses UTC so a reproducible
-# stamp does not depend on the builder's zone; the plain-`date` fallback is local.
+# else the current time.  @SOURCE_DATE_CMD@ is the platform's epoch->UTC-date
+# invocation, chosen by configure (GNU `date -u -d @` / `gdate` vs BSD
+# `date -u -r `); the epoch is appended here.  The SOURCE_DATE_EPOCH branch is
+# UTC so a reproducible stamp does not depend on the builder's zone; the plain
+# `date` fallback is local.
 MAGIC_BUILDDATE	       ?= $(shell if [ -n "$$SOURCE_DATE_EPOCH" ]; then \
-			date -u -d "@$$SOURCE_DATE_EPOCH" 2>/dev/null \
-			|| date -u -r "$$SOURCE_DATE_EPOCH" 2>/dev/null; \
+			@SOURCE_DATE_CMD@$$SOURCE_DATE_EPOCH; \
 			else date; fi | tr -d '\r\n')
 endif
 
