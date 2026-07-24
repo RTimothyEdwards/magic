@@ -960,6 +960,52 @@ _magic_startup(ClientData clientData,
 	oldchannel = Tcl_GetStdChannel(TCL_STDIN);	// Get existing stdin
 	fsOrig = Tcl_GetChannelInstanceData(oldchannel);
 
+	/* We are about to replace stdin with a brand-new channel over the	*/
+	/* same file descriptor.  The new channel starts with an empty		*/
+	/* buffer, so any bytes the old channel had already read() out of the	*/
+	/* kernel into *its* buffer would be silently dropped by the swap --	*/
+	/* e.g. commands piped in fast enough that Tcl buffered them during	*/
+	/* startup.  Drain them here and hand them to TerminalInputProc via	*/
+	/* TxBuffer, which it serves ahead of any fresh read(), so no piped	*/
+	/* input is ever lost regardless of startup timing.			*/
+	{
+	    int nqueued = Tcl_InputBuffered(oldchannel);
+	    if (nqueued > 0)
+	    {
+		Tcl_Obj *qobj = Tcl_NewObj();
+		Tcl_IncrRefCount(qobj);
+		if (Tcl_ReadChars(oldchannel, qobj, nqueued, 0) > 0)
+		{
+#if TCL_MAJOR_VERSION < 9
+		    int qlen;
+#else
+		    Tcl_Size qlen;
+#endif
+		    char *qstr = Tcl_GetStringFromObj(qobj, &qlen);
+		    if (qlen > 0)
+		    {
+			if (TxBuffer == NULL)
+			{
+			    TxBuffer = Tcl_Alloc(qlen + 1);
+			    memcpy(TxBuffer, qstr, qlen);
+			    TxBuffer[qlen] = '\0';
+			}
+			else	/* prepend the drained bytes ahead of TxBuffer */
+			{
+			    size_t blen = strlen(TxBuffer);
+			    char *merged = Tcl_Alloc(qlen + blen + 1);
+			    memcpy(merged, qstr, qlen);
+			    memcpy(merged + qlen, TxBuffer, blen);
+			    merged[qlen + blen] = '\0';
+			    Tcl_Free(TxBuffer);
+			    TxBuffer = merged;
+			}
+		    }
+		}
+		Tcl_DecrRefCount(qobj);
+	    }
+	}
+
 	/* Copy the structure from the old to the new channel */
 	stdChannel = (Tcl_ChannelType *)Tcl_GetChannelType(oldchannel);
 	memcpy(&inChannel, stdChannel, sizeof(Tcl_ChannelType));
