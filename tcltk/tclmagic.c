@@ -30,6 +30,7 @@
 #endif
 
 #include "tcltk/tclmagic.h"
+#include "tcltk/tcldir.h"
 #include "utils/main.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -48,13 +49,10 @@
 #include "dbwind/dbwind.h"
 
 /*
- * String containing the version number of magic.  Don't change the string
- * here, nor its format.  It is updated by the Makefile in this directory.
+ * MagicVersion / MagicRevision / MagicCompileTime are defined once in
+ * utils/buildinfo.c and declared in utils/magic_buildinfo.h (included via
+ * utils/magic.h).  They no longer need a MAGIC_WRAPPER-guarded definition here.
  */
-
-char *MagicVersion = MAGIC_VERSION;
-char *MagicRevision = MAGIC_REVISION;
-char *MagicCompileTime = MAGIC_BUILDDATE;
 
 #if TCL_MAJOR_VERSION < 9
 const char *Tclmagic_InitStubsVersion = "8.5";
@@ -1485,7 +1483,15 @@ Tclmagic_Init(interp)
 
     /* Add the magic TCL directory to the Tcl library search path */
 
-    Tcl_Eval(interp, "lappend auto_path " TCL_DIR );
+    {
+	char dir[PATH_MAX], cmd[PATH_MAX];
+	size_t dlen, clen;
+	dlen = MagicTclDir(dir, sizeof(dir), NULL);
+	assert(dlen < sizeof(dir));
+	clen = snprintf(cmd, sizeof(cmd), "lappend auto_path {%s}", dir);
+	assert(clen < sizeof(cmd));
+	Tcl_Eval(interp, cmd);
+    }
 
     /* Get $CAD_ROOT from a Tcl variable, if it exists, and if not, then */
     /* set CAD_ROOT from the environment variable of the same name, if	 */
@@ -1500,7 +1506,7 @@ Tclmagic_Init(interp)
 	Tcl_SetVar(interp, "CAD_ROOT", cadroot, TCL_GLOBAL_ONLY);
     }
 
-    Tcl_PkgProvide(interp, "Tclmagic", MAGIC_VERSION);
+    Tcl_PkgProvide(interp, "Tclmagic", MagicVersion);
     return TCL_OK;
 }
 

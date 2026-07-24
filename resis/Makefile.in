@@ -1,0 +1,16 @@
+#
+# rscid $Header:
+#
+
+MODULE    = resis
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
+SRCS      = ResMain.c ResJunct.c ResMakeRes.c ResSimple.c ResPrint.c \
+            ResReadExt.c ResRex.c ResBasic.c ResMerge.c ResChecks.c \
+            ResFract.c ResUtils.c ResDebug.c
+
+include ${MAGICDIR}/defs.mak
+include ${MAGICSRC}/rules.mak

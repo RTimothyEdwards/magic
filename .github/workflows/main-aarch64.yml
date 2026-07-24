@@ -15,9 +15,10 @@ jobs:
       - name: Get Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y tcl-dev tk-dev libcairo-dev
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev \
+            texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
       - name: Build
         run: |
           ./configure
-          make database/database.h
+          make prepare
           make -j$(nproc)

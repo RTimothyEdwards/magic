@@ -107,7 +107,15 @@ cd "$OUT"
 # patching the read-only TCL source tree.
 if [ ! -f Makefile ]; then
   echo "=== emconfigure ==="
+  # Force the select()-based notifier: Emscripten exposes <sys/epoll.h> and the
+  # epoll_* symbols in its sysroot, so TCL's configure would pick the epoll
+  # notifier — but epoll does not work under WASM at runtime and the event loop
+  # hangs.  Hide the header/functions from configure (autoconf cache vars) so
+  # TCL falls back to select(), which Emscripten does support.
   CFLAGS="-O2 -sUSE_ZLIB=1" \
+  ac_cv_header_sys_epoll_h=no \
+  ac_cv_func_epoll_create=no \
+  ac_cv_func_epoll_create1=no \
     emconfigure "$TCL_SRC/unix/configure" \
       --disable-shared \
       --disable-load \

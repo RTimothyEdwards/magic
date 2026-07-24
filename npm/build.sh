@@ -84,14 +84,6 @@ ncpu() {
   fi
 }
 
-# Portable in-place sed (BSD sed on macOS disagrees with GNU on -i).
-# Uses redirect-back instead of mv so the file's mode bits are preserved
-# (configure must stay executable across build.sh invocations).
-sed_strip_cr() {
-  local file=$1 tmp
-  tmp=$(mktemp)
-  sed 's/\r//' "$file" > "$tmp" && cat "$tmp" > "$file" && rm "$tmp"
-}
 
 if [ $OPT_RELEASE -eq 1 ]; then
   EXTRA_CFLAGS="-O2"
@@ -155,29 +147,30 @@ ensure_tcl_built() {
 build_variant() {
   local variant=$1
   local out_dir="$SCRIPT_DIR/$variant"
+  # Out-of-source build directory (sibling of the TCL WASM build dir).  Magic
+  # now supports VPATH builds, so the WASM build reads from the source tree and
+  # writes only under $build_dir — the source tree is never mutated.  A fresh
+  # dir per run replaces the old in-tree `make distclean`.
+  local build_dir="${WASM_BUILD_DIR:-$REPO_ROOT/build-wasm-$variant}"
 
   echo
   echo "==============================================================="
-  echo "=== building variant: $variant"
+  echo "=== building variant: $variant  (build dir: $build_dir)"
   echo "==============================================================="
 
-  cd "$REPO_ROOT"
+  rm -rf "$build_dir"
+  mkdir -p "$build_dir"
 
-  # Full clean — distclean removes the generated defs.mak and module objects.
-  if [ -f defs.mak ]; then
-    emmake make distclean || true
-  fi
-  rm -f defs.mak database/database.h
+  # configure and scripts/ are kept LF by .gitattributes (eol=lf), so no CRLF
+  # stripping is needed here even on a Windows checkout with core.autocrlf=true.
 
-  # Strip Windows CRLF line endings (no-op on Linux-native files).
-  sed_strip_cr configure
-  find scripts/ -type f -print0 | while IFS= read -r -d '' f; do sed_strip_cr "$f"; done
+  cd "$build_dir"
 
   if [ "$variant" = "tcl" ]; then
     ensure_tcl_built
     CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 ${EXTRA_CFLAGS}" \
     LDFLAGS="${EXTRA_LDFLAGS}" \
-      emconfigure ./configure \
+      emconfigure "$REPO_ROOT/configure" \
         --without-cairo --without-opengl --without-x --without-tk \
         --with-tcl="$TCL_WASM_PREFIX/lib" \
         --with-tclincls="$TCL_WASM_PREFIX/include" \
@@ -189,7 +182,7 @@ build_variant() {
   else
     CFLAGS="--std=c17 -D_DEFAULT_SOURCE=1 -DEMSCRIPTEN=1 ${EXTRA_CFLAGS}" \
     LDFLAGS="${EXTRA_LDFLAGS}" \
-      emconfigure ./configure \
+      emconfigure "$REPO_ROOT/configure" \
         --without-cairo --without-opengl --without-x \
         --without-tk --without-tcl \
         --disable-readline --disable-compression \
@@ -198,7 +191,7 @@ build_variant() {
         ${EXTRA_CONFIGURE_ARGS:-}
   fi
 
-  cat toolchains/emscripten/defs.mak >> defs.mak
+  cat "$REPO_ROOT/toolchains/emscripten/defs.mak" >> defs.mak
 
   #
   echo "===== defs.mak ====="
@@ -211,9 +204,9 @@ build_variant() {
   emmake make mains
 
   mkdir -p "$out_dir"
-  cp magic/magic.js   "$out_dir/"
-  cp magic/magic.wasm "$out_dir/"
-  test -f magic/magic.wasm.map && cp magic/magic.wasm.map "$out_dir/"
+  cp "$build_dir/magic/magic.js"   "$out_dir/"
+  cp "$build_dir/magic/magic.wasm" "$out_dir/"
+  test -f "$build_dir/magic/magic.wasm.map" && cp "$build_dir/magic/magic.wasm.map" "$out_dir/"
   echo "Copied magic.js + magic.wasm into npm/$variant/"
 }
 

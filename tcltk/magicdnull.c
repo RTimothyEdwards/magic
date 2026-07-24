@@ -11,6 +11,8 @@
 
 #include <tcl.h>
 
+#include "tcltk/tcldir.h"
+
 /*----------------------------------------------------------------------*/
 /* Application initiation.  This is exactly like the AppInit routine	*/
 /* for "wish", minus the cruft, but with "tcl_rcFileName" set to	*/
@@ -29,7 +31,13 @@ magic_AppInit(interp)
     /* This is where we replace the home ".tclshrc" file with	*/
     /* magic's startup script.					*/
 
-    Tcl_SetVar(interp, "tcl_rcFileName", TCL_DIR "/magic.tcl", TCL_GLOBAL_ONLY);
+    {
+	char rc[PATH_MAX];
+	size_t rlen;
+	rlen = MagicTclDir(rc, sizeof(rc), "magic.tcl");
+	assert(rlen < sizeof(rc));
+	Tcl_SetVar(interp, "tcl_rcFileName", rc, TCL_GLOBAL_ONLY);
+    }
 
     /* Additional variable can be used to tell if magic is in batch mode */
     Tcl_SetVar(interp, "batch_mode", "true", TCL_GLOBAL_ONLY);

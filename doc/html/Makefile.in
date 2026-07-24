@@ -1,0 +1,21 @@
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
+include $(MAGICDIR)/defs.mak
+
+HTML_INSTDIR=$(INSTALL_LIBDIR)/magic/doc/html
+
+install: $(DESTDIR)${HTML_INSTDIR}
+	# Ship only the HTML content, not the build files.  $(srcdir) holds
+	# Makefile.in (always) and, for an in-tree build, the config.status-generated
+	# Makefile; excluding both keeps the install identical in-tree vs out-of-tree.
+	tar -C $(srcdir) --exclude=./Makefile --exclude=./Makefile.in -cf - . \
+	    | (cd $(DESTDIR)${HTML_INSTDIR}; tar xf - )
+
+$(DESTDIR)${HTML_INSTDIR}:
+	${SCRIPTS}/mkdirs $(DESTDIR)${HTML_INSTDIR}
+
+clean:
+

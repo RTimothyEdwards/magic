@@ -1,0 +1,256 @@
+#
+# rcsid $Header: /usr/cvsroot/magic-8.0/Makefile,v 1.1.1.1 2008/02/03 20:43:49 tim Exp $
+#
+
+MAGICDIR   = .
+# Absolute path to the source tree (config.status substitutes @abs_top_srcdir@).
+# For an in-tree build this is the same directory as the build top.  Recursion
+# into subdirectories goes through $(submake) (defined below).
+MAGICSRC   = @abs_top_srcdir@
+PROGRAMS   = magic
+TECHS      = scmos
+LIBRARIES  = database utils extflat
+MODULES    = bplane cmwind commands database dbwind debug drc extflat \
+	     extract graphics netmenu plow resis select sim textio tiles \
+	     utils windows wiring
+
+# This was `cat VERSION`
+VERSION    := $(shell cat ${MAGICSRC}/VERSION)
+
+MAKEFLAGS  =
+INSTALL_CAD_DIRS = windows doc ${TECHS}
+
+-include defs.mak
+
+# "docs" when configure found latex+dvips (regenerate PostScript from .tex into
+# the build tree), empty otherwise (the pre-built PostScript is installed as-is).
+DOCS_TARGET = @DOCS_TARGET@
+
+# $(call submake,<dir>,<goal>) -- recurse into a build subdirectory.  Every module
+# is a configure-generated Makefile, so config.status already created
+# the build subdir with its Makefile; recurse into it natively.
+define submake
+$(MAKE) -C $(1) $(2)
+endef
+
+all:	$(ALL_TARGET) techs $(DOCS_TARGET)
+
+standard: mains
+
+tcl: tcllibrary
+
+force:
+	@${MAKE} clean
+	@${MAKE} all
+
+defs.mak:
+	@echo No \"defs.mak\" file found.  Run "configure" to make one.
+	@exit 1
+
+config:
+	${MAGICSRC}/configure
+
+# ---------------------------------------------------------------------------
+# Declarative subdir recursion.
+#
+# Each (phase, dir) pair is a PHONY target "<phase>@<dir>" whose recipe recurses
+# into <dir> with that phase's goal via $(submake).  A phase aggregate (modules,
+# libs, ...) is then just a list
+# of its per-dir targets as prerequisites -- no shell `for` loops, no FORCE
+# pattern-rule hack.  Ordering between phases is expressed as prerequisites on the
+# per-dir targets (e.g. every module@ waits for the generated header ${DATABASE_H}),
+# so the graph is correct under `make -jN`, not just left-to-right in a serial
+# build.  '@' never appears
+# in a real target name, so it is a safe namespace separator.
+# ---------------------------------------------------------------------------
+
+# main@<prog> / tcl-main@<prog>: link the final program(s) (PROGRAMS is "magic").
+MAIN_TARGETS    := $(addprefix main@,${PROGRAMS})
+TCLMAIN_TARGETS := $(addprefix tcl-main@,${PROGRAMS})
+.PHONY: $(MAIN_TARGETS) $(TCLMAIN_TARGETS)
+$(MAIN_TARGETS): main@%: ${DATABASE_H} modules libs
+	@$(call submake,$*,main)
+$(TCLMAIN_TARGETS): tcl-main@%: ${DATABASE_H} modules
+	@$(call submake,$*,tcl-main)
+
+.PHONY: tcllibrary mains
+tcllibrary: $(TCLMAIN_TARGETS)
+mains: $(MAIN_TARGETS)
+
+# makedbh is the one generated helper script; it lives in the *build* tree.
+# ${DATABASE_H} is $(builddir)/database/database.h in-tree, or
+# $(builddir)/include/database/database.h when relocated (see defs.mak GENINC).
+${DATABASE_H}: ${MAGICSRC}/database/database.h.in
+	@echo --- making header file ${DATABASE_H}
+	@mkdir -p $(dir ${DATABASE_H})
+	${MAGICDIR}/scripts/makedbh ${MAGICSRC}/database/database.h.in ${DATABASE_H}
+
+# "prepare" is the stable, path-independent way to (re)generate the build-time
+# headers (currently database.h) before compiling -- use it instead of naming
+# the header directly (its path depends on in-tree vs relocated; see GENINC).
+# It is .PHONY so the name is always valid, but its prerequisite ${DATABASE_H}
+# is a real file target, so the header is regenerated only when out of date.
+.PHONY: prepare
+prepare: ${DATABASE_H}
+
+# module@<dir> builds <dir>/lib<dir>.o; lib@<dir> builds <dir>/lib<dir>.a.
+# The only thing they must wait for is the generated header (${DATABASE_H}).
+# Header *dependencies* are now discovered automatically per source (.deps, see
+# rules.mak), so there is no separate `depend` phase to gate on -- modules start
+# compiling in parallel immediately.
+MODULE_TARGETS := $(addprefix module@,${MODULES})
+LIB_TARGETS    := $(addprefix lib@,${MODULES})
+.PHONY: $(MODULE_TARGETS) $(LIB_TARGETS)
+$(MODULE_TARGETS): module@%: ${DATABASE_H}
+	@$(call submake,$*,module)
+# lib@X depends on module@X (its OWN module): main@ pulls both `modules` and
+# `libs`, so without this `make -C X module` and `make -C X lib` can run in the
+# same directory at once under -j and race on X's shared *.o (each recipe does
+# `rm $*.o; cc -c $*.o`).  Serializing them per-dir removes the race; module@X
+# builds the objects and lib@X then just archives them.  Cross-dir parallelism is
+# unaffected (lib@X only waits on module@X, not the whole modules phase).
+$(LIB_TARGETS): lib@%: ${DATABASE_H} module@%
+	@$(call submake,$*,lib)
+
+# Cross-module archive edge (-j correctness): libdatabase.a physically archives
+# tiles/libtiles.o and utils/libutils.o (database/Makefile.in: LIB_OBJS += ...),
+# so lib@database must not run until those module objects exist.  A serial build
+# got this from prerequisite order; under -j it needs the explicit edge.  No other
+# default-built module archives another module's objects.
+lib@database: module@tiles module@utils
+
+.PHONY: modules
+modules: $(MODULE_TARGETS)
+
+.PHONY: libs
+libs: $(LIB_TARGETS)
+
+#
+# extcheck - utility tool
+# net2ir   - utility tool
+# oa       - disabled (needs 'clean' target renaming)
+SUBDIRS = bplane cmwind commands database dbwind debug drc extflat extract graphics \
+	  magic netmenu plow resis select sim textio tiles utils windows wiring
+
+BUNDLED_MODULES = lisp
+
+# Unique, deduplicated subdir list (used by the clean fan-out below).
+SUBDIRS_FILTERED := $(shell echo ${MODULES} ${PROGRAMS} ${SUBDIRS} | tr ' ' '\n' | sort | uniq)
+
+# Dependencies are generated automatically as a side effect of compiling (see
+# rules.mak .deps); there is no depend phase to run.  "make depend" is kept as a
+# no-op so callers that still invoke it (e.g. the WASM build script) do not error.
+.PHONY: depend
+depend:
+	@echo "--- dependencies are generated automatically during compilation"
+
+# tech@<dir>: build a technology dir (goal "all").
+TECH_TARGETS := $(addprefix tech@,${TECHS})
+.PHONY: $(TECH_TARGETS)
+$(TECH_TARGETS): tech@%: ${DATABASE_H}
+	@$(call submake,$*,all)
+
+.PHONY: techs
+techs: $(TECH_TARGETS)
+
+# Regenerate the PostScript documentation from its .tex sources (only reached
+# from "all" when configure found latex+dvips; see DOCS_TARGET).  Force -j1: the
+# latexfiles rules share per-run aux files (.aux/.log) in one directory and are
+# not parallel-safe, so under a parallel top-level build they would race and drop
+# documents.  Doc regeneration is best-effort anyway (pre-built PostScript is the
+# install fallback), so serializing it costs nothing and keeps -j deterministic.
+.PHONY: docs
+docs:
+	@echo --- making documentation
+	@${MAKE} -j1 -k -C doc/latexfiles all || \
+	    echo "--- WARNING: some documents did not regenerate; the pre-built PostScript will be used for those at 'make install'"
+
+install: $(INSTALL_TARGET)
+
+install-magic:
+	@echo --- installing executable to $(DESTDIR)${INSTALL_BINDIR}
+	@echo --- installing runtime files to $(DESTDIR)${INSTALL_LIBDIR}
+	@${MAKE} install-real
+
+# install@<dir>: install one subdir's artifacts (CAD dirs, then the programs).
+INSTALL_TARGETS := $(addprefix install@,$(sort ${INSTALL_CAD_DIRS} ${PROGRAMS}))
+.PHONY: $(INSTALL_TARGETS)
+$(INSTALL_TARGETS): install@%: install-dirs
+	@$(call submake,$*,install)
+
+install-real: $(INSTALL_TARGETS)
+
+install-tcl-dirs:
+	${SCRIPTS}/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
+	$(DESTDIR)${INSTALL_MANDIR} $(DESTDIR)${INSTALL_SYSDIR} \
+	$(DESTDIR)${INSTALL_TCLDIR} $(DESTDIR)${INSTALL_TCLDIR}/bitmaps
+
+install-dirs:
+	${SCRIPTS}/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
+	$(DESTDIR)${INSTALL_MANDIR} $(DESTDIR)${INSTALL_SYSDIR} \
+	$(DESTDIR)${INSTALL_SCMDIR}
+
+install-tcl:
+	@echo --- installing executable to $(DESTDIR)${INSTALL_BINDIR}
+	@echo --- installing runtime files to $(DESTDIR)${INSTALL_LIBDIR}
+	@${MAKE} install-tcl-real
+
+# install-tcl@<dir>: install one subdir's Tcl-flavoured artifacts.
+INSTALLTCL_TARGETS := $(addprefix install-tcl@,$(sort ${INSTALL_CAD_DIRS} ${PROGRAMS}))
+.PHONY: $(INSTALLTCL_TARGETS)
+$(INSTALLTCL_TARGETS): install-tcl@%: install-tcl-dirs
+	@$(call submake,$*,install-tcl)
+
+install-tcl-real: $(INSTALLTCL_TARGETS)
+
+# clean@<dir>: clean one subdir if it exists.  Must not create dirs (skip absent
+# ones) and must not fail the build (|| true).
+CLEAN_TARGETS := $(addprefix clean@,$(sort ${SUBDIRS_FILTERED} ${TECHS} ${BUNDLED_MODULES}))
+.PHONY: $(CLEAN_TARGETS)
+$(CLEAN_TARGETS): clean@%:
+	@test -d $* || exit 0; ${MAKE} -C $* clean || true
+
+.PHONY: clean
+clean: $(CLEAN_TARGETS)
+	${RM} *.tmp */*.tmp *.sav */*.sav *.log TAGS tags
+
+distclean:
+	touch defs.mak
+	@${MAKE} clean
+	# rules.mak is no longer copied into the build top (subdir Makefiles include
+	# ${MAGICSRC}/rules.mak straight from the source tree), so there is nothing to
+	# remove for it here; defs.mak is the only generated make fragment.
+	${RM} defs.mak old.defs.mak
+	${RM} scripts/makedbh scripts/default.conf
+	${RM} config.log config.status
+	${RM} ${DATABASE_H}
+	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
+	${RM} *.log
+
+dist:
+	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
+	${SED} -e /@VERSION@/s%@VERSION@%${VERSION}% \
+	    ${MAGICSRC}/scripts/magic.spec.in > scripts/magic.spec
+	${LN} -nsf . magic-${VERSION}
+	tar zchvf magic-${VERSION}.tgz --exclude CVS \
+	    --exclude magic-${VERSION}/magic-${VERSION} \
+	    --exclude magic-${VERSION}/magic-${VERSION}.tgz \
+	    magic-${VERSION}
+
+clean-mains:
+	${RM} $(foreach p,${PROGRAMS},$p/$p)
+
+tags:
+	${RM} tags
+	cd ${MAGICSRC} && find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs ctags -o $(CURDIR)/tags
+
+TAGS:
+	${RM} TAGS
+	cd ${MAGICSRC} && find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs etags -o $(CURDIR)/TAGS
+
+setup-git:
+	git config --local include.path ../.gitconfig
+	git stash save
+	${RM} .git/index
+	git checkout HEAD -- "$$(git rev-parse --show-toplevel)"
+	git stash pop

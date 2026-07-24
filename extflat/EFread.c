@@ -575,7 +575,7 @@ resistChanged:
 
 	    /* version version-number */
 	    case VERSION:
-		if (strcmp(argv[1], EFVersion) != 0)
+		if (strcmp(argv[1], MagicVersion) != 0)
 		{
 		    efReadError(
 	"Cell was extracted using version %s of the extractor.\n", argv[1]);

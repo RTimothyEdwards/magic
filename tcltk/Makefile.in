@@ -1,0 +1,120 @@
+#
+# rcsid $Header: /usr/cvsroot/magic-8.0/tcltk/Makefile,v 1.6 2010/06/24 12:37:56 tim Exp $
+#
+
+MODULE   = tcltk
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
+SRCS = tclmagic.c
+OBJS = $(subst .c,.o,${SRCS})
+
+include ${MAGICDIR}/defs.mak
+
+DFLAGS += -DMAGIC_DATE="\"`date`\""
+CLEANS += magic.sh magic.tcl magicexec magicdnull ext2spice.sh ext2sim.sh
+
+TCL_FILES = \
+	tkcon.tcl \
+	tkshell.tcl \
+	wrapper.tcl \
+	toolbar.tcl \
+	reorderLayers.tcl \
+	console.tcl \
+	techbuilder.tcl \
+	cellmgr.tcl \
+	drcmgr.tcl \
+	libmgr.tcl \
+	texthelper.tcl \
+	tools.tcl \
+	mazeroute.tcl \
+	strip_reflibs.tcl \
+	toolkit.tcl \
+	toolkit_rev0.tcl \
+	bsitools.tcl \
+	socketcmd.tcl \
+	readspice.tcl \
+	magic.tcl
+
+BIN_FILES = \
+	$(DESTDIR)${INSTALL_BINDIR}/magic.sh \
+	$(DESTDIR)${INSTALL_BINDIR}/ext2spice.sh \
+	$(DESTDIR)${INSTALL_BINDIR}/ext2sim.sh
+
+tcl-main: magicexec magicdnull magic.tcl magic.sh ext2spice.sh ext2sim.sh
+
+# In the WASM build the tcltk module ships only as libtcltk.o; there is no
+# wish-like launcher binary, no magic.sh, etc. `make mains` iterates over
+# PROGRAMS which now includes tcltk (because --with-tcl is on), so define a
+# no-op `main` to keep that loop happy. The native build still uses tcl-main
+# via `make all` → tcllibrary.
+ifeq (${MAKE_WASM},1)
+main:
+	@:
+endif
+
+install-tcl: magicexec magicdnull ${BIN_FILES} ${TCL_FILES}
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/magicexec
+	${CP} magicexec $(DESTDIR)${INSTALL_TCLDIR}/magicexec
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/magicdnull
+	${CP} magicdnull $(DESTDIR)${INSTALL_TCLDIR}/magicdnull
+	(cd $(DESTDIR)${INSTALL_TCLDIR}; ${RM} ${TCL_FILES})
+	for i in ${TCL_FILES}; do \
+		f=$$i; test -f $$f || f=$(srcdir)/$$i; \
+		${CP} $$f $(DESTDIR)${INSTALL_TCLDIR}; done
+	(cd $(DESTDIR)${INSTALL_TCLDIR}; chmod 0755 tkcon.tcl tkshell.tcl)
+
+magicexec: magicexec.c ${MAGICDIR}/defs.mak
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} $< \
+		-o magicexec ${LD_RUN_PATH} ${LD_FIRST_LIBS} ${LIB_SPECS_NOSTUB} ${ZLIB_FLAG} \
+		${LIBS} ${GR_LIBS}
+
+magicdnull: magicdnull.c ${MAGICDIR}/defs.mak
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} $< \
+		-o magicdnull ${LD_RUN_PATH} ${LD_FIRST_LIBS} ${LIB_SPECS_GRNULL} ${ZLIB_FLAG} \
+		${LIBS}
+
+magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICSRC}/VERSION
+	${SED} -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
+	    -e /MAGIC_REVISION/s%MAGIC_REVISION%${MAGIC_REVISION}%g \
+	    -e /MAGIC_COMMIT/s%MAGIC_COMMIT%${MAGIC_COMMIT}%g \
+	    $< > magic.tcl
+
+magic.sh: magic.sh.in ${MAGICDIR}/defs.mak
+	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
+	    -e /TCLLIB_DIR/s%TCLLIB_DIR%${TCL_LIB_DIR}%g \
+	    -e /WISH_EXE/s%WISH_EXE%${WISH_EXE}%g $< > magic.sh
+
+ext2spice.sh: ext2spice.sh.in ${MAGICDIR}/defs.mak
+	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
+	    $< > ext2spice.sh
+
+ext2sim.sh: ext2sim.sh.in ${MAGICDIR}/defs.mak
+	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
+	    $< > ext2sim.sh
+
+$(DESTDIR)${INSTALL_TCLDIR}/%: %
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/$*
+	${CP} $< $(DESTDIR)${INSTALL_TCLDIR}/$*
+
+$(DESTDIR)${INSTALL_BINDIR}/magic.sh: magic.sh
+	${RM} $(DESTDIR)${INSTALL_BINDIR}/magic.sh $(DESTDIR)${INSTALL_BINDIR}/magic
+	${CP} magic.sh $(DESTDIR)${INSTALL_BINDIR}/magic
+	(cd $(DESTDIR)${INSTALL_BINDIR}; chmod 0755 magic)
+
+$(DESTDIR)${INSTALL_BINDIR}/ext2spice.sh: ext2spice.sh
+	${RM} $(DESTDIR)${INSTALL_BINDIR}/ext2spice
+	${CP} ext2spice.sh $(DESTDIR)${INSTALL_BINDIR}/ext2spice
+	(cd $(DESTDIR)${INSTALL_BINDIR}; chmod 0755 ext2spice)
+
+$(DESTDIR)${INSTALL_BINDIR}/ext2sim.sh: ext2sim.sh
+	${RM} $(DESTDIR)${INSTALL_BINDIR}/ext2sim
+	${CP} ext2sim.sh $(DESTDIR)${INSTALL_BINDIR}/ext2sim
+	(cd $(DESTDIR)${INSTALL_BINDIR}; chmod 0755 ext2sim)
+
+# An additional dependency on the VERSION file
+${OBJS}: ${MAGICSRC}/VERSION
+
+include ${MAGICSRC}/rules.mak

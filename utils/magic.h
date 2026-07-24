@@ -145,9 +145,10 @@ extern char *SysLibPath;	/* Path for finding system
 
 /* ------------ Globally-used strings. -------------------------------- */
 
-extern char *MagicVersion;
-extern char *MagicRevision;
-extern char *MagicCompileTime;
+/* Build-info globals (MagicVersion / MagicRevision / MagicCommit /
+ * MagicCompileTime) are defined in utils/buildinfo.c -- the one unit compiled
+ * with the version defines -- and declared here: */
+#include "utils/magic_buildinfo.h"
 extern char AbortMessage[];
 
 /* ------------ zlib (compression) support -------------------------------- */

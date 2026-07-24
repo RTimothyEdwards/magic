@@ -27,6 +27,17 @@ read these instructions first.
    the IRSIM module is not selected at compile-time;  in Tcl it is a
    run-time loadable module.
 
+   Optional (documentation):  to regenerate the PostScript documentation
+   from its LaTeX sources you need "latex" and "dvips".  On Debian/Ubuntu
+   these come from the TeX Live packages texlive-latex-base,
+   texlive-latex-recommended, and texlive-fonts-recommended.  When
+   "configure" finds both tools it prints "LaTeX docs: yes" in its summary
+   and the default "make" regenerates the docs into the build tree.  If the
+   tools are absent (or a particular document fails to typeset), the
+   pre-built PostScript shipped in the source tree is installed as-is, so
+   documentation is always available either way -- installing latex simply
+   refreshes it from source.
+
 2) At the top level, do "./configure" and any other options (such as
    "--prefix=DIR" for non-default installation location).  "prefix"
    determines the value $CAD_ROOT, which is set to ${prefix}/lib,

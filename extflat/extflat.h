@@ -32,7 +32,6 @@ extern char *EFTech;		/* Technology of extracted circuit */
 extern char *EFStyle;           /* Extraction style of extracted circuit */
 extern char *EFSearchPath;	/* Path to search for .ext files */
 extern char *EFLibPath;		/* Library search path */
-extern char *EFVersion;		/* Version of extractor we work with */
 extern char *EFArgTech;		/* Tech file given as command line argument */
 extern bool  EFCompat;		/* Subtrate backwards-compatibility mode */
 

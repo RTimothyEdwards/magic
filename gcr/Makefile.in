@@ -1,0 +1,16 @@
+#
+# rscid $Header:
+#
+
+MODULE    = gcr
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
+SRCS      = gcrChannel.c gcrColl.c gcrDebug.c gcrEdge.c gcrFeas.c \
+            gcrFlags.c gcrInit.c gcrLib.c gcrRiver.c gcrRoute.c gcrShwFlgs.c \
+            gcrUnsplit.c
+
+include ${MAGICDIR}/defs.mak
+include ${MAGICSRC}/rules.mak

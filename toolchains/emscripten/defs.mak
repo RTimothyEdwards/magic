@@ -26,8 +26,6 @@ MAKE_WASM = 1
 LINK = $(LD) -r $(LDFLAGS)
 
 # Emscripten linker flags.
-# The link step runs from the magic/ subdirectory, so embed-file paths
-# are relative to that directory (../scmos, ../windows/...).
 #
 # INCOMING_MODULE_JS_API is emscripten's default list plus `wasmBinary`.
 # Our JS loaders (npm/examples/*.js) pass Module.wasmBinary to embed the .wasm,
@@ -37,6 +35,12 @@ LINK = $(LD) -r $(LDFLAGS)
 # in INCOMING_MODULE_JS_API". We spell out the full default list (so external
 # consumers passing locateFile/arguments/etc. keep working) and re-add
 # wasmBinary. Keep this in sync with emscripten's default if it grows.
+#
+# The link step runs from the magic/ build subdirectory.  Embed-file inputs
+# must name the *right tree*: generated data (the scmos tech files, produced by
+# `make techs`) lives in the build tree, so use ${MAGICDIR} (the build top);
+# verbatim data (the window glyphs, shipped as source) lives in the source tree,
+# so use ${MAGICSRC}.  In-tree the two coincide.
 TOP_EXTRA_LIBS += \
     ${TOP_FIRST_LIBS_WASM} \
     -sWASM=1 \
@@ -52,6 +56,18 @@ TOP_EXTRA_LIBS += \
     -sENVIRONMENT=node,web,worker \
     -sFORCE_FILESYSTEM=1 \
     ${TOP_EXTRA_LIBS_WASM} \
-    --embed-file ../scmos@/magic/sys/current \
-    --embed-file ../windows/windows7.glyphs@/magic/sys/windows7.glyphs \
-    --embed-file ../windows/windows7.glyphs@/magic/sys/bw.glyphs
+    --embed-file ${MAGICDIR}/scmos@/magic/sys/current \
+    --embed-file ${MAGICSRC}/windows/windows7.glyphs@/magic/sys/windows7.glyphs \
+    --embed-file ${MAGICSRC}/windows/windows7.glyphs@/magic/sys/bw.glyphs
+
+# The ${MAGICDIR}/scmos dir embed above supplies the *generated* tech files, but a
+# technology's "styles" section also needs the display styles + colour maps
+# (scmos ${FILES}).  Those are *source* files, so out of source they are not in
+# the build tree and the embed misses them -- init then fails with "Couldn't open
+# color map file mos.7bit.std.cmap" / "Cannot load technology".  Embed each from
+# the source tree into the same VFS dir.  Match `mos.*dstyle` (no dot) so both the
+# `.dstyle` files and mos.7bit.mraster_dstyle (an underscore, not a dot) are
+# covered, plus the `mos.*.cmap` colour maps.  $(wildcard) matches only files that
+# exist, so it never lists a name that would break the link.
+SCMOS_DISPLAY := $(wildcard ${MAGICSRC}/scmos/mos.*dstyle ${MAGICSRC}/scmos/mos.*.cmap)
+TOP_EXTRA_LIBS += $(foreach f,$(SCMOS_DISPLAY),--embed-file $(f)@/magic/sys/current/$(notdir $(f)))

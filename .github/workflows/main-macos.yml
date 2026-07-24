@@ -129,7 +129,7 @@ jobs:
           cat defs.mak
           echo "===== defs.mak ====="
 
-          make database/database.h
+          make prepare
           make -j$(sysctl -n hw.ncpu) 2>&1 | tee MAKE.LOG
 
       - name: Install
@@ -361,7 +361,7 @@ jobs:
           cat defs.mak
           echo "===== defs.mak ====="
 
-          make database/database.h
+          make prepare
           make -j$(sysctl -n hw.ncpu) 2>&1 | tee MAKE.LOG
 
       - name: Install

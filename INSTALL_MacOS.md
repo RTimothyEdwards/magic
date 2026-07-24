@@ -7,10 +7,15 @@ brew install cairo tcl-tk@8 python3 gnu-sed
 brew install --cask xquartz
 ./scripts/configure_mac
 # If you have both TCL8 and TCL9 installed you may need to verify which was selected.
-make database/database.h
+make prepare
 make -j$(sysctl -n hw.ncpu)
 make install # may need sudo depending on your setup
 ```
+
+> Optional: `coreutils` (for GNU `gdate`) is **not required** — reproducible
+> `SOURCE_DATE_EPOCH` builds work with the native BSD `date` too, and `configure`
+> auto-detects either. Install it (`brew install coreutils`) only if you prefer
+> GNU `date`.
 
 ## Without Brew
 Get [XQuartz](https://github.com/XQuartz/XQuartz)

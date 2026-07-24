@@ -1,0 +1,15 @@
+#
+# rcsid $Header: /usr/cvsroot/magic-8.0/garouter/Makefile,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
+#
+
+MODULE    = garouter
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
+SRCS      = gaChannel.c gaMain.c gaMaze.c gaSimple.c gaStem.c \
+            gaTest.c
+
+include ${MAGICDIR}/defs.mak
+include ${MAGICSRC}/rules.mak

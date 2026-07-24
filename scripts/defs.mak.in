@@ -8,13 +8,50 @@
 
 SHELL                  = @SHELL@
 
+# --- out-of-tree (VPATH) support ------------------------------------------
+# MAGICDIR is set by each subdir Makefile to the relative path back to the
+# *build* top (that is where the generated defs.mak / rules.mak live, and where
+# the generated database/database.h is written).  MAGICSRC is the absolute path
+# to the *source* top.  For an in-tree build the two trees coincide.
+MAGICSRC               = @abs_top_srcdir@
+
+# BUILD_TOP is the absolute build top; GENINC (below) needs it either way.
+BUILD_TOP              := $(abspath $(MAGICDIR))
+# Minimal srcdir fallback.  Every module converted to Makefile.in sets
+# `srcdir` (and VPATH) from @srcdir@ *before* including this file.  The only
+# Makefile that does NOT is the top-level Makefile, which does not compile magic
+# sources through the pattern rules and so needs no VPATH.  We only default
+# `srcdir` -- derived from where make is running (CURDIR, a build dir) relative to
+# BUILD_TOP -- so that CPPFLAGS, which lists -I${srcdir}, stays well-formed.  The
+# patsubst is an anchored prefix strip: "" at the build top.
+ifeq ($(origin srcdir),undefined)
+srcdir                 := $(MAGICSRC)$(patsubst $(BUILD_TOP)%,%,$(CURDIR))
+endif
+
+# Generated headers (currently just database/database.h) are exposed through a
+# single include directory, ${GENINC}:
+#   * in-tree  (build top == source top): the top itself, so the header stays at
+#     $(builddir)/database/database.h and -I${GENINC} == the old -I${MAGICDIR}.
+#   * relocated (out-of-tree): a clean $(builddir)/include, so #include
+#     <database/database.h> resolves under include/ and the raw build top is
+#     never on the compiler search path.
+ifeq ($(BUILD_TOP),$(MAGICSRC))
+GENINC                 := ${MAGICDIR}
+else
+GENINC                 := ${MAGICDIR}/include
+endif
+DATABASE_H             := ${GENINC}/database/database.h
+# --------------------------------------------------------------------------
+
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 libdir = @libdir@
 mandir = @mandir@
 
-SCRIPTS		       = ${MAGICDIR}/scripts
+# Source-tree helper scripts (mkdirs, printmans, preproc.py, ...).  The one
+# generated script, makedbh, lives in the *build* tree at ${MAGICDIR}/scripts.
+SCRIPTS		       = ${MAGICSRC}/scripts
 
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -66,6 +103,8 @@ LD                     = @LD@
 MKDIR                  = mkdir
 PERL                   = @PERL@
 SED                    = @SED@
+LATEX                  = @LATEX@
+DVIPS                  = @DVIPS@
 MCPP		       = @MCPP@
 MSED		       = @MSED@
 RANLIB                 = @RANLIB@
@@ -79,10 +118,40 @@ LIB_SPECS_GRNULL       = @LIB_SPECS_GRNULL@
 WISH_EXE	       = @WISH_EXE@
 TCL_LIB_DIR	       = @TCL_LIB_DIR@
 
-MAGIC_VERSION	       ?= $(shell cat ${MAGICDIR}/VERSION | cut -d. -f1-2)
-MAGIC_REVISION	       ?= $(shell cat ${MAGICDIR}/VERSION | cut -d. -f3)
-MAGIC_COMMIT	       ?= $(shell git rev-parse HEAD)
-MAGIC_BUILDDATE	       ?= $(shell date | tr -d '\r\n')
+# Computed once, simply-expanded (:=), and exported below.  Sub-makes inherit the
+# resulting strings and the `ifndef` guards skip recomputation -- so git/date/cat
+# run once at the top instead of being re-spawned every time make rebuilds the
+# recursively-expanded export for a child (a no-op recursive make otherwise spawns
+# each of them hundreds of times).
+ifndef MAGIC_VERSION
+MAGIC_VERSION	       := $(shell cat ${MAGICSRC}/VERSION | cut -d. -f1-2)
+endif
+ifndef MAGIC_REVISION
+MAGIC_REVISION	       := $(shell cat ${MAGICSRC}/VERSION | cut -d. -f3)
+endif
+# git may be absent (source tarball) or ${MAGICSRC} not a work-tree: fall back to
+# empty rather than emitting an error.
+ifndef MAGIC_COMMIT
+MAGIC_COMMIT	       := $(shell git -C ${MAGICSRC} rev-parse HEAD 2>/dev/null)
+endif
+# "-DMAGIC_NO_BUILDDATE" when configured with --disable-magic-builddate, else
+# empty.  buildinfo.c reports an empty MagicCompileTime under that define.
+MAGIC_BUILDDATE_DEFS   = @MAGIC_BUILDDATE_DEFS@
+# Only compute the (volatile) build date when it will actually be baked in --
+# skipping it under --disable-magic-builddate avoids the date spawn entirely.
+ifeq (${MAGIC_BUILDDATE_DEFS},)
+ifndef MAGIC_BUILDDATE
+# Honor SOURCE_DATE_EPOCH (reproducible builds -- appimage/npm tarballs) when set,
+# else the current time.  @SOURCE_DATE_CMD@ is the platform's epoch->UTC-date
+# invocation, chosen by configure (GNU `date -u -d @` / `gdate` vs BSD
+# `date -u -r `); the epoch is appended here.  The SOURCE_DATE_EPOCH branch is
+# UTC so a reproducible stamp does not depend on the builder's zone; the plain
+# `date` fallback is local.
+MAGIC_BUILDDATE	       := $(shell if [ -n "$$SOURCE_DATE_EPOCH" ]; then \
+			@SOURCE_DATE_CMD@$$SOURCE_DATE_EPOCH; \
+			else date; fi | tr -d '\r\n')
+endif
+endif
 
 # This allow inheritence of the values from toplevel Makefile
 export MAGIC_VERSION
@@ -111,22 +180,39 @@ CXX		       = @CXX@
 ###   Status: NOT-STABILITY-AFFECTING (if your binary links you are good to continue)
 #FEATURE_FLAGS += -DSUPPORT_REMOVE_MALLOC_LEGACY
 
-CPPFLAGS               = -I${MAGICDIR} @CPPFLAGS@
+# -I${GENINC}:  generated headers (build top in-tree, build/include relocated)
+# -I${MAGICSRC}: source top, for "<module>/<header>.h" includes
+# -I${srcdir}:   this module's source dir, for same-directory headers
+CPPFLAGS               = -I${GENINC} -I${MAGICSRC} -I${srcdir} @CPPFLAGS@
 CXXFLAGS               = @CXXFLAGS@
-DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
-DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"
+DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" ${MAGIC_BUILDDATE_DEFS}
+ifeq (${MAGIC_BUILDDATE_DEFS},)
+DFLAGS_MAGICVERSION   += "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
+endif
+DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ -DGCORE=\"@GCORE@\"
 DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" @NDEBUG_defs@ @DEBUG_defs@ ${FEATURE_FLAGS}
-DFLAGS_NOSTUB	       = @extra_defs@             @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"
+DFLAGS_NOSTUB	       = @extra_defs@             @DEFS@ -DGCORE=\"@GCORE@\"
 DFLAGS_NOSTUB	      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" @NDEBUG_defs@ @DEBUG_defs@ ${FEATURE_FLAGS}
 CFLAGS                 = @CFLAGS@ @SHLIB_CFLAGS@ @INC_SPECS@
+
+# Set only by configure --enable-ccache-prefix-map (empty otherwise).  Maps the
+# absolute source root to "." in the compiled output so a cached object carries
+# no tree-specific paths -- required for correct cross-tree ccache sharing (pair
+# with CCACHE_BASEDIR=<build top> in the environment for cross-tree *hits*).
+CCACHE_PREFIX_MAP_FLAG = @CCACHE_PREFIX_MAP_FLAG@
+ifneq (${CCACHE_PREFIX_MAP_FLAG},)
+CFLAGS                += ${CCACHE_PREFIX_MAP_FLAG}=${MAGICSRC}=.
+endif
 
 LDFLAGS                = @LDFLAGS@
 
 READLINE_DEFS          = @rl_defs@
 READLINE_LIBS          = @rl_libs@
 
-DEPEND_FILE	       = Depend
-DEPEND_FLAG	       = @DEPEND_FLAG@
+# Per-file dependency flags ("-MMD -MP" when the compiler supports it, else
+# empty); used by the %.o rule in rules.mak to write .deps/<stem>.d as a compile
+# side effect.  Replaces the old serial "make depend" / Depend-file machinery.
+AUTODEP_FLAGS	       = @AUTODEP_FLAGS@
 EXEEXT		       = @EXEEXT@
 
 GR_CFLAGS              = @X_CFLAGS@ @gr_cflags@
@@ -139,12 +225,11 @@ GR_HELPER_PROG         = @gr_hprog@
 OA		       = @OA@
 OA_LIBS		       = @OA_LIBS@
 
-DEPSRCS	  = ${SRCS}
 C_OBJS    = ${SRCS:.c=.o}
 CXX_OBJS  = ${CXXSRCS:.cpp=.o}
 OBJS      = ${CXX_OBJS} ${C_OBJS}
 LIB_OBJS  = ${LIB_SRCS:.c=.o}
-CLEANS    = Depend ${OBJS} ${LIB_OBJS} lib${MODULE}.a lib${MODULE}.o ${MODULE}
+CLEANS    = ${OBJS} ${LIB_OBJS} lib${MODULE}.a lib${MODULE}.o ${MODULE}
 
 # allows Makefile to be selective
 MAKE_TCL           = @MAKE_TCL@
@@ -152,4 +237,3 @@ MAKE_X11           = @MAKE_X11@
 MAKE_GL            = @MAKE_GL@
 MAKE_GLU           = @MAKE_GLU@
 MAKE_CAIRO         = @MAKE_CAIRO@
-MAKE_READLINE      = @MAKE_READLINE@

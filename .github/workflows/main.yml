@@ -13,9 +13,43 @@ jobs:
       - name: Get Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y tcl-dev tk-dev libcairo-dev
+          # tcl/tk + cairo for the build; texlive (latex + dvips) so the default
+          # "make" also regenerates the PostScript documentation.  Docs are
+          # best-effort — a missing texlive package just falls back to the
+          # pre-built PostScript, it does not fail the build.
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev \
+            texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
       - name: Build
         run: |
           ./configure
-          make database/database.h
+          make prepare
+          make -j$(nproc)
+      - name: Build Tcl auto-load modules
+        # These per-module Tcl shared libraries are real products but are not
+        # part of the default target (their modules are not in PROGRAMS), so
+        # build them explicitly to keep them from bit-rotting.
+        run: |
+          for m in lef plot router ext2spice ext2sim; do
+            make -C "$m" tcl-main
+          done
+
+  standard_build_linux:
+    # Non-Tcl "standard" configuration: native magic binary + system GNU
+    # readline.  Distinct code paths (MAGIC_WRAPPER off, readline) that the Tcl
+    # build above does not exercise.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Get Dependencies
+        # X11 + cairo for graphics; readline (the non-Tcl line editor) + its
+        # ncurses dependency; texlive for the docs.  NB: package set not validated
+        # on the runner -- adjust if the build cannot find a library.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libcairo-dev libreadline-dev libncurses-dev \
+            texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
+      - name: Build (non-Tcl / standard)
+        run: |
+          ./configure --without-tcl --without-opengl
+          make prepare
           make -j$(nproc)

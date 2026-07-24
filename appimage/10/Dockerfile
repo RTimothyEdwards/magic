@@ -18,6 +18,14 @@ RUN dnf install -y python3 zlib-devel ncurses-devel readline-devel cairo-devel f
     && rpm -qa | sort \
     && echo ""
 
+# LaTeX + dvips (optional).  When present, the default "make" regenerates the
+# PostScript documentation from source (configure prints "LaTeX docs: yes");
+# otherwise the pre-built PostScript shipped in the source tree is installed.
+# Kept non-fatal so an unavailable package can never break the release image --
+# the documentation is shipped either way.
+RUN dnf install -y texlive-latex texlive-dvips texlive-collection-fontsrecommended \
+    || echo "texlive unavailable; shipping the pre-built PostScript documentation"
+
 # Tcl/Tk
 WORKDIR /tcl
 RUN set -eux; \
@@ -77,7 +85,7 @@ RUN ./configure \
     --with-tcl=/prefix/lib \
     --with-tk=/prefix/lib \
     && make clean \
-    && make database/database.h \
+    && make prepare \
     && make -j$(nproc) \
     && make install \
     && install -d /prefix/share/licenses/magic \

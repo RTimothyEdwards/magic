@@ -1,10 +1,14 @@
-#include "utils/magic.h"
-#include "utils/hash.h"
+/* System headers first: magic.h defines legacy SysV bcopy/bzero/bcmp macros
+ * (in terms of memcpy/memset/memcmp) that clash with glibc's declarations if
+ * <string.h> is pulled in afterwards, so include the C library headers before
+ * magic.h. */
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <string.h>
+#include "utils/magic.h"
+#include "utils/hash.h"
 
 char *
 token(

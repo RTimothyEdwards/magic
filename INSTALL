@@ -53,6 +53,33 @@ Autoconf Capsule Summary:
 			.mag files.  Normally enabled, if the zlib
 			development package is installed.
 
+	--disable-magic-builddate
+			Omit the build date/time from the binary.  The date
+			is normally baked in (reported by "magic --version"
+			and written into some output files); omitting it makes
+			the build reproducible -- two builds of the same commit
+			then produce byte-identical objects and binaries, with
+			no dependence on when they were built.  (It also keeps
+			ccache fully effective during development, since the
+			date is the one compile input that changes every
+			second.)  Normally enabled.
+
+	--disable-ccache
+			Do not use ccache even if it is installed.  When
+			ccache is found on PATH it is auto-detected and used
+			to speed up recompiles (the build date is isolated to
+			one object so it does not spoil the cache); this
+			turns that off.
+
+	--enable-ccache-prefix-map
+			Relativize the source paths embedded in compiled
+			objects so a ccache cache can be shared across
+			different checkouts / build directories.  Off by
+			default (it makes debugger source paths relative, so
+			gdb needs "set substitute-path .  <srcdir>").  Only
+			meaningful with ccache, and cross-tree cache hits also
+			need CCACHE_BASEDIR=<build dir> set in the environment.
+
 Notes to Magic maintainers:
 --------------------------
 

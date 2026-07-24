@@ -54,13 +54,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 
 #ifdef USE_READLINE
-#ifdef HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
-#else
-#include "readline/readline/readline.h"
-#include "readline/readline/history.h"
-#endif
 
 int    TxPrefix(void);
 

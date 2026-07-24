@@ -622,7 +622,6 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-MAKE_READLINE
 MAKE_CAIRO
 MAKE_GLU
 MAKE_GL
@@ -636,7 +635,7 @@ MSED
 MCPP
 LD_RUN_PATH
 SHLIB_CFLAGS
-DEPEND_FLAG
+AUTODEP_FLAGS
 gr_hprog
 gr_hsrcs
 gr_srcs
@@ -682,11 +681,19 @@ X_PRE_LIBS
 X_CFLAGS
 XMKMF
 PYTHON3
+DOCS_TARGET
+DVIPS
+LATEX
 GCORE
+MAGIC_BUILDDATE_DEFS
 ALLOCA
 EGREP
 GREP
 PERL
+CCACHE_PREFIX_MAP_FLAG
+CCACHE
+SOURCE_DATE_CMD
+GDATE
 SED
 RANLIB
 INSTALL_DATA
@@ -734,7 +741,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -757,10 +763,13 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_ccache
+enable_ccache_prefix_map
 with_gnu_ld
 enable_assertions
 enable_debug
 enable_compression
+enable_magic_builddate
 with_x
 with_distdir
 with_interpreter
@@ -783,7 +792,6 @@ enable_framebuffer_backing_store
 enable_plot
 enable_lef
 enable_readline
-enable_readline_bundled
 enable_threads
 enable_route
 enable_rsim
@@ -843,7 +851,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1096,15 +1103,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1242,7 +1240,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1395,7 +1393,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1432,9 +1429,12 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-ccache             do not use ccache even if it is installed
+  --enable-ccache-prefix-map   relativize embedded source paths for cross-tree ccache (needs ccache; makes debug paths relative)
   --enable-assertions          build with fatal assertions enabled
   --enable-debug               build with fatal debug enabled
   --disable-compression        disable file compression
+  --disable-magic-builddate    omit the build date from the binary (reproducible builds)
   --enable-memdebug            enable memory debugging
   --enable-modular             embed ext2sim and ext2spice packages
   --disable-locking            disable file locking
@@ -1445,8 +1445,8 @@ Optional Features:
   --disable-framebuffer-backing-store     disable OpenGL framebuffer backing store
   --disable-plot               disable plot package
   --disable-lef                disable LEF package
-  --disable-readline           disable readline package
-  --enable-readline-bundled    enable readline bundled package
+  --disable-readline           do not use the system readline library even if
+                                it is present (build without command-line editing)
   --disable-threads            disable threaded graphics
   --disable-route              disable routing package
   --disable-rsim               disable IRSIM tool
@@ -2598,7 +2598,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 ac_aux_dir=
-for ac_dir in . "$srcdir"/.; do
+for ac_dir in scripts "$srcdir"/scripts; do
   if test -f "$ac_dir/install-sh"; then
     ac_aux_dir=$ac_dir
     ac_install_sh="$ac_aux_dir/install-sh -c"
@@ -2614,7 +2614,7 @@ for ac_dir in . "$srcdir"/.; do
   fi
 done
 if test -z "$ac_aux_dir"; then
-  as_fn_error $? "cannot find install-sh, install.sh, or shtool in . \"$srcdir\"/." "$LINENO" 5
+  as_fn_error $? "cannot find install-sh, install.sh, or shtool in scripts \"$srcdir\"/scripts" "$LINENO" 5
 fi
 
 # These three variables are undocumented and unsupported,
@@ -4237,6 +4237,149 @@ fi
 $as_echo "$ac_cv_path_SED" >&6; }
  SED="$ac_cv_path_SED"
   rm -f conftest.sed
+
+
+for ac_prog in gdate
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_GDATE+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$GDATE"; then
+  ac_cv_prog_GDATE="$GDATE" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_GDATE="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+GDATE=$ac_cv_prog_GDATE
+if test -n "$GDATE"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GDATE" >&5
+$as_echo "$GDATE" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$GDATE" && break
+done
+
+if test -n "$GDATE"; then
+    SOURCE_DATE_CMD="$GDATE -u -d @"
+elif date -u -d @0 2>/dev/null | grep -q 1970; then
+    SOURCE_DATE_CMD="date -u -d @"
+else
+    SOURCE_DATE_CMD="date -u -r "
+fi
+
+
+# Check whether --enable-ccache was given.
+if test "${enable_ccache+set}" = set; then :
+  enableval=$enable_ccache;
+else
+  enable_ccache=yes
+fi
+
+if test "x$enable_ccache" = "xyes"; then
+    # Extract the first word of "ccache", so it can be a program name with args.
+set dummy ccache; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_CCACHE+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$CCACHE"; then
+  ac_cv_prog_CCACHE="$CCACHE" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_CCACHE="ccache"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+CCACHE=$ac_cv_prog_CCACHE
+if test -n "$CCACHE"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CCACHE" >&5
+$as_echo "$CCACHE" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    if test "x$CCACHE" != "x"; then
+        CC="$CCACHE $CC"
+        test "x$CXX" != "x" && CXX="$CCACHE $CXX"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: using ccache: CC=\"$CC\"" >&5
+$as_echo "$as_me: using ccache: CC=\"$CC\"" >&6;}
+    fi
+fi
+
+CCACHE_PREFIX_MAP_FLAG=""
+# Check whether --enable-ccache-prefix-map was given.
+if test "${enable_ccache_prefix_map+set}" = set; then :
+  enableval=$enable_ccache_prefix_map;
+    if test "x$CCACHE" = "x"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --enable-ccache-prefix-map ignored: ccache is not in use" >&5
+$as_echo "$as_me: WARNING: --enable-ccache-prefix-map ignored: ccache is not in use" >&2;}
+    else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC accepts -ffile-prefix-map" >&5
+$as_echo_n "checking whether $CC accepts -ffile-prefix-map... " >&6; }
+        magic_save_cflags="$CFLAGS"
+        CFLAGS="$CFLAGS -ffile-prefix-map=/nonexistent=."
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }; CCACHE_PREFIX_MAP_FLAG="-ffile-prefix-map"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }; { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: compiler lacks -ffile-prefix-map; not relativizing paths" >&5
+$as_echo "$as_me: WARNING: compiler lacks -ffile-prefix-map; not relativizing paths" >&2;}
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+        CFLAGS="$magic_save_cflags"
+    fi
+
+fi
+
 
 
 # Extract the first word of "perl", so it can be a program name with args.
@@ -6078,6 +6221,20 @@ fi
 
 fi
 
+# Check whether --enable-magic-builddate was given.
+if test "${enable_magic_builddate+set}" = set; then :
+  enableval=$enable_magic_builddate;
+else
+  enable_magic_builddate=yes
+fi
+
+if test "x$enable_magic_builddate" = "xno" ; then
+    MAGIC_BUILDDATE_DEFS="-DMAGIC_NO_BUILDDATE"
+else
+    MAGIC_BUILDDATE_DEFS=""
+fi
+
+
 
 
 
@@ -6243,7 +6400,7 @@ extra_defs="$extra_defs -DCAD_DIR=\\\"\${LIBDIR}\\\" -DBIN_DIR=\\\"\${BINDIR}\\\
 X_LIBS=
 X_CFLAGS=
 INC_SPECS=
-DEPEND_FLAG=
+AUTODEP_FLAGS=
 SHLIB_CFLAGS=""
 LD_RUN_PATH=""
 WISH_EXE=""
@@ -6326,6 +6483,97 @@ fi
 
 
 
+# Extract the first word of "latex", so it can be a program name with args.
+set dummy latex; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_LATEX+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $LATEX in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_LATEX="$LATEX" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_LATEX="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_LATEX" && ac_cv_path_LATEX="no"
+  ;;
+esac
+fi
+LATEX=$ac_cv_path_LATEX
+if test -n "$LATEX"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LATEX" >&5
+$as_echo "$LATEX" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "dvips", so it can be a program name with args.
+set dummy dvips; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_DVIPS+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $DVIPS in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_DVIPS="$DVIPS" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_DVIPS="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_DVIPS" && ac_cv_path_DVIPS="no"
+  ;;
+esac
+fi
+DVIPS=$ac_cv_path_DVIPS
+if test -n "$DVIPS"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DVIPS" >&5
+$as_echo "$DVIPS" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x${LATEX}" != "xno" -a "x${DVIPS}" != "xno" ; then
+   DOCS_TARGET="docs"
+else
+   DOCS_TARGET=""
+fi
+
+
+
+
 # Extract the first word of "python3", so it can be a program name with args.
 set dummy python3; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -6380,7 +6628,7 @@ if test "x${PYTHON3}" == "xno"; then
    fi
 
 else
-   MCPP="${PYTHON3} \${MAGICDIR}/scripts/preproc.py -ccomm"
+   MCPP="${PYTHON3} \${MAGICSRC}/scripts/preproc.py -ccomm"
    MSED="cat"
    usingPython3=1
 fi
@@ -7991,24 +8239,18 @@ else
 fi
 
 
-use_system_readline=yes
-use_bundled_readline=auto
+if test "x$enable_readline" = "xyes" ; then
+                $as_echo "#define USE_READLINE 1" >>confdefs.h
 
-# Check whether --enable-readline-bundled was given.
-if test "${enable_readline_bundled+set}" = set; then :
-  enableval=$enable_readline_bundled;  use_bundled_readline=yes
+    use_system_readline=yes
+    ac_fn_c_check_header_mongrel "$LINENO" "readline/readline.h" "ac_cv_header_readline_readline_h" "$ac_includes_default"
+if test "x$ac_cv_header_readline_readline_h" = xyes; then :
 
 else
-
-  use_bundled_readline=no
-
+  use_system_readline=no
 fi
 
 
-if test "x$enable_readline" = "xyes" ; then
-    $as_echo "#define USE_READLINE 1" >>confdefs.h
-
-    if test $use_bundled_readline != yes ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for rl_pre_input_hook in -lreadline" >&5
 $as_echo_n "checking for rl_pre_input_hook in -lreadline... " >&6; }
 if ${ac_cv_lib_readline_rl_pre_input_hook+:} false; then :
@@ -8046,7 +8288,11 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_pre_input_hook" >&5
 $as_echo "$ac_cv_lib_readline_rl_pre_input_hook" >&6; }
 if test "x$ac_cv_lib_readline_rl_pre_input_hook" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
 
+  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8089,7 +8335,11 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_username_completion_function" >&5
 $as_echo "$ac_cv_lib_readline_rl_username_completion_function" >&6; }
 if test "x$ac_cv_lib_readline_rl_username_completion_function" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
 
+  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8132,7 +8382,11 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_filename_completion_function" >&5
 $as_echo "$ac_cv_lib_readline_rl_filename_completion_function" >&6; }
 if test "x$ac_cv_lib_readline_rl_filename_completion_function" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
 
+  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
@@ -8175,115 +8429,30 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_rl_attempted_completion_over" >&5
 $as_echo "$ac_cv_lib_readline_rl_attempted_completion_over" >&6; }
 if test "x$ac_cv_lib_readline_rl_attempted_completion_over" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
 
+  LIBS="-lreadline $LIBS"
 
 else
   use_system_readline=no
 fi
 
-    fi
-    if test $use_system_readline = yes && test $use_bundled_readline != yes; then
+    if test $use_system_readline = yes ; then
 	$as_echo "#define HAVE_READLINE 1" >>confdefs.h
 
 	rl_libs="-lreadline"
-        use_bundled_readline=
     else
-	echo "Using bundled readline"
-	$as_echo "#define NEED_READLINE 1" >>confdefs.h
+	as_fn_error $? "no usable GNU readline library found.
 
-	# not readline/libhistory.a (seems subset of libreadline.a)
-	rl_libs="\${MAGICDIR}/readline/libreadline.a"
-	CPPFLAGS="$CPPFLAGS -I\${MAGICDIR}/readline"
-        use_bundled_readline=1
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltermcap" >&5
-$as_echo_n "checking for tgetent in -ltermcap... " >&6; }
-if ${ac_cv_lib_termcap_tgetent+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ltermcap  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char tgetent ();
-int
-main ()
-{
-return tgetent ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_termcap_tgetent=yes
-else
-  ac_cv_lib_termcap_tgetent=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_termcap_tgetent" >&5
-$as_echo "$ac_cv_lib_termcap_tgetent" >&6; }
-if test "x$ac_cv_lib_termcap_tgetent" = xyes; then :
-
-	rl_libs="$rl_libs -ltermcap"
-
-else
-
-	   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -lncurses" >&5
-$as_echo_n "checking for tgetent in -lncurses... " >&6; }
-if ${ac_cv_lib_ncurses_tgetent+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lncurses  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char tgetent ();
-int
-main ()
-{
-return tgetent ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ncurses_tgetent=yes
-else
-  ac_cv_lib_ncurses_tgetent=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ncurses_tgetent" >&5
-$as_echo "$ac_cv_lib_ncurses_tgetent" >&6; }
-if test "x$ac_cv_lib_ncurses_tgetent" = xyes; then :
-
-	      rl_libs="$rl_libs -lncurses"
-
-fi
-
-
-fi
-
-        modules="$modules readline"
+magic needs either Tcl/Tk (recommended) or the system GNU readline development
+package to build an interactive non-Tcl version.  Please do one of:
+  * build with Tcl/Tk (the default when Tcl is installed); or
+  * install the readline development package (e.g. libreadline-dev on Debian/
+    Ubuntu, readline-devel on Fedora/RHEL, or 'brew install readline'); or
+  * re-run configure with --disable-readline to build without command-line
+    editing." "$LINENO" 5
     fi
 else
   unused="$unused readline"
@@ -9216,7 +9385,7 @@ fi
     esac
   fi
   if test "$with_gnu_ld" = "yes" ; then
-    LDDL_FLAGS="${LDDL_FLAGS} -Wl,--version-script=\${MAGICDIR}/magic/symbol.map"
+    LDDL_FLAGS="${LDDL_FLAGS} -Wl,--version-script=\${MAGICSRC}/magic/symbol.map"
   fi
 
 
@@ -9238,9 +9407,36 @@ fi
 
 fi
 
-if test "$GCC" = "yes" ; then
-   DEPEND_FLAG="-MM"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC generates dependencies with -MMD -MP" >&5
+$as_echo_n "checking whether $CC generates dependencies with -MMD -MP... " >&6; }
+magic_save_cflags="$CFLAGS"
+CFLAGS="$CFLAGS -MMD -MP -MF conftest.autodep.d"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  if test -f conftest.autodep.d ; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }; AUTODEP_FLAGS="-MMD -MP"
+     else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no (produced no .d)" >&5
+$as_echo "no (produced no .d)" >&6; }
+     fi
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f conftest.autodep.d
+CFLAGS="$magic_save_cflags"
 
 
 
@@ -9305,12 +9501,132 @@ MAKE_GLU=$usingGLU
 
 MAKE_CAIRO=$usingCairo
 
-MAKE_READLINE=$use_bundled_readline
+
+ac_config_files="$ac_config_files Makefile:Makefile.in"
+
+ac_config_files="$ac_config_files defs.mak:scripts/defs.mak.in"
+
+ac_config_files="$ac_config_files scripts/makedbh:scripts/makedbh.in"
 
 
-ac_config_files="$ac_config_files defs.mak"
+ac_config_files="$ac_config_files magic_run_common.sh:scripts/magic_run_common.sh.in"
 
-ac_config_files="$ac_config_files makedbh"
+ac_config_files="$ac_config_files run_magic.sh:scripts/run_magic.sh.in"
+
+ac_config_files="$ac_config_files run_magicnull.sh:scripts/run_magicnull.sh.in"
+
+ac_config_files="$ac_config_files run_magic_gdb.sh:scripts/run_magic_gdb.sh.in"
+
+ac_config_files="$ac_config_files run_magic_valgrind.sh:scripts/run_magic_valgrind.sh.in"
+
+
+ac_config_files="$ac_config_files tiles/Makefile:tiles/Makefile.in"
+
+ac_config_files="$ac_config_files bplane/Makefile:bplane/Makefile.in"
+
+ac_config_files="$ac_config_files calma/Makefile:calma/Makefile.in"
+
+ac_config_files="$ac_config_files cif/Makefile:cif/Makefile.in"
+
+ac_config_files="$ac_config_files cmwind/Makefile:cmwind/Makefile.in"
+
+ac_config_files="$ac_config_files dbwind/Makefile:dbwind/Makefile.in"
+
+ac_config_files="$ac_config_files debug/Makefile:debug/Makefile.in"
+
+ac_config_files="$ac_config_files drc/Makefile:drc/Makefile.in"
+
+ac_config_files="$ac_config_files extflat/Makefile:extflat/Makefile.in"
+
+ac_config_files="$ac_config_files extract/Makefile:extract/Makefile.in"
+
+ac_config_files="$ac_config_files garouter/Makefile:garouter/Makefile.in"
+
+ac_config_files="$ac_config_files gcr/Makefile:gcr/Makefile.in"
+
+ac_config_files="$ac_config_files grouter/Makefile:grouter/Makefile.in"
+
+ac_config_files="$ac_config_files irouter/Makefile:irouter/Makefile.in"
+
+ac_config_files="$ac_config_files mzrouter/Makefile:mzrouter/Makefile.in"
+
+ac_config_files="$ac_config_files netmenu/Makefile:netmenu/Makefile.in"
+
+ac_config_files="$ac_config_files plow/Makefile:plow/Makefile.in"
+
+ac_config_files="$ac_config_files resis/Makefile:resis/Makefile.in"
+
+ac_config_files="$ac_config_files select/Makefile:select/Makefile.in"
+
+ac_config_files="$ac_config_files sim/Makefile:sim/Makefile.in"
+
+ac_config_files="$ac_config_files textio/Makefile:textio/Makefile.in"
+
+ac_config_files="$ac_config_files wiring/Makefile:wiring/Makefile.in"
+
+ac_config_files="$ac_config_files utils/Makefile:utils/Makefile.in"
+
+ac_config_files="$ac_config_files windows/Makefile:windows/Makefile.in"
+
+ac_config_files="$ac_config_files commands/Makefile:commands/Makefile.in"
+
+ac_config_files="$ac_config_files database/Makefile:database/Makefile.in"
+
+ac_config_files="$ac_config_files lef/Makefile:lef/Makefile.in"
+
+ac_config_files="$ac_config_files plot/Makefile:plot/Makefile.in"
+
+ac_config_files="$ac_config_files router/Makefile:router/Makefile.in"
+
+ac_config_files="$ac_config_files ext2spice/Makefile:ext2spice/Makefile.in"
+
+ac_config_files="$ac_config_files ext2sim/Makefile:ext2sim/Makefile.in"
+
+ac_config_files="$ac_config_files extcheck/Makefile:extcheck/Makefile.in"
+
+ac_config_files="$ac_config_files net2ir/Makefile:net2ir/Makefile.in"
+
+ac_config_files="$ac_config_files graphics/Makefile:graphics/Makefile.in"
+
+ac_config_files="$ac_config_files oa/Makefile:oa/Makefile.in"
+
+ac_config_files="$ac_config_files magic/Makefile:magic/Makefile.in"
+
+ac_config_files="$ac_config_files tcltk/Makefile:tcltk/Makefile.in"
+
+ac_config_files="$ac_config_files scmos/Makefile:scmos/Makefile.in"
+
+ac_config_files="$ac_config_files doc/Makefile:doc/Makefile.in"
+
+ac_config_files="$ac_config_files lisp/Makefile:lisp/Makefile.in"
+
+ac_config_files="$ac_config_files scmos/cif_template/Makefile:scmos/cif_template/Makefile.in"
+
+ac_config_files="$ac_config_files doc/man/Makefile:doc/man/Makefile.in"
+
+ac_config_files="$ac_config_files doc/tutcells/Makefile:doc/tutcells/Makefile.in"
+
+ac_config_files="$ac_config_files doc/html/Makefile:doc/html/Makefile.in"
+
+ac_config_files="$ac_config_files doc/latexfiles/Makefile:doc/latexfiles/Makefile.in"
+
+
+if test "`cd $srcdir && pwd`" = "`pwd`" ; then
+  magic_config_header=magic/autoconf/config.h
+else
+  magic_config_header=include/magic/autoconf/config.h
+fi
+mkdir -p "`dirname $magic_config_header`"
+{
+  echo "/* $magic_config_header -- generated by configure; DO NOT EDIT. */"
+  echo "/* Every autoconf define (>= all -D options on the compiler lines). */"
+  echo "#ifndef _MAGIC_AUTOCONF_CONFIG_H"
+  echo "#define _MAGIC_AUTOCONF_CONFIG_H 1"
+  grep '^#define ' confdefs.h | sort -u
+  echo "#endif /* _MAGIC_AUTOCONF_CONFIG_H */"
+} > "$magic_config_header"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: created config header $magic_config_header" >&5
+$as_echo "$as_me: created config header $magic_config_header" >&6;}
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -10019,8 +10335,59 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
-    "defs.mak") CONFIG_FILES="$CONFIG_FILES defs.mak" ;;
-    "makedbh") CONFIG_FILES="$CONFIG_FILES makedbh" ;;
+    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile:Makefile.in" ;;
+    "defs.mak") CONFIG_FILES="$CONFIG_FILES defs.mak:scripts/defs.mak.in" ;;
+    "scripts/makedbh") CONFIG_FILES="$CONFIG_FILES scripts/makedbh:scripts/makedbh.in" ;;
+    "magic_run_common.sh") CONFIG_FILES="$CONFIG_FILES magic_run_common.sh:scripts/magic_run_common.sh.in" ;;
+    "run_magic.sh") CONFIG_FILES="$CONFIG_FILES run_magic.sh:scripts/run_magic.sh.in" ;;
+    "run_magicnull.sh") CONFIG_FILES="$CONFIG_FILES run_magicnull.sh:scripts/run_magicnull.sh.in" ;;
+    "run_magic_gdb.sh") CONFIG_FILES="$CONFIG_FILES run_magic_gdb.sh:scripts/run_magic_gdb.sh.in" ;;
+    "run_magic_valgrind.sh") CONFIG_FILES="$CONFIG_FILES run_magic_valgrind.sh:scripts/run_magic_valgrind.sh.in" ;;
+    "tiles/Makefile") CONFIG_FILES="$CONFIG_FILES tiles/Makefile:tiles/Makefile.in" ;;
+    "bplane/Makefile") CONFIG_FILES="$CONFIG_FILES bplane/Makefile:bplane/Makefile.in" ;;
+    "calma/Makefile") CONFIG_FILES="$CONFIG_FILES calma/Makefile:calma/Makefile.in" ;;
+    "cif/Makefile") CONFIG_FILES="$CONFIG_FILES cif/Makefile:cif/Makefile.in" ;;
+    "cmwind/Makefile") CONFIG_FILES="$CONFIG_FILES cmwind/Makefile:cmwind/Makefile.in" ;;
+    "dbwind/Makefile") CONFIG_FILES="$CONFIG_FILES dbwind/Makefile:dbwind/Makefile.in" ;;
+    "debug/Makefile") CONFIG_FILES="$CONFIG_FILES debug/Makefile:debug/Makefile.in" ;;
+    "drc/Makefile") CONFIG_FILES="$CONFIG_FILES drc/Makefile:drc/Makefile.in" ;;
+    "extflat/Makefile") CONFIG_FILES="$CONFIG_FILES extflat/Makefile:extflat/Makefile.in" ;;
+    "extract/Makefile") CONFIG_FILES="$CONFIG_FILES extract/Makefile:extract/Makefile.in" ;;
+    "garouter/Makefile") CONFIG_FILES="$CONFIG_FILES garouter/Makefile:garouter/Makefile.in" ;;
+    "gcr/Makefile") CONFIG_FILES="$CONFIG_FILES gcr/Makefile:gcr/Makefile.in" ;;
+    "grouter/Makefile") CONFIG_FILES="$CONFIG_FILES grouter/Makefile:grouter/Makefile.in" ;;
+    "irouter/Makefile") CONFIG_FILES="$CONFIG_FILES irouter/Makefile:irouter/Makefile.in" ;;
+    "mzrouter/Makefile") CONFIG_FILES="$CONFIG_FILES mzrouter/Makefile:mzrouter/Makefile.in" ;;
+    "netmenu/Makefile") CONFIG_FILES="$CONFIG_FILES netmenu/Makefile:netmenu/Makefile.in" ;;
+    "plow/Makefile") CONFIG_FILES="$CONFIG_FILES plow/Makefile:plow/Makefile.in" ;;
+    "resis/Makefile") CONFIG_FILES="$CONFIG_FILES resis/Makefile:resis/Makefile.in" ;;
+    "select/Makefile") CONFIG_FILES="$CONFIG_FILES select/Makefile:select/Makefile.in" ;;
+    "sim/Makefile") CONFIG_FILES="$CONFIG_FILES sim/Makefile:sim/Makefile.in" ;;
+    "textio/Makefile") CONFIG_FILES="$CONFIG_FILES textio/Makefile:textio/Makefile.in" ;;
+    "wiring/Makefile") CONFIG_FILES="$CONFIG_FILES wiring/Makefile:wiring/Makefile.in" ;;
+    "utils/Makefile") CONFIG_FILES="$CONFIG_FILES utils/Makefile:utils/Makefile.in" ;;
+    "windows/Makefile") CONFIG_FILES="$CONFIG_FILES windows/Makefile:windows/Makefile.in" ;;
+    "commands/Makefile") CONFIG_FILES="$CONFIG_FILES commands/Makefile:commands/Makefile.in" ;;
+    "database/Makefile") CONFIG_FILES="$CONFIG_FILES database/Makefile:database/Makefile.in" ;;
+    "lef/Makefile") CONFIG_FILES="$CONFIG_FILES lef/Makefile:lef/Makefile.in" ;;
+    "plot/Makefile") CONFIG_FILES="$CONFIG_FILES plot/Makefile:plot/Makefile.in" ;;
+    "router/Makefile") CONFIG_FILES="$CONFIG_FILES router/Makefile:router/Makefile.in" ;;
+    "ext2spice/Makefile") CONFIG_FILES="$CONFIG_FILES ext2spice/Makefile:ext2spice/Makefile.in" ;;
+    "ext2sim/Makefile") CONFIG_FILES="$CONFIG_FILES ext2sim/Makefile:ext2sim/Makefile.in" ;;
+    "extcheck/Makefile") CONFIG_FILES="$CONFIG_FILES extcheck/Makefile:extcheck/Makefile.in" ;;
+    "net2ir/Makefile") CONFIG_FILES="$CONFIG_FILES net2ir/Makefile:net2ir/Makefile.in" ;;
+    "graphics/Makefile") CONFIG_FILES="$CONFIG_FILES graphics/Makefile:graphics/Makefile.in" ;;
+    "oa/Makefile") CONFIG_FILES="$CONFIG_FILES oa/Makefile:oa/Makefile.in" ;;
+    "magic/Makefile") CONFIG_FILES="$CONFIG_FILES magic/Makefile:magic/Makefile.in" ;;
+    "tcltk/Makefile") CONFIG_FILES="$CONFIG_FILES tcltk/Makefile:tcltk/Makefile.in" ;;
+    "scmos/Makefile") CONFIG_FILES="$CONFIG_FILES scmos/Makefile:scmos/Makefile.in" ;;
+    "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile:doc/Makefile.in" ;;
+    "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile:lisp/Makefile.in" ;;
+    "scmos/cif_template/Makefile") CONFIG_FILES="$CONFIG_FILES scmos/cif_template/Makefile:scmos/cif_template/Makefile.in" ;;
+    "doc/man/Makefile") CONFIG_FILES="$CONFIG_FILES doc/man/Makefile:doc/man/Makefile.in" ;;
+    "doc/tutcells/Makefile") CONFIG_FILES="$CONFIG_FILES doc/tutcells/Makefile:doc/tutcells/Makefile.in" ;;
+    "doc/html/Makefile") CONFIG_FILES="$CONFIG_FILES doc/html/Makefile:doc/html/Makefile.in" ;;
+    "doc/latexfiles/Makefile") CONFIG_FILES="$CONFIG_FILES doc/latexfiles/Makefile:doc/latexfiles/Makefile.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -10441,7 +10808,11 @@ which seems to be undefined.  Please make sure it is defined" >&2;}
 
 
   case $ac_file$ac_mode in
-    "makedbh":F) chmod +x makedbh ;;
+    "scripts/makedbh":F) chmod +x scripts/makedbh ;;
+    "run_magic.sh":F) chmod +x run_magic.sh ;;
+    "run_magicnull.sh":F) chmod +x run_magicnull.sh ;;
+    "run_magic_gdb.sh":F) chmod +x run_magic_gdb.sh ;;
+    "run_magic_valgrind.sh":F) chmod +x run_magic_valgrind.sh ;;
 
   esac
 done # for ac_tag
@@ -10584,6 +10955,13 @@ else
    fi
 fi
 
+${ECHO_N} "LaTeX docs:   "
+if test "x${DOCS_TARGET}" != "x" ; then
+   echo "yes"
+else
+   echo "no  (install 'latex' and 'dvips' to regenerate documentation)"
+fi
+
 echo "-----------------------------------------------------------"
 echo
 echo "Use 'make' to compile and 'make install' to install."
@@ -10591,4 +10969,3 @@ echo
 echo "-----------------------------------------------------------"
 echo
 
-cp defs.mak ..

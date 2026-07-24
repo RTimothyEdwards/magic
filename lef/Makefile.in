@@ -1,0 +1,35 @@
+#
+# LEF module Makefile
+#
+
+MODULE    = lef
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
+SRCS      = lefCmd.c lefTech.c lefWrite.c defWrite.c lefRead.c defRead.c
+
+include ${MAGICDIR}/defs.mak
+
+LIBS += ${LD_EXTRA_LIBS} ${SUB_EXTRA_LIBS}
+CLEANS += magiclef${SHDLIB_EXT} tcllef.o
+
+tcl-main: tcllef.o magiclef${SHDLIB_EXT}
+
+tcllef.o: tcllef.c
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -c $< -o $@
+
+magiclef${SHDLIB_EXT}: tcllef.o ${OBJS}
+	@echo --- making Tcl auto-load module \(magiclef${SHDLIB_EXT}\)
+	${RM} magiclef${SHDLIB_EXT}
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDFLAGS} ${LDDL_FLAGS} tcllef.o ${OBJS} \
+		 ${EXTRA_LIBS} -lc ${LIBS}
+
+install-tcl: $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}
+
+$(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}: magiclef${SHDLIB_EXT}
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}
+	${CP} magiclef${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}
+
+include ${MAGICSRC}/rules.mak

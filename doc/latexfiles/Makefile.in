@@ -1,0 +1,84 @@
+# Provided by configure: the module's source dir + the build top.
+# defs.mak sees `srcdir` already set and skips its own srcdir derivation.
+srcdir    = @srcdir@
+VPATH     = @srcdir@
+MAGICDIR  = @top_builddir@
+include $(MAGICDIR)/defs.mak
+
+# PS_SRCDIR: pre-built PostScript shipped in the source tree (read-only, used by
+#            install when a doc has not been regenerated).
+# PS_GENDIR: regenerated PostScript, written into the build tree (never source).
+PS_SRCDIR=${MAGICSRC}/doc/psfiles
+PS_GENDIR=psfiles
+PS_INSTDIR=$(INSTALL_LIBDIR)/magic/doc
+
+.SUFFIXES: .dvi .tex .ps
+
+GENDVI=tut1.dvi tut2.dvi tut3.dvi tut4.dvi tut5.dvi tut6.dvi \
+	tut7.dvi tut8.dvi tut9.dvi tut10.dvi tut11.dvi \
+	maint1.dvi maint2.dvi maint3.dvi maint4.dvi \
+	introduction.dvi copyright.dvi addendum6_5.dvi \
+	tutscm1.dvi tutscm2.dvi tutscm3.dvi tutscm4.dvi \
+	tuttcl1.dvi tuttcl2.dvi tuttcl3.dvi tuttcl4.dvi tuttcl5.dvi \
+	tutwrl1.dvi
+
+GENPS=tut1.ps tut2.ps tut3.ps tut4.ps tut5.ps tut6.ps \
+	tut7.ps tut8.ps tut9.ps tut10.ps tut11.ps \
+	maint1.ps maint2.ps maint3.ps maint4.ps \
+	introduction.ps copyright.ps addendum6_5.ps \
+	tutscm1.ps tutscm2.ps tutscm3.ps tutscm4.ps \
+	tuttcl1.ps tuttcl2.ps tuttcl3.ps tuttcl4.ps tuttcl5.ps \
+	tutwrl1.ps
+
+GEN_GENPS= $(GENPS:%=${PS_GENDIR}/%)
+INST_GENPS= $(GENPS:%=$(DESTDIR)${PS_INSTDIR}/%)
+
+# Regenerate all PostScript into the build tree (${PS_GENDIR}).
+all: $(GEN_GENPS)
+	@${RM} $(GENDVI) *.log *.aux
+
+install: $(DESTDIR)${PS_INSTDIR} ${INST_GENPS}
+
+$(DESTDIR)${PS_INSTDIR}: make-doc-dir
+
+make-doc-dir:
+	${SCRIPTS}/mkdirs $(DESTDIR)${PS_INSTDIR}
+
+# Install each PostScript file from the build tree if it was regenerated there,
+# otherwise from the pre-built copy shipped in the source tree.
+$(DESTDIR)${PS_INSTDIR}/%: $(DESTDIR)${PS_INSTDIR}
+	@f=${PS_GENDIR}/$*; test -f $$f || f=${PS_SRCDIR}/$*; \
+	echo "${CP} $$f $(DESTDIR)${PS_INSTDIR}/$*"; \
+	${CP} $$f $(DESTDIR)${PS_INSTDIR}/$*
+
+# Regenerate a .ps (into the build tree) from its .tex (in the source tree).
+# Several .tex include figures as ../psfigures/*.ps (relative to this dir).  Out
+# of tree that path resolves into the empty build tree, so point the build-tree
+# ../psfigures at the source copy; both latex and dvips then find the figures and
+# outputs stay in-build.  This is a shell test (not a make prerequisite) on
+# purpose: VPATH would otherwise "find" ../psfigures in the source tree and skip
+# creating the build-tree link that latex actually needs.
+#   * `test -d ../psfigures` is true both in-tree (it is the real source dir) and
+#     once the build-tree symlink exists, so the link is created only when absent
+#     and the in-tree source directory is never touched.
+#   * `ln -sfn` (force + no-dereference) makes creation race-safe: if a parallel
+#     job already made the symlink, it is replaced in place rather than nested
+#     inside it (the old `ln -s DIR symlink-to-dir` bug that wrote a stray
+#     doc/psfigures/psfigures into the source tree).
+${PS_GENDIR}/%.ps: %.tex
+	@mkdir -p ${PS_GENDIR}
+	@test -d ../psfigures || ln -sfn ${MAGICSRC}/doc/psfigures ../psfigures
+	@echo "Converting $*.tex -> $*.dvi"
+	@TEXINPUTS=$(srcdir): ${LATEX} $(srcdir)/$*.tex  < /dev/null > /dev/null
+	@if grep 'LaTeX Warn' $*.log; \
+	then \
+		echo "Detected warnings, doing second pass for $*...";\
+		TEXINPUTS=$(srcdir): ${LATEX} $(srcdir)/$*.tex < /dev/null > /dev/null; \
+		(grep 'LaTeX Warn' $*.log || (echo > /dev/null)); \
+		echo; \
+	fi
+	@echo "Converting $*.dvi -> ${PS_GENDIR}/$*.ps"
+	@${DVIPS} -t letter $*.dvi -o ${PS_GENDIR}/$*.ps > /dev/null
+
+clean:
+	${RM} $(GENDVI) $(GEN_GENPS) *.log *.aux
