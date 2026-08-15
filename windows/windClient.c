@@ -53,6 +53,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/w
 /* our window client ID */
 global WindClient windClientID = (WindClient) NULL;
 
+extern int windAreaCmd();
 extern int windBorderCmd();
 extern int windCaptionCmd(), windCrashCmd(), windCursorCmd();
 extern int windFilesCmd(), windCloseCmd(), windOpenCmd();
@@ -792,6 +793,9 @@ windClientInit()
     WindAddCommand(windClientID,
 	"view [get]              zoom window out so everything is visible",
 	windViewCmd, FALSE);
+    WindAddCommand(windClientID,
+	"windowarea [xl xr yb yt]",
+	windAreaCmd, FALSE);
     WindAddCommand(windClientID,
 	"windowborder [on|off]	toggle border drawing for new windows",
 	windBorderCmd, FALSE);

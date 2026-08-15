@@ -59,6 +59,66 @@ void windDoMacro();
 /*
  * ----------------------------------------------------------------------------
  *
+ * windAreaCmd --
+ *
+ * Implement the "windowarea" command. Allowing to retrieve the current view
+ * area of a window, or to set it.
+ *
+ * Usage:
+ *      windowarea [xl xr yb yt]
+ *
+ * Results:
+ *	If no argument is given, it returns current window view area.
+ *	If found coordinates are given, then return nothing.
+ *
+ * Side effects:
+ *      If arguments are given, the view in the window is change to match what's
+ *      requested as closely as possible.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+windAreaCmd(w, cmd)
+    MagWindow *w;
+    TxCommand *cmd;
+{
+    Rect newArea;
+
+    if (w == NULL)
+	return;
+
+    if ((cmd->tx_argc != 1) && (cmd->tx_argc != 5))
+    {
+	TxError("Usage: %s [a0 a1 a2 a3]\n", cmd->tx_argv[0]);
+	return;
+    }
+
+    if (cmd->tx_argc == 1)
+    {
+#ifdef MAGIC_WRAPPER
+	char *ptstr = (char *)Tcl_Alloc(50);
+	sprintf(ptstr, "%d %d %d %d",
+		w->w_surfaceArea.r_xbot,
+		w->w_surfaceArea.r_xtop,
+		w->w_surfaceArea.r_ybot,
+		w->w_surfaceArea.r_ytop);
+	Tcl_SetResult(magicinterp, ptstr, TCL_DYNAMIC);
+#endif
+	return;
+    }
+
+    newArea.r_xbot = atoi(cmd->tx_argv[1]);
+    newArea.r_xtop = atoi(cmd->tx_argv[2]);
+    newArea.r_ybot = atoi(cmd->tx_argv[3]);
+    newArea.r_ytop = atoi(cmd->tx_argv[4]);
+    WindMove(w, &newArea);
+}
+
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * windBorderCmd --
  *
  *	Change the flag which says whether new windows will have a border.
