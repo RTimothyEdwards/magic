@@ -123,8 +123,9 @@ static int nmVCount= 0;
  */
 
 int
-nmwRipTileFunc(tile, plane, listHead)
+nmwRipTileFunc(tile, dinfo, plane, listHead)
     Tile *tile;			/* Tile that is to be deleted. */
+    TileType dinfo;		/* Split tile information (unused) */
     int plane;			/* Plane index of the tile */
     struct nmwarea **listHead;	/* Pointer to list head pointer. */
 {
@@ -478,8 +479,9 @@ nmwNetTermFunc(scx, label, tpath, netPtr)
  */
 
 int
-nmwNetTileFunc(tile, plane, netPtr)
+nmwNetTileFunc(tile, dinfo, plane, netPtr)
     Tile *tile;			/* Tile that is connected to net. */
+    TileType dinfo;		/* Split tile information (unused) */
     int plane;			/* Plane index of the tile */
     char **netPtr;		/* Pointer to pointer to net name. */
 {
@@ -718,6 +720,7 @@ nmwVerifyLabelFunc2(scx, label, tpath, cd)
 int
 nmwVerifyTileFunc(
     Tile *tile,			/* Tile that is connected to this net. */
+    TileType dinfo,		/* Split tile information (unused) */
     int plane,			/* Plane index of the tile. */
     ClientData cdata)		/* Processing function for each tile. */
 {
