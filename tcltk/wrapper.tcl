@@ -648,6 +648,54 @@ proc magic::repaintwrapper { win } {
 
 }
 
+# Start a modern click-drag box gesture.  Return "break" only for the
+# box tool so that wiring, picking, and netlist tools retain their bindings.
+proc magic::startboxdrag {win x y} {
+   global Opts
+   if {![info exists Opts(tool)] || $Opts(tool) != "box"} {return}
+   *bypass setpoint $x $y $win
+   set point [${win} cursor internal]
+   ${win} box values {*}$point {*}$point
+   set Opts(boxdrag) $win
+   set Opts(boxdrag_start) $point
+   return break
+}
+
+proc magic::handlelayoutmotion {win x y} {
+   *bypass setpoint $x $y $win
+   set result [magic::updateboxdrag $win $x $y]
+   magic::cursorview $win
+   return $result
+}
+
+proc magic::updateboxdrag {win x y} {
+   global Opts
+   if {![info exists Opts(boxdrag)] || $Opts(boxdrag) != $win} {return}
+
+   set start $Opts(boxdrag_start)
+   set current [${win} cursor internal]
+   set x1 [lindex $start 0]
+   set y1 [lindex $start 1]
+   set x2 [lindex $current 0]
+   set y2 [lindex $current 1]
+   set llx [expr {min($x1, $x2)}]
+   set lly [expr {min($y1, $y2)}]
+   set urx [expr {max($x1, $x2)}]
+   set ury [expr {max($y1, $y2)}]
+   ${win} box values $llx $lly $urx $ury
+   return break
+}
+
+proc magic::endboxdrag {win x y} {
+   global Opts
+   if {![info exists Opts(boxdrag)] || $Opts(boxdrag) != $win} {return}
+   *bypass setpoint $x $y $win
+   magic::updateboxdrag $win $x $y
+   set Opts(boxdrag) {}
+   set Opts(boxdrag_start) {}
+   return break
+}
+
 # Coordinate display callback function
 # Because "box" calls "box", use the "info level" command to avoid
 # infinite recursion.
@@ -683,8 +731,13 @@ proc magic::boxview {win {cmdstr ""}} {
       if {[expr {$blly == int($blly)}]} {set blly [expr {int($blly)}]}
       if {[expr {$burx == int($burx)}]} {set burx [expr {int($burx)}]}
       if {[expr {$bury == int($bury)}]} {set bury [expr {int($bury)}]}
-      set titletext [format "box (%+g %+g) to (%+g %+g) microns" \
-			$bllx $blly $burx $bury]
+      set width [expr {$burx - $bllx}]
+      set height [expr {$bury - $blly}]
+      set area [expr {$width * $height}]
+      set centerx [expr {($bllx + $burx) / 2.0}]
+      set centery [expr {($blly + $bury) / 2.0}]
+      set titletext [format "box LL (%+g,%+g) UR (%+g,%+g) | size %g x %g um | center (%+g,%+g) | area %g um2" \
+			$bllx $blly $burx $bury $width $height $centerx $centery $area]
       units {*}$curunits
       ${framename}.titlebar.pos configure -text $titletext
    }
@@ -712,13 +765,18 @@ proc magic::cursorview {win} {
    if {$gotbox} {
       set curunits [${win} units list]
       ${win} units microns noprint
-      set dlst [${win} box position]
-
-      set dx [expr {$olstx - [lindex $dlst 0]}]
-      set dy [expr {$olsty - [lindex $dlst 1]}]
-      if {[expr {$dx == int($dx)}]} {set dx [expr {int($dx)}]}
-      if {[expr {$dy == int($dy)}]} {set dy [expr {int($dy)}]}
-      set titletext [format "(%+g %+g) %+g %+g microns" $olstx $olsty $dx $dy]
+      set bval [${win} box values]
+      set bllx [lindex $bval 0]
+      set blly [lindex $bval 1]
+      set burx [lindex $bval 2]
+      set bury [lindex $bval 3]
+      set width [expr {$burx - $bllx}]
+      set height [expr {$bury - $blly}]
+      set area [expr {$width * $height}]
+      set dx [expr {$olstx - $bllx}]
+      set dy [expr {$olsty - $blly}]
+      set titletext [format "cursor (%+g,%+g) um | box LL (%+g,%+g) UR (%+g,%+g) | size %g x %g um | delta %+g,%+g | area %g um2" \
+			$olstx $olsty $bllx $blly $burx $bury $width $height $dx $dy $area]
       ${framename}.titlebar.pos configure -text $titletext
       ${win} units {*}$curunits
    } else {
@@ -1186,14 +1244,15 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    magic::repaintwrapper ${layoutframe}
 
    grid ${layoutframe}.titlebar -row 0 -column 0 -columnspan 3 -sticky news
-   grid ${layoutframe}.yscroll -row 1 -column 0 -sticky ns
-   grid $winname -row 1 -column 1 -sticky news
-   grid ${layoutframe}.zb -row 2 -column 0
-   grid ${layoutframe}.xscroll -row 2 -column 1 -sticky ew
+   grid ${layoutframe}.toolbar -row 1 -column 0 -rowspan 2 -sticky nws
+   grid ${layoutframe}.yscroll -row 1 -column 1 -sticky ns
+   grid $winname -row 1 -column 2 -sticky news
+   grid ${layoutframe}.zb -row 2 -column 1
+   grid ${layoutframe}.xscroll -row 2 -column 2 -sticky ew
    # The toolbar is not attached by default
 
    grid rowconfigure ${layoutframe} 1 -weight 1
-   grid columnconfigure ${layoutframe} 1 -weight 1
+   grid columnconfigure ${layoutframe} 2 -weight 1
 
    grid ${layoutframe}.titlebar.mbuttons -row 0 -column 0 -sticky news
    grid ${layoutframe}.titlebar.drcbutton -row 0 -column 1 -sticky news
@@ -1210,8 +1269,16 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    # this command with the "bypass" command such that it does not
    # reset any current input redirection to the terminal.
 
-   bind ${winname} <Motion> "*bypass setpoint %x %y ${winname}; \
-	magic::cursorview ${winname}"
+   bind ${winname} <Motion> \
+      [list magic::handlelayoutmotion $winname %x %y]
+
+   # Modern box-tool gesture: left-drag creates a new box from the
+   # press point to the current cursor position.  Other tools continue
+   # to use their normal button macros.
+   bind $winname <ButtonPress-1> \
+      [list magic::startboxdrag $winname %x %y]
+   bind $winname <ButtonRelease-1> \
+      [list magic::endboxdrag $winname %x %y]
 
    if {[catch {set Winopts(${framename},toolbar)}]} {
       set Winopts(${framename},toolbar) 1
@@ -1373,7 +1440,7 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    $m add check -label "Toolbar" -variable Winopts(${framename},toolbar) \
 	-command [subst {if { \$Winopts(${framename},toolbar) } { \
 		magic::maketoolbar ${layoutframe} ; \
-		grid ${layoutframe}.toolbar -row 1 -column 2 -rowspan 2 -sticky new ; \
+		grid ${layoutframe}.toolbar -row 1 -column 0 -rowspan 2 -sticky nws ; \
 		} else { \
 		grid forget ${layoutframe}.toolbar } }]
 
@@ -1439,12 +1506,9 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
 		   magic::render3d \[${winname} cellname list window\] \
 		} }]
 
-   $m add check -label "Window Command Entry" \
+   $m add check -label "Embedded Console" \
 	-variable Winopts(${framename},cmdentry) \
-	-command [subst { if { \$Winopts(${framename},cmdentry) } { \
-		addcommandentry $framename \
-		} else { \
-		deletecommandentry $framename } }]
+	-command [list magic::togglecommandentry $framename]
 
    $m add check -label "Crosshair" \
 	-variable Opts(crosshair) \
@@ -1462,7 +1526,7 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    # If the toolbar is turned on, invoke the toolbar button
    if { $Winopts(${framename},toolbar) == 1} {
       magic::maketoolbar ${layoutframe}
-      grid ${layoutframe}.toolbar -row 1 -column 2 -rowspan 2 -sticky new
+      grid ${layoutframe}.toolbar -row 1 -column 0 -rowspan 2 -sticky nws
    }
 
    # If the command entry window is enabled, create it now
@@ -1535,8 +1599,20 @@ proc magic::closewrapper { framename } {
    destroy $framename
 }
 
+# Toggle the embedded Tcl console in the bottom pane of a wrapper window.
+# This is the in-application alternative to the external TkCon window.
+proc magic::togglecommandentry { framename } {
+   global Winopts
+
+   if {$Winopts(${framename},cmdentry)} {
+      magic::addcommandentry $framename
+   } else {
+      magic::deletecommandentry $framename
+   }
+}
+
 # This procedure adds a command-line entry window to the bottom of
-# a wrapper window (rudimentary functionality---incomplete)
+# a wrapper window.
 
 proc magic::addcommandentry { framename } {
    set commandframe ${framename}.pane.bot

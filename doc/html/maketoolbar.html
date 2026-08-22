@@ -42,12 +42,21 @@ Generate the GUI layout window toolbar.
    <BLOCKQUOTE>
       The <B>maketoolbar</B> command generates the toolbar for the
       GUI layout window.  The toolbar contains a set of buttons
-      representing each layer type in the technology file.
-      Each toolbar button has bindings for mouse buttons and
-      keys to implement shortcut commands in <B>magic</B>.
-      While the mouse pointer is inside the boundary of the
-      toolbar button, the name of the layer represented by the
-      toolbar is printed in the title bar of the window.<P>
+      The toolbar contains a set of interaction-tool buttons and a
+      set of buttons representing each layer type in the technology file.
+      The interaction buttons select the Cursor, Wire, Net, and Pick
+      tools.  The Ruler button creates a ruler from the current cursor
+      box.  Selecting a different tool while an unfinished Wire or Pick
+      interaction is active cancels that interaction before switching.
+      Each layer toolbar button has bindings for mouse buttons and keys
+      to implement shortcut commands in <B>magic</B>.  While the mouse
+      pointer is inside the boundary of a toolbar button, its name is
+      printed in the title bar of the window.<P>
+
+      The Options menu also provides the <B></B>Embedded Console</B> toggle.
+      It opens a Tcl command console docked at the bottom of the layout
+      window and hides it again when disabled.  The console supports
+      command history and displays Magic output and errors.<P></P>
 
       <BLOCKQUOTE>
       <CENTER>

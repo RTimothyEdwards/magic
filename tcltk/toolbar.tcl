@@ -40,11 +40,14 @@ proc magic::maketoolbar {framename} {
       set all_layers [concat $special_layers [magic::tech unlocked]]
    }
 
+   # Add clickable buttons for the available interaction tools.
+   magic::makeToolButtons $framename
+
    # Create a canvas for the toolbar
    if {![winfo exists ${framename}.toolbar.canvas]} {
       canvas ${framename}.toolbar.canvas
    }
-   grid ${framename}.toolbar.canvas -row 0 -column 0 -sticky "news"
+   grid ${framename}.toolbar.canvas -row 1 -column 0 -sticky "news"
 
    # Add a frame to the canvas, on which the layer buttons and
    # labels are placed
@@ -90,7 +93,7 @@ proc magic::maketoolbar {framename} {
    scrollbar ${framename}.toolbar.vscroll -orient "vertical" \
    -command [list ${framename}.toolbar.canvas yview]
 
-   grid ${framename}.toolbar.vscroll -row 0 -column 1 -sticky "nws"
+   grid ${framename}.toolbar.vscroll -row 1 -column 1 -sticky "nws"
 
    # Configure the canvas to use the scrollbar
    ${framename}.toolbar.canvas configure -yscrollcommand \
@@ -98,6 +101,60 @@ proc magic::maketoolbar {framename} {
 
    # Define the canvas scroll region (as an event callback)
    bind ${framename} <Configure> "updateCanvasScrollRegion ${framename}"
+}
+
+# Create the compact interaction-tool strip above the layer toolbar.
+proc magic::makeToolButtons {framename} {
+   global Opts
+   set Opts(toolframe) $framename
+
+   if {[winfo exists ${framename}.toolbar.tools]} {
+      destroy ${framename}.toolbar.tools
+   }
+   frame ${framename}.toolbar.tools -relief groove -borderwidth 1
+   grid ${framename}.toolbar.tools -row 0 -column 0 -columnspan 2 -sticky "ew"
+
+   set tools {
+      {box "Cursor" "Select and move the cursor box"}
+      {wiring "Wire" "Draw and edit wires"}
+      {nettool "Net" "Select and edit nets"}
+      {pick "Pick" "Select and move layout objects"}
+   }
+   foreach toolinfo $tools {
+      lassign $toolinfo tool label help
+      set button ${framename}.toolbar.tools.$tool
+      button $button -text $label -width 7 -padx 2 -pady 1 \
+         -command [list magic::selectToolFromToolbar $tool]
+      pack $button -side top -fill x -padx 2 -pady 1
+      bind $button <Enter> [list ${framename}.titlebar.message configure -text $help]
+      bind $button <Leave> [list ${framename}.titlebar.message configure -text ""]
+   }
+
+   # Ruler is an action rather than a persistent button tool.  It uses the
+   # current cursor box and therefore does not change the active tool.
+   set ruler ${framename}.toolbar.tools.ruler
+   button $ruler -text "Ruler" -width 7 -padx 2 -pady 1 \
+      -command {magic::ruler}
+   pack $ruler -side top -fill x -padx 2 -pady 1
+   bind $ruler <Enter> [list ${framename}.titlebar.message configure \
+      -text "Create a ruler from the cursor box"]
+   bind $ruler <Leave> [list ${framename}.titlebar.message configure -text ""]
+
+   magic::updateToolButtons $framename
+}
+
+# Keep the selected tool visibly highlighted after a click or keyboard change.
+proc magic::updateToolButtons {framename} {
+   global Opts
+   foreach tool {box wiring nettool pick} {
+      set button ${framename}.toolbar.tools.$tool
+      if {![winfo exists $button]} { continue }
+      if {[info exists Opts(tool)] && $Opts(tool) == $tool} {
+         $button configure -relief sunken -bg lightblue
+      } else {
+         $button configure -relief raised -bg [${framename}.toolbar cget -background]
+      }
+   }
 }
 
 # Function to place layer frame with a button and label

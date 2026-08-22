@@ -106,6 +106,14 @@ Move box dist units in direction or (with no arguments) show box size.
       These versions of the command implement the standard mouse
       button bindings for the "box tool" in layout windows. <P>
 
+      In the Tcl/Tk GUI wrapper, the Cursor tool also supports creating
+      a box by pressing the left mouse button and dragging to the
+      opposite corner.  The box is normalized while dragging, so the
+      initial point may be any corner; dragging toward the left, right,
+      top, or bottom produces the corresponding lower-left and upper-right
+      coordinates.  The upper-right corner is updated continuously until
+      the button is released. <P></P>
+
       For a discussion of valid directions, see the page
       <A HREF=direction.html><B>direction</B></A>.
       Note that special cases <B>box grow center</B> and

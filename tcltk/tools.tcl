@@ -693,6 +693,26 @@ proc magic::cancelselect {window} {
    }
 }
 
+# Switch tools from the GUI toolbar.  A toolbar click is an explicit request
+# to leave the current interaction, so cancel an unfinished wire or pick first.
+proc magic::selectToolFromToolbar {type} {
+   global Opts
+
+   if {[info exists Opts(motion)] && $Opts(motion) != {}} {
+      # Opts(focus) is the layout toplevel (for example .layout1).
+      # The Magic canvas is nested below the paned window.
+      if {[info exists Opts(focus)]} {
+         set window ${Opts(focus)}.pane.top.magic
+         if {[info exists Opts(tool)] && $Opts(tool) == "wiring"} {
+            magic::trackwire $window cancel
+         } elseif {[info exists Opts(tool)] && $Opts(tool) == "pick"} {
+            magic::cancelselect $window
+         }
+      }
+   }
+   magic::tool $type
+}
+
 #---------------------------------------------------------------------
 # tool --- A scripted replacement for the "tool"
 # command, as handling of button events has been modified
@@ -782,7 +802,8 @@ proc magic::tool {{type next}} {
       }
    }
 
-   # Update window captions with the new tool info
+   # Update window captions and the clickable toolbar state.
    catch {magic::captions}
+   catch {magic::updateToolButtons $Opts(toolframe)}
    return
 }
