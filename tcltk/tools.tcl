@@ -711,6 +711,15 @@ proc magic::selectToolFromToolbar {type} {
       }
    }
    magic::tool $type
+
+   # Keep keyboard shortcuts such as `g` (grid) directed to the layout
+   # canvas after a toolbar button is clicked.
+   if {[info exists Opts(focus)]} {
+      set window ${Opts(focus)}.pane.top.magic
+      if {[winfo exists $window]} {
+         focus $window
+      }
+   }
 }
 
 #---------------------------------------------------------------------
