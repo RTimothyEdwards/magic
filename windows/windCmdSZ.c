@@ -1263,5 +1263,5 @@ windZoomCmd(w, cmd)
 	return;
     }
 
-    WindZoom(w, factor);
+    WindZoomAt(w, factor, &cmd->tx_p);
 }

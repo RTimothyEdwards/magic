@@ -468,13 +468,13 @@ windFrameButtons(w, cmd)
 	    switch (cmd->tx_button)
 	    {
 		case TX_LEFT_BUTTON:
-		    WindZoom(w, 2.0);
+		    WindZoomAt(w, 2.0, &cmd->tx_p);
 		    break;
 		case TX_MIDDLE_BUTTON:
 		    WindView(w);
 		    break;
 		case TX_RIGHT_BUTTON:
-		    WindZoom(w, 0.5);
+		    WindZoomAt(w, 0.5, &cmd->tx_p);
 		    break;
 	    }
 	    return TRUE;

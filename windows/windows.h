@@ -263,6 +263,7 @@ extern MagWindow *WindSearchData();
 
 /* procs for moving the surface inside of a window (changing the view) */
 extern void WindZoom();
+extern void WindZoomAt();
 extern void WindMove();
 extern void WindView();
 extern void WindScroll();

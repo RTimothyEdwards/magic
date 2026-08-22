@@ -232,19 +232,31 @@ WindMove(w, surfaceArea)
  */
 
 void
-WindZoom(w, factor)
+WindZoomAt(w, factor, screenPoint)
     MagWindow *w;			/* the window to be zoomed */
-    float factor;		/* The amount to zoom by (1 is no change),
-				 * greater than 1 is a larger magnification
-				 * (zoom in), and less than 1 is less mag.
-				 * (zoom out) )
-				 */
+    float factor;			/* The amount to zoom by (1 is no change),
+					 * greater than 1 is a larger magnification
+					 * (zoom in), and less than 1 is less mag.
+					 * (zoom out) )
+					 */
+    Point *screenPoint;			/* Point to keep fixed on screen, or NULL. */
 {
     int centerx, centery;
+    Point anchor;
     Rect newArea;
 
-    centerx = (w->w_surfaceArea.r_xbot + w->w_surfaceArea.r_xtop) / 2;
-    centery = (w->w_surfaceArea.r_ybot + w->w_surfaceArea.r_ytop) / 2;
+    if (screenPoint != NULL)
+    {
+	WindPointToSurface(w, screenPoint, &anchor, (Rect *) NULL);
+    }
+    else
+    {
+	anchor.p_x = (w->w_surfaceArea.r_xbot + w->w_surfaceArea.r_xtop) / 2;
+	anchor.p_y = (w->w_surfaceArea.r_ybot + w->w_surfaceArea.r_ytop) / 2;
+    }
+
+    centerx = anchor.p_x;
+    centery = anchor.p_y;
 
     newArea.r_xbot = centerx - (centerx - w->w_surfaceArea.r_xbot) * factor;
     newArea.r_xtop = centerx + (w->w_surfaceArea.r_xtop - centerx) * factor;
@@ -252,6 +264,14 @@ WindZoom(w, factor)
     newArea.r_ytop = centery + (w->w_surfaceArea.r_ytop - centery) * factor;
 
     WindMove(w, &newArea);
+}
+
+void
+WindZoom(w, factor)
+    MagWindow *w;
+    float factor;
+{
+    WindZoomAt(w, factor, (Point *) NULL);
 }
 
 /*
