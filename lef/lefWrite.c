@@ -1218,7 +1218,8 @@ lefWriteMacro(
 
     lc.file = f;
     lc.oscale = scale;
-    lc.lefMagicMap = defMakeInverseLayerMap(LAYER_MAP_NO_VIAS);
+    // lc.lefMagicMap = defMakeInverseLayerMap(LAYER_MAP_NO_VIAS);
+    lc.lefMagicMap = defMakeInverseLayerMap(LAYER_MAP_VIAS);
     lc.lastType = TT_SPACE;
     lc.lefFlat = lefFlatDef;
 
