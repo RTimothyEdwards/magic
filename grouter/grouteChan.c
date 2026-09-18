@@ -432,8 +432,9 @@ glChanClip(ch)
 }
 
 int
-glChanSetClient(tile, cdata)
+glChanSetClient(tile, dinfo, cdata)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     ClientData cdata;
 {
     tile->ti_client = cdata;
