@@ -1458,8 +1458,9 @@ mzUDCWalksFunc(tile, dinfo, cdarg)
  */
 
 int
-mzCWalksFunc2(tile, cdarg)
+mzCWalksFunc2(tile, dinfo, cdarg)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     ClientData cdarg;
 {
     WalkContactFuncData *wD = (WalkContactFuncData *) cdarg;
