@@ -953,24 +953,22 @@ DBFullResidueMask(type, rmask)
     TileType type;
     TileTypeBitMask *rmask;
 {
-    TileType t;
-    TileTypeBitMask *lmask;
-    LayerInfo *li, *lr;
-
-    li = &dbLayerInfo[type];
-    lmask = &li->l_residues;
-    TTMaskZero(rmask);
+    LayerInfo *li = &dbLayerInfo[type];
+    const TileTypeBitMask *lmask = &li->l_residues;
 
     if (type < DBNumUserLayers)
     {
-	TTMaskSetMask(rmask, &li->l_residues);
+	TTMaskCopy(rmask, lmask);
     }
     else
     {
-	for (t = TT_TECHDEPBASE; t < DBNumUserLayers; t++)
+	TileType t;
+	const int tt_last = DBNumUserLayers;
+	TTMaskZero(rmask);
+	for (t = TT_TECHDEPBASE; t < tt_last; t++)
 	    if (TTMaskHasType(lmask, t))
 	    {
-		lr = &dbLayerInfo[t];
+		LayerInfo *lr = &dbLayerInfo[t];
 		TTMaskSetMask(rmask, &lr->l_residues);
 	    }
     }
