@@ -58,6 +58,25 @@ information.
 	   <DD> Turn on/off simplification of resistor nets.
 	   <DT> <B>extout</B> [<B>on</B>|<B>off</B>]
 	   <DD> Turn on/off writing of the <TT>.res.ext</TT> file.
+	   <DT> <B>geoout</B> [<B>on</B>|<B>off</B>]
+	   <DD> Turn on/off writing of each resistor's geometry to a
+		<TT>.res.geo</TT> file, one line per <B>resist</B> line of the
+		<TT>.res.ext</TT> file, in the same order:<BR>
+		<TT>resgeo "</TT><I>node1</I><TT>" "</TT><I>node2</I><TT>"</TT>
+		<I>ohms type dir width length cl x1 y1 x2 y2 merged</I><BR>
+		<I>dir</I> is <B>ew</B>, <B>ns</B> or <B>diag</B> for a wire
+		segment, with its <I>width</I> across the current, its
+		<I>length</I> along it (the resistance times the width over
+		the sheet resistance) and its centerline <I>cl</I> (the y
+		coordinate for <B>ew</B>, x for <B>ns</B>); or <B>via</B> for
+		a contact array of <I>width</I> by <I>cl</I> cuts.  <I>x1 y1
+		x2 y2</I> are the locations of the two nodes.  Units are those
+		of the <TT>.res.ext</TT> file.  <I>merged</I> is 1 when the
+		network simplification combined the resistor with others, so
+		that its width and length no longer describe one shape.  With
+		<B>simplify off</B>, no resistors are merged, and each one is a
+		single drawn segment.  This is intended for electromigration and
+		IR drop analysis, which need each resistor's current density.
 	   <DT> <B>lumped</B> [<B>on</B>|<B>off</B>]
 	   <DD> Turn on/off writing of updated lumped resistances.
 	   <DT> <B>silent</B> [<B>on</B>|<B>off</B>]

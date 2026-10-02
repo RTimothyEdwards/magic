@@ -63,6 +63,11 @@ ResDoneWithNode(resptr)
 
     if (ResOptionsFlags & ResOpt_Geometry) return;
 
+    /* Geometry output without simplification (EM/IR): keep every drawn */
+    /* segment as its own resistor, so each one's width and length hold.*/
+
+    if ((ResOptionsFlags & ResOpt_GeoOut) && !(ResOptionsFlags & ResOpt_Simplify)) return;
+
     /* Eliminate resistors with connections to one terminal and */
     /* resistors with value 0.					*/
 
@@ -148,6 +153,7 @@ ResFixRes(resptr, resptr2, resptr3, elimResis, newResis)
     resptr2->rn_float.rn_area += elimResis->rr_value * resptr->rn_float.rn_area
 		/ ((float)(newResis->rr_value + elimResis->rr_value));
     newResis->rr_value += elimResis->rr_value;
+    newResis->rr_status |= RES_GEO_MERGED;
     ASSERT(newResis->rr_value > 0, "series");
     newResis->rr_float.rr_area += elimResis->rr_float.rr_area;
 
@@ -186,6 +192,7 @@ ResFixParallel(elimResis, newResis)
     resResistor *elimResis, *newResis;
 
 {
+    newResis->rr_status |= RES_GEO_MERGED;
     if ((newResis->rr_value + elimResis->rr_value) != 0)
     {
         newResis->rr_value = (((float) newResis->rr_value) *
@@ -636,6 +643,7 @@ ResTriangleCheck(resptr)
 			r3 = (((float)rr1->rr_value) * ((float)rr3->rr_value)) * denom;
 
 			rr1->rr_value = r1 + 0.5;
+			rr1->rr_status |= RES_GEO_MERGED; rr2->rr_status |= RES_GEO_MERGED; rr3->rr_status |= RES_GEO_MERGED;
 			rr2->rr_value = r2 + 0.5;
 			rr3->rr_value = r3 + 0.5;
 			ASSERT(rr1->rr_value >= 0, "Triangle");
@@ -771,6 +779,7 @@ ResTriangleCheck(resptr)
 		    r3 = (((float)rr1->rr_value) * ((float)rr3->rr_value)) * denom;
 
 		    rr1->rr_value = r1 + 0.5;
+			rr1->rr_status |= RES_GEO_MERGED; rr2->rr_status |= RES_GEO_MERGED; rr3->rr_status |= RES_GEO_MERGED;
 		    rr2->rr_value = r2 + 0.5;
 		    rr3->rr_value = r3 + 0.5;
 		    ASSERT(rr1->rr_value >= 0, "Triangle");
