@@ -1461,6 +1461,21 @@ TxRebuildCommand(
 
 #ifdef MAGIC_WRAPPER
 
+
+/*
+ * Tcl calls idle procs as  void proc(ClientData).  DRCContinuous() takes no
+ * arguments; passing it to Tcl_DoWhenIdle() directly works by accident on
+ * native ABIs, but WebAssembly checks the signature of every indirect call
+ * and traps ("null function or function signature mismatch") as soon as the
+ * event loop services the idle queue (e.g. "drc catchup", "update").
+ */
+static void
+drcContinuousIdleProc(ClientData clientData)
+{
+    (void) clientData;
+    DRCContinuous();
+}
+
 /*
  * ----------------------------------------------------------------------------
  * TxTclDispatch:
@@ -1555,7 +1570,7 @@ TxTclDispatch(
 	DRCBreak();
 
     /* Reinstate the idle call */
-    if (result == 0) Tcl_DoWhenIdle(DRCContinuous, (ClientData)NULL);
+    if (result == 0) Tcl_DoWhenIdle(drcContinuousIdleProc, (ClientData)NULL);
     return result;
 }
 #else  /* !MAGIC_WRAPPER */

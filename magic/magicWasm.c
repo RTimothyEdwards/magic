@@ -52,6 +52,88 @@ magicWasmEnsureCadRoot(void)
 extern int Tclmagic_Init(Tcl_Interp *interp);
 #endif
 
+#ifdef MAGIC_WRAPPER
+/*
+ * Single-threaded Tcl notifier for the WASM build.
+ *
+ * Tcl 9 is always built with TCL_THREADS, and its Unix select() notifier
+ * then starts a helper thread on the first Tcl_WaitForEvent() -- also for
+ * TCL_DONT_WAIT polls.  This build is linked without -pthread, so
+ * pthread_create() fails and Tcl_Panic("Tcl_WaitForEvent: unable to start
+ * notifier thread") aborts the module ("unreachable").  Magic polls the
+ * event loop from "drc catchup" (DRCContinuous, DRCbasic), the progress
+ * report of "extract all" (extSubtree), CIF and LEF; plain Tcl "update" and
+ * "vwait" hit the same path.
+ *
+ * In WASM there is nothing a notifier could wait for: no other threads to
+ * alert it and no file descriptors that become ready asynchronously.  So
+ * the notifier only has to report "nothing happened": with a timeout,
+ * return at once (the timer and idle event sources check their own
+ * deadlines); without one, return -1 = "would block forever", which Tcl
+ * turns into its normal error (e.g. vwait: "would wait forever").
+ */
+#ifdef Tcl_SetNotifier
+#undef Tcl_SetNotifier     /* call libtcl directly: stubs are not set up yet */
+#endif
+extern void Tcl_SetNotifier(const Tcl_NotifierProcs *notifierProcPtr);
+
+static int wasmNotifierData;
+
+static void
+wasmSetTimer(const Tcl_Time *timePtr)
+{
+    (void) timePtr;
+}
+
+static int
+wasmWaitForEvent(const Tcl_Time *timePtr)
+{
+    return (timePtr == NULL) ? -1 : 0;
+}
+
+static void
+wasmCreateFileHandler(int fd, int mask, Tcl_FileProc *proc, void *clientData)
+{
+    (void) fd; (void) mask; (void) proc; (void) clientData;
+}
+
+static void
+wasmDeleteFileHandler(int fd)
+{
+    (void) fd;
+}
+
+static void *
+wasmInitNotifier(void)
+{
+    return &wasmNotifierData;
+}
+
+static void
+wasmFinalizeNotifier(void *clientData)
+{
+    (void) clientData;
+}
+
+static void
+wasmAlertNotifier(void *clientData)
+{
+    (void) clientData;
+}
+
+static void
+wasmServiceModeHook(int mode)
+{
+    (void) mode;
+}
+
+static const Tcl_NotifierProcs wasmNotifierProcs = {
+    wasmSetTimer, wasmWaitForEvent, wasmCreateFileHandler,
+    wasmDeleteFileHandler, wasmInitNotifier, wasmFinalizeNotifier,
+    wasmAlertNotifier, wasmServiceModeHook
+};
+#endif /* MAGIC_WRAPPER */
+
 EMSCRIPTEN_KEEPALIVE int
 magic_wasm_init(void)
 {
@@ -80,7 +162,11 @@ magic_wasm_init(void)
      * straight to stderr. */
     if (magicinterp == NULL)
     {
-	Tcl_Interp *interp = Tcl_CreateInterp();
+	Tcl_Interp *interp;
+
+	/* Must precede Tcl_CreateInterp(): that initialises the notifier. */
+	Tcl_SetNotifier(&wasmNotifierProcs);
+	interp = Tcl_CreateInterp();
 	if (interp == NULL)
 	{
 	    fprintf(stderr, "magic_wasm_init: Tcl_CreateInterp returned NULL\n");
