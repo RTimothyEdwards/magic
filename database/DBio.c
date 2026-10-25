@@ -124,6 +124,8 @@ bool dbReadUse();
 extern int TagCallback();
 #endif /* MAGIC_WRAPPER */
 
+static void dbCollapsePath(char *path);
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1456,6 +1458,7 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
+    char cwdbuf[PATH_MAX];	/* Current directory */
     FILETYPE f = NULL;
     int fd;
     char *filename, *realname, *savename;
@@ -1638,7 +1641,22 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 	if (pptr != NULL)
 	    if (!strcmp(pptr, DBSuffix)) *pptr = '\0';
 
-	(void) StrDup(&cellDef->cd_file, filename);
+	/* Record the file as an absolute path:  a relative one would be
+	 * relative to the current directory, which "cd" can change before
+	 * the cell or its parent is saved.  Use lines are still written
+	 * relative to the parent (see dbWriteCellFunc()).
+	 */
+	if ((*filename != '/') && (getcwd(cwdbuf, sizeof(cwdbuf)) != NULL))
+	{
+	    char *absname = (char *)mallocMagic(strlen(cwdbuf) +
+			strlen(filename) + 2);
+	    sprintf(absname, "%s/%s", cwdbuf, filename);
+	    dbCollapsePath(absname);
+	    (void) StrDup(&cellDef->cd_file, absname);
+	    freeMagic(absname);
+	}
+	else
+	    (void) StrDup(&cellDef->cd_file, filename);
 	if (DBVerbose >= DB_VERBOSE_ALL)
 	{
 	    char *sptr = strrchr(filename, '/');
@@ -5554,11 +5572,16 @@ dbWriteCellFunc(cellUse, cdarg)
     if (pathend != NULL) *pathend = '/';
     reltype = -1;
     if ((cellUse->cu_def->cd_file != NULL) && (parent != NULL) &&
-		(*cellUse->cu_def->cd_file != '/') &&
 		(*cellUse->cu_def->cd_file != '~') &&
 		(*cellUse->cu_def->cd_file != '$'))
-	reltype = dbRelativeDir(cellUse->cu_def->cd_file, parent,
-		relpath, sizeof(relpath));
+    {
+	/* Paths into the PDK keep their variable ($PDK_ROOT, ...) */
+	if (*cellUse->cu_def->cd_file == '/')
+	    DBPathSubstitute(cellUse->cu_def->cd_file, cstring, cellUse->cu_def);
+	if ((*cellUse->cu_def->cd_file != '/') || (cstring[0] != '$'))
+	    reltype = dbRelativeDir(cellUse->cu_def->cd_file, parent,
+			relpath, sizeof(relpath));
+    }
     if (pathend != NULL) *pathend = '\0';
     if (reltype == 0)
 	pathstart = NULL;
