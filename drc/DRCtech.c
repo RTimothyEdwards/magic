@@ -1014,7 +1014,7 @@ drcCifAssign(cookie, dist, next, mask, corner, tag, cdist, flags, planeto, plane
     int dist, cdist;
     TileTypeBitMask *mask, *corner;
     int tag;
-    unsigned short flags;
+    unsigned int flags;
     int planeto, planefrom;
 {
     (cookie)->drcc_dist = dist;
@@ -1040,7 +1040,7 @@ drcAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefro
     int dist, cdist;
     TileTypeBitMask *mask, *corner;
     int why;
-    unsigned short flags;
+    unsigned int flags;
     int planeto, planefrom;
 {
     /* Diagnostic */
@@ -3155,6 +3155,48 @@ drcRectOnly(argc, argv)
 /*
  * ----------------------------------------------------------------------------
  *
+ * drcGetContactBorder --
+ *
+ * Find the amount by which a contact type extends past its contact cut
+ * on each side, according to the "squares" (or "slots") operator in the
+ * current CIF output style.  This is the amount of surround already
+ * included in the contact type, and is generally a fraction of a magic
+ * internal unit, so it is returned as a ratio num / den.
+ *
+ * Results:
+ *	TRUE if "type" is a contact type with a non-zero border, FALSE
+ *	otherwise.  If FALSE, num is set to 0 and den is set to 1.
+ *
+ * Side effects:
+ *	Fills in the values pointed to by num and den.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+drcGetContactBorder(
+    TileType type,
+    int *num,		/* Border in CIF units */
+    int *den)		/* CIF units per magic internal unit */
+{
+    int border = 0;
+
+    *num = 0;
+    *den = 1;
+
+    if (CIFCurStyle == NULL) return FALSE;
+    if (!DBIsContact(type)) return FALSE;
+    if (CIFGetContactSize(type, NULL, NULL, &border) == 0) return FALSE;
+    if (border <= 0) return FALSE;
+
+    *num = border;
+    *den = CIFCurStyle->cs_scaleFactor;
+    return TRUE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * drcSurround --
  *
  * Process a surround rule.
@@ -3174,6 +3216,14 @@ drcRectOnly(argc, argv)
  *
  *	edge4way layers1 ~(layers2)/plane1 dist NULL ~(layers2)/plane1 \
  *		dist why
+ *
+ * Except that the edge rule is marked with DRC_SURROUND.  If layers1 is
+ * a contact type that is drawn larger than its contact cut by some
+ * border, then the rule distance is assumed to be the true surround
+ * of the cut less that border.  That is correct for straight edges,
+ * but not for Euclidean distances to corners, which must be measured
+ * from the corner of the cut to be correct.  The DRC_SURROUND flag
+ * causes the corner check to be done that way (see areaCheck()).
  *
  * Extension added July 12, 2014:  For via rules where an asymmetric
  * surround is allowed, with a smaller surround allowed on two sides if
@@ -3335,7 +3385,7 @@ drcSurround(argc, argv)
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dpnew, distance, dp->drcc_next, &invM, &set2,
 				why, distance,
-				DRC_FORWARD | DRC_BOTHCORNERS,
+				DRC_FORWARD | DRC_BOTHCORNERS | DRC_SURROUND,
 				plane1, plane2);
 			dp->drcc_next = dpnew;
 
@@ -3344,7 +3394,7 @@ drcSurround(argc, argv)
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dpnew, distance, dp->drcc_next, &invM, &set2,
 				why, distance,
-				DRC_REVERSE | DRC_BOTHCORNERS,
+				DRC_REVERSE | DRC_BOTHCORNERS | DRC_SURROUND,
 				plane1, plane2);
 			dp->drcc_next = dpnew;
 		    }

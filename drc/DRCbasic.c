@@ -150,6 +150,51 @@ drcCifPointToSegment(px, py, s1x, s1y, s2x, s2y)
 /*
  * ----------------------------------------------------------------------------
  *
+ * drcRadialClear --
+ *
+ *	Determine if a tile corner at offset (sqx, sqy) from the center of
+ *	a Euclidean corner check of radius sdist is outside the circle.
+ *	If bnum is non-zero, then the tile is a contact type that extends
+ *	past its contact cut by bnum / bden on each side.  The rule distance
+ *	sdist is then assumed to be the true distance to the cut less the
+ *	border, and the measurement is made to the corner of the cut.  That
+ *	is, the test is
+ *
+ *	    (sqx + b)^2 + (sqy + b)^2 >= (sdist + b)^2
+ *
+ *	where b = bnum / bden.  All values are scaled by bden to keep the
+ *	computation in integers.
+ *
+ * Results:
+ *	TRUE if the tile corner is outside the circle (no error), FALSE
+ *	otherwise.
+ *
+ * Side Effects:
+ *	None.
+ *
+ *-----------------------------------------------------------------------
+ */
+
+bool
+drcRadialClear(
+    int sqx,
+    int sqy,
+    int sdist,
+    int bnum,
+    int bden)
+{
+    dlong dx, dy, dr;
+
+    dx = (dlong)sqx * bden + bnum;
+    dy = (dlong)sqy * bden + bnum;
+    dr = (dlong)sdist * bden + bnum;
+
+    return ((dx * dx + dy * dy) >= dr * dr) ? TRUE : FALSE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * areaCheck --
  *
  * Call the function passed down from DRCBasicCheck() if the current tile
@@ -218,13 +263,20 @@ areaCheck(tile, dinfo, arg)
 	int sqx, sqy;
 	int sdist = arg->dCD_radial & 0xfff;
 	long sstest, ssdist = (long) sdist * sdist;
+	int bnum = 0, bden = 1;
+
+	/* For surround rules, measure corner distances from the contact
+	 * cut, not from the edge of the contact type.
+	 */
+	if ((arg->dCD_cptr->drcc_flags & DRC_SURROUND) && !IsSplit(tile))
+	    drcGetContactBorder(TiGetType(tile), &bnum, &bden);
 
 	if ((arg->dCD_radial & RADIAL_NW) != 0)
 	{
 	    if (((sqx = arg->dCD_constraint->r_xbot + sdist
 			 - rect.r_xtop) >= 0) && ((sqy = rect.r_ybot
 			- arg->dCD_constraint->r_ytop + sdist) >= 0)
-			&& ((sqx * sqx + sqy * sqy) >= ssdist))
+			&& drcRadialClear(sqx, sqy, sdist, bnum, bden))
 		return 0;
 	    else if (IsSplit(tile) && !SplitDirection(tile) && !(dinfo & TT_SIDE))
 	    {
@@ -239,7 +291,7 @@ areaCheck(tile, dinfo, arg)
 	    if (((sqx = rect.r_xbot - arg->dCD_constraint->r_xtop
 			+ sdist) >= 0) && ((sqy = rect.r_ybot
 			- arg->dCD_constraint->r_ytop + sdist) >= 0)
-			&& ((sqx * sqx + sqy * sqy) >= ssdist))
+			&& drcRadialClear(sqx, sqy, sdist, bnum, bden))
 		return 0;
 	    else if (IsSplit(tile) && SplitDirection(tile) && (dinfo & TT_SIDE))
 	    {
@@ -255,7 +307,7 @@ areaCheck(tile, dinfo, arg)
 			- rect.r_xtop) >= 0) &&
 			((sqy = arg->dCD_constraint->r_ybot
 			+ sdist - rect.r_ytop) >= 0)
-			&& ((sqx * sqx + sqy * sqy) >= ssdist))
+			&& drcRadialClear(sqx, sqy, sdist, bnum, bden))
 		return 0;
 	    else if (IsSplit(tile) && SplitDirection(tile) && !(dinfo & TT_SIDE))
 	    {
@@ -271,7 +323,7 @@ areaCheck(tile, dinfo, arg)
 			+ sdist) >= 0) &&
 			((sqy = arg->dCD_constraint->r_ybot
 			+ sdist - rect.r_ytop) >= 0)
-			&& ((sqx * sqx + sqy * sqy) >= ssdist))
+			&& drcRadialClear(sqx, sqy, sdist, bnum, bden))
 		return 0;
 	    else if (IsSplit(tile) && !SplitDirection(tile) && (dinfo & TT_SIDE))
 	    {

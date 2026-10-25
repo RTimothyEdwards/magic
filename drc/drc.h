@@ -35,7 +35,7 @@ typedef struct drccookie
     unsigned char     drcc_cmod;	/* Fractional part of drcc_cdist */
     TileTypeBitMask   drcc_mask;	/* Legal types on RHS */
     TileTypeBitMask   drcc_corner;	/* Types that trigger corner check */
-    unsigned short    drcc_flags;	/* Miscellaneous flags, see below. */
+    unsigned int      drcc_flags;	/* Miscellaneous flags, see below. */
     unsigned char     drcc_exception;	/* Index to list of exceptions */
     int		      drcc_edgeplane;	/* Plane of edge */
     int		      drcc_plane;	/* Index of plane on which to check
@@ -61,6 +61,10 @@ typedef struct drccookie
  * DRC_OUTSIDE:		Rule applies only to the outside edge of the rule area.
  * DRC_TRIGGER:		Violation of rule triggers a secondary rule.
  * DRC_RUNLENGTH:	"cdist" encodes runlength distance, not corner distance.
+ * DRC_SURROUND:	Rule is the main check of a "surround" rule.  When the
+ *			inner type is a contact type whose cut is smaller than
+ *			the contact, Euclidean corner distances are measured
+ *			to the cut and not to the edge of the contact type.
  *
  * All other flags denote special DRC rules that do not use the standard 4-way
  * edge processing.
@@ -87,6 +91,7 @@ typedef struct drccookie
 
 /* More flags for indicating what the rule type represents */
 #define		DRC_CIFRULE		0x8000
+#define		DRC_SURROUND		0x10000
 
 #define	DRC_PENDING			0
 #define DRC_UNPROCESSED 		CLIENTDEFAULT
@@ -261,6 +266,7 @@ extern int drcExactOverlapTile();
 extern void drcInitRulesTbl();
 extern void drcAssign();
 extern void drcCifAssign();
+extern bool drcGetContactBorder(TileType type, int *num, int *den);
 extern int drcWhyCreate();
 
 /*

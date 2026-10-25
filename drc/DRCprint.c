@@ -133,6 +133,8 @@ DRCPrintRulesTable (fp)
 			fprintf(fp," angles_45");
 		    if (dp->drcc_flags & DRC_ANGLES_90)
 			fprintf(fp," angles_90");
+		    if (dp->drcc_flags & DRC_SURROUND)
+			fprintf(fp," surround");
 		    fprintf(fp,"\n");
 	        }
 	    }
