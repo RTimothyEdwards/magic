@@ -154,11 +154,12 @@ drcCifPointToSegment(px, py, s1x, s1y, s2x, s2y)
  *
  *	Determine if a tile corner at offset (sqx, sqy) from the center of
  *	a Euclidean corner check of radius sdist is outside the circle.
- *	If bnum is non-zero, then the tile is a contact type that extends
- *	past its contact cut by bnum / bden on each side.  The rule distance
- *	sdist is then assumed to be the true distance to the cut less the
- *	border, and the measurement is made to the corner of the cut.  That
- *	is, the test is
+ *	If bnum is non-zero, then the tile, or the type on the inside of
+ *	the edge, or both, are contact types that extend past their contact
+ *	cuts by a total of bnum / bden (see drcDerivedBorder()).  The rule
+ *	distance sdist is then assumed to be the true distance between cuts
+ *	(or between a cut and the edge) less that border, and the measurement
+ *	is made between the cut corners.  That is, the test is
  *
  *	    (sqx + b)^2 + (sqy + b)^2 >= (sdist + b)^2
  *
@@ -190,6 +191,72 @@ drcRadialClear(
     dr = (dlong)sdist * bden + bnum;
 
     return ((dx * dx + dy * dy) >= dr * dr) ? TRUE : FALSE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * drcDerivedBorder --
+ *
+ *	For a rule flagged with DRC_DERIVED_EDGE and/or DRC_DERIVED_TARGET,
+ *	find the total amount by which the contact types on either side of
+ *	a corner check extend past their contact cuts.  On the edge side,
+ *	the type is that of the initial tile of the search.  On the target
+ *	side, the type is that of the tile found in the rule area, which
+ *	represents a contact cut only if it is a contact type whose residue
+ *	on the check plane is a legal type for the rule.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Sets the values pointed to by bnum and bden to the total border
+ *	expressed as the ratio bnum / bden in magic internal units.  This
+ *	is zero if neither side represents a contact cut.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+drcDerivedBorder(
+    Tile *tile,				/* Tile found in the rule area */
+    struct drcClientData *arg,
+    int *bnum,
+    int *bden)
+{
+    DRCCookie *cptr = arg->dCD_cptr;
+    Tile *etile = arg->dCD_initial;
+    TileType ttype, rtype;
+    int num, den;
+
+    *bnum = 0;
+    *bden = 1;
+
+    if ((cptr->drcc_flags & DRC_DERIVED_EDGE) && (etile != NULL) &&
+		!IsSplit(etile))
+    {
+	if (drcGetContactBorder(TiGetType(etile), &num, &den))
+	{
+	    *bnum = num;
+	    *bden = den;
+	}
+    }
+
+    if ((cptr->drcc_flags & DRC_DERIVED_TARGET) && !IsSplit(tile))
+    {
+	ttype = TiGetType(tile);
+	if (DBIsContact(ttype))
+	{
+	    rtype = DBPlaneToResidue(ttype, cptr->drcc_plane);
+	    if ((rtype != TT_SPACE) && TTMaskHasType(&cptr->drcc_mask, rtype))
+		if (drcGetContactBorder(ttype, &num, &den))
+		{
+		    /* Both borders are in units of the same CIF style */
+		    *bnum += num;
+		    *bden = den;
+		}
+	}
+    }
 }
 
 /*
@@ -265,11 +332,12 @@ areaCheck(tile, dinfo, arg)
 	long sstest, ssdist = (long) sdist * sdist;
 	int bnum = 0, bden = 1;
 
-	/* For surround rules, measure corner distances from the contact
-	 * cut, not from the edge of the contact type.
+	/* For rules on derived types (contacts that represent contact
+	 * cuts), measure corner distances between the contact cuts,
+	 * not between the edges of the contact types.
 	 */
-	if ((arg->dCD_cptr->drcc_flags & DRC_SURROUND) && !IsSplit(tile))
-	    drcGetContactBorder(TiGetType(tile), &bnum, &bden);
+	if (arg->dCD_cptr->drcc_flags & (DRC_DERIVED_EDGE | DRC_DERIVED_TARGET))
+	    drcDerivedBorder(tile, arg, &bnum, &bden);
 
 	if ((arg->dCD_radial & RADIAL_NW) != 0)
 	{

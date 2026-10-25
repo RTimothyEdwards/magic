@@ -61,10 +61,15 @@ typedef struct drccookie
  * DRC_OUTSIDE:		Rule applies only to the outside edge of the rule area.
  * DRC_TRIGGER:		Violation of rule triggers a secondary rule.
  * DRC_RUNLENGTH:	"cdist" encodes runlength distance, not corner distance.
- * DRC_SURROUND:	Rule is the main check of a "surround" rule.  When the
- *			inner type is a contact type whose cut is smaller than
- *			the contact, Euclidean corner distances are measured
- *			to the cut and not to the edge of the contact type.
+ * DRC_DERIVED_EDGE:	The type on the inside of the edge is a contact type
+ *			that represents its contact cut in this rule (the rule
+ *			does not include the contact's residue type).  If the
+ *			contact type is larger than the cut, then Euclidean
+ *			corner distances are measured from the cut corner.
+ * DRC_DERIVED_TARGET:	Contact types found in the rule area may represent
+ *			their contact cuts (those whose residue type on the
+ *			check plane is a legal type for the rule), and if so,
+ *			Euclidean corner distances are measured to the cut.
  *
  * All other flags denote special DRC rules that do not use the standard 4-way
  * edge processing.
@@ -91,7 +96,8 @@ typedef struct drccookie
 
 /* More flags for indicating what the rule type represents */
 #define		DRC_CIFRULE		0x8000
-#define		DRC_SURROUND		0x10000
+#define		DRC_DERIVED_EDGE	0x10000
+#define		DRC_DERIVED_TARGET	0x20000
 
 #define	DRC_PENDING			0
 #define DRC_UNPROCESSED 		CLIENTDEFAULT

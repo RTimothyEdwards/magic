@@ -133,8 +133,10 @@ DRCPrintRulesTable (fp)
 			fprintf(fp," angles_45");
 		    if (dp->drcc_flags & DRC_ANGLES_90)
 			fprintf(fp," angles_90");
-		    if (dp->drcc_flags & DRC_SURROUND)
-			fprintf(fp," surround");
+		    if (dp->drcc_flags & DRC_DERIVED_EDGE)
+			fprintf(fp," derived-edge");
+		    if (dp->drcc_flags & DRC_DERIVED_TARGET)
+			fprintf(fp," derived-target");
 		    fprintf(fp,"\n");
 	        }
 	    }

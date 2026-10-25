@@ -2071,6 +2071,87 @@ drcSpacing3(argc, argv)
 /*
  *-------------------------------------------------------------------
  *
+ * drcIsDerivedType ---
+ *
+ *	Determine if a contact type represents its contact cut in a
+ *	rule, which is assumed to be the case if the type is a contact
+ *	type and its residue on the given plane is not in the rule's
+ *	set of types.  For example, a poly contact in a list of types
+ *	that includes poly is just a poly edge, but a poly contact in
+ *	a list of types that does not include poly is a contact cut.
+ *
+ * Results:
+ *	TRUE if "type" represents a contact cut, FALSE otherwise.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------
+ */
+
+bool
+drcIsDerivedType(
+    TileType type,
+    TileTypeBitMask *set,
+    int plane)
+{
+    TileType rtype;
+
+    if (!DBIsContact(type)) return FALSE;
+    rtype = DBPlaneToResidue(type, plane);
+    if (rtype == TT_SPACE) return FALSE;
+    return (TTMaskHasType(set, rtype)) ? FALSE : TRUE;
+}
+
+/*
+ *-------------------------------------------------------------------
+ *
+ * drcDerivedFlags ---
+ *
+ *	Determine the DRC_DERIVED_EDGE and DRC_DERIVED_TARGET flags for
+ *	a spacing rule.  The flags indicate that a Euclidean corner
+ *	check should measure from (DRC_DERIVED_EDGE) or to
+ *	(DRC_DERIVED_TARGET) a contact cut, not the contact type, because
+ *	the rule distance is assumed to be the true distance between cuts
+ *	less the amount by which the contact type is larger than the cut.
+ *
+ * Results:
+ *	Flag values to be added to the rule's flags.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------
+ */
+
+unsigned int
+drcDerivedFlags(
+    TileType edgetype,		/* Type on the inside of the rule edge */
+    TileTypeBitMask *edgeset,	/* Set of types that edgetype belongs to */
+    int edgeplane,		/* Plane of the edge */
+    TileTypeBitMask *targetset,	/* Set of types checked by the rule */
+    int targetplane)		/* Plane of the types checked */
+{
+    unsigned int dflags = 0;
+    TileType t;
+
+    if (drcIsDerivedType(edgetype, edgeset, edgeplane))
+	dflags |= DRC_DERIVED_EDGE;
+
+    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+	if (TTMaskHasType(targetset, t) && DBTypeOnPlane(t, targetplane)
+		&& drcIsDerivedType(t, targetset, targetplane))
+	{
+	    dflags |= DRC_DERIVED_TARGET;
+	    break;
+	}
+
+    return dflags;
+}
+
+/*
+ *-------------------------------------------------------------------
+ *
  * drcMaskSpacing ---
  *
  *	This is the core of the drcSpacing routine.  When the spacing
@@ -2308,6 +2389,9 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    {
 			drcAssign(dpnew, distance, dp->drcc_next, &tmp1,
 				&tmp2, why, wwidth, DRC_FORWARD | flags, plane2, plane);
+			if (!(flags & DRC_MANHATTAN))
+			    dpnew->drcc_flags |= drcDerivedFlags(i, set1, plane,
+					set2, plane2);
 			dp->drcc_next = dpnew;
 		    }
 
@@ -2378,6 +2462,9 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 					&tmp1, &tmp2, why, wwidth,
 					DRC_REVERSE | DRC_BOTHCORNERS | flags,
 					plane2, plane);
+			    if (!(flags & DRC_MANHATTAN))
+				dpnew->drcc_flags |= drcDerivedFlags(i, set1,
+					plane, set2, plane2);
 			    dp->drcc_next = dpnew;
 		 	}
 		    }
@@ -2432,6 +2519,9 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
 					why, distance, DRC_FORWARD | flags,
 					plane2, plane);
+			if (!(flags & DRC_MANHATTAN))
+			    dpnew->drcc_flags |= drcDerivedFlags(i, set2, plane,
+					set1, plane2);
 			dp->drcc_next = dpnew;
 		    }
 
@@ -2471,6 +2561,9 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 					&tmp1, &tmp2, why, distance,
 					DRC_REVERSE | DRC_BOTHCORNERS | flags,
 					plane2, plane);
+			    if (!(flags & DRC_MANHATTAN))
+				dpnew->drcc_flags |= drcDerivedFlags(i, set2,
+					plane, set1, plane2);
 			    dp->drcc_next = dpnew;
 			}
 		    }
@@ -3217,13 +3310,13 @@ drcGetContactBorder(
  *	edge4way layers1 ~(layers2)/plane1 dist NULL ~(layers2)/plane1 \
  *		dist why
  *
- * Except that the edge rule is marked with DRC_SURROUND.  If layers1 is
- * a contact type that is drawn larger than its contact cut by some
- * border, then the rule distance is assumed to be the true surround
- * of the cut less that border.  That is correct for straight edges,
- * but not for Euclidean distances to corners, which must be measured
- * from the corner of the cut to be correct.  The DRC_SURROUND flag
- * causes the corner check to be done that way (see areaCheck()).
+ * Except that the edge rule is marked with DRC_DERIVED_TARGET.  If
+ * layers1 is a contact type that is drawn larger than its contact cut
+ * by some border, then the rule distance is assumed to be the true
+ * surround of the cut less that border.  That is correct for straight
+ * edges, but not for Euclidean distances to corners, which must be
+ * measured from the corner of the cut to be correct.  The flag causes
+ * the corner check to be done that way (see areaCheck()).
  *
  * Extension added July 12, 2014:  For via rules where an asymmetric
  * surround is allowed, with a smaller surround allowed on two sides if
@@ -3385,7 +3478,7 @@ drcSurround(argc, argv)
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dpnew, distance, dp->drcc_next, &invM, &set2,
 				why, distance,
-				DRC_FORWARD | DRC_BOTHCORNERS | DRC_SURROUND,
+				DRC_FORWARD | DRC_BOTHCORNERS | DRC_DERIVED_TARGET,
 				plane1, plane2);
 			dp->drcc_next = dpnew;
 
@@ -3394,7 +3487,7 @@ drcSurround(argc, argv)
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dpnew, distance, dp->drcc_next, &invM, &set2,
 				why, distance,
-				DRC_REVERSE | DRC_BOTHCORNERS | DRC_SURROUND,
+				DRC_REVERSE | DRC_BOTHCORNERS | DRC_DERIVED_TARGET,
 				plane1, plane2);
 			dp->drcc_next = dpnew;
 		    }
@@ -4128,9 +4221,13 @@ drcTechFinalStyle(style)
     drcScaleUp(style, style->DRCScaleFactorD);
     drcScaleDown(style, style->DRCScaleFactorN);
 
-    /* Scale DRCTechHalo to match */
+    /* Scale DRCTechHalo to match.  Round up, as is done for the rule	*/
+    /* distances, or else the halo may be smaller than the largest	*/
+    /* rule distance, and errors near the boundary of a check area	*/
+    /* will be missed.							*/
     DRCTechHalo *= style->DRCScaleFactorD;
-    DRCTechHalo /= style->DRCScaleFactorN;
+    DRCTechHalo = (DRCTechHalo + style->DRCScaleFactorN - 1) /
+		style->DRCScaleFactorN;
 
     /* Set maximum halo */
     style->DRCTechHalo = DRCTechHalo;
@@ -4482,14 +4579,15 @@ DRCTechScale(scalen, scaled)
     /* Do the same for the plow rules */
     DRCPlowScale(DRCCurStyle->DRCScaleFactorD, DRCCurStyle->DRCScaleFactorN, TRUE);
 
+    /* Round the halo up (see drcTechFinalStyle()) */
     DRCTechHalo *= scaled;
-    DRCTechHalo /= scalen;
+    DRCTechHalo = (DRCTechHalo + scalen - 1) / scalen;
 
     DRCStepSize *= scaled;
     DRCStepSize /= scalen;
 
     DRCCurStyle->DRCTechHalo *= scaled;
-    DRCCurStyle->DRCTechHalo /= scalen;
+    DRCCurStyle->DRCTechHalo = (DRCCurStyle->DRCTechHalo + scalen - 1) / scalen;
 
     DRCCurStyle->DRCStepSize *= scaled;
     DRCCurStyle->DRCStepSize /= scalen;
