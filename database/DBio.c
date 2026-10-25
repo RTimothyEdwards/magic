@@ -5416,6 +5416,70 @@ DBPathSubstitute(pathstart, cstring, cellDef)
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbRelativeDir --
+ *
+ *	Find the directory of a subcell relative to the directory in which
+ *	its parent is being written.  Both file names are relative to the
+ *	current directory or absolute; a name without a directory part is in
+ *	the current directory.  This is what a "use" line must record when
+ *	the parent is saved somewhere other than the current directory
+ *	("save ../other/top" with the subcell read from ".").
+ *
+ * Results:
+ *	-1 if either directory cannot be resolved, 0 if both are the same
+ *	directory, 1 if the relative path was written into "rel".
+ *
+ * Side effects:
+ *	Writes into "rel" (of size "len").
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static int
+dbRelativeDir(child, parent, rel, len)
+    const char *child;	/* File name of the subcell */
+    const char *parent;	/* File name of the cell being written */
+    char *rel;		/* Filled in with the relative directory */
+    int len;		/* Size of rel */
+{
+    char cdir[PATH_MAX], pdir[PATH_MAX], creal[PATH_MAX], preal[PATH_MAX];
+    const char *slash, *c, *q;
+    int n = 0, common;
+
+    slash = strrchr(child, '/');
+    if (slash == NULL) strcpy(cdir, ".");
+    else snprintf(cdir, sizeof(cdir), "%.*s", (int)(slash - child + 1), child);
+    slash = strrchr(parent, '/');
+    if (slash == NULL) strcpy(pdir, ".");
+    else snprintf(pdir, sizeof(pdir), "%.*s", (int)(slash - parent + 1), parent);
+
+    if ((realpath(cdir, creal) == NULL) || (realpath(pdir, preal) == NULL))
+	return -1;
+    if (!strcmp(creal, preal)) return 0;
+
+    /* Length of the common leading directories */
+    common = 0;
+    for (c = creal, q = preal; *c && (*c == *q); c++, q++)
+	if (*c == '/') common = c - creal;
+    if ((*c == '\0' && (*q == '/' || *q == '\0')) ||
+		(*q == '\0' && *c == '/'))
+	common = c - creal;
+
+    /* One ".." for each directory of the parent below the common part */
+    rel[0] = '\0';
+    for (q = preal + common; *q; q++)
+	if ((*q == '/') && (n + 4 < len))
+	    n += snprintf(rel + n, len - n, "../");
+    if (*(creal + common) == '/')
+	snprintf(rel + n, len - n, "%s", creal + common + 1);
+    else if (n > 0)
+	rel[n - 1] = '\0';	/* drop the trailing slash */
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbWriteCellFunc --
  *
  * Filter function used to write out a single cell use in the
@@ -5439,6 +5503,8 @@ dbWriteCellFunc(cellUse, cdarg)
     Transform *t;
     Rect *b;
     char     cstring[1024], *pathend, *pathstart, *parent;
+    char     relpath[PATH_MAX];
+    int	     reltype;
 
     t = &(cellUse->cu_transform);
     b = &(cellUse->cu_def->cd_bbox);
@@ -5480,8 +5546,27 @@ dbWriteCellFunc(cellUse, cdarg)
 	}
     }
 
-    if ((cellUse->cu_def->cd_flags & CDVISITED) || (pathend == NULL) ||
-		(pathstart == NULL) || (*pathstart == '\0'))
+    /* A relative subcell path is relative to the current directory, so	*/
+    /* when the parent is written to another directory, record the	*/
+    /* subcell directory relative to the parent's directory instead.	*/
+
+    relpath[0] = '\0';
+    if (pathend != NULL) *pathend = '/';
+    reltype = -1;
+    if ((cellUse->cu_def->cd_file != NULL) && (parent != NULL) &&
+		(*cellUse->cu_def->cd_file != '/') &&
+		(*cellUse->cu_def->cd_file != '~') &&
+		(*cellUse->cu_def->cd_file != '$'))
+	reltype = dbRelativeDir(cellUse->cu_def->cd_file, parent,
+		relpath, sizeof(relpath));
+    if (pathend != NULL) *pathend = '\0';
+    if (reltype == 0)
+	pathstart = NULL;
+    else if (reltype == 1)
+	pathstart = relpath;
+
+    if ((cellUse->cu_def->cd_flags & CDVISITED) || (pathend == NULL &&
+		reltype != 1) || (pathstart == NULL) || (*pathstart == '\0'))
     {
 	sprintf(cstring, "use %s %c%s\n", cellUse->cu_def->cd_name,
 		(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
