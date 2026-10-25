@@ -535,8 +535,7 @@ calmaDumpStructure(
 
 	    if (isAbstract && isReadOnly)
 	    {
-		filenamesubbed = StrDup(NULL, filename);
-		DBPathSubstitute(filename, filenamesubbed, edef);
+		filenamesubbed = DBPathSubstitute(filename, edef);
 	    }
 
 	    /* Is the library name the same as the filename? */

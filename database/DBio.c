@@ -1729,14 +1729,14 @@ DBTestOpen(name, fullPath)
 /*
  * ----------------------------------------------------------------------------
  *
- * dbReadUse --
+ * dbReadUseBody --
  *
- * Read a single cell use specification.  Create a new cell
- * use that is a child of cellDef.  Create the def for this
+ * Read the remainder of a single cell use specification after the
+ * "use" line, which has already been parsed by dbReadUse().  Create a
+ * new cell use that is a child of cellDef.  Create the def for this
  * child use if it doesn't already exist.
  *
- * On input, 'line' contains the "use" line; on exit, 'line'
- * contains the next line in the input after the "use".
+ * On exit, 'line' contains the next line in the input after the "use".
  *
  * Results:
  *	Returns TRUE normally, or FALSE on error or EOF.
@@ -1748,19 +1748,22 @@ DBTestOpen(name, fullPath)
  */
 
 bool
-dbReadUse(cellDef, line, len, f, scalen, scaled, dereference, dbUseTable)
-    CellDef *cellDef;	/* Cell whose cells are being read */
-    char *line;		/* Line containing "use ..." */
-    int len;		/* Size of buffer pointed to by line */
-    FILETYPE f;		/* Input file */
-    int scalen;		/* Multiply values in file by this */
-    int scaled;		/* Divide values in file by this */
-    bool dereference;	/* If TRUE, ignore path references */
-    HashTable *dbUseTable;  /* Hash table of instances seen in this file */
+dbReadUseBody(
+    CellDef *cellDef,	/* Cell whose cells are being read */
+    char *line,		/* Line buffer */
+    int len,		/* Size of buffer pointed to by line */
+    FILETYPE f,		/* Input file */
+    int scalen,		/* Multiply values in file by this */
+    int scaled,		/* Divide values in file by this */
+    bool dereference,	/* If TRUE, ignore path references */
+    HashTable *dbUseTable,  /* Hash table of instances seen in this file */
+    char *cellname,	/* Cell name from the "use" line */
+    char *useid,	/* Use name from the "use" line, or empty string */
+    char *pathstr)	/* Path from the "use" line, or empty string */
 {
     int xlo, xhi, ylo, yhi, xsep, ysep, childStamp;
-    int absa, absb, absd, abse, nconv;
-    char cellname[1024], useid[1024], path[1024];
+    int absa, absb, absd, abse;
+    char path[1024];
     CellUse *subCellUse;
     CellDef *subCellDef;
     Transform t;
@@ -1768,22 +1771,14 @@ dbReadUse(cellDef, line, len, f, scalen, scaled, dereference, dbUseTable)
     bool locked, firstUse;
     char *slashptr, *pathptr;
 
-    if (strncmp(line, "use", 3) != 0)
+    if (strlen(pathstr) >= sizeof(path))
     {
-	TxError("Expected \"use\" line but saw: %s", line);
-	return (FALSE);
+	TxError("Path for cell %s in \"use\" line is too long and will "
+		"be ignored.\n", cellname);
+	path[0] = '\0';
     }
-
-    useid[0] = '\0';
-    nconv = sscanf(line, "use %1023s %1023s %1023s", cellname, useid, path);
-    if (nconv < 1)
-    {
-	TxError("Malformed \"use\" line: %s", line);
-	return (FALSE);
-    }
-    /* Make sure useid[0] is an empty string if no useid was provided */
-    if (nconv == 1) useid[0] = '\0';
-    if (nconv <= 2) path[0] = '\0';
+    else
+	strcpy(path, pathstr);
 
     pathptr = &path[0];
     while (*pathptr == ' ' || *pathptr == '\t') pathptr++;
@@ -2374,6 +2369,113 @@ badTransform:
 
 nextLine:
     return (dbFgets(line, len, f) != NULL);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbReadUse --
+ *
+ * Read a single cell use specification.  Create a new cell
+ * use that is a child of cellDef.  Create the def for this
+ * child use if it doesn't already exist.
+ *
+ * On input, 'line' contains the "use" line; on exit, 'line'
+ * contains the next line in the input after the "use".
+ *
+ * The cell name and use name in the "use" line have no length
+ * limit, so if the line did not fit in 'line', the remainder of
+ * the line is read from the file.
+ *
+ * Results:
+ *	Returns TRUE normally, or FALSE on error or EOF.
+ *
+ * Side effects:
+ *	See above.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+dbReadUse(cellDef, line, len, f, scalen, scaled, dereference, dbUseTable)
+    CellDef *cellDef;	/* Cell whose cells are being read */
+    char *line;		/* Line containing "use ..." */
+    int len;		/* Size of buffer pointed to by line */
+    FILETYPE f;		/* Input file */
+    int scalen;		/* Multiply values in file by this */
+    int scaled;		/* Divide values in file by this */
+    bool dereference;	/* If TRUE, ignore path references */
+    HashTable *dbUseTable;  /* Hash table of instances seen in this file */
+{
+    char *useline, *cellname, *useid, *pathstr;
+    int linelen, size, nconv, c;
+    bool result;
+
+    if (strncmp(line, "use", 3) != 0)
+    {
+	TxError("Expected \"use\" line but saw: %s", line);
+	return (FALSE);
+    }
+
+    linelen = strlen(line);
+    size = linelen + 1;
+    useline = (char *)mallocMagic(size);
+    strcpy(useline, line);
+
+    /* If the line did not end with a newline, then it was longer than	*/
+    /* the line buffer, so read the rest of it.  (This is done directly	*/
+    /* and not with dbFgets(), which would skip text starting with '#'.)	*/
+
+    if ((linelen > 0) && (useline[linelen - 1] != '\n'))
+    {
+	while ((c = FGETC(f)) != EOF)
+	{
+	    if (c == '\r') continue;
+	    if (c == '\n') break;
+	    if (linelen + 1 >= size)
+	    {
+		char *newline;
+
+		size *= 2;
+		newline = (char *)mallocMagic(size);
+		memcpy(newline, useline, linelen);
+		freeMagic(useline);
+		useline = newline;
+	    }
+	    useline[linelen++] = c;
+	}
+	useline[linelen] = '\0';
+    }
+
+    /* Each field is no longer than the line, so these cannot overflow */
+
+    cellname = (char *)mallocMagic(linelen + 1);
+    useid = (char *)mallocMagic(linelen + 1);
+    pathstr = (char *)mallocMagic(linelen + 1);
+    useid[0] = '\0';
+    pathstr[0] = '\0';
+
+    nconv = sscanf(useline, "use %s %s %s", cellname, useid, pathstr);
+    if (nconv < 1)
+    {
+	TxError("Malformed \"use\" line: %s", useline);
+	result = FALSE;
+    }
+    else
+    {
+	/* Make sure useid is an empty string if no useid was provided */
+	if (nconv == 1) useid[0] = '\0';
+	if (nconv <= 2) pathstr[0] = '\0';
+
+	result = dbReadUseBody(cellDef, line, len, f, scalen, scaled,
+		dereference, dbUseTable, cellname, useid, pathstr);
+    }
+
+    freeMagic(useline);
+    freeMagic(cellname);
+    freeMagic(useid);
+    freeMagic(pathstr);
+    return result;
 }
 
 /*
@@ -5252,22 +5354,26 @@ dbClearCellFunc(cellUse, cdarg)
  *	   environment variable HOME, then replace the string with "~".
  *
  * Results:
- *	None.
+ *	A newly allocated string containing the substituted path.  The
+ *	caller must free the string with freeMagic().
  *
  * Side Effects:
- *	Writes into the string "cstring".
+ *	None.
  *
  * ----------------------------------------------------------------------------
  */
 
-void
-DBPathSubstitute(pathstart, cstring, cellDef)
-    char *pathstart;
-    char *cstring;
-    CellDef *cellDef;
+char *
+DBPathSubstitute(
+    char *pathstart,
+    CellDef *cellDef)
 {
-    bool subbed = FALSE;
+    char *cstring;
 #ifdef MAGIC_WRAPPER
+    static const char * const pdkVars[] = {
+	"PDK_PATH", "PDKPATH", "PDK_ROOT", "PDKROOT", NULL
+    };
+    const char * const *varPtr;
     char *tvar;
 
     /* Check for the leading component of the file path being equal to	*/
@@ -5275,64 +5381,39 @@ DBPathSubstitute(pathstart, cstring, cellDef)
     /* if there is a match, then substitute the variable name for the	*/
     /* matching leading path component.					*/
 
-    if (subbed == FALSE)
+    for (varPtr = pdkVars; *varPtr != NULL; varPtr++)
     {
-	tvar = (char *)Tcl_GetVar(magicinterp, "PDK_PATH", TCL_GLOBAL_ONLY);
-	if (tvar)
-	    if (!strncmp(pathstart, tvar, strlen(tvar)))
-	    {
-	    	sprintf(cstring, "$PDK_PATH%s", pathstart + strlen(tvar));
-		subbed = TRUE;
-	    }
-    }
-    if (subbed == FALSE)
-    {
-	tvar = (char *)Tcl_GetVar(magicinterp, "PDKPATH", TCL_GLOBAL_ONLY);
-	if (tvar)
-	    if (!strncmp(pathstart, tvar, strlen(tvar)))
-	    {
-	    	sprintf(cstring, "$PDKPATH%s", pathstart + strlen(tvar));
-		subbed = TRUE;
-	    }
-    }
-    if (subbed == FALSE)
-    {
-	tvar = (char *)Tcl_GetVar(magicinterp, "PDK_ROOT", TCL_GLOBAL_ONLY);
-	if (tvar)
-	    if (!strncmp(pathstart, tvar, strlen(tvar)))
-	    {
-	    	sprintf(cstring, "$PDK_ROOT%s", pathstart + strlen(tvar));
-		subbed = TRUE;
-	    }
-    }
-    if (subbed == FALSE)
-    {
-	tvar = (char *)Tcl_GetVar(magicinterp, "PDKROOT", TCL_GLOBAL_ONLY);
-	if (tvar)
-	    if (!strncmp(pathstart, tvar, strlen(tvar)))
-	    {
-	    	sprintf(cstring, "$PDKROOT%s", pathstart + strlen(tvar));
-		subbed = TRUE;
-	    }
+	tvar = (char *)Tcl_GetVar(magicinterp, *varPtr, TCL_GLOBAL_ONLY);
+	if (tvar && !strncmp(pathstart, tvar, strlen(tvar)))
+	{
+	    cstring = (char *)mallocMagic(strlen(*varPtr) +
+			strlen(pathstart + strlen(tvar)) + 2);
+	    sprintf(cstring, "$%s%s", *varPtr, pathstart + strlen(tvar));
+	    return cstring;
+	}
     }
 #endif
 
-    if (subbed == FALSE)
-    {
-	/* If path starts with home path, then replace with "~"	*/
-	/* to make IP semi-portable between home directories	*/
-	/* with the same file structure.			*/
+    /* If path starts with home path, then replace with "~"	*/
+    /* to make IP semi-portable between home directories	*/
+    /* with the same file structure.				*/
 
+    if (cellDef->cd_file != NULL)
+    {
 	char *homedir = getenv("HOME");
 
-	if (cellDef->cd_file == NULL)
-	    sprintf(cstring, "%s", pathstart);
-	else if (!strncmp(cellDef->cd_file, homedir, strlen(homedir))
-			&& (*(cellDef->cd_file + strlen(homedir)) == '/'))
+	if ((homedir != NULL) &&
+		!strncmp(cellDef->cd_file, homedir, strlen(homedir)) &&
+		(*(cellDef->cd_file + strlen(homedir)) == '/'))
+	{
+	    cstring = (char *)mallocMagic(strlen(cellDef->cd_file +
+			strlen(homedir)) + 2);
 	    sprintf(cstring, "~%s", cellDef->cd_file + strlen(homedir));
-	else
-	    sprintf(cstring, "%s", pathstart);
+	    return cstring;
+	}
     }
+
+    return StrDup((char **)NULL, pathstart);
 }
 
 /*
@@ -5360,7 +5441,7 @@ dbWriteCellFunc(cellUse, cdarg)
     struct writeArg *arg = (struct writeArg *) cdarg;
     Transform *t;
     Rect *b;
-    char     cstring[1024], *pathend, *pathstart, *parent;
+    char     cstring[1024], *pathend, *pathstart, *parent, *pathsubbed;
 
     t = &(cellUse->cu_transform);
     b = &(cellUse->cu_def->cd_bbox);
@@ -5404,24 +5485,35 @@ dbWriteCellFunc(cellUse, cdarg)
 
     if ((cellUse->cu_def->cd_flags & CDVISITED) || (pathend == NULL) ||
 		(pathstart == NULL) || (*pathstart == '\0'))
-    {
-	sprintf(cstring, "use %s %c%s\n", cellUse->cu_def->cd_name,
-		(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-		cellUse->cu_id);
-    }
+	pathsubbed = NULL;
     else
-    {
-    	sprintf(cstring, "use %s %c%s ", cellUse->cu_def->cd_name,
-		(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-		cellUse->cu_id);
-    	DBPathSubstitute(pathstart, cstring + strlen(cstring), cellUse->cu_def);
-	strcat(cstring, "\n");
-    }
-
-    FPUTSR(arg->wa_file, cstring);
+	pathsubbed = DBPathSubstitute(pathstart, cellUse->cu_def);
 
     cellUse->cu_def->cd_flags |= CDVISITED;
     if (pathend != NULL) *pathend = '/';
+
+    /* The cell def name, use name, and path have no length limit, so	*/
+    /* write them out directly rather than copying them into cstring.	*/
+
+    sprintf(cstring, " %c", (cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ');
+    if ((fputs("use ", arg->wa_file) == EOF) ||
+		(fputs(cellUse->cu_def->cd_name, arg->wa_file) == EOF) ||
+		(fputs(cstring, arg->wa_file) == EOF) ||
+		(fputs(cellUse->cu_id, arg->wa_file) == EOF) ||
+		((pathsubbed != NULL) && ((fputs(" ", arg->wa_file) == EOF) ||
+		(fputs(pathsubbed, arg->wa_file) == EOF))) ||
+		(fputs("\n", arg->wa_file) == EOF))
+    {
+	if (pathsubbed != NULL) freeMagic(pathsubbed);
+	return 1;
+    }
+    DBFileOffset += 4 + strlen(cellUse->cu_def->cd_name) + strlen(cstring)
+		+ strlen(cellUse->cu_id) + 1;
+    if (pathsubbed != NULL)
+    {
+	DBFileOffset += 1 + strlen(pathsubbed);
+	freeMagic(pathsubbed);
+    }
 
     if ((cellUse->cu_xlo != cellUse->cu_xhi)
 	    || (cellUse->cu_ylo != cellUse->cu_yhi))

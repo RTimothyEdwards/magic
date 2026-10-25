@@ -507,11 +507,11 @@ calmaParseStructure(
     if (CalmaReadOnly || predefined)
     {
 	PropertyRecord *proprec;
-	char cstring[1024];
+	char *cstring;
 
 	/* Substitute variable for PDK path or ~ for home directory	*/
 	/* the same way that cell references are handled in .mag files.	*/
-	DBPathSubstitute(filename, cstring, cifReadCellDef);
+	cstring = DBPathSubstitute(filename, cifReadCellDef);
 
 	proprec = (PropertyRecord *)mallocMagic(dlongPropertyRecordSize(1));
 	proprec->prop_type = PROPERTY_TYPE_DOUBLE;
@@ -533,6 +533,7 @@ calmaParseStructure(
 	proprec->prop_len = 1;
 	strcpy(proprec->prop_value.prop_string, cstring);
 	DBPropPut(cifReadCellDef, "GDS_FILE", (ClientData)proprec);
+	freeMagic(cstring);
 
     	if (predefined)
     	{

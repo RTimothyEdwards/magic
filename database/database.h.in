@@ -827,7 +827,7 @@ extern void DBFileRecovery();
 extern bool DBWriteBackup();
 extern bool DBReadBackup();
 extern void DBRemoveBackup();
-extern void DBPathSubstitute();
+extern char *DBPathSubstitute(char *pathstart, CellDef *cellDef);
 
     /* Labels */
 extern Label *DBPutLabel();
