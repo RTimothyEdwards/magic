@@ -2244,7 +2244,12 @@ cifGatherFunc(
     if (GatherStack == (Stack *)NULL)
 	GatherStack = StackNew(64);
 
-    PUSHTILE(tile, dinfo, GatherStack);
+    /* The first tile must be pushed unconditionally:  the loop below only
+     * accepts tiles whose client is still "cdata", and PUSHTILE would
+     * change it to CIF_PENDING first, so that the tile was skipped and
+     * "close" never filled anything.
+     */
+    PUSHTILEALWAYS(tile, dinfo, GatherStack);
     while (!StackEmpty(GatherStack))
     {
 	TileType newdinfo;
