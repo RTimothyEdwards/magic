@@ -124,6 +124,8 @@ bool dbReadUse();
 extern int TagCallback();
 #endif /* MAGIC_WRAPPER */
 
+static void dbCollapsePath(char *path);
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1456,6 +1458,7 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
+    char cwdbuf[PATH_MAX];	/* Current directory */
     FILETYPE f = NULL;
     int fd;
     char *filename, *realname, *savename;
@@ -1638,7 +1641,22 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 	if (pptr != NULL)
 	    if (!strcmp(pptr, DBSuffix)) *pptr = '\0';
 
-	(void) StrDup(&cellDef->cd_file, filename);
+	/* Record the file as an absolute path:  a relative one would be
+	 * relative to the current directory, which "cd" can change before
+	 * the cell or its parent is saved.  Use lines are still written
+	 * relative to the parent (see dbWriteCellFunc()).
+	 */
+	if ((*filename != '/') && (getcwd(cwdbuf, sizeof(cwdbuf)) != NULL))
+	{
+	    char *absname = (char *)mallocMagic(strlen(cwdbuf) +
+			strlen(filename) + 2);
+	    sprintf(absname, "%s/%s", cwdbuf, filename);
+	    dbCollapsePath(absname);
+	    (void) StrDup(&cellDef->cd_file, absname);
+	    freeMagic(absname);
+	}
+	else
+	    (void) StrDup(&cellDef->cd_file, filename);
 	if (DBVerbose >= DB_VERBOSE_ALL)
 	{
 	    char *sptr = strrchr(filename, '/');
@@ -1725,6 +1743,83 @@ DBTestOpen(name, fullPath)
     return FALSE;
 }
 
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbCollapsePath --
+ *
+ *	Remove "." components and "dir/.." pairs from a path, so that a
+ *	subcell path built from the parent's directory and a relative "use"
+ *	path ("../mid" + "../lib") reads "../lib" and not
+ *	"../mid/../lib".  A pair is kept when "dir" is a symbolic
+ *	link, since "link/.." need not be the directory holding the link.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Rewrites the string in place (the result is never longer).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+dbCollapsePath(
+    char *path)		/* Path to collapse, modified in place */
+{
+    char *comp[256];	/* Start of each kept component */
+    int ncomp = 0, i;
+    bool absolute = (*path == '/');
+    char *src, *next, *dst;
+    struct stat st;
+
+    for (src = path; *src != '\0'; src = next)
+    {
+	while (*src == '/') src++;
+	if (*src == '\0') break;
+	next = strchr(src, '/');
+	if (next == NULL) next = src + strlen(src);
+	else *next++ = '\0';
+
+	if (!strcmp(src, ".")) continue;
+	if (!strcmp(src, "..") && (ncomp > 0) && strcmp(comp[ncomp - 1], ".."))
+	{
+	    char prefix[1024];
+	    int n = 0;
+
+	    /* Rebuild the path up to the component to be removed */
+	    prefix[0] = '\0';
+	    if (absolute) n = snprintf(prefix, sizeof(prefix), "/");
+	    for (i = 0; i < ncomp && n < (int)sizeof(prefix); i++)
+		n += snprintf(prefix + n, sizeof(prefix) - n, "%s%s",
+			comp[i], (i < ncomp - 1) ? "/" : "");
+	    if ((lstat(prefix, &st) != 0) || !S_ISLNK(st.st_mode))
+	    {
+		ncomp--;
+		continue;
+	    }
+	}
+	else if (!strcmp(src, "..") && absolute && (ncomp == 0))
+	    continue;		/* "/.." is "/" */
+
+	if (ncomp == sizeof(comp) / sizeof(comp[0])) return;	/* leave as is */
+	comp[ncomp++] = src;
+    }
+
+    /* Write the kept components back (they never move forward) */
+    dst = path;
+    if (absolute) *dst++ = '/';
+    for (i = 0; i < ncomp; i++)
+    {
+	size_t len = strlen(comp[i]);
+	memmove(dst, comp[i], len);
+	dst += len;
+	if (i < ncomp - 1) *dst++ = '/';
+    }
+    if (dst == path) *dst++ = '.';
+    *dst = '\0';
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -2003,6 +2098,7 @@ badTransform:
 		strcpy(savepath, pathptr);
 		int n = snprintf(path, sizeof(path), "%s/%s", cellDef->cd_file, savepath);
 		ASSERT(n < sizeof(path), "path");
+		dbCollapsePath(path);
 	    }
 	    pathptr = &path[0];
 	    *slashptr = '/';
@@ -5338,6 +5434,70 @@ DBPathSubstitute(pathstart, cstring, cellDef)
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbRelativeDir --
+ *
+ *	Find the directory of a subcell relative to the directory in which
+ *	its parent is being written.  Both file names are relative to the
+ *	current directory or absolute; a name without a directory part is in
+ *	the current directory.  This is what a "use" line must record when
+ *	the parent is saved somewhere other than the current directory
+ *	("save ../other/top" with the subcell read from ".").
+ *
+ * Results:
+ *	-1 if either directory cannot be resolved, 0 if both are the same
+ *	directory, 1 if the relative path was written into "rel".
+ *
+ * Side effects:
+ *	Writes into "rel" (of size "len").
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static int
+dbRelativeDir(child, parent, rel, len)
+    const char *child;	/* File name of the subcell */
+    const char *parent;	/* File name of the cell being written */
+    char *rel;		/* Filled in with the relative directory */
+    int len;		/* Size of rel */
+{
+    char cdir[PATH_MAX], pdir[PATH_MAX], creal[PATH_MAX], preal[PATH_MAX];
+    const char *slash, *c, *q;
+    int n = 0, common;
+
+    slash = strrchr(child, '/');
+    if (slash == NULL) strcpy(cdir, ".");
+    else snprintf(cdir, sizeof(cdir), "%.*s", (int)(slash - child + 1), child);
+    slash = strrchr(parent, '/');
+    if (slash == NULL) strcpy(pdir, ".");
+    else snprintf(pdir, sizeof(pdir), "%.*s", (int)(slash - parent + 1), parent);
+
+    if ((realpath(cdir, creal) == NULL) || (realpath(pdir, preal) == NULL))
+	return -1;
+    if (!strcmp(creal, preal)) return 0;
+
+    /* Length of the common leading directories */
+    common = 0;
+    for (c = creal, q = preal; *c && (*c == *q); c++, q++)
+	if (*c == '/') common = c - creal;
+    if ((*c == '\0' && (*q == '/' || *q == '\0')) ||
+		(*q == '\0' && *c == '/'))
+	common = c - creal;
+
+    /* One ".." for each directory of the parent below the common part */
+    rel[0] = '\0';
+    for (q = preal + common; *q; q++)
+	if ((*q == '/') && (n + 4 < len))
+	    n += snprintf(rel + n, len - n, "../");
+    if (*(creal + common) == '/')
+	snprintf(rel + n, len - n, "%s", creal + common + 1);
+    else if (n > 0)
+	rel[n - 1] = '\0';	/* drop the trailing slash */
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbWriteCellFunc --
  *
  * Filter function used to write out a single cell use in the
@@ -5361,6 +5521,8 @@ dbWriteCellFunc(cellUse, cdarg)
     Transform *t;
     Rect *b;
     char     cstring[1024], *pathend, *pathstart, *parent;
+    char     relpath[PATH_MAX];
+    int	     reltype;
 
     t = &(cellUse->cu_transform);
     b = &(cellUse->cu_def->cd_bbox);
@@ -5402,8 +5564,32 @@ dbWriteCellFunc(cellUse, cdarg)
 	}
     }
 
-    if ((cellUse->cu_def->cd_flags & CDVISITED) || (pathend == NULL) ||
-		(pathstart == NULL) || (*pathstart == '\0'))
+    /* A relative subcell path is relative to the current directory, so	*/
+    /* when the parent is written to another directory, record the	*/
+    /* subcell directory relative to the parent's directory instead.	*/
+
+    relpath[0] = '\0';
+    if (pathend != NULL) *pathend = '/';
+    reltype = -1;
+    if ((cellUse->cu_def->cd_file != NULL) && (parent != NULL) &&
+		(*cellUse->cu_def->cd_file != '~') &&
+		(*cellUse->cu_def->cd_file != '$'))
+    {
+	/* Paths into the PDK keep their variable ($PDK_ROOT, ...) */
+	if (*cellUse->cu_def->cd_file == '/')
+	    DBPathSubstitute(cellUse->cu_def->cd_file, cstring, cellUse->cu_def);
+	if ((*cellUse->cu_def->cd_file != '/') || (cstring[0] != '$'))
+	    reltype = dbRelativeDir(cellUse->cu_def->cd_file, parent,
+			relpath, sizeof(relpath));
+    }
+    if (pathend != NULL) *pathend = '\0';
+    if (reltype == 0)
+	pathstart = NULL;
+    else if (reltype == 1)
+	pathstart = relpath;
+
+    if ((cellUse->cu_def->cd_flags & CDVISITED) || (pathend == NULL &&
+		reltype != 1) || (pathstart == NULL) || (*pathstart == '\0'))
     {
 	sprintf(cstring, "use %s %c%s\n", cellUse->cu_def->cd_name,
 		(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
