@@ -1729,6 +1729,83 @@ DBTestOpen(name, fullPath)
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbCollapsePath --
+ *
+ *	Remove "." components and "dir/.." pairs from a path, so that a
+ *	subcell path built from the parent's directory and a relative "use"
+ *	path ("../mid" + "../lib") reads "../lib" and not
+ *	"../mid/../lib".  A pair is kept when "dir" is a symbolic
+ *	link, since "link/.." need not be the directory holding the link.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Rewrites the string in place (the result is never longer).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+dbCollapsePath(
+    char *path)		/* Path to collapse, modified in place */
+{
+    char *comp[256];	/* Start of each kept component */
+    int ncomp = 0, i;
+    bool absolute = (*path == '/');
+    char *src, *next, *dst;
+    struct stat st;
+
+    for (src = path; *src != '\0'; src = next)
+    {
+	while (*src == '/') src++;
+	if (*src == '\0') break;
+	next = strchr(src, '/');
+	if (next == NULL) next = src + strlen(src);
+	else *next++ = '\0';
+
+	if (!strcmp(src, ".")) continue;
+	if (!strcmp(src, "..") && (ncomp > 0) && strcmp(comp[ncomp - 1], ".."))
+	{
+	    char prefix[1024];
+	    int n = 0;
+
+	    /* Rebuild the path up to the component to be removed */
+	    prefix[0] = '\0';
+	    if (absolute) n = snprintf(prefix, sizeof(prefix), "/");
+	    for (i = 0; i < ncomp && n < (int)sizeof(prefix); i++)
+		n += snprintf(prefix + n, sizeof(prefix) - n, "%s%s",
+			comp[i], (i < ncomp - 1) ? "/" : "");
+	    if ((lstat(prefix, &st) != 0) || !S_ISLNK(st.st_mode))
+	    {
+		ncomp--;
+		continue;
+	    }
+	}
+	else if (!strcmp(src, "..") && absolute && (ncomp == 0))
+	    continue;		/* "/.." is "/" */
+
+	if (ncomp == sizeof(comp) / sizeof(comp[0])) return;	/* leave as is */
+	comp[ncomp++] = src;
+    }
+
+    /* Write the kept components back (they never move forward) */
+    dst = path;
+    if (absolute) *dst++ = '/';
+    for (i = 0; i < ncomp; i++)
+    {
+	size_t len = strlen(comp[i]);
+	memmove(dst, comp[i], len);
+	dst += len;
+	if (i < ncomp - 1) *dst++ = '/';
+    }
+    if (dst == path) *dst++ = '.';
+    *dst = '\0';
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbReadUse --
  *
  * Read a single cell use specification.  Create a new cell
@@ -2003,6 +2080,7 @@ badTransform:
 		strcpy(savepath, pathptr);
 		int n = snprintf(path, sizeof(path), "%s/%s", cellDef->cd_file, savepath);
 		ASSERT(n < sizeof(path), "path");
+		dbCollapsePath(path);
 	    }
 	    pathptr = &path[0];
 	    *slashptr = '/';

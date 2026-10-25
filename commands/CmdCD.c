@@ -25,6 +25,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -4880,6 +4881,73 @@ CmdDump(
  * ----------------------------------------------------------------------------
  */
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cmdStatCellFile --
+ *
+ *	Find the file of a cell path given with or without the ".mag" suffix.
+ *
+ * Results:
+ *	TRUE if a regular file was found, with its status in *st.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static bool
+cmdStatCellFile(
+    const char *path,	/* Cell path, with or without suffix */
+    struct stat *st)	/* Filled in with the status of the file */
+{
+    static const char * const suffixes[] = { "", ".mag", ".mag.gz", NULL };
+    char *name;
+    int i, j;
+
+    for (i = 0; suffixes[i] != NULL; i++)
+    {
+	name = (char *)mallocMagic(strlen(path) + strlen(suffixes[i]) + 1);
+	sprintf(name, "%s%s", path, suffixes[i]);
+	j = stat(name, st);
+	freeMagic(name);
+	if ((j == 0) && S_ISREG(st->st_mode)) return TRUE;
+    }
+    return FALSE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cmdSameCellFile --
+ *
+ *	Decide whether two cell paths name the same file on disk, such as
+ *	"../lib/latch" given from one directory and "../top/../lib/latch.mag"
+ *	recorded when the cell was read through a parent cell.
+ *
+ * Results:
+ *	TRUE if both paths resolve to the same file (same device and inode),
+ *	FALSE otherwise or if either one cannot be found.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static bool
+cmdSameCellFile(
+    const char *path1,
+    const char *path2)
+{
+    struct stat st1, st2;
+
+    if (!cmdStatCellFile(path1, &st1) || !cmdStatCellFile(path2, &st2))
+	return FALSE;
+    return ((st1.st_dev == st2.st_dev) && (st1.st_ino == st2.st_ino));
+}
+
     /*ARGSUSED*/
 bool
 cmdDumpParseArgs(
@@ -4958,8 +5026,12 @@ cmdDumpParseArgs(
 
 	if (def->cd_file != NULL)
 	{
-	    /* Note: may want processing to see if absolute paths match */
-	    if (strcmp(def->cd_file, fullpathname))
+	    /* The same file reached through a different path (relative to
+	     * another directory, or through a symbolic link) is not a
+	     * conflict; only a different file of the same cell name is.
+	     */
+	    if (strcmp(def->cd_file, fullpathname) &&
+			!cmdSameCellFile(def->cd_file, fullpathname))
 	    {
 		char uniqchar;
 		char *newcellname = (char *)mallocMagic(strlen(cellnameptr) + 3);
