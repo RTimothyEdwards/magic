@@ -56,6 +56,8 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 /* C99 compat */
 #include "cif/cif.h"
 
+extern CellDef *cmdDumpRepairedDef;	/* Set by cmdDumpParseArgs() */
+
 /* The following structure is used by CmdFill to keep track of
  * areas to be filled.
  */
@@ -1068,7 +1070,7 @@ CmdGetcell(
     MagWindow *w,			/* Window in which command was invoked. */
     TxCommand *cmd)		/* Describes command arguments. */
 {
-    CellUse dummy, *newUse;
+    CellUse dummy, *newUse, *use;
     Transform editTrans;
     SearchContext scx;
     CellDef *def;
@@ -1078,6 +1080,34 @@ CmdGetcell(
     if (!cmdDumpParseArgs("getcell", w, cmd, &dummy, &scx))
 	return;
     def = dummy.cu_def;
+
+    /* If the cell was placed already but its file had not been found,
+     * cmdDumpParseArgs() has just read it from the new path, which
+     * repairs the instances already placed; do not place another one.
+     */
+    if (def == cmdDumpRepairedDef)
+    {
+	for (use = def->cd_parents; use != NULL; use = use->cu_nextuse)
+	    if (use->cu_parent == EditCellUse->cu_def)
+		break;
+	if (use != NULL)
+	{
+	    TxPrintf("Existing instance %s of %s repaired; "
+			"no new instance placed.\n", use->cu_id, def->cd_name);
+	    DBReComputeBbox(EditCellUse->cu_def);
+	    DBWAreaChanged(EditCellUse->cu_def, &use->cu_bbox,
+			DBW_ALLWINDOWS, &DBAllButSpaceBits);
+	    SelectClear();
+	    GeoTransTrans(&use->cu_transform, &EditToRootTransform,
+			&editTrans);
+	    SelectCell(use, EditRootDef, &editTrans, FALSE);
+#ifdef MAGIC_WRAPPER
+	    if (use->cu_id)
+		Tcl_SetResult(magicinterp, use->cu_id, TCL_VOLATILE);
+#endif
+	    return;
+	}
+    }
 
     /* Create the new use. */
     newUse = DBCellNewUse(def, (char *) NULL);

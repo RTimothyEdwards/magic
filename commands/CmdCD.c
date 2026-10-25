@@ -1523,6 +1523,11 @@ CmdCellname(
 			freeMagic(cellDef->cd_file);
 
 		    cellDef->cd_file = fullpath;
+
+		    /* A cell that could not be found before may be found at
+		     * the new path, so let the next expand try again.
+		     */
+		    cellDef->cd_flags &= ~CDNOTFOUND;
 		}
 	    }
 	    break;
@@ -4948,6 +4953,12 @@ cmdSameCellFile(
     return ((st1.st_dev == st2.st_dev) && (st1.st_ino == st2.st_ino));
 }
 
+/* Set by cmdDumpParseArgs() to a cell that was placed but never found,
+ * and has just been read from the path given to the command; NULL
+ * otherwise.
+ */
+CellDef *cmdDumpRepairedDef = NULL;
+
     /*ARGSUSED*/
 bool
 cmdDumpParseArgs(
@@ -4971,6 +4982,8 @@ cmdDumpParseArgs(
     char **av;
     char *cellnameptr, *fullpathname;
     int ac, clen;
+
+    cmdDumpRepairedDef = NULL;
 
     if (cmd->tx_argc < 2)
     {
@@ -5030,7 +5043,26 @@ cmdDumpParseArgs(
 	     * another directory, or through a symbolic link) is not a
 	     * conflict; only a different file of the same cell name is.
 	     */
+	    struct stat st;
+
 	    if (strcmp(def->cd_file, fullpathname) &&
+			!cmdSameCellFile(def->cd_file, fullpathname) &&
+			!(def->cd_flags & CDAVAILABLE) &&
+			!cmdStatCellFile(def->cd_file, &st) &&
+			cmdStatCellFile(fullpathname, &st))
+	    {
+		/* The existing cell was never read because its file does
+		 * not exist (e.g., a "use" line without a path), so it is
+		 * only a placeholder.  Read it from the new path; this also
+		 * repairs every instance of it that is already placed.
+		 */
+		TxPrintf("Cell \"%s\" was not found at \"%s\"; reading it "
+			"from \"%s\".\n", cellnameptr, def->cd_file,
+			fullpathname);
+		StrDup(&def->cd_file, fullpathname);
+		cmdDumpRepairedDef = def;
+	    }
+	    else if (strcmp(def->cd_file, fullpathname) &&
 			!cmdSameCellFile(def->cd_file, fullpathname))
 	    {
 		char uniqchar;
@@ -5052,7 +5084,17 @@ cmdDumpParseArgs(
 	    }
 	}
 	else
+	{
+	    struct stat st;
+
+	    /* A cell placed by a "use" line without a path, whose file is
+	     * not in the current directory either, is a placeholder too.
+	     */
+	    if ((def->cd_parents != NULL) && !(def->cd_flags & CDAVAILABLE) &&
+			!cmdStatCellFile(def->cd_name, &st))
+		cmdDumpRepairedDef = def;
 	    StrDup(&def->cd_file, fullpathname);
+	}
 	freeMagic(fullpathname);
     }
 
@@ -5066,7 +5108,10 @@ cmdDumpParseArgs(
      */
     def->cd_flags &= ~CDNOTFOUND;
     if (!DBCellRead(def, TRUE, TRUE, NULL))
+    {
+	cmdDumpRepairedDef = NULL;
 	return (FALSE);
+    }
     DBReComputeBbox(def);
     dummy->cu_def = def;
     dummy->cu_transform = GeoIdentityTransform;
