@@ -80,6 +80,14 @@ static int cifHierXSpacing, cifHierYSpacing, cifHierXCount, cifHierYCount;
 /* Used in cifGrowSliver */
 static CIFLayer *CurCifLayer;
 
+/* Layers to yank and generate for each subcell in cifHierCellFunc().	*/
+/* If not given, cs_yankLayers and cs_hierLayers are used.		*/
+
+typedef struct {
+    TileTypeBitMask *chm_yank;		/* Magic types to yank */
+    TileTypeBitMask *chm_gen;		/* CIF layers to generate */
+} CIFHierMasks;
+
 /* Macro for scaling boxes into CIF coordinates: */
 #define SCALE(src, scale, dst) \
     (dst)->r_xbot = (src)->r_xbot * scale; \
@@ -423,7 +431,10 @@ cifHierCopyFunc(
  * 	This procedure is invoked once for each subcell overlapping
  *	an interaction area.  It flattens the subcell and its children
  *	in the area of the overlap, generates CIF for that area, and
- *	saves it in cifHierPieces.
+ *	saves it in cifHierPieces.  If "cdarg" is non-NULL, it points to
+ *	a CIFHierMasks record giving the magic types to yank and the CIF
+ *	layers to generate;  otherwise, the style's cs_yankLayers and
+ *	cs_hierLayers are used.
  *
  * Results:
  *	Always returns 0 to keep the search alive.
@@ -436,10 +447,16 @@ cifHierCopyFunc(
 
 int
 cifHierCellFunc(
-    SearchContext *scx)		/* Describes cell and area in cell. */
+    SearchContext *scx,		/* Describes cell and area in cell. */
+    ClientData cdarg)		/* CIFHierMasks pointer, or NULL */
 {
     SearchContext newscx;
     Rect rootArea;
+    CIFHierMasks *masks = (CIFHierMasks *)cdarg;
+    TileTypeBitMask *yankMask, *genMask;
+
+    yankMask = (masks) ? masks->chm_yank : &CIFCurStyle->cs_yankLayers;
+    genMask = (masks) ? masks->chm_gen : &CIFCurStyle->cs_hierLayers;
 
     /* Do not call this function on cells that are vendor GDS */
     /* (handled in cifHierCopyFunc())	*/
@@ -455,7 +472,7 @@ cifHierCellFunc(
     DBCellClearDef(CIFComponentDef);
     newscx = *scx;
     GEO_EXPAND(&scx->scx_area, CIFCurStyle->cs_radius, &newscx.scx_area);
-    (void) DBTreeSrTiles(&newscx, &CIFCurStyle->cs_yankLayers, 0,
+    (void) DBTreeSrTiles(&newscx, yankMask, 0,
 	    cifHierCopyFunc, (ClientData) CIFComponentDef);
 
     /* Flatten mask hints in the area of interest */
@@ -471,7 +488,7 @@ cifHierCellFunc(
     CIFErrorDef = (CellDef *) NULL;
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &rootArea);
     CIFGen(CIFComponentDef, scx->scx_use->cu_def, &rootArea,
-	    CIFComponentPlanes, &CIFCurStyle->cs_hierLayers, FALSE,
+	    CIFComponentPlanes, genMask, FALSE,
 	    TRUE, TRUE, (ClientData)NULL);
     return 0;
 }
@@ -687,6 +704,233 @@ cifCheckAndErase(
     }
 }
 
+/* Record used to search a cell hierarchy for paint of given types.	*/
+/* "visited" is a hash table of cell defs already searched, whose	*/
+/* value is 1 if the types were not found and 2 if they were.		*/
+
+typedef struct {
+    TileTypeBitMask *chs_mask;		/* Types to look for */
+    HashTable *chs_visited;		/* Cell defs already searched */
+} CIFHierSearch;
+
+int cifSubtreeHasTypesFunc(CellUse *use, ClientData cdarg);
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifHasSubcellFunc --
+ *
+ *	Called by DBCellEnum() to find out whether a cell has any subcells.
+ *
+ * Results:
+ *	Always returns 1 to stop the search.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifHasSubcellFunc(
+    CellUse *use,
+    ClientData cdarg)
+{
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifPaintFoundFunc --
+ *
+ *	Search function that stops at the first tile found.
+ *
+ * Results:
+ *	Always returns 1 to stop the search.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifPaintFoundFunc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData cdarg)
+{
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifSubtreeHasTypes --
+ *
+ *	Determine whether a cell or any of its descendants contains paint
+ *	of any of the types in chs->chs_mask.  Each cell def is searched
+ *	only once, no matter how many times it is used.
+ *
+ * Results:
+ *	1 if such paint was found, 0 if not.
+ *
+ * Side effects:
+ *	Records the result for the cell def in chs->chs_visited.  May
+ *	read cells from disk (see DBCellEnum()).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifSubtreeHasTypes(
+    CellDef *def,
+    CIFHierSearch *chs)
+{
+    HashEntry *he;
+    int pNum, found = 0;
+
+    he = HashFind(chs->chs_visited, (char *)def);
+    if (HashGetValue(he) != NULL)
+	return (HashGetValue(he) == (ClientData)2) ? 1 : 0;
+    HashSetValue(he, (ClientData)1);
+
+    if ((def->cd_flags & CDAVAILABLE) == 0)
+	if (!DBCellRead(def, TRUE, TRUE, NULL))
+	    return 0;
+
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+	if (!TTMaskIntersect(&DBPlaneTypes[pNum], chs->chs_mask)) continue;
+	if (DBSrPaintArea((Tile *)NULL, def->cd_planes[pNum], &TiPlaneRect,
+		    chs->chs_mask, cifPaintFoundFunc, (ClientData)NULL))
+	{
+	    found = 1;
+	    break;
+	}
+    }
+    if (!found)
+	found = DBCellEnum(def, cifSubtreeHasTypesFunc, (ClientData)chs);
+
+    if (found) HashSetValue(he, (ClientData)2);
+    return found;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifSubtreeHasTypesFunc --
+ *
+ *	Called by DBCellEnum() for each subcell use; applies
+ *	cifSubtreeHasTypes() to the use's cell def.
+ *
+ * Results:
+ *	1 if paint of the types was found (to stop the search), 0 if not.
+ *
+ * Side effects:
+ *	See cifSubtreeHasTypes().
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifSubtreeHasTypesFunc(
+    CellUse *use,
+    ClientData cdarg)
+{
+    return cifSubtreeHasTypes(use->cu_def, (CIFHierSearch *)cdarg);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifGenHierArea --
+ *
+ *	Compute the CIF that must be added to the parent cell in a given
+ *	area to compensate for interactions between subcells:  Generate
+ *	CIF for the flattened hierarchy in the area, then erase from it
+ *	the CIF generated for each subcell individually and for the paint
+ *	in the parent alone.  Whatever remains is OR'ed into "output".
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	The planes in "output" are modified (by OR'ing).  CIFTotalDef,
+ *	CIFTotalPlanes, and CIFComponentPlanes are used and then cleared.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+cifGenHierArea(
+    CellDef *def,		/* Parent cell for which CIF is computed. */
+    Rect *area,			/* Area in which to compute CIF. */
+    TileTypeBitMask *yankMask,	/* Magic types to yank */
+    TileTypeBitMask *genMask,	/* CIF layers to generate */
+    Plane **output)		/* Planes into which the CIF is OR'ed */
+{
+    SearchContext scx;
+    CIFHierMasks masks;
+    int i, oldTileOps2;
+
+    /* Flatten the area into CIFTotalDef, then make CIF from what's	*/
+    /* flattened.  Yank extra material to ensure that CIF is generated	*/
+    /* correctly.							*/
+
+    scx.scx_use = CIFDummyUse;
+    scx.scx_trans = GeoIdentityTransform;
+    GEO_EXPAND(area, CIFCurStyle->cs_radius, &scx.scx_area);
+    (void) DBTreeSrTiles(&scx, yankMask, 0, cifHierCopyFunc,
+		(ClientData) CIFTotalDef);
+    /* Flatten mask hints in the area of interest */
+    CIFCopyMaskHints(&scx, CIFTotalDef);
+    DBTreeSrCells(&scx, 0, CIFCopyMaskHints, (ClientData)CIFTotalDef);
+
+    CIFErrorDef = def;
+    CIFGen(CIFTotalDef, def, area, CIFTotalPlanes, genMask, TRUE, TRUE,
+		TRUE, (ClientData)NULL);
+
+    /* Now go through all the subcells overlapping the area and	*/
+    /* generate CIF for each subcell individually.  OR this combined	*/
+    /* CIF together into CIFComponentPlanes.				*/
+
+    scx.scx_area = *area;
+    masks.chm_yank = yankMask;
+    masks.chm_gen = genMask;
+    (void) DBCellSrArea(&scx, cifHierCellFunc, (ClientData)&masks);
+
+    /* Also generate CIF for the paint in the parent alone.  Ignore	*/
+    /* CIF generation errors here, since they will already have been	*/
+    /* recorded when the parent was CIF'ed by itself.			*/
+
+    CIFErrorDef = (CellDef *) NULL;
+    CIFGen(def, def, area, CIFComponentPlanes, genMask, FALSE, TRUE, TRUE,
+		(ClientData)NULL);
+
+    /* Make sure everything in the pieces is also in the overall CIF,	*/
+    /* then erase the piece stuff from the overall, and throw away the	*/
+    /* pieces.								*/
+
+    CIFErrorDef = def;
+    cifCheckAndErase(CIFCurStyle);
+
+    /* Lastly, paint everything from the pieces into the result planes */
+
+    oldTileOps2 = CIFTileOps;
+    for (i = 0; i < CIFCurStyle->cs_nLayers; i++)
+    {
+	CurCifLayer = CIFCurStyle->cs_layers[i]; /* for growSliver */
+	(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
+		&TiPlaneRect, &CIFSolidBits, cifHierPaintFunc,
+		(ClientData) output[i]);
+    }
+    CIFHierRects += CIFTileOps - oldTileOps2;
+
+    cifHierCleanup();
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -694,6 +938,10 @@ cifCheckAndErase(
  *
  * 	This procedure computes all of the CIF that must be added to
  *	a given area to compensate for interactions between subcells.
+ *	For most layers, this is done only in areas where subcells
+ *	interact.  Non-local layers (those using "maxrect", whose result
+ *	can depend on geometry arbitrarily far away) are instead
+ *	computed over the whole area.
  *
  * Results:
  *	None.
@@ -714,9 +962,11 @@ CIFGenSubcells(
 				 * only).
 				 */
 {
-    int stepSize, x, y, i, radius, oldTileOps, oldTileOps2;
+    int stepSize, x, y, radius, oldTileOps;
     Rect totalArea, square, interaction;
     SearchContext scx;
+    TileTypeBitMask localLayers;
+    bool doNonlocal;
     int cuts, totcuts;
     float pdone, plast;
     bool longTime = FALSE;
@@ -749,6 +999,34 @@ CIFGenSubcells(
     CIFDummyUse->cu_def = def;
     scx.scx_use = CIFDummyUse;
     scx.scx_trans = GeoIdentityTransform;
+
+    /* Non-local layers are not computed in interaction areas, but	*/
+    /* only if the cell has subcells and the cell or any of its		*/
+    /* descendants contains any of the types that the "maxrect" layers	*/
+    /* are generated from.  Otherwise the "maxrect" layers are empty	*/
+    /* (or there is no hierarchy to process), and the layers that	*/
+    /* depend on them can be computed in interaction areas like any	*/
+    /* other layer.							*/
+
+    doNonlocal = FALSE;
+    localLayers = CIFCurStyle->cs_hierLayers;
+    if (!TTMaskIsZero(&CIFCurStyle->cs_nonlocalLayers) &&
+		DBCellEnum(def, cifHasSubcellFunc, (ClientData)NULL))
+    {
+	HashTable visited;
+	CIFHierSearch chs;
+
+	HashInit(&visited, 32, HT_WORDKEYS);
+	chs.chs_mask = &CIFCurStyle->cs_nonlocalSeedLayers;
+	chs.chs_visited = &visited;
+	if (cifSubtreeHasTypes(def, &chs))
+	{
+	    doNonlocal = TRUE;
+	    TTMaskClearMask3(&localLayers, &CIFCurStyle->cs_hierLayers,
+			&CIFCurStyle->cs_nonlocalLayers);
+	}
+	HashKill(&visited);
+    }
 
     /* This routine can take a long time, so use the display
      * timer to force a 5-second progress check (like is done
@@ -797,65 +1075,12 @@ CIFGenSubcells(
 	    if (DRCFindInteractions(def, &square, radius,
 		&interaction) <= 0) continue;
 
-	    /* We've found an interaction.  Flatten it into CIFTotalUse, then
-	     * make CIF from what's flattened.  Yank extra material to
-	     * ensure that CIF is generated correctly.
+	    /* We've found an interaction.  Compute the CIF to add to the
+	     * parent in the interaction area.
 	     */
 
-	    GEO_EXPAND(&interaction, CIFCurStyle->cs_radius, &scx.scx_area);
-	    (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
-		cifHierCopyFunc, (ClientData) CIFTotalDef);
-	    /* Flatten mask hints in the area of interest */
-    	    CIFCopyMaskHints(&scx, CIFTotalDef);
-	    DBTreeSrCells(&scx, 0, CIFCopyMaskHints,
-                	(ClientData)CIFTotalDef);
-
-	    CIFErrorDef = def;
-	    CIFGen(CIFTotalDef, def, &interaction, CIFTotalPlanes,
-		    &CIFCurStyle->cs_hierLayers, TRUE, TRUE, TRUE,
-		    (ClientData)NULL);
-
-	    /* Now go through all the subcells overlapping the area
-	     * and generate CIF for each subcell individually.  OR this
-	     * combined CIF together into CIFComponentPlanes.
-	     */
-
-	    scx.scx_area = interaction;
-	    (void) DBCellSrArea(&scx, cifHierCellFunc, (ClientData) NULL);
-
-	    /* Also generate CIF for the paint in the parent alone.  Ignore
-	     * CIF generation errors here, since they will already have been
-	     * recorded when the parent was CIF'ed by itself.
-	     */
-
-	    CIFErrorDef = (CellDef *) NULL;
-	    CIFGen(def, def, &interaction, CIFComponentPlanes,
-		    &CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
-		    (ClientData)NULL);
-
-	    /* Make sure everything in the pieces is also in the overall
-	     * CIF, then erase the piece stuff from the overall, and
-	     * throw away the pieces.
-	     */
-
-	    CIFErrorDef = def;
-	    cifCheckAndErase(CIFCurStyle);
-
-	    /* Lastly, paint everything from the pieces into the result
-	     * planes.
-	     */
-
-	    oldTileOps2 = CIFTileOps;
-	    for (i=0; i<CIFCurStyle->cs_nLayers; i++)
-	    {
-		CurCifLayer = CIFCurStyle->cs_layers[i]; /* for growSliver */
-		(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
-		    &TiPlaneRect, &CIFSolidBits, cifHierPaintFunc,
-		    (ClientData) output[i]);
-	    }
-	    CIFHierRects += CIFTileOps - oldTileOps2;
-
-	    cifHierCleanup();
+	    cifGenHierArea(def, &interaction, &CIFCurStyle->cs_yankLayers,
+			&localLayers, output);
 
 	    cuts++;
 	    pdone = 100.0 * ((float)cuts / (float)totcuts);
@@ -878,6 +1103,12 @@ CIFGenSubcells(
 #endif
 	    }
 	}
+
+    /* Non-local layers are computed once over the whole area */
+
+    if (doNonlocal)
+	cifGenHierArea(def, area, &CIFCurStyle->cs_nonlocalYankLayers,
+		&CIFCurStyle->cs_nonlocalGenLayers, output);
 
     CIFHierTileOps += CIFTileOps - oldTileOps;
 

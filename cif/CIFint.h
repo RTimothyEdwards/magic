@@ -297,6 +297,31 @@ typedef struct cifstyle
 				/* For hierarchical processing, only these
 				 * CIF layers need to be generated.
 				 */
+    TileTypeBitMask cs_nonlocalLayers;
+				/* CIF layers whose result at any point may
+				 * depend on geometry arbitrarily far away
+				 * (e.g., "maxrect").  These cannot be
+				 * processed hierarchically in interaction
+				 * areas and are instead processed over the
+				 * entire area of the cell.
+				 */
+    TileTypeBitMask cs_nonlocalGenLayers;
+				/* CIF layers to generate for the non-local
+				 * layers (the non-local layers plus the
+				 * layers that they depend on).
+				 */
+    TileTypeBitMask cs_nonlocalYankLayers;
+				/* Magic types to yank for generating the
+				 * non-local layers.
+				 */
+    TileTypeBitMask cs_nonlocalSeedLayers;
+				/* Magic types from which the "maxrect"
+				 * layers are generated.  If a cell and its
+				 * descendants contain none of these types,
+				 * then all of the "maxrect" layers are empty
+				 * and the non-local layers do not need to be
+				 * processed over the entire cell.
+				 */
     int cs_labelLayer[TT_MAXTYPES];
 				/* Each entry corresponds to one Magic layer,
 				 * and gives index of CIF real layer to use

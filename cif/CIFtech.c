@@ -187,6 +187,10 @@ cifTechStyleInit(void)
     CIFCurStyle->cs_expander = 1;
     CIFCurStyle->cs_yankLayers = DBZeroTypeBits;
     CIFCurStyle->cs_hierLayers = DBZeroTypeBits;
+    CIFCurStyle->cs_nonlocalLayers = DBZeroTypeBits;
+    CIFCurStyle->cs_nonlocalGenLayers = DBZeroTypeBits;
+    CIFCurStyle->cs_nonlocalYankLayers = DBZeroTypeBits;
+    CIFCurStyle->cs_nonlocalSeedLayers = DBZeroTypeBits;
     CIFCurStyle->cs_flags = 0;
     for (i=0;  i<TT_MAXTYPES;  i+=1)
     {
@@ -1846,6 +1850,7 @@ CIFTechFinal(void)
     CIFStyle *style = CIFCurStyle;
     CIFOp *op;
     int i, minReduce;
+    TileTypeBitMask *layerYank, seedLayers;
 
     /* Allow the case where there's no CIF at all.  This is indicated
      * by a NULL CIFCurStyle.
@@ -2051,6 +2056,9 @@ CIFTechFinal(void)
      * (they'll require fancy CIF geometry processing).
      */
 
+    layerYank = (TileTypeBitMask *)mallocMagic(MAX(style->cs_nLayers, 1) *
+		sizeof(TileTypeBitMask));
+
     for (i = style->cs_nLayers-1; i >= 0; i -= 1)
     {
 	TileTypeBitMask ourDepend, ourYank;
@@ -2118,6 +2126,76 @@ CIFTechFinal(void)
 	    TTMaskSetMask(&style->cs_yankLayers, &ourYank);
 	    TTMaskSetType(&style->cs_hierLayers, i);
 	    TTMaskSetMask(&style->cs_hierLayers, &ourDepend);
+	}
+	layerYank[i] = ourYank;
+    }
+
+    /* Added 10/25/26:  Layers that use the MAXRECT operator, or that	*/
+    /* depend on such layers, are "non-local":  The result at any	*/
+    /* point can depend on geometry arbitrarily far away.  These	*/
+    /* cannot be computed hierarchically in interaction areas, and so	*/
+    /* CIFGenSubcells() computes them over the entire cell instead.	*/
+    /* Layers can only depend on layers defined before them, so a	*/
+    /* single forward pass finds the non-local layers, and a single	*/
+    /* backward pass finds the layers they depend on and the magic	*/
+    /* types to yank.							*/
+
+    style->cs_nonlocalLayers = DBZeroTypeBits;
+    for (i = 0; i < style->cs_nLayers; i++)
+    {
+	for (op = style->cs_layers[i]->cl_ops; op != NULL; op = op->co_next)
+	{
+	    if ((op->co_opcode == CIFOP_MAXRECT) ||
+			TTMaskIntersect(&op->co_cifMask, &style->cs_nonlocalLayers))
+	    {
+		TTMaskSetType(&style->cs_nonlocalLayers, i);
+		break;
+	    }
+	}
+    }
+
+    style->cs_nonlocalGenLayers = style->cs_nonlocalLayers;
+    style->cs_nonlocalYankLayers = DBZeroTypeBits;
+    for (i = style->cs_nLayers - 1; i >= 0; i--)
+    {
+	if (!TTMaskHasType(&style->cs_nonlocalGenLayers, i)) continue;
+	for (op = style->cs_layers[i]->cl_ops; op != NULL; op = op->co_next)
+	    TTMaskSetMask(&style->cs_nonlocalGenLayers, &op->co_cifMask);
+	TTMaskSetMask(&style->cs_nonlocalYankLayers, &layerYank[i]);
+    }
+    freeMagic((char *)layerYank);
+
+    /* The "seed" types are the types that the layers using MAXRECT	*/
+    /* (and the layers they depend on) are generated from.  Types that	*/
+    /* are only bloated into, or used to "and" with, cannot create	*/
+    /* material by themselves, so they are not seeds.			*/
+
+    seedLayers = DBZeroTypeBits;
+    for (i = 0; i < style->cs_nLayers; i++)
+	for (op = style->cs_layers[i]->cl_ops; op != NULL; op = op->co_next)
+	    if (op->co_opcode == CIFOP_MAXRECT)
+	    {
+		TTMaskSetType(&seedLayers, i);
+		break;
+	    }
+    style->cs_nonlocalSeedLayers = DBZeroTypeBits;
+    for (i = style->cs_nLayers - 1; i >= 0; i--)
+    {
+	if (!TTMaskHasType(&seedLayers, i)) continue;
+	for (op = style->cs_layers[i]->cl_ops; op != NULL; op = op->co_next)
+	{
+	    switch (op->co_opcode)
+	    {
+		case CIFOP_OR:
+		case CIFOP_BLOAT:
+		case CIFOP_BLOATMAX:
+		case CIFOP_BLOATMIN:
+		case CIFOP_BLOATALL:
+		    TTMaskSetMask(&style->cs_nonlocalSeedLayers,
+				&op->co_paintMask);
+		    TTMaskSetMask(&seedLayers, &op->co_cifMask);
+		    break;
+	    }
 	}
     }
 
