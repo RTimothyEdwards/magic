@@ -164,21 +164,24 @@ CPP                    = @CPP@
 CXX		       = @CXX@
 
 ###
-### Feature flags (to enable uncomment these from ./defs.mak after your ./configure)
+### Feature flags
+### These are being enabled by default as of 10/26/2026 because no issues have
+### been observed when using the feature.  To *disable*, comment these in
+### ./defs.mak after running ./configure
 ###
 ### SUPPORT_DIRECT_MALLOC: this removes the legacy malloc/free APIs that are
 ###   not thread-safe and have a defer-free-by-1 quirk that maybe covering
 ###   up unknown problems.   See utils/malloc.[ch] for more info.
 ###
 ###   Status: EXPERIMENTAL (this is expected to uncover issues we don't know about yet)
-#FEATURE_FLAGS += -DSUPPORT_DIRECT_MALLOC
+FEATURE_FLAGS += -DSUPPORT_DIRECT_MALLOC
 ###
 ### SUPPORT_REMOVE_MALLOC_LEGACY this completely removes the older non-threadsafe API
 ###   from the output binaries.
 ###   This option is dependent on SUPPORT_DIRECT_MALLOC
 ###
 ###   Status: NOT-STABILITY-AFFECTING (if your binary links you are good to continue)
-#FEATURE_FLAGS += -DSUPPORT_REMOVE_MALLOC_LEGACY
+FEATURE_FLAGS += -DSUPPORT_REMOVE_MALLOC_LEGACY
 
 # -I${GENINC}:  generated headers (build top in-tree, build/include relocated)
 # -I${MAGICSRC}: source top, for "<module>/<header>.h" includes
