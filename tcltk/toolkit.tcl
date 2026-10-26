@@ -527,7 +527,9 @@ proc magic::netlist_to_layout {netfile library} {
    # Generate list of pre-existing top level cells
    set existing [cellname list top]
    # Pre-generate placeholders for all subcircuits.
-   set curtop [cellname list self]
+   # Note:  "cellname list self" would return the cell of any selected
+   # instance, so use the cell loaded in the window.
+   set curtop [cellname list window]
 
    array set existing_cells {}
    foreach subckt $allsubs {
@@ -538,9 +540,11 @@ proc magic::netlist_to_layout {netfile library} {
         }
 
         # "load -fail" reports a missing file but does not raise a Tcl
-        # error, so check which cell actually got loaded.
+        # error and does not create the cell, so check whether the cell
+        # exists.  ("cellname list self" cannot be used here, as it
+        # returns the cell of any selected instance.)
         load $subckt -fail -silent
-        if {[cellname list self] == $subckt} {
+        if {[cellname list exists $subckt] == $subckt} {
             puts stdout "Subcircuit $subckt successfully loaded."
             set existing_cells($subckt) "true"
 
@@ -627,6 +631,9 @@ proc magic::netlist_to_layout {netfile library} {
 	  }
       }
    }
+
+   # Do not leave the last generated device selected
+   select clear
 
    # resumeall
 }

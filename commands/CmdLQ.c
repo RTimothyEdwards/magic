@@ -357,7 +357,8 @@ CmdLabel(
  * Implement the "load" command.
  *
  * Usage:
- *	load [name [scaled n [d]]] [-force] [-nowindow] [-dereference] [-quiet] [-fail]
+ *	load [name [scaled n [d]]] [-force] [-nowindow] [-dereference]
+ *		[-quiet] [-silent] [-fail]
  *
  * If name is supplied, then the window containing the point tool is
  * remapped so as to edit the cell with the given name.
@@ -458,7 +459,8 @@ CmdLoad(
 	    else if (locargc != 4)
 	    {
 		TxError("Usage: %s name scaled n [d] [-force] "
-			    "[-nowindow] [-dereference]\n",
+			    "[-nowindow] [-dereference] [-quiet] [-silent] "
+			    "[-fail]\n",
 			    cmd->tx_argv[0]);
 		return;
 	    }
@@ -469,7 +471,8 @@ CmdLoad(
 	else if (!ignoreTech && !noWindow && !dereference)
 	{
 	    TxError("Usage: %s name [scaled n [d]] [-force] "
-			    "[-nowindow] [-dereference] [-quiet] [-fail]\n",
+			    "[-nowindow] [-dereference] [-quiet] [-silent] "
+			    "[-fail]\n",
 			    cmd->tx_argv[0]);
 	    return;
 	}

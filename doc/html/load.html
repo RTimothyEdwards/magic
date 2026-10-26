@@ -26,8 +26,8 @@ Load a cell into the layout window
 <H3>Usage:</H3>
    <BLOCKQUOTE>
       <B>load</B> [<I>cellname</I> [<B>scaled</B> <I>n</I> [<I>d</I>]]]
-		[<B>-force</B>] [<B>-dereference</B>] [<B>-quiet</B>]
-		[<B>-silent</B>] [<B>-fail</B>]
+		[<B>-force</B>] [<B>-nowindow</B>] [<B>-dereference</B>]
+		[<B>-quiet</B>] [<B>-silent</B>] [<B>-fail</B>]
 		<BR><BR>
       <BLOCKQUOTE>
          where <I>cellname</I> is the name of a cell that presumably
@@ -81,6 +81,9 @@ Load a cell into the layout window
       diagnostic output during a file load.  It will only print
       important warnings and errors. <P>
 
+      The <B>-nowindow</B> option loads the cell into the database
+      without displaying it in the layout window. <P>
+
       By default, if a cell cannot be found in the search path, then
       a new empty layout is created with the name of the specified
       cell.  The <B>-fail</B> option prevents magic from creating a
@@ -123,6 +126,6 @@ Load a cell into the layout window
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> February 10, 2021 at 10:05pm <P>
+<P><I>Last updated:</I> October 26, 2026 at 10:03am <P>
 </BODY>
 </HTML>
