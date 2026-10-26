@@ -64,27 +64,27 @@ install: all
 		${CP} $$f $(DESTDIR)${INSTALL_SYSDIR}; done
 
 scmos.tech: $(OBJS)
-	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
-	$(SC_PP) -DV5 -DSTANDARD scmos.tech.out > scmos.tech
-	$(RM) scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > $@.out
+	$(SC_PP) -DV5 -DSTANDARD $@.out > scmos.tech
+	$(RM) $@.out
 
 scmos-tm.tech: $(OBJS)
-	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
-	cat $(srcdir)/scmos.tech.in > scmos.tech.out
-	$(SC_PP) -DV5 -DHPTECH -DTIGHTMETAL scmos.tech.out > scmos-tm.tech
-	$(RM) scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > $@.out
+	cat $(srcdir)/scmos.tech.in > $@.out
+	$(SC_PP) -DV5 -DHPTECH -DTIGHTMETAL $@.out > scmos-tm.tech
+	$(RM) $@.out
 
 scmos-sub.tech: $(OBJS)
-	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
-	cat $(srcdir)/scmos.tech.in > scmos.tech.out
-	$(SC_PP) -DV5 -DSUBMICRON scmos.tech.out > scmos-sub.tech
-	$(RM) scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > $@.out
+	cat $(srcdir)/scmos.tech.in > $@.out
+	$(SC_PP) -DV5 -DSUBMICRON $@.out > scmos-sub.tech
+	$(RM) $@.out
 
 scmosWR.tech: $(OBJS)
-	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
-	cat $(srcdir)/scmos.tech.in > scmos.tech.out
-	$(SC_PP) -DV5 -DSTANDARD -DWELL_ROUTE_CHECK scmos.tech.out > scmosWR.tech
-	$(RM) scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > $@.out
+	cat $(srcdir)/scmos.tech.in > $@.out
+	$(SC_PP) -DV5 -DSTANDARD -DWELL_ROUTE_CHECK $@.out > scmosWR.tech
+	$(RM) $@.out
 
 minimum.tech: minimum.tech.in
 	$(SC_PP) $< > minimum.tech

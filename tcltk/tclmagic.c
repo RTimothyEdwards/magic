@@ -807,6 +807,41 @@ typedef struct FileState {
 } FileState;
 
 /*--------------------------------------------------------------*/
+/* Replacement for the Tcl "cd" command.  The paths of cells	*/
+/* read from files may be relative to the current directory,	*/
+/* so after the original "cd" command (renamed "tcl_cd") has	*/
+/* changed the current directory, the relative paths are	*/
+/* changed to be relative to the new directory.			*/
+/*--------------------------------------------------------------*/
+
+static int
+_magic_cd(ClientData clientData,
+        Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
+{
+    Tcl_Obj **newobjv;
+    char *olddir;
+    int i, result;
+
+    olddir = DBGetCwd();
+
+    newobjv = (Tcl_Obj **)Tcl_Alloc(objc * sizeof(Tcl_Obj *));
+    newobjv[0] = Tcl_NewStringObj("tcl_cd", -1);
+    Tcl_IncrRefCount(newobjv[0]);
+    for (i = 1; i < objc; i++)
+	newobjv[i] = objv[i];
+
+    result = Tcl_EvalObjv(interp, objc, newobjv, 0);
+
+    Tcl_DecrRefCount(newobjv[0]);
+    Tcl_Free((char *)newobjv);
+
+    if ((result == TCL_OK) && (olddir != NULL))
+	DBRebaseCellPaths(olddir);
+    if (olddir != NULL) freeMagic(olddir);
+    return result;
+}
+
+/*--------------------------------------------------------------*/
 /* "Wizard" command for manipulating run-time flags.		*/
 /*--------------------------------------------------------------*/
 
@@ -1526,6 +1561,17 @@ Tclmagic_Init(interp)
     /* Add "*flags" command for manipulating run-time flags */
     Tcl_CreateObjCommand(interp, "magic::*flags", (Tcl_ObjCmdProc *)_magic_flags,
 			(ClientData)NULL, (Tcl_CmdDeleteProc *) NULL);
+
+    /* Replace "cd" with a version that keeps relative cell file paths	*/
+    /* valid (see _magic_cd()).						*/
+    {
+	Tcl_CmdInfo cmdInfo;
+
+	if (Tcl_GetCommandInfo(interp, "tcl_cd", &cmdInfo) == 0)
+	    Tcl_Eval(interp, "rename ::cd ::tcl_cd");
+	Tcl_CreateObjCommand(interp, "::cd", (Tcl_ObjCmdProc *)_magic_cd,
+			(ClientData)NULL, (Tcl_CmdDeleteProc *) NULL);
+    }
 
     /* Add the magic TCL directory to the Tcl library search path */
 

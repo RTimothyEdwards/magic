@@ -1522,6 +1522,10 @@ CmdCellname(
 			freeMagic(cellDef->cd_file);
 
 		    cellDef->cd_file = fullpath;
+
+		    /* A cell that could not be found before may be found	*/
+		    /* at the new path, so let the next expand try again.	*/
+		    cellDef->cd_flags &= ~CDNOTFOUND;
 		}
 	    }
 	    break;
@@ -4958,8 +4962,12 @@ cmdDumpParseArgs(
 
 	if (def->cd_file != NULL)
 	{
-	    /* Note: may want processing to see if absolute paths match */
-	    if (strcmp(def->cd_file, fullpathname))
+	    /* The same file reached through a different path (relative	*/
+	    /* to another directory, or through a symbolic link) is not	*/
+	    /* a conflict;  only a different file of the same name is.	*/
+
+	    if (strcmp(def->cd_file, fullpathname) &&
+			!DBSameCellFile(def->cd_file, fullpathname))
 	    {
 		char uniqchar;
 		char *newcellname = (char *)mallocMagic(strlen(cellnameptr) + 3);

@@ -1729,6 +1729,641 @@ DBTestOpen(name, fullPath)
 /*
  * ----------------------------------------------------------------------------
  *
+ * Utilities for cell file paths.
+ *
+ * A path is handled as a list of components.  Empty and "." components
+ * are dropped.  ".." components are only removed where this can be done
+ * without following symbolic links:  "dir/.." is the directory containing
+ * "dir" only if "dir" is not a symbolic link.  The current directory is
+ * taken from getcwd(), which never contains symbolic links, so leading
+ * ".." components of a path relative to the current directory can always
+ * be resolved.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+typedef struct {
+    bool pc_absolute;	/* Path starts with "/" */
+    int pc_num;		/* Number of components */
+    int pc_size;	/* Allocated size of pc_comp */
+    char **pc_comp;	/* The components */
+} PathComps;
+
+static void
+dbPathCompsInit(
+    PathComps *pc)
+{
+    pc->pc_absolute = FALSE;
+    pc->pc_num = 0;
+    pc->pc_size = 0;
+    pc->pc_comp = NULL;
+}
+
+static void
+dbPathCompsFree(
+    PathComps *pc)
+{
+    int i;
+
+    for (i = 0; i < pc->pc_num; i++)
+	freeMagic(pc->pc_comp[i]);
+    if (pc->pc_comp != NULL)
+	freeMagic((char *)pc->pc_comp);
+    dbPathCompsInit(pc);
+}
+
+static void
+dbPathCompsAdd(
+    PathComps *pc,
+    const char *comp,	/* Component to add */
+    int len)		/* Length of comp */
+{
+    if (pc->pc_num == pc->pc_size)
+    {
+	char **newcomp;
+	int newsize = (pc->pc_size == 0) ? 8 : 2 * pc->pc_size;
+
+	newcomp = (char **)mallocMagic(newsize * sizeof(char *));
+	if (pc->pc_num > 0)
+	    memcpy(newcomp, pc->pc_comp, pc->pc_num * sizeof(char *));
+	if (pc->pc_comp != NULL)
+	    freeMagic((char *)pc->pc_comp);
+	pc->pc_comp = newcomp;
+	pc->pc_size = newsize;
+    }
+    pc->pc_comp[pc->pc_num] = (char *)mallocMagic(len + 1);
+    strncpy(pc->pc_comp[pc->pc_num], comp, len);
+    pc->pc_comp[pc->pc_num][len] = '\0';
+    pc->pc_num++;
+}
+
+static void
+dbPathCompsPop(
+    PathComps *pc)
+{
+    if (pc->pc_num > 0)
+	freeMagic(pc->pc_comp[--pc->pc_num]);
+}
+
+/* Split "path" into components and append them to "pc".  If "pc" is	*/
+/* empty and "path" is absolute, "pc" is marked as absolute.		*/
+
+static void
+dbPathCompsSplit(
+    PathComps *pc,
+    const char *path)
+{
+    const char *p, *q;
+
+    if ((pc->pc_num == 0) && (*path == '/')) pc->pc_absolute = TRUE;
+    for (p = path; *p != '\0'; p = q)
+    {
+	while (*p == '/') p++;
+	if (*p == '\0') break;
+	for (q = p; (*q != '\0') && (*q != '/'); q++);
+	if ((q - p != 1) || (*p != '.'))
+	    dbPathCompsAdd(pc, p, (int)(q - p));
+    }
+}
+
+/* Join components "start" to "end" - 1 into a newly allocated string. */
+
+static char *
+dbPathCompsJoin(
+    PathComps *pc,
+    int start,
+    int end,
+    bool absolute)	/* If TRUE, start the string with "/" */
+{
+    int i, len = 2;
+    char *result, *dptr;
+
+    for (i = start; i < end; i++)
+	len += strlen(pc->pc_comp[i]) + 1;
+    result = dptr = (char *)mallocMagic(len);
+    if (absolute) *dptr++ = '/';
+    for (i = start; i < end; i++)
+    {
+	if (i > start) *dptr++ = '/';
+	strcpy(dptr, pc->pc_comp[i]);
+	dptr += strlen(pc->pc_comp[i]);
+    }
+    *dptr = '\0';
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBGetCwd --
+ *
+ *	Get the current working directory, which has no length limit.
+ *
+ * Results:
+ *	A newly allocated string, or NULL if the current directory cannot
+ *	be determined.  The caller must free the string with freeMagic().
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+DBGetCwd(void)
+{
+    size_t size = 256;
+    char *buf;
+
+    while (TRUE)
+    {
+	buf = (char *)mallocMagic(size);
+	if (getcwd(buf, size) != NULL) return buf;
+	freeMagic(buf);
+	if (errno != ERANGE) return NULL;
+	size *= 2;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbAbsoluteComps --
+ *
+ *	Convert a path, either absolute or relative to the current
+ *	directory, into the components of an absolute path.  Leading ".."
+ *	components of a relative path are resolved against the current
+ *	directory.  Any other ".." component cannot be resolved without
+ *	following symbolic links, and so is a failure.
+ *
+ * Results:
+ *	TRUE on success, FALSE if the path starts with "~" or "$", contains
+ *	a ".." that cannot be resolved, or the current directory is unknown.
+ *
+ * Side effects:
+ *	Fills in "pc", which the caller must free with dbPathCompsFree()
+ *	(on success only).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static bool
+dbAbsoluteComps(
+    const char *path,
+    PathComps *pc)
+{
+    PathComps rel;
+    bool leading = TRUE, result = TRUE;
+    int i;
+
+    dbPathCompsInit(pc);
+    if ((*path == '~') || (*path == '$')) return FALSE;
+    if (*path != '/')
+    {
+	char *cwd = DBGetCwd();
+	if (cwd == NULL) return FALSE;
+	dbPathCompsSplit(pc, cwd);
+	freeMagic(cwd);
+    }
+    pc->pc_absolute = TRUE;
+
+    dbPathCompsInit(&rel);
+    dbPathCompsSplit(&rel, path);
+    for (i = 0; i < rel.pc_num; i++)
+    {
+	if (!strcmp(rel.pc_comp[i], ".."))
+	{
+	    if (!leading || (*path == '/') || (pc->pc_num == 0))
+	    {
+		result = FALSE;
+		break;
+	    }
+	    dbPathCompsPop(pc);
+	}
+	else
+	{
+	    leading = FALSE;
+	    dbPathCompsAdd(pc, rel.pc_comp[i], strlen(rel.pc_comp[i]));
+	}
+    }
+    dbPathCompsFree(&rel);
+    if (!result) dbPathCompsFree(pc);
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbCollapsePath --
+ *
+ *	Remove "." components and "dir/.." pairs from a path, so that a
+ *	subcell path built from the parent cell's directory and a relative
+ *	path in a "use" line ("../mid" + "../lib") reads "../lib" and not
+ *	"../mid/../lib".  A pair is kept if "dir" is a symbolic link, since
+ *	"link/.." is then not the directory containing the link.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Rewrites "path" in place (the result is never longer).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+dbCollapsePath(
+    char *path)
+{
+    PathComps pc, out;
+    bool absolute = (*path == '/');
+    char *prefix, *result, *comp;
+    struct stat statbuf;
+    int i;
+
+    if (*path == '\0') return;
+
+    dbPathCompsInit(&pc);
+    dbPathCompsInit(&out);
+    dbPathCompsSplit(&pc, path);
+    for (i = 0; i < pc.pc_num; i++)
+    {
+	comp = pc.pc_comp[i];
+	if (!strcmp(comp, "..") && (out.pc_num > 0) &&
+		strcmp(out.pc_comp[out.pc_num - 1], ".."))
+	{
+	    prefix = dbPathCompsJoin(&out, 0, out.pc_num, absolute);
+	    if ((lstat(prefix, &statbuf) != 0) || !S_ISLNK(statbuf.st_mode))
+	    {
+		freeMagic(prefix);
+		dbPathCompsPop(&out);
+		continue;
+	    }
+	    freeMagic(prefix);
+	}
+	else if (!strcmp(comp, "..") && absolute && (out.pc_num == 0))
+	    continue;		/* "/.." is "/" */
+
+	dbPathCompsAdd(&out, comp, strlen(comp));
+    }
+
+    result = dbPathCompsJoin(&out, 0, out.pc_num, absolute);
+    if (*result == '\0')
+	strcpy(path, ".");
+    else
+	strcpy(path, result);
+    freeMagic(result);
+    dbPathCompsFree(&pc);
+    dbPathCompsFree(&out);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbStatCellFile --
+ *
+ *	Find the file for a cell path given with or without the file
+ *	extension.
+ *
+ * Results:
+ *	TRUE if a regular file was found, with its status in "statbuf".
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static bool
+dbStatCellFile(
+    const char *path,
+    struct stat *statbuf)
+{
+    char *name;
+    bool found = FALSE;
+
+    name = (char *)mallocMagic(strlen(path) + strlen(DBSuffix) + 4);
+    sprintf(name, "%s%s", path, DBSuffix);
+    if ((stat(name, statbuf) == 0) && S_ISREG(statbuf->st_mode))
+	found = TRUE;
+    else if ((stat(path, statbuf) == 0) && S_ISREG(statbuf->st_mode))
+	found = TRUE;
+    else
+    {
+	sprintf(name, "%s%s.gz", path, DBSuffix);
+	if ((stat(name, statbuf) == 0) && S_ISREG(statbuf->st_mode))
+	    found = TRUE;
+    }
+    freeMagic(name);
+    return found;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBSameCellFile --
+ *
+ *	Determine whether two cell paths (with or without the file
+ *	extension) name the same file, such as "../lib/inv" given from
+ *	one directory and "../mid/../lib/inv" recorded when the cell was
+ *	read through a parent cell, or a path through a symbolic link.
+ *
+ * Results:
+ *	TRUE if both paths are the same file (same device and inode),
+ *	FALSE if not, or if either file cannot be found.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+DBSameCellFile(
+    const char *path1,
+    const char *path2)
+{
+    struct stat st1, st2;
+
+    if (!dbStatCellFile(path1, &st1) || !dbStatCellFile(path2, &st2))
+	return FALSE;
+    return ((st1.st_dev == st2.st_dev) && (st1.st_ino == st2.st_ino)) ?
+		TRUE : FALSE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbIsDirPrefix --
+ *
+ *	Determine whether directory "pdir" is a leading part of directory
+ *	"cdir", comparing whole components.  An empty "pdir" (the current
+ *	directory) is a leading part of any relative directory.
+ *
+ * Results:
+ *	TRUE or FALSE.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static bool
+dbIsDirPrefix(
+    const char *pdir,
+    const char *cdir)
+{
+    PathComps p, c;
+    bool result;
+    int i;
+
+    dbPathCompsInit(&p);
+    dbPathCompsInit(&c);
+    dbPathCompsSplit(&p, pdir);
+    dbPathCompsSplit(&c, cdir);
+
+    result = (p.pc_absolute == c.pc_absolute) && (p.pc_num <= c.pc_num);
+    for (i = 0; result && (i < p.pc_num); i++)
+	if (strcmp(p.pc_comp[i], c.pc_comp[i]))
+	    result = FALSE;
+
+    dbPathCompsFree(&p);
+    dbPathCompsFree(&c);
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbRelativeDir --
+ *
+ *	Find directory "cdir" relative to directory "pdir", where both are
+ *	either absolute or relative to the current directory.  Stepping
+ *	out of a directory with ".." is only done if the directory is not
+ *	a symbolic link.
+ *
+ * Results:
+ *	A newly allocated string, which is empty if the two directories
+ *	are the same.  NULL if the relative path cannot be determined
+ *	without following symbolic links, or if the directories have no
+ *	leading components in common (in which case an absolute path is
+ *	more useful).
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static char *
+dbRelativeDir(
+    const char *pdir,
+    const char *cdir)
+{
+    PathComps p, c, out;
+    struct stat statbuf;
+    char *prefix, *result = NULL;
+    int i, m;
+
+    if (!dbAbsoluteComps(pdir, &p)) return NULL;
+    if (!dbAbsoluteComps(cdir, &c))
+    {
+	dbPathCompsFree(&p);
+	return NULL;
+    }
+
+    for (m = 0; (m < p.pc_num) && (m < c.pc_num) &&
+		!strcmp(p.pc_comp[m], c.pc_comp[m]); m++);
+
+    if (m > 0)
+    {
+	for (i = m; i < p.pc_num; i++)
+	{
+	    prefix = dbPathCompsJoin(&p, 0, i + 1, TRUE);
+	    if ((lstat(prefix, &statbuf) == 0) && S_ISLNK(statbuf.st_mode))
+	    {
+		freeMagic(prefix);
+		break;
+	    }
+	    freeMagic(prefix);
+	}
+	if (i == p.pc_num)
+	{
+	    dbPathCompsInit(&out);
+	    for (i = m; i < p.pc_num; i++)
+		dbPathCompsAdd(&out, "..", 2);
+	    for (i = m; i < c.pc_num; i++)
+		dbPathCompsAdd(&out, c.pc_comp[i], strlen(c.pc_comp[i]));
+	    result = dbPathCompsJoin(&out, 0, out.pc_num, FALSE);
+	    dbPathCompsFree(&out);
+	}
+    }
+    dbPathCompsFree(&p);
+    dbPathCompsFree(&c);
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbAbsoluteDir --
+ *
+ *	Convert a directory, either absolute or relative to the current
+ *	directory, into an absolute path.  Unlike dbAbsoluteComps(), a ".."
+ *	that cannot be resolved without following symbolic links is kept.
+ *
+ * Results:
+ *	A newly allocated string, or NULL if the directory starts with "~"
+ *	or "$" or the current directory is unknown.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static char *
+dbAbsoluteDir(
+    const char *dir)
+{
+    char *cwd, *result;
+
+    if ((*dir == '~') || (*dir == '$')) return NULL;
+    if (*dir == '/') return StrDup((char **)NULL, dir);
+    cwd = DBGetCwd();
+    if (cwd == NULL) return NULL;
+    result = (char *)mallocMagic(strlen(cwd) + strlen(dir) + 2);
+    if (*dir == '\0')
+	strcpy(result, cwd);
+    else
+	sprintf(result, "%s/%s", cwd, dir);
+    freeMagic(cwd);
+    dbCollapsePath(result);
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbRebasePathFunc --
+ *
+ *	Called by DBCellSrDefs() from DBRebaseCellPaths() for each cell def.
+ *	If the cell's file path is relative to the previous current
+ *	directory, change it to be relative to the new current directory.
+ *
+ * Results:
+ *	Always returns 0 to keep the search going.
+ *
+ * Side effects:
+ *	May change cellDef->cd_file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+typedef struct {
+    PathComps *rb_old;		/* Previous current directory */
+    PathComps *rb_new;		/* New current directory */
+} RebaseData;
+
+static int
+dbRebasePathFunc(
+    CellDef *cellDef,
+    ClientData cdata)
+{
+    RebaseData *rb = (RebaseData *)cdata;
+    PathComps r, out;
+    char *file = cellDef->cd_file;
+    int i, k, m, base;
+
+    if ((file == NULL) || (*file == '/') || (*file == '~') || (*file == '$'))
+	return 0;
+
+    /* Leading ".." components of the path are resolved against the	*/
+    /* previous current directory; the rest is kept as it is.		*/
+
+    dbPathCompsInit(&r);
+    dbPathCompsSplit(&r, file);
+    for (k = 0; (k < r.pc_num) && !strcmp(r.pc_comp[k], ".."); k++);
+    if (k > rb->rb_old->pc_num)
+    {
+	dbPathCompsFree(&r);
+	return 0;
+    }
+    base = rb->rb_old->pc_num - k;
+
+    /* Find the leading directories in common with the new current	*/
+    /* directory, step up out of the new directory to those, and then	*/
+    /* down to the file.						*/
+
+    for (m = 0; (m < base) && (m < rb->rb_new->pc_num) &&
+		!strcmp(rb->rb_old->pc_comp[m], rb->rb_new->pc_comp[m]); m++);
+
+    dbPathCompsInit(&out);
+    for (i = m; i < rb->rb_new->pc_num; i++)
+	dbPathCompsAdd(&out, "..", 2);
+    for (i = m; i < base; i++)
+	dbPathCompsAdd(&out, rb->rb_old->pc_comp[i],
+		strlen(rb->rb_old->pc_comp[i]));
+    for (i = k; i < r.pc_num; i++)
+	dbPathCompsAdd(&out, r.pc_comp[i], strlen(r.pc_comp[i]));
+
+    freeMagic(cellDef->cd_file);
+    cellDef->cd_file = dbPathCompsJoin(&out, 0, out.pc_num, FALSE);
+
+    dbPathCompsFree(&r);
+    dbPathCompsFree(&out);
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBRebaseCellPaths --
+ *
+ *	Cell file paths may be relative to the current directory.  When the
+ *	current directory changes, this routine must be called with the
+ *	previous current directory, and changes each relative path to be
+ *	relative to the new current directory, so that it still refers to
+ *	the same file.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Changes the cd_file of cell defs with relative paths.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBRebaseCellPaths(
+    const char *olddir)		/* Previous current directory (from getcwd) */
+{
+    PathComps oldc, newc;
+    RebaseData rb;
+    char *newdir;
+
+    newdir = DBGetCwd();
+    if (newdir == NULL) return;
+    if (strcmp(newdir, olddir))
+    {
+	dbPathCompsInit(&oldc);
+	dbPathCompsInit(&newc);
+	dbPathCompsSplit(&oldc, olddir);
+	dbPathCompsSplit(&newc, newdir);
+	rb.rb_old = &oldc;
+	rb.rb_new = &newc;
+	DBCellSrDefs(0, dbRebasePathFunc, (ClientData)&rb);
+	dbPathCompsFree(&oldc);
+	dbPathCompsFree(&newc);
+    }
+    freeMagic(newdir);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbReadUseBody --
  *
  * Read the remainder of a single cell use specification after the
@@ -1998,6 +2633,9 @@ badTransform:
 		strcpy(savepath, pathptr);
 		int n = snprintf(path, sizeof(path), "%s/%s", cellDef->cd_file, savepath);
 		ASSERT(n < sizeof(path), "path");
+
+		/* "../mid" + "../lib" is "../lib", not "../mid/../lib" */
+		dbCollapsePath(path);
 	    }
 	    pathptr = &path[0];
 	    *slashptr = '/';
@@ -2046,7 +2684,7 @@ badTransform:
 	    slashptr = strrchr(subCellDef->cd_file, '/');
 	    if (slashptr != NULL)
 	    {
-		bool pathOK = FALSE;
+		bool pathOK = FALSE, newMissing = FALSE;
 		char *cwddir = getenv("PWD");
 		*slashptr = '\0';
 
@@ -2089,7 +2727,24 @@ badTransform:
 		    }
 		}
 
+		/* If the cell does not exist at the new path, then there	*/
+		/* is no conflict to resolve (see below).			*/
+
 		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
+			    && (dereference == FALSE) && (firstUse == TRUE))
+		{
+		    FILETYPE ftest;
+
+		    ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
+				(char **) NULL);
+		    if (ftest == NULL)
+			newMissing = TRUE;
+		    else
+			FCLOSE(ftest);
+		}
+
+		if ((pathOK == FALSE) && (newMissing == FALSE) &&
+			    strcmp(subCellDef->cd_file, pathptr)
 			    && (dereference == FALSE) && (firstUse == TRUE))
 		{
 		    /* See if both paths are inside a git repository, and both
@@ -2184,29 +2839,39 @@ badTransform:
 		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
 			    && (dereference == FALSE) && (firstUse == TRUE))
 		{
-		    FILETYPE ftest;
+		    if (newMissing == TRUE)
+		    {
+			struct stat dirstat;
 
-		    TxError("Duplicate cell in %s:  Instance of cell %s is from "
-				"path %s but cell was previously read from %s.\n",
+			/* The path given in the "use" line is not valid, so	*/
+			/* it is ignored (automatic dereferencing due to	*/
+			/* unavailability) and the cell already read is used.	*/
+
+			if ((stat(pathptr, &dirstat) == 0) &&
+				S_ISDIR(dirstat.st_mode))
+			    TxError("Bad cell path in %s:  Instance of cell %s "
+				"specifies path %s, which does not contain the "
+				"cell.  Cell previously read from %s will be used "
+				"instead.\n", cellDef->cd_name, slashptr + 1,
+				pathptr, subCellDef->cd_file);
+			else
+			    TxError("Bad cell path in %s:  Instance of cell %s "
+				"specifies path %s, which does not exist.  Cell "
+				"previously read from %s will be used instead.\n",
 				cellDef->cd_name, slashptr + 1, pathptr,
 				subCellDef->cd_file);
-
-		    /* Test file at path.  If path is invalid then ignore it	*/ 
-		    /* (automatic dereferencing due to unavailability).		*/
-
-		    ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
-					(char **) NULL);
-		    if (ftest == NULL)
-		    {
-			TxError("New path does not exist and will be ignored.\n");
 		    }
 		    else
 		    {
 			char *newname = (char *)mallocMagic(strlen(cellname) + 7);
 			int i = 0;
 
+			TxError("Duplicate cell in %s:  Instance of cell %s is "
+				"from path %s but cell was previously read from "
+				"%s.\n", cellDef->cd_name, slashptr + 1, pathptr,
+				subCellDef->cd_file);
+
 			/* To do:  Run checksum on file (not yet implemented) */
-			FCLOSE(ftest);
 
 			while (TRUE)
 			{
@@ -2258,29 +2923,56 @@ badTransform:
 		    }
 		    else if (!strcmp(cwddir, pathptr)) pathOK = TRUE;
 
+		    /* The same file reached through a different path is	*/
+		    /* not a conflict.						*/
+
+		    if ((pathOK == FALSE) && strcmp(cwddir, pathptr))
+		    {
+			char *newfile = (char *)mallocMagic(strlen(pathptr) +
+				strlen(cellname) + 2);
+			sprintf(newfile, "%s/%s", pathptr, cellname);
+			if (DBSameCellFile(subCellDef->cd_file, newfile))
+			    pathOK = TRUE;
+			freeMagic(newfile);
+		    }
+
 		    if ((pathOK == FALSE) && strcmp(cwddir, pathptr)
 			    && (dereference == FALSE) && (firstUse == TRUE))
 		    {
 			FILETYPE ftest;
 
-			TxError("Duplicate cell in %s:  Instance of cell %s is from "
-				"path %s but cell was previously read from "
-				"the current directory.\n",
-				cellDef->cd_name, cellname, pathptr);
-
-			/* Test file at path.  If path is invalid then ignore	*/ 
+			/* Test file at path.  If path is invalid then ignore	*/
 			/* it (automatic dereferencing due to unavailability).	*/
 
 			ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
 					(char **) NULL);
 			if (ftest == NULL)
 			{
-			    TxError("New path does not exist and will be ignored.\n");
+			    struct stat dirstat;
+
+			    if ((stat(pathptr, &dirstat) == 0) &&
+					S_ISDIR(dirstat.st_mode))
+				TxError("Bad cell path in %s:  Instance of cell %s "
+					"specifies path %s, which does not contain "
+					"the cell.  Cell previously read from the "
+					"current directory will be used instead.\n",
+					cellDef->cd_name, cellname, pathptr);
+			    else
+				TxError("Bad cell path in %s:  Instance of cell %s "
+					"specifies path %s, which does not exist.  "
+					"Cell previously read from the current "
+					"directory will be used instead.\n",
+					cellDef->cd_name, cellname, pathptr);
 			}
 			else
 			{
 			    char *newname = (char *)mallocMagic(strlen(cellname) + 7);
 			    int i = 0;
+
+			    TxError("Duplicate cell in %s:  Instance of cell %s is "
+				"from path %s but cell was previously read from "
+				"the current directory.\n",
+				cellDef->cd_name, cellname, pathptr);
 
 			    /* To do:  Run checksum on file (not yet implemented) */
 			    FCLOSE(ftest);
@@ -5350,8 +6042,9 @@ dbClearCellFunc(cellUse, cdarg)
  *	   Tcl variables PDK_PATH, PDKPATH, PDK_ROOT, or PDKROOT, then
  *	   replace the string with the variable name.  The "PATH" names are
  *	   more specific than "ROOT" and so are checked first.
- *	2) If the filename starts with a string equal to the contents of
- *	   environment variable HOME, then replace the string with "~".
+ *	2) If the filename is an absolute path that starts with a string
+ *	   equal to the contents of environment variable HOME, then
+ *	   replace the string with "~".  A relative path is not changed.
  *
  * Results:
  *	A newly allocated string containing the substituted path.  The
@@ -5396,9 +6089,10 @@ DBPathSubstitute(
 
     /* If path starts with home path, then replace with "~"	*/
     /* to make IP semi-portable between home directories	*/
-    /* with the same file structure.				*/
+    /* with the same file structure.  This applies only to an	*/
+    /* absolute path:  a relative path is kept relative.	*/
 
-    if (cellDef->cd_file != NULL)
+    if ((*pathstart == '/') && (cellDef->cd_file != NULL))
     {
 	char *homedir = getenv("HOME");
 
@@ -5488,6 +6182,61 @@ dbWriteCellFunc(cellUse, cdarg)
 	pathsubbed = NULL;
     else
 	pathsubbed = DBPathSubstitute(pathstart, cellUse->cu_def);
+
+    /* The path found above (the subcell's directory with the leading	*/
+    /* directories that it shares with the parent removed) is relative	*/
+    /* to the parent's directory only if all of the parent's directory	*/
+    /* was removed.  If not (for example, when the parent is saved to a	*/
+    /* different directory than the subcell's), compute the path of the	*/
+    /* subcell's directory relative to the parent's directory, or use an	*/
+    /* absolute path if that cannot be done.  (Note that if pathend is	*/
+    /* not NULL, cd_file is currently the subcell's directory.)		*/
+
+    if (!(cellUse->cu_def->cd_flags & CDVISITED) &&
+		(cellUse->cu_def->cd_file != NULL) && (parent != NULL) &&
+		((pathsubbed == NULL) || ((*pathsubbed != '/') &&
+		(*pathsubbed != '~') && (*pathsubbed != '$'))))
+    {
+	char *cdir, *pdir, *pslash, *newpath;
+
+	cdir = (pathend == NULL) ? "" : cellUse->cu_def->cd_file;
+	pdir = StrDup((char **)NULL, parent);
+	pslash = strrchr(pdir, '/');
+	if (pslash == NULL)
+	    *pdir = '\0';
+	else if (pslash == pdir)
+	    *(pslash + 1) = '\0';
+	else
+	    *pslash = '\0';
+
+	if (!dbIsDirPrefix(pdir, cdir))
+	{
+	    newpath = dbRelativeDir((*pdir) ? pdir : ".", (*cdir) ? cdir : ".");
+	    if (newpath == NULL)
+	    {
+		char *absdir = dbAbsoluteDir(cdir);
+		if (absdir != NULL)
+		{
+		    newpath = DBPathSubstitute(absdir, cellUse->cu_def);
+		    freeMagic(absdir);
+		}
+	    }
+	    else if (*newpath == '\0')
+	    {
+		/* Same directory as the parent:  no path is needed */
+		freeMagic(newpath);
+		newpath = NULL;
+		if (pathsubbed != NULL) freeMagic(pathsubbed);
+		pathsubbed = NULL;
+	    }
+	    if (newpath != NULL)
+	    {
+		if (pathsubbed != NULL) freeMagic(pathsubbed);
+		pathsubbed = newpath;
+	    }
+	}
+	freeMagic(pdir);
+    }
 
     cellUse->cu_def->cd_flags |= CDVISITED;
     if (pathend != NULL) *pathend = '/';
