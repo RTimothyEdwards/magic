@@ -45,6 +45,54 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *-------------------------------------------------------------------------
  */
 
+/*
+ * ResPrintGeoRes --
+ *	Write one resistor's geometry to the .res.geo file (option "extresist
+ *	geoout on"), one line per "resist" line of the .res.ext, same order:
+ *
+ *	resgeo "node1" "node2" ohms type dir width length cl x1 y1 x2 y2 merged
+ *
+ *	dir is ew/ns/diag for a wire segment (width across the current, length
+ *	along it, cl the centerline coordinate: y for ew, x for ns), or via for a
+ *	contact array (width = cuts in x, cl = cuts in y, length 0).  Units are
+ *	the .res.ext's (its "scale" line).  length is sheet-exact: R*width/sheet.
+ *	merged = 1 if the network simplifier combined this resistor with others,
+ *	so width and length are no longer one drawn shape's.
+ */
+
+FILE *ResGeoFile = NULL;
+
+void
+ResPrintGeoRes(fp, rr)
+    FILE *fp;
+    resResistor *rr;
+{
+    TileType tt = rr->rr_tt;
+    const char *dir;
+    double len = 0.0;
+    float sheet;
+
+    if (DBIsContact(tt))
+	dir = "via";
+    else
+    {
+	if (rr->rr_status & RES_DIAGONAL) dir = "diag";
+	else if (rr->rr_status & RES_EW) dir = "ew";
+	else if (rr->rr_status & RES_NS) dir = "ns";
+	else dir = "none";
+	sheet = (float)ExtCurStyle->exts_sheetResist[tt];
+	if (sheet > 0)
+	    len = (double)rr->rr_value * (double)rr->rr_width / (double)sheet;
+    }
+    fprintf(fp, "resgeo \"%s\" \"%s\" %g %s %s %d %.6g %d %d %d %d %d %d\n",
+	    rr->rr_connection1->rn_name, rr->rr_connection2->rn_name,
+	    rr->rr_value / (float)ExtCurStyle->exts_resistScale,
+	    DBTypeLongNameTbl[tt], dir, rr->rr_width, len, rr->rr_cl,
+	    rr->rr_connection1->rn_loc.p_x, rr->rr_connection1->rn_loc.p_y,
+	    rr->rr_connection2->rn_loc.p_x, rr->rr_connection2->rn_loc.p_y,
+	    (rr->rr_status & RES_GEO_MERGED) ? 1 : 0);
+}
+
 void
 ResPrintExtRes(outextfile, resistors, nodename)
     FILE	*outextfile;
@@ -82,6 +130,8 @@ ResPrintExtRes(outextfile, resistors, nodename)
 	    resistors->rr_connection2->rn_name = node->name;
 	    node->oldname = nodename;
 	}
+	if ((ResOptionsFlags & ResOpt_GeoOut) && (ResGeoFile != NULL))
+	    ResPrintGeoRes(ResGeoFile, resistors);
 	if (ResOptionsFlags & ResOpt_DoExtFile)
 	{
      	    fprintf(outextfile, "resist \"%s\" \"%s\" %g\n",

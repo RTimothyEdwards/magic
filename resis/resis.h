@@ -419,6 +419,7 @@ typedef struct capval
 #define	RES_DIAGONAL		0x00000800
 #define RES_DEADEND		0x00001000
 #define	RES_TDI_IGNORE		0x00010000
+#define	RES_GEO_MERGED		0x00004000	/* merged: width/length no longer one shape's */
 #define	RES_REACHED_RESISTOR	0x00100000
 #define	RES_HEAP		0x00200000
 
@@ -513,6 +514,7 @@ typedef struct capval
 #define		ResOpt_Blackbox		0x0400
 #define 	ResOpt_DoSubstrate	0x0800
 #define		ResOpt_Box		0x1000
+#define		ResOpt_GeoOut		0x2000
 
 /* Assorted Variables */
 
@@ -619,6 +621,7 @@ extern void ResExtProcessDrivePoints();
 extern int  ResWriteExtFile();
 extern void ResPrintExtNode();
 extern void ResPrintExtRes();
+extern FILE *ResGeoFile;
 extern void ResPrintFHNodes();
 extern void ResPrintFHRects();
 extern int  ResCreateCenterlines();
