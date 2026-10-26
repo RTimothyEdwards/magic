@@ -1,0 +1,16 @@
+# Run the regression tests from the magic_regression_tests repository
+# (https://github.com/RTimothyEdwards/magic_regression_tests) on each pull
+# request, so that the result appears as a check on the pull request.  The
+# workflow that builds magic and runs the tests is kept in that repository,
+# so that it can be changed along with the tests.  (The master branch is
+# tested every night by that repository's own "nightly" workflow.)
+
+name: Regression tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  regression:
+    uses: RTimothyEdwards/magic_regression_tests/.github/workflows/regression.yml@main
