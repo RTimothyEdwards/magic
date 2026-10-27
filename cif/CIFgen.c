@@ -34,7 +34,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/hash.h"
 #include "database/database.h"
 #include "cif/CIFint.h"
-#include "calma/calma.h"	/* for CalmaContactArrays */
 #include "commands/commands.h"	/* for CmdFindNetProc()	*/
 #include "select/selInt.h"	/* for select use and def */
 #include "select/select.h"
@@ -3609,83 +3608,6 @@ inside_triangle(
 /*
  * ----------------------------------------------------------------------------
  *
- * cifContactFunc --
- *
- *	Called for each relevant tile when chopping up contacts into
- *	square cuts using the procedure of using a pre-defined cell
- *	definition of a single contact and arraying the cell.
- *	Technically, this is not a CIF function because CIF does not
- *	have an array method for cells, so there is no advantage to
- *	drawing lots of subcells in place of drawing lots of boxes.
- *	In GDS, however, the array method is much more compact than
- *	drawing individual cuts when the array size is larger than 1.
- *
- * Results:
- *	Normally returns 0 to keep the search going.  Return 1 if
- *	the contact type cannot be found, which halts the search.
- *
- * Side effects:
- *	Stuff is painted into cifPlane.
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-cifContactFunc(
-    Tile *tile,			/* Tile to be diced up. */
-    TileType dinfo,		/* Split tile information (unused) */
-    CIFSquaresInfo *csi) 	/* Describes how to generate squares. */
-{
-    Rect area;
-    int i, nAcross, j, nUp, left, bottom, pitch, halfsize;
-    bool result;
-    SquaresData *squares = csi->csi_squares;
-
-    /* For now, don't allow squares on non-manhattan tiles */
-    if (IsSplit(tile))
-	return 0;
-
-    TiToRect(tile, &area);
-    pitch = squares->sq_size + squares->sq_sep;
-
-    nAcross = (area.r_xtop - area.r_xbot + squares->sq_sep
-	    - (2 * squares->sq_border)) / pitch;
-    if (nAcross == 0)
-    {
-	left = (area.r_xbot + area.r_xtop - squares->sq_size) / 2;
-	if (left >= area.r_xbot) nAcross = 1;
-    }
-    else
-	left = (area.r_xbot + area.r_xtop + squares->sq_sep
-		- (nAcross * pitch)) / 2;
-
-    nUp = (area.r_ytop - area.r_ybot + squares->sq_sep
-	    - (2 * squares->sq_border)) / pitch;
-    if (nUp == 0)
-    {
-	bottom = (area.r_ybot + area.r_ytop - squares->sq_size) / 2;
-	if (bottom >= area.r_ybot) nUp = 1;
-    }
-    else
-	bottom = (area.r_ybot + area.r_ytop + squares->sq_sep
-		- (nUp * pitch)) / 2;
-
-    /* Lower-left coordinate should be centered on the contact cut, as
-     * contact definitions are centered on the origin.
-     */
-    halfsize = (squares->sq_size / 2);
-    left += halfsize;
-    bottom += halfsize;
-
-    result = CalmaGenerateArray((FILETYPE)csi->csi_client, csi->csi_type,
-		left, bottom, pitch, nAcross, nUp);
-
-    return (result == TRUE) ? 0 : 1;
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
  * cifSlotFunc --
  *
  * 	Called for each relevant tile area when chopping areas up into
@@ -5133,16 +5055,12 @@ CIFGenLayer(
 				 * for operation.
 				 */
     bool hier,			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
-    ClientData clientdata)	/*
-				 * Data that may be passed to the CIF operation
-				 * function.
-				 */
+    ClientData clientdata)	/* (unused) */
 {
     Plane *temp;
     static Plane *nextPlane, *curPlane;
     Rect bbox;
     CIFOp *tempOp;
-    CIFSquaresInfo csi;
     SearchContext scx;
     TileType ttype;
     char *netname, *text;
@@ -5205,81 +5123,14 @@ CIFGenLayer(
 		break;
 
 	    /* For OR, just use cifPaintFunc to OR the areas of all
-	     * relevant tiles into plane.  HOWEVER, if the co_client
-	     * record is non-NULL and CalmaContactArrays is TRUE,
-	     * then for each contact type, we do the paint function
-	     * separately, then call the contact array generation
-	     * procedure.
+	     * relevant tiles into plane.
 	     */
 
 	    case CIFOP_OR:
 		cifPlane = curPlane;
 		cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
-
-		if ((op->co_client != (ClientData)NULL)
-				&& (CalmaContactArrays == TRUE))
-		{
-		    TileTypeBitMask paintMask, errMask, *rMask;
-		    TileType i, j;
-
-		    TTMaskZero(&errMask);
-		    TTMaskZero(&paintMask);
- 		    TTMaskSetMask(&paintMask, &op->co_paintMask);
-		    for (i = TT_TECHDEPBASE; i < DBNumUserLayers; i++)
-		    {
-			if (TTMaskHasType(&paintMask, i))
-			{
-			    TTMaskSetOnlyType(&op->co_paintMask, i);
-			    for (j = DBNumUserLayers; j < DBNumTypes; j++)
-			    {
-				rMask = DBResidueMask(j);
-				if (TTMaskHasType(rMask, i))
-				    TTMaskSetType(&op->co_paintMask, j);
-			    }
-
-			    cifSrTiles(op, area, cellDef, temps, cifPaintFunc,
-			    		(ClientData) CIFPaintTable);
-
-			    csi.csi_squares = (SquaresData *)op->co_client;
-			    csi.csi_type = i;
-			    csi.csi_client = clientdata;
-
-			    if (DBSrPaintArea((Tile *) NULL, curPlane,
-					&TiPlaneRect, &CIFSolidBits,
-					cifContactFunc,	(ClientData) &csi))
-			    {
-				/* Failure of DBSrPaintArea() (returns 1)
-				 * indicates that a contact cell type
-				 * could not be found for magic layer i.
-				 * Record the error for subsequent handling.
-				 */
-				TTMaskSetType(&errMask, i);
-			    }
-			    DBClearPaintPlane(curPlane);
-			}
-		    }
-		    if (!TTMaskIsZero(&errMask))
-		    {
-			/*
-			 * Handle layers for which a contact cell could
-			 * not be found in the default manner.
-			 */
-			TTMaskZero(&op->co_paintMask);
- 			TTMaskSetMask(&op->co_paintMask, &errMask);
-			cifSrTiles(op, area, cellDef, temps, cifPaintFunc,
-		    		(ClientData) CIFPaintTable);
-		    }
-
-		    /* Recover the original magic layer mask for the cifop */
-
-		    TTMaskZero(&op->co_paintMask);
- 		    TTMaskSetMask(&op->co_paintMask, &paintMask);
-		}
-		else
-		{
-		    cifSrTiles(op, area, cellDef, temps, cifPaintFunc,
-		    	(ClientData) CIFPaintTable);
-		}
+		cifSrTiles(op, area, cellDef, temps, cifPaintFunc,
+			(ClientData) CIFPaintTable);
 		break;
 
 	    /* For ANDNOT, do exactly the same thing as OR, except erase
@@ -5487,15 +5338,12 @@ CIFGenLayer(
 		    	break;
 		    }
 		}
-		if (CalmaContactArrays == FALSE)
-		{
-		    DBClearPaintPlane(nextPlane);
-		    cifPlane = nextPlane;
-		    cifSquaresFillArea(op, cellDef, curPlane);
-		    temp = curPlane;
-		    curPlane = nextPlane;
-		    nextPlane = temp;
-		}
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifSquaresFillArea(op, cellDef, curPlane);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
 		break;
 
 	    case CIFOP_SQUARES_G:
@@ -5507,15 +5355,12 @@ CIFGenLayer(
 		    	break;
 		    }
 		}
-		if (CalmaContactArrays == FALSE)
-		{
-		    DBClearPaintPlane(nextPlane);
-		    cifPlane = nextPlane;
-		    cifSquaresFillArea(op, cellDef, curPlane);
-		    temp = curPlane;
-		    curPlane = nextPlane;
-		    nextPlane = temp;
-		}
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifSquaresFillArea(op, cellDef, curPlane);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
 		break;
 
 	    case CIFOP_SLOTS:
@@ -5527,15 +5372,12 @@ CIFGenLayer(
 		    	break;
 		    }
 		}
-		if (CalmaContactArrays == FALSE)
-		{
-		    DBClearPaintPlane(nextPlane);
-		    cifPlane = nextPlane;
-		    cifSlotsFillArea(op, cellDef, curPlane);
-		    temp = curPlane;
-		    curPlane = nextPlane;
-		    nextPlane = temp;
-		}
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifSlotsFillArea(op, cellDef, curPlane);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
 		break;
 
 	    case CIFOP_MANHATTAN:
@@ -5914,9 +5756,7 @@ CIFGen(
 				 * generated in the 'layers' mask above.
 				 */
     bool hier,			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
-    ClientData clientdata)	/* Data that may be passed along to the
-				 * CIF operation functions.
-				 */
+    ClientData clientdata)	/* (unused) */
 {
     int i;
     Plane *new[MAXCIFLAYERS];

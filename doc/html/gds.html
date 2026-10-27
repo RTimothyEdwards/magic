@@ -227,10 +227,12 @@ Read GDSII input or generate GDSII output.
 		 return the current compression setting.  The default compression
 		 setting is zero (no compression applied;  output is plain GDS).
 	    <DT> <B>contacts</B> [<B>yes</B>|<B>no</B>]
-	    <DD> Causes contacts to be written to the GDS file as subcell
-	    	 arrays (experimental, introduced in version 7.3.55).  This
-		 method can produce very efficient output compared to writing
-		 each contact cut square separately.
+	    <DD> This option is unimplemented, and contact cuts are always
+		 written to the GDS file individually.  (Writing contact cuts
+		 as subcell arrays was an experimental option introduced in
+		 version 7.3.55, which did not work correctly with hierarchical
+		 layouts and has been removed.  The option remains so that
+		 existing scripts using it do not fail.)
 	    <DT> <B>datestamp</B> [<B>yes</B>|<B>no</B>|<I>value</I>]
 	    <DD> When writing a GDS file, each cell definition is given a
 		 header containing two date stamps, one for the creation date,

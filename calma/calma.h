@@ -44,7 +44,6 @@ extern int  CalmaFlattenLimit;
 extern float CalmaMagScale;
 extern char **CalmaFlattenUsesByName;
 extern bool CalmaReadOnly;
-extern bool CalmaContactArrays;
 #ifdef HAVE_ZLIB
 extern int  CalmaCompression;
 #endif
@@ -65,11 +64,9 @@ extern bool CalmaAllowAbstract;
 extern bool CalmaWrite(CellDef *rootDef, FILETYPE f);
 extern void CalmaReadFile(FILETYPE file, char *filename);
 extern void CalmaTechInit(void);
-extern bool CalmaGenerateArray(FILETYPE f, TileType type, int llx, int lly, int pitch, int cols, int rows);
 extern void CalmaReadError(const char *format, ...) ATTR_FORMAT_PRINTF_1;
 
 /* C99 compat */
-extern void calmaDelContacts(void);
 extern void calmaElementBoundary(void);
 extern void calmaElementBox(void);
 extern void calmaElementPath(void);

@@ -82,12 +82,6 @@ time_t *CalmaDateStamp = NULL;	  /* If non-NULL, output this for creation date s
 bool CalmaAllowUndefined = FALSE; /* If TRUE, allow calls to undefined cells */
 bool CalmaAllowAbstract = FALSE;  /* If TRUE, allow abstract views to be written */
 
-    /* Experimental stuff---not thoroughly tested.  In particular, the 	*/
-    /* array generation of CalmaContactArrays is different from that	*/
-    /* used by the cifSquareFunc(), and should be using the 		*/
-    /* cifFillSquaresArea() function directly, and include slots.	*/
-
-bool CalmaContactArrays = FALSE; /* If TRUE, output contacts as subcell arrays */
 bool CalmaMergeTiles = FALSE;	 /* If TRUE, merge tiles into polygons in output. */
 
 #ifdef HAVE_ZLIB
@@ -108,8 +102,6 @@ extern int calmaWritePaintFunc(Tile *tile, TileType dinfo, calmaOutputStruct *co
 extern int calmaMergePaintFunc(Tile *tile, TileType dinfo, calmaOutputStruct *cos);
 extern int calmaWriteUseFunc(CellUse *use, FILETYPE f);
 extern int calmaPaintLabelFunc(Tile *tile, TileType dinfo, calmaOutputStruct *cos);
-extern void calmaWriteContacts(FILETYPE f);
-extern void calmaDelContacts(void);
 extern void calmaOutFunc(CellDef *def, FILETYPE f, const Rect *cliprect);
 extern void calmaOutStructName(int type, CellDef *def, FILETYPE f);
 extern void calmaWriteLabelFunc(Label *lab, int ltype, int type, FILETYPE f);
@@ -345,11 +337,6 @@ CalmaWrite(
     calmaOutHeader(rootDef, f);
 
     /*
-     * Write all contact cell definitions first
-     */
-    if (CalmaContactArrays) calmaWriteContacts(f);
-
-    /*
      * We perform a post-order traversal of the tree rooted at 'rootDef',
      * to insure that each child cell is output before it is used.  The
      * root cell is output last.
@@ -397,11 +384,6 @@ CalmaWrite(
     /* See if any problems occurred */
     if ((problems = (DBWFeedbackCount - oldCount)))
 	TxPrintf("%d problems occurred.  See feedback entries.\n", problems);
-
-    /*
-     * Destroy all contact cell definitions
-     */
-    if (CalmaContactArrays) calmaDelContacts();
 
     HashFreeKill(&calmaLibHash);
     HashKill(&calmaPrefixHash);
@@ -1888,250 +1870,6 @@ bad:
 }
 
 /* Added by NP 8/21/2004 */
-/*
- * ----------------------------------------------------------------------------
- *
- * calmaGetContactCell --
- *
- *   This routine creates [if it hasn't been created yet] a cell definition
- *   containing the given TileType.  Cellname is "$$" + layer1_name + "_" +
- *   layer2_name... + "$$". Cellname contains the short name of all the
- *   residues of the layer "type".
- *
- * Results:
- *   Returns new celldef it doesn't exist else created one.
- *
- * Side effects:
- *	 New celldef created specially for contact type if it does not exist.
- *
- * ----------------------------------------------------------------------------
- */
-
-CellDef *
-calmaGetContactCell(
-    TileType type,		/* magic contact tile type */
-    bool lookOnly)		/* if true, don't generate any new cells */
-{
-    TileType j;
-    char contactCellName[100];
-    TileTypeBitMask *rMask = DBResidueMask(type);
-    CellDef *def;
-    bool first = TRUE;
-
-    strcpy(contactCellName, "$$");
-    for (j = TT_SPACE + 1; j < DBNumUserLayers; j++)
-	if (TTMaskHasType(rMask, j))
-	{
-            /* Cellname starts with "$$" to make it diffrent from
-             * other database cells, and to be compatible with a
-	     * number of other EDA tools.
-             */
-	    if (!first)
-		strcat(contactCellName, "_");
-	    else
-		first = FALSE;
-            strcat(contactCellName, DBTypeShortName(j));
-        }
-    strcat(contactCellName, "$$");
-
-    def = DBCellLookDef(contactCellName);
-    if ((def == (CellDef *) NULL) && (lookOnly == FALSE))
-    {
-	def = DBCellNewDef(contactCellName);
-       	def->cd_flags &= ~(CDMODIFIED|CDGETNEWSTAMP);
-        def->cd_flags |= CDAVAILABLE;
-    }
-    return def;
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * CalmaGenerateArray --
- *
- *	This routine
- *
- * Results:
- *	TRUE on success, FALSE if no contact cell could be found.
- *
- * Side effects:
- *	Writes an AREF record to the GDS stream output.
- *
- * ----------------------------------------------------------------------------
- */
-
-bool
-CalmaGenerateArray(
-    FILETYPE f,		/* GDS output file */
-    TileType type,	/* Magic tile type of contact */
-    int llx,
-    int lly,		/* Lower-left hand coordinate of the array
-			 * (centered on contact cut)
-			 */
-    int pitch,		/* Pitch of the array elements */
-    int cols,
-    int rows)		/* Number of array elements in X and Y */
-{
-    CellDef *child;	/* Cell definition of the contact cell */
-    int xxlate, yxlate;
-
-    child = calmaGetContactCell(type, TRUE);
-    if (child == NULL) return FALSE;
-
-    /* Structure reference */
-    calmaOutRH(4, CALMA_AREF, CALMA_NODATA, f);
-    calmaOutStructName(CALMA_SNAME, child, f);
-
-    /* Transformation flags */
-    calmaOutRH(6, CALMA_STRANS, CALMA_BITARRAY, f);
-    calmaOutI2(0, f);
-
-    /* Number of columns and rows in the array */
-    calmaOutRH(8, CALMA_COLROW, CALMA_I2, f);
-    calmaOutI2(cols, f);
-    calmaOutI2(rows, f);
-
-    /* Translation */
-    xxlate = llx * calmaPaintScale;
-    yxlate = lly * calmaPaintScale;
-    calmaOutRH(28, CALMA_XY, CALMA_I4, f);
-    calmaOutI4(xxlate, f);
-    calmaOutI4(yxlate, f);
-
-    /* Column reference point */
-    calmaOutI4(xxlate + pitch * cols * calmaPaintScale, f);
-    calmaOutI4(yxlate, f);
-
-    /* Row reference point */
-    calmaOutI4(xxlate, f);
-    calmaOutI4(yxlate + pitch * rows * calmaPaintScale, f);
-
-    /* End of AREF element */
-    calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
-
-    return TRUE;
-}
-
-/* Added by NP 8/22/2004 */
-/*
- * ----------------------------------------------------------------------------
- *
- * calmaWriteContacts --
- *
- *  This routine creates a new cellDef for each contact type and writes to
- *  the GDS output stream file. It is called before processing all cell
- *  definitions while writing GDS output.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	Writes contact cell definition to the open Calma output file.
- *
- * ----------------------------------------------------------------------------
- */
-
-void
-calmaWriteContacts(
-    FILETYPE f)
-{
-    TileType type;
-    TileTypeBitMask tMask, *rMask;
-    CellDef *def, *cellDef;
-    Rect area, cliprect;
-    int halfwidth, halfsize;
-    CIFOp *op;
-
-    /* Turn off generation of contact arrays for the duration of this	*/
-    /* subroutine, so that the contact definitions themselves will get	*/
-    /* the proper contact cut drawn.  It is turned on again at the end	*/
-    /* of the routine.  Note that this routine is not called unless	*/
-    /* CalmaContactArrays is TRUE.					*/
-
-    CalmaContactArrays = FALSE;
-
-    DBEnumerateTypes(&tMask);
-
-    /* Decompose stacking types */
-    for (type = DBNumUserLayers; type < DBNumTypes; type++)
-	if (TTMaskHasType(&tMask, type))
-	{
-	    rMask = DBResidueMask(type);
-	    TTMaskSetMask(&tMask, rMask);
-	}
-
-    for (type = TT_SPACE + 1; type < DBNumUserLayers; type++)
-    {
-	/* We need to create cell array only for contact types */
-	if (DBIsContact(type) && TTMaskHasType(&tMask, type))
-	{
-            /* Write definition of cell to GDS stream.	*/
-	    /* Get cell definition for Tiletype type */
-            def = calmaGetContactCell(type, FALSE);
-
-            /* Get clip bounds, so that residue surround is	*/
-	    /* minimum.  Note that these values are in CIF/GDS	*/
-	    /* units, and the clipping rectangle passed to	*/
-	    /* calmaOutFunc is also in CIF/GDS units.		*/
-
-	    halfsize = CIFGetContactSize(type, NULL, NULL, NULL) >> 1;
-
-            /* Get minimum width for layer by rounding halfsize	*/
-	    /* to the nearest lambda value.			*/
-            halfwidth = halfsize / CIFCurStyle->cs_scaleFactor;
-	    if ((halfsize % CIFCurStyle->cs_scaleFactor) != 0)
-		halfwidth++;
-
-            area.r_xbot = area.r_ybot = -halfwidth;
-            area.r_xtop = area.r_ytop = halfwidth;
-       	    UndoDisable();
-       	    DBPaint(def, &area, type);
-       	    DBReComputeBbox(def);
-    	    TTMaskSetType(&def->cd_types, type);
-
-	    /* Clip output to the bounds of "cliprect"	*/
-	    cliprect.r_xbot = cliprect.r_ybot = -halfsize;
-	    cliprect.r_xtop = cliprect.r_ytop = halfsize;
-
-            calmaOutFunc(def, f, &cliprect);
-            UndoEnable();
-	}
-    }
-    CalmaContactArrays = TRUE;
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * calmaDelContacts --
- *
- *  This routine removes all cell definitions generated by
- *  calmaWriteContacts().
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	Removes contact cell defs from the database.
- *
- * ----------------------------------------------------------------------------
- */
-
-void
-calmaDelContacts(void)
-{
-    TileType type;
-    CellDef *def;
-
-    for (type = TT_SPACE + 1; type < DBNumUserLayers; type++)
-	if (DBIsContact(type))
-	{
-            def = calmaGetContactCell(type, TRUE);
-	    if (def != (CellDef *)NULL)
-		 DBCellDeleteDef(def);
-	}
-}
-
 /*
  * ----------------------------------------------------------------------------
  * calmaAddSegment ---

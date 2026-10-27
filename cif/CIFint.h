@@ -182,19 +182,6 @@ typedef struct cifop
 #define CIFOP_INT_TOUCHING 0x2		/* Include both touching and overlapping */
 
 /* Added by Tim 10/21/2004 */
-/* The following structure is used to pass information on how to draw
- * contact subcell arrays for a specific magic contact tile type.  For
- * the GDS write routine, the GDS file (FILE *) is passed as the client
- * data.
- */
-
-typedef struct cifsquaresinfo
-{
-    SquaresData	*csi_squares;	/* Information on how to generate squares */
-    TileType	 csi_type;	/* Magic contact tile type */
-    ClientData	 csi_client;	/* Used to pass output file info.	*/
-} CIFSquaresInfo;
-
 /* The following data structure contains all the information about
  * a particular CIF layer.
  */

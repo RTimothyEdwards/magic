@@ -156,7 +156,7 @@ CmdCalma(
 	"addendum [yes|no]	output only cells that are not type \"readonly\"",
 	"arrays [yes|no]	output arrays as individual subuses (like in CIF)",
 	"compress [value]	compress output with zlib compression 0 to 6",
-	"contacts [yes|no]	optimize output by arraying contacts as subcells",
+	"contacts [yes|no]	(unimplemented)",
 	"datestamp [yes|value]	use current time or value as the creation date stamp",
 	"drccheck [yes|no]	mark all cells as needing DRC checking",
 	"flatten [yes|no|limit]	flatten simple cells (e.g., contacts) on input",
@@ -384,15 +384,17 @@ CmdCalma(
 	    return;
 
 	case CALMA_CONTACTS:
+	    /* Writing contact cuts as subcell arrays was experimental	*/
+	    /* and never worked correctly, because it bypassed the	*/
+	    /* hierarchical generation of contact cuts.  It has been	*/
+	    /* removed.  The option is kept so that scripts using it	*/
+	    /* will still run.						*/
 	    if (cmd->tx_argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaContactArrays));
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(FALSE));
 #else
-		if (CalmaContactArrays)
-		    TxPrintf("Contact areas are arrayed as subcells.\n");
-		else
-		    TxPrintf("Contact areas are output as individual cuts.\n");
+		TxPrintf("Contact areas are output as individual cuts.\n");
 #endif
 		return;
 	    }
@@ -402,7 +404,9 @@ CmdCalma(
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaContactArrays = (option < 4) ? FALSE : TRUE;
+	    if (option >= 4)
+		TxError("Unimplemented function:  Contacts will be output as"
+			" individual cuts.\n");
 	    return;
 
 	case CALMA_DRCCHECK:

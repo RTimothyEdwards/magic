@@ -613,10 +613,6 @@ CalmaTechInit(void)
     ASSERT(sizeof(FourByteInt)==4, "definition in calmaInt.h");
     ASSERT(sizeof(TwoByteInt)==2, "definition in calmaInt.h");
 
-    /* NOTE:  Add "$$*$$" to the default "flatglob" value	*/
-    /* when CalmaContactArrays behaves like the non-arrayed	*/
-    /* function and can be enabled by default.			*/
-
     /* Initialize CalmaFlattenByName to have one entry for	*/
     /* "*_CDNS_*" to match the name style used by many foundry	*/
     /* cells and which corresponds to pcells that often split	*/

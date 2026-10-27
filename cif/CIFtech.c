@@ -2238,37 +2238,6 @@ CIFTechFinal(void)
 	}
     }
 
-    /* Added by Tim, 10/18/04					*/
-
-    /* Go through the layer operators looking for those that	*/
-    /* contain only OR operators followed by a single SQUARES	*/
-    /* operator.  If found, set the clientdata record of the OR	*/
-    /* operator to be a copy of that for the SQUARES operator.	*/
-    /* This is used by the GDS generator when the "gds contact	*/
-    /* on" option is enabled (CalmaContactArrays is TRUE) to	*/
-    /* translate contact areas into contact subcell arrays.	*/
-
-    for (i = 0; i < style->cs_nLayers; i++)
-    {
-	ClientData clientdata;
-	for (op = style->cs_layers[i]->cl_ops; (op != NULL) &&
-			(op->co_opcode == CIFOP_OR) &&
-			(TTMaskIsZero(&op->co_cifMask)); op = op->co_next);
-	if (op && ((op->co_opcode == CIFOP_SQUARES) ||
-		   (op->co_opcode == CIFOP_SQUARES_G)) && (op->co_next == NULL))
-	{
-	    clientdata = op->co_client;
-	    for (op = style->cs_layers[i]->cl_ops; op->co_opcode == CIFOP_OR;
-			op = op->co_next)
-	    {
-		/* Copy the client record from the CIFOP_SQUARES operator
-		 * into the CIFOP_OR operator.
-		 */
-		op->co_client = clientdata;
-	    }
-	}
-    }
-
     /* Uncomment this code to print out information about which
      * layers have to be processed hierarchically.
 
