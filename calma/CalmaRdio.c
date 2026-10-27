@@ -60,7 +60,10 @@ bool calmaSkipBytes(int nbytes);
  * calmaReadTransform --
  *
  * Read a CALMA_STRANS, CALMA_MAG, CALMA_ANGLE sequence and construct
- * the corresponding geometric transform.
+ * the corresponding geometric transform.  A magic transform cannot
+ * contain a scale factor, so the magnification is not applied to the
+ * transform but is passed back to the caller, which handles it by
+ * placing a magnified copy of the cell (see calmaElementSref()).
  *
  * Results:
  *	TRUE normally, FALSE on EOF or fatal syntax error.
@@ -68,6 +71,8 @@ bool calmaSkipBytes(int nbytes);
  * Side effects:
  *	Consumes input.
  *	Modifies the Transform pointed to by 'ptrans'.
+ *	Sets the value pointed to by 'pmag' to the magnification
+ *	(1.0 if there is none).
  *
  * ----------------------------------------------------------------------------
  */
@@ -75,6 +80,7 @@ bool calmaSkipBytes(int nbytes);
 bool
 calmaReadTransform(
     Transform *ptrans,	/* Fill in this transform */
+    double *pmag,	/* Fill in the magnification */
     char *name)		/* Name of subcell (for errors) */
 {
     int nbytes, rtype, flags, angle;
@@ -84,6 +90,7 @@ calmaReadTransform(
 
     /* Default is the identity transform */
     *ptrans = GeoIdentityTransform;
+    *pmag = 1.0;
 
     /* Is there any transform at all? */
     READRH(nbytes, rtype);
@@ -112,13 +119,13 @@ calmaReadTransform(
 	}
 	if (!calmaReadR8(&dmag)) return (FALSE);
 
-        if (dmag != (double)((int)(dmag + 0.5)))
+	if (dmag <= 0.0)
 	{
-	    CalmaReadError("Non-integer magnification (%g) in transform\n", dmag);
-	    CalmaReadError("Rounding to %d.\n", (int)(dmag + 0.5));
+	    CalmaReadError("Invalid magnification (%g) in instance of %s"
+			" (ignored)\n", dmag, name);
+	    dmag = 1.0;
 	}
-	GeoScaleTrans(ptrans, (int)(dmag + 0.5), &t);
-	*ptrans = t;
+	*pmag = dmag;
     }
     else UNREADRH(nbytes, rtype);
 

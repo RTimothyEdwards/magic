@@ -23,6 +23,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 
@@ -59,10 +60,28 @@ TileTypeBitMask *CalmaMaskHints = NULL;
 extern HashTable calmaDefInitHash;
 extern int CalmaPolygonCount;
 
+/*
+ * GDS magnification:  A magic cell use cannot be scaled, so a magnified
+ * instance is read as an instance of a copy of the cell, read from the
+ * GDS file with the input scale factors multiplied by the magnification.
+ * calmaMagNum / calmaMagDen is the total magnification of the structure
+ * currently being read (more than 1/1 inside a magnified copy, where
+ * the subcells must be magnified, too), and calmaMagName is the name to
+ * give to the next structure read (the magnified copy).
+ */
+
+static int calmaMagNum = 1;
+static int calmaMagDen = 1;
+static char *calmaMagName = NULL;
+
+/* Largest denominator used to represent a magnification as a fraction */
+#define CALMA_MAG_MAXDEN 10000
+
 /* forward declarations */
 int calmaElementSref(char *filename);
 bool calmaParseElement(char *filename, int *pnsrefs, int *pnpaths);
 void calmaUniqueCell(char *sname);
+CellDef *calmaMagnifiedCell(char *filename, char *sname, double dmag);
 
 /* Structure used when flattening the GDS hierarchy on read-in */
 
@@ -366,10 +385,15 @@ calmaParseStructure(
     bool was_initialized;
     bool predefined;
     bool do_flatten;
+    bool isMagnified;
     CellDef *def;
     Label *lab;
 
     locPolygonCount = CalmaPolygonCount;
+
+    /* If this is being read as a magnified copy of the structure,	*/
+    /* then the copy gets the name set by calmaMagnifiedCell().	*/
+    isMagnified = (calmaMagName != NULL);
 
     /* Make sure this is a structure; if not, let the caller know we're done */
     PEEKRH(nbytes, rtype);
@@ -381,6 +405,12 @@ calmaParseStructure(
     predefined = FALSE;
     if (!calmaReadStampRecord(CALMA_BGNSTR, &timestampval)) goto syntaxerror;
     if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
+    if (isMagnified)
+    {
+	freeMagic(strname);
+	strname = StrDup((char **)NULL, calmaMagName);
+	calmaMagName = NULL;
+    }
     TxPrintf("Reading \"%s\".\n", strname);
 
     /* Used for read-only and annotated LEF views */
@@ -440,6 +470,9 @@ calmaParseStructure(
     cifReadCellDef = calmaFindCell(strname, &was_called, &predefined);
     HashSetValue(he, cifReadCellDef);
 
+    /* A magnified copy is always generated from the GDS file */
+    if (isMagnified) predefined = FALSE;
+
     if (predefined == TRUE)
     {
 	bool isAbstract;
@@ -477,8 +510,10 @@ calmaParseStructure(
 		cifReadCellDef->cd_flags |= CDFIXEDSTAMP;
 	}
 
-	/* For read-only cells, set flag in def */
-	if (CalmaReadOnly)
+	/* For read-only cells, set flag in def.  A magnified copy	*/
+	/* is not read-only, as its contents are not those of the GDS	*/
+	/* structure.							*/
+	if (CalmaReadOnly && !isMagnified)
 	    cifReadCellDef->cd_flags |= CDVENDORGDS;
 
 	/* Skip CALMA_STRCLASS or CALMA_STRTYPE */
@@ -504,7 +539,7 @@ calmaParseStructure(
 	}
     }
 
-    if (CalmaReadOnly || predefined)
+    if ((CalmaReadOnly && !isMagnified) || predefined)
     {
 	PropertyRecord *proprec;
 	char *cstring;
@@ -769,6 +804,243 @@ calmaEnumFunc(
 /*
  * ----------------------------------------------------------------------------
  *
+ * calmaMagFraction --
+ *
+ * Represent a GDS magnification as a fraction num / den, which is exact
+ * for any magnification that is a fraction with a small denominator
+ * (such as 1.5 = 3 / 2).  Otherwise, the closest continued-fraction
+ * approximation with a denominator no larger than CALMA_MAG_MAXDEN is
+ * used.
+ *
+ * Results:
+ *	TRUE if the fraction represents the magnification exactly (to
+ *	within the precision of a double), FALSE if it is approximate.
+ *
+ * Side effects:
+ *	Sets the values pointed to by 'pnum' and 'pden'.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+calmaMagFraction(
+    double dmag,	/* Magnification (positive) */
+    int *pnum,		/* Return numerator here */
+    int *pden)		/* Return denominator here */
+{
+    int a, h0, h1, h2, k0, k1, k2;
+    double x;
+
+    /* Continued fraction expansion of dmag */
+    h0 = 0;
+    h1 = 1;
+    k0 = 1;
+    k1 = 0;
+    x = dmag;
+    while (TRUE)
+    {
+	if (x > (double)INT_MAX) break;
+	a = (int)floor(x);
+	if ((a > 0) && (h1 > (INT_MAX - h0) / a)) break;
+	h2 = a * h1 + h0;
+	k2 = a * k1 + k0;
+	if (k2 > CALMA_MAG_MAXDEN) break;
+	h0 = h1;
+	h1 = h2;
+	k0 = k1;
+	k1 = k2;
+	if (fabs((double)h1 / (double)k1 - dmag) <= 1.0e-12 * dmag) break;
+	x = 1.0 / (x - (double)a);
+    }
+
+    /* Magnifications too small to represent are not expected */
+    if (h1 <= 0)
+    {
+	h1 = 1;
+	k1 = CALMA_MAG_MAXDEN;
+    }
+    *pnum = h1;
+    *pden = k1;
+    return (fabs((double)h1 / (double)k1 - dmag) <= 1.0e-12 * dmag) ?
+		TRUE : FALSE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaMagnifiedCell --
+ *
+ * Handle a magnified instance (an SREF or AREF with a MAG record) of
+ * the structure 'sname'.  A magic cell use cannot be scaled, so the
+ * instance is made a use of a copy of the cell in which all of the
+ * geometry is magnified.  The copy is read from the structure in the
+ * GDS file with the input scale factors multiplied by the magnification,
+ * and is named after the cell and the magnification (e.g., "cell_mag1p5"
+ * for "cell" magnified by 1.5).  The subcells of the copy are themselves
+ * magnified copies, so nested magnifications multiply.  The original
+ * cell is not changed, so instances with different magnifications each
+ * get their own copy.
+ *
+ * Each copy has the property "GDS_MAG_SOURCE" containing the name of the
+ * original structure.  When a read-only (vendor GDS) cell is written out,
+ * its GDS is copied verbatim, including the magnified instance, so the
+ * GDS writer uses that property to write out the original structure in
+ * place of the copy.
+ *
+ * Results:
+ *	Pointer to the magnified copy of the cell, or NULL if the instance
+ *	should use the original cell (the total magnification is 1, or the
+ *	structure could not be found in the GDS file).
+ *
+ * Side effects:
+ *	May read the structure 'sname' from the GDS file into a new cell.
+ *	The input file position is restored afterward.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+CellDef *
+calmaMagnifiedCell(
+    char *filename,	/* Name of the GDS file read */
+    char *sname,	/* Name of the structure instanced */
+    double dmag)	/* Magnification of the instance */
+{
+    int mnum, mden, num, den, gcf;
+    int saveNum, saveDen, saveLAnbytes, saveLArtype, crsMultiplier;
+    bool saveLApresent;
+    char magstr[32], *magname, *cptr;
+    OFFTYPE filepos;
+    CellDef *def, *saveReadDef;
+    HashTable OrigCalmaLayerHash;
+    Plane **savePlanes;
+    PropertyRecord *proprec;
+
+    if (!calmaMagFraction(dmag, &mnum, &mden))
+	CalmaReadError("Magnification %.15g of cell %s approximated as %d/%d\n",
+		dmag, sname, mnum, mden);
+
+    /* Total magnification, including that of the cell being read */
+    num = calmaMagNum * mnum;
+    den = calmaMagDen * mden;
+    gcf = FindGCF(num, den);
+    num /= gcf;
+    den /= gcf;
+    if (num == den) return (CellDef *)NULL;
+
+    /* Name of the magnified copy:  "1.5" becomes "1p5" */
+    sprintf(magstr, "%.6g", (double)num / (double)den);
+    for (cptr = magstr; *cptr; cptr++)
+	if (*cptr == '.') *cptr = 'p';
+    magname = (char *)mallocMagic(strlen(sname) + strlen(magstr) + 5);
+    sprintf(magname, "%s_mag%s", sname, magstr);
+
+    /* Use the magnified copy if it has already been made */
+    def = calmaLookCell(magname);
+    if (def != NULL)
+    {
+	freeMagic(magname);
+	return def;
+    }
+
+    /* Save the file position.  The record header following the	*/
+    /* transform has already been read, so save it as well.	*/
+
+    filepos = FTELL(calmaInputFile);
+    saveLApresent = calmaLApresent;
+    saveLAnbytes = calmaLAnbytes;
+    saveLArtype = calmaLArtype;
+    calmaLApresent = FALSE;
+
+    /* Find the structure.  It is normally earlier in the file,	*/
+    /* so search from the beginning.				*/
+
+    REWIND(calmaInputFile);
+    calmaSetPosition(sname);
+    if (FEOF(calmaInputFile))
+    {
+	CalmaReadError("Cannot magnify cell %s, which is not defined"
+		" in this file;  placing it without magnification.\n", sname);
+	def = (CellDef *)NULL;
+    }
+    else
+    {
+	TxPrintf("Cell %s is magnified by %g:  reading magnified copy %s.\n",
+		sname, (double)num / (double)den, magname);
+
+	/* Save the state of the cell being read, as is done for	*/
+	/* the read-ahead in calmaElementSref().			*/
+
+	crsMultiplier = cifCurReadStyle->crs_multiplier;
+	saveReadDef = cifReadCellDef;
+	OrigCalmaLayerHash = calmaLayerHash;
+	savePlanes = calmaExact();
+	saveNum = calmaMagNum;
+	saveDen = calmaMagDen;
+
+	/* Read the structure with all coordinates magnified */
+	calmaMagNum = num;
+	calmaMagDen = den;
+	calmaMagName = magname;
+	calmaReadScale1 *= mnum;
+	calmaReadScale2 *= mden;
+
+	calmaParseStructure(filename);
+
+	/* Restore the scale.  calmaReadScale1 may have been	*/
+	/* multiplied by a rescaling factor, but it is still a	*/
+	/* multiple of mnum.					*/
+
+	calmaReadScale1 /= mnum;
+	calmaReadScale2 /= mden;
+	calmaMagNum = saveNum;
+	calmaMagDen = saveDen;
+	calmaMagName = NULL;
+
+	cifReadCellDef = saveReadDef;
+	cifCurReadPlanes = savePlanes;
+	calmaLayerHash = OrigCalmaLayerHash;
+	if (crsMultiplier != cifCurReadStyle->crs_multiplier)
+	{
+	    int scalen, scaled;
+	    if (crsMultiplier > cifCurReadStyle->crs_multiplier)
+	    {
+		scalen = crsMultiplier / cifCurReadStyle->crs_multiplier;
+		scaled = 1;
+	    }
+	    else
+	    {
+		scalen = 1;
+		scaled = cifCurReadStyle->crs_multiplier / crsMultiplier;
+	    }
+	    CIFScalePlanes(scaled, scalen, cifCurReadPlanes);
+	}
+
+	def = calmaLookCell(magname);
+	if (def != NULL)
+	{
+	    /* Record the name of the original structure */
+	    proprec = (PropertyRecord *)mallocMagic(
+			strPropertyRecordSize(strlen(sname)));
+	    proprec->prop_type = PROPERTY_TYPE_STRING;
+	    proprec->prop_len = 1;
+	    strcpy(proprec->prop_value.prop_string, sname);
+	    DBPropPut(def, "GDS_MAG_SOURCE", (ClientData)proprec);
+	}
+    }
+
+    /* Return to the instance being read */
+    FSEEK(calmaInputFile, filepos, SEEK_SET);
+    calmaLApresent = saveLApresent;
+    calmaLAnbytes = saveLAnbytes;
+    calmaLArtype = saveLArtype;
+
+    freeMagic(magname);
+    return def;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * calmaElementSref --
  *
  * Process a structure reference (either CALMA_SREF or CALMA_AREF).
@@ -791,6 +1063,7 @@ calmaElementSref(
 {
     int nbytes, rtype, cols, rows, nref, n, i, savescale;
     int xlo, ylo, xhi, yhi, xsep, ysep, angle;
+    double dmag;
     bool madeinst = FALSE, rotated = FALSE;
     char *sname = NULL;
     bool isArray = FALSE;
@@ -930,10 +1203,33 @@ calmaElementSref(
     }
 
     /* Read subcell transform */
-    if (!calmaReadTransform(&trans, sname))
+    if (!calmaReadTransform(&trans, &dmag, sname))
     {
 	printf("Couldn't read transform.\n");
 	return -1;
+    }
+
+    /* If the instance is magnified, or this is a subcell of a	*/
+    /* magnified cell, then use a magnified copy of the cell.	*/
+    /* This must be done before reading the reference points,	*/
+    /* because reading the copy may change the input scale.	*/
+
+    if ((dmag != 1.0) || (calmaMagNum != calmaMagDen))
+    {
+	CellDef *magdef = calmaMagnifiedCell(filename, sname, dmag);
+
+	if (magdef != NULL)
+	{
+	    if (DBIsAncestor(magdef, cifReadCellDef))
+	    {
+		CalmaReadError("Cell %s is an ancestor of %s",
+			magdef->cd_name, cifReadCellDef->cd_name);
+		CalmaReadError(" and can't be used as a subcell.\n");
+		CalmaReadError("(Use skipped)\n");
+		return -1;
+	    }
+	    def = magdef;
+	}
     }
 
     /* Get number of columns and rows if array */

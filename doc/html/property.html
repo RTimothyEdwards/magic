@@ -131,6 +131,11 @@ Attach a "property" (string key and value pair) to the edit cell
 	     in the file.  If <B>GDS_START</B> is set to <B>0</B>, then this
 	     property may be omitted.  This property is always of type
 	     <B>double</B>.
+	<DT> <B>GDS_MAG_SOURCE</B>
+	<DD> If a GDS file contains a magnification scale other than 1.0, magic
+	     cannot represent it directly and instead creates a new cell with
+	     the contents scaled at the specified magnification.  This property
+	     maintains the name of the original (unmagnified) cell.
 	<DT> <B>LEFview</B>
 	<DD> If set to <B>TRUE</B>, this cell is an abstract view such as that
 	     obtained from a LEF macro, and should not be used for extraction

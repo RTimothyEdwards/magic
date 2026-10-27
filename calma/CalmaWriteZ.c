@@ -816,6 +816,50 @@ calmaProcessUseZ(
     return (calmaProcessDefZ(use->cu_def, outf, FALSE));
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaProcessVendorUseZ --
+ *
+ * Like calmaProcessUseZ(), but for the uses in a read-only (vendor GDS)
+ * cell, whose GDS is copied verbatim from the original file.  A use of
+ * a magnified copy of a cell (see calmaMagnifiedCell()) is still a
+ * magnified instance of the original structure in the copied GDS, so
+ * the original structure is output in place of the magnified copy.
+ *
+ * Results:
+ *	Return value of calmaProcessDefZ().
+ *
+ * Side effects:
+ *	Causes Calma GDS-II stream-format to be output.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+calmaProcessVendorUseZ(
+    CellUse *use,	/* Process use->cu_def */
+    gzFile outf)	/* Stream file */
+{
+    CellDef *def = use->cu_def;
+    CellDef *srcdef;
+    char *srcname;
+    bool isMagnified;
+
+    srcname = DBPropGetString(def, "GDS_MAG_SOURCE", &isMagnified);
+    if (isMagnified)
+    {
+	srcdef = DBCellLookDef(srcname);
+	if (srcdef != NULL)
+	    def = srcdef;
+	else
+	    TxError("Calma output error:  Cell \"%s\" is a magnified copy of"
+			" \"%s\", which is not in memory.\n", def->cd_name,
+			srcname);
+    }
+    return (calmaProcessDefZ(def, outf, FALSE));
+}
+
 int
 calmaProcessDefZ(
     CellDef *def,	/* Output this def's children, then the def itself */
@@ -913,7 +957,12 @@ calmaProcessDefZ(
 	    CIFArrayWriteDisable = FALSE;
 	}
 
-	result = DBCellEnum(def, calmaProcessUseZ, (ClientData) outf);
+	/* The uses in a read-only cell are written as they appear	*/
+	/* in the original GDS file.					*/
+	if (isReadOnly && hasContent)
+	    result = DBCellEnum(def, calmaProcessVendorUseZ, (ClientData) outf);
+	else
+	    result = DBCellEnum(def, calmaProcessUseZ, (ClientData) outf);
 
 	if (needHier)
 	{

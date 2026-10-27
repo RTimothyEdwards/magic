@@ -37,7 +37,7 @@ Read GDSII input or generate GDSII output.
 	    <DD> Read GDSII format from file <I>file</I> into the edit cell.
 		 If <I>file</I> does not have a file extension, then <B>magic</B>
 		 searches for a file named <I>file</I>, <I>file</I>.gds,
-		 <I>file</I>.gds2, or <I>file</I>.strm.
+		 <I>file</I>.gds2, or <I>file</I>.strm.<P>
 	    <DT> <B>warning</B> [<I>option</I>]
 	    <DD> Set warning information level.  "<I>option</I>" may be one
 		 of the following:
@@ -315,7 +315,7 @@ Read GDSII input or generate GDSII output.
       exactly equivalent.
    </BLOCKQUOTE>
 
-<H3>Bugs:</H3>
+<H3>Limitations and Bugs:</H3>
    <BLOCKQUOTE>
      <UL>
        <LI> The <B>cif</B> command options that affect GDS input and output
@@ -323,12 +323,15 @@ Read GDSII input or generate GDSII output.
        <LI> GDS input is "interpreted" through boolean operations in the
 	    technology file definition, and so it is not guaranteed that
 	    all input will be read correctly.
-       <LI> Not all non-Manhattan geometry is read correctly.
-       <LI> The input can be fouled up if the magic grid is rescaled during
-	    input.  This error can be avoided by scaling the grid prior
-	    to GDS read-in.
-       <LI> "polygon subcells" in GDS creates a duplicate image of the
-	    layout read into the subcells;  this needs to be fixed.
+       <LI> A magic cell instance cannot be scaled, so a GDS instance
+	    with a magnification (which need not be an integer) is read
+	    as an instance of a magnified copy of the cell, named after
+	    the cell and the magnification (for example, <I>cell</I>_mag1p5
+	    for <I>cell</I> magnified by 1.5).  The copy has the property
+	    <B>GDS_MAG_SOURCE</B> giving the name of the original cell.
+	    When writing GDS for a read-only cell (see <B>readonly</B>),
+	    whose GDS is copied from the original file, the original cell
+	    is written in place of the copy.
      </UL>
    </BLOCKQUOTE>
 

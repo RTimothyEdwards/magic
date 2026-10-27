@@ -89,7 +89,7 @@ extern bool calmaReadR8(double *pd);
 extern bool calmaReadStampRecord(int type, int *stampptr);
 extern bool calmaReadStringRecord(int type, char **str);
 extern bool calmaReadStringRecord(int type, char **str);
-extern bool calmaReadTransform(Transform *ptrans, char *name);
+extern bool calmaReadTransform(Transform *ptrans, double *pmag, char *name);
 extern bool calmaSkipBytes(int nbytes);
 extern bool calmaSkipExact(int type);
 extern bool calmaSkipTo(int what);
