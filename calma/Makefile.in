@@ -8,7 +8,7 @@ MODULE =    calma
 srcdir    = @srcdir@
 VPATH     = @srcdir@
 MAGICDIR  = @top_builddir@
-SRCS =      CalmaRead.c CalmaRdcl.c CalmaRdio.c CalmaRdpt.c CalmaWrite.c CalmaWriteZ.c
+SRCS =      CalmaRead.c CalmaRdcl.c CalmaRdio.c CalmaRdpt.c CalmaWrite.c
 
 include ${MAGICDIR}/defs.mak
 include ${MAGICSRC}/rules.mak

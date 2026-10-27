@@ -3677,13 +3677,7 @@ cifContactFunc(
     left += halfsize;
     bottom += halfsize;
 
-#ifdef HAVE_ZLIB
-    if (CalmaCompression > 0)
-	result = CalmaGenerateArrayZ((FILETYPE)csi->csi_client, csi->csi_type,
-		left, bottom, pitch, nAcross, nUp);
-    else
-#endif
-	result = CalmaGenerateArray((FILE *)csi->csi_client, csi->csi_type,
+    result = CalmaGenerateArray((FILETYPE)csi->csi_client, csi->csi_type,
 		left, bottom, pitch, nAcross, nUp);
 
     return (result == TRUE) ? 0 : 1;

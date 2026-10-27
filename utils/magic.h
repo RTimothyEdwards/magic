@@ -164,6 +164,8 @@ extern char AbortMessage[];
     #define REWIND   gzrewind
     #define FILETYPE gzFile
     #define OFFTYPE  z_off_t
+    #define FPUTC(c,f)    gzputc(f,c)
+    #define magicFWRITE(a,b,c,d)    gzwrite(d,a,(b)*(c))
 #else
     #define magicFOPEN    fopen
     #define FCLOSE   fclose
@@ -175,6 +177,8 @@ extern char AbortMessage[];
     #define REWIND   rewind
     #define FILETYPE FILE *
     #define OFFTYPE  off_t
+    #define FPUTC    putc
+    #define magicFWRITE    fwrite
     #define PaZOpen  PaOpen
     #define PaLockZOpen  PaLockOpen
 #endif

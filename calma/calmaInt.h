@@ -237,7 +237,7 @@ extern CellDef *calmaFindCell(const char *name, bool *was_called, bool *predefin
 
 /* (Added by Nishit, 8/18/2004--8/24/2004) */
 extern CellDef *calmaLookCell(char *name);
-extern void calmaWriteContacts(FILE *f);
+extern void calmaWriteContacts(FILETYPE f);
 extern CellDef *calmaGetContactCell(TileType type, bool lookOnly);
 extern bool calmaIsContactCell;
 

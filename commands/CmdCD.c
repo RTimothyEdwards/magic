@@ -138,10 +138,8 @@ CmdCalma(
     char writeMode[3];
     CellDef *rootDef;
     FILETYPE f;
-    FILE *fp;
-#ifdef HAVE_ZLIB
-    gzFile fz;
-#endif
+    FILETYPE fp;
+    const char *gdsExt;
 
     static const char * const gdsExts[] = {".gds", ".gds.gz", ".gds2", ".strm", "", NULL};
     static const char * const cmdCalmaYesNo[] = {
@@ -1044,46 +1042,39 @@ outputCalma:
     dotptr = strrchr(namep, '.');
 
 #ifdef HAVE_ZLIB
-    /* Handle compression based on value of CalmaCompression */
+    /* Output is always written through zlib.  If compression is off,	*/
+    /* then open the file in "transparent" mode ("wT"), in which zlib	*/
+    /* writes the data uncompressed, with no gzip header.		*/
+
     if (CalmaCompression > 0)
     {
 	sprintf(writeMode, "w%d", CalmaCompression);
-	fz = PaZOpen(namep, writeMode, (dotptr == NULL) ? ".gds.gz" : "", ".", (char *) NULL, (char **)NULL);
-	if (fz == (gzFile)NULL)
-	{
-	    TxError("Cannot open %s%s to write compressed GDS-II stream output\n", namep,
-			(dotptr == NULL) ? ".gds.gz" : "");
-	    return;
-	}
-	if (!CalmaWriteZ(rootDef, fz))
-	{
-	    TxError("I/O error in writing compressed file %s.\n", namep);
-	    TxError("File may be incompletely written.\n");
-	}
-	(void) gzclose(fz);
+	gdsExt = ".gds.gz";
     }
     else
     {
-
-#endif
-	fp = PaOpen(namep, "w", (dotptr == NULL) ? ".gds" : "", ".", (char *) NULL, (char **)NULL);
-	if (fp == (FILE *)NULL)
-	{
-	    TxError("Cannot open %s%s to write GDS-II stream output\n", namep,
-			(dotptr == NULL) ? ".gds" : "");
-	    return;
-	}
-	if (!CalmaWrite(rootDef, fp))
-	{
-	    TxError("I/O error in writing file %s.\n", namep);
-	    TxError("File may be incompletely written.\n");
-	}
-	(void) fclose(fp);
-
-#ifdef HAVE_ZLIB
+	strcpy(writeMode, "wT");
+	gdsExt = ".gds";
     }
+#else
+    strcpy(writeMode, "w");
+    gdsExt = ".gds";
 #endif
 
+    fp = PaZOpen(namep, writeMode, (dotptr == NULL) ? gdsExt : "", ".",
+		(char *) NULL, (char **)NULL);
+    if (fp == (FILETYPE)NULL)
+    {
+	TxError("Cannot open %s%s to write GDS-II stream output\n", namep,
+		(dotptr == NULL) ? gdsExt : "");
+	return;
+    }
+    if (!CalmaWrite(rootDef, fp))
+    {
+	TxError("I/O error in writing file %s.\n", namep);
+	TxError("File may be incompletely written.\n");
+    }
+    (void) FCLOSE(fp);
 }
 #endif /* CALMA_MODULE */
 

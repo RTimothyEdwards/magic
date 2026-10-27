@@ -3,6 +3,13 @@
  *
  * Output of Calma GDS-II stream format.
  *
+ * When magic is compiled with zlib, all output is written through zlib,
+ * which writes either a gzip-compressed file or, if the file was opened
+ * with mode "wT" ("transparent"), a plain uncompressed file.  The output
+ * routines use the macros FPUTC() and magicFWRITE() and the FILETYPE
+ * type (see utils/magic.h), which are the zlib routines and type when
+ * compiled with zlib, and the standard I/O ones otherwise.
+ *
  *     *********************************************************************
  *     * Copyright (C) 1985, 1990 Regents of the University of California. *
  *     * Permission to use, copy, modify, and distribute this              *
@@ -90,7 +97,7 @@ int  CalmaCompression = 0;	/* Output file compression level (0 = uncompressed) *
 /* Structure used by calmaWritePaintFunc() */
 
 typedef struct {
-   FILE *f;		/* File stream for output		*/
+   FILETYPE f;		/* File stream for output		*/
    const Rect *area;	/* Clipping area, in GDS coordinates	*/
    int type;		/* Layer index				*/
 } calmaOutputStruct;
@@ -99,18 +106,18 @@ typedef struct {
 extern int calmaWriteInitFunc(CellDef *def, ClientData cdata);	/* UNUSED */
 extern int calmaWritePaintFunc(Tile *tile, TileType dinfo, calmaOutputStruct *cos);
 extern int calmaMergePaintFunc(Tile *tile, TileType dinfo, calmaOutputStruct *cos);
-extern int calmaWriteUseFunc(CellUse *use, FILE *f);
+extern int calmaWriteUseFunc(CellUse *use, FILETYPE f);
 extern int calmaPaintLabelFunc(Tile *tile, TileType dinfo, calmaOutputStruct *cos);
-extern void calmaWriteContacts(FILE *f);
+extern void calmaWriteContacts(FILETYPE f);
 extern void calmaDelContacts(void);
-extern void calmaOutFunc(CellDef *def, FILE *f, const Rect *cliprect);
-extern void calmaOutStructName(int type, CellDef *def, FILE *f);
-extern void calmaWriteLabelFunc(Label *lab, int ltype, int type, FILE *f);
-extern void calmaOutHeader(CellDef *rootDef, FILE *f);
-extern void calmaOutDate(time_t t, FILE *f);
-extern void calmaOutStringRecord(int type, char *str, FILE *f);
-extern void calmaOut8(const char *str, FILE *f);
-extern void calmaOutR8(double d, FILE *f);
+extern void calmaOutFunc(CellDef *def, FILETYPE f, const Rect *cliprect);
+extern void calmaOutStructName(int type, CellDef *def, FILETYPE f);
+extern void calmaWriteLabelFunc(Label *lab, int ltype, int type, FILETYPE f);
+extern void calmaOutHeader(CellDef *rootDef, FILETYPE f);
+extern void calmaOutDate(time_t t, FILETYPE f);
+extern void calmaOutStringRecord(int type, char *str, FILETYPE f);
+extern void calmaOut8(const char *str, FILETYPE f);
+extern void calmaOutR8(double d, FILETYPE f);
 extern void calmaProcessBoundary(BoundaryTop *blist, calmaOutputStruct *cos);
 extern void calmaRemoveColinear(BoundaryTop *blist);
 extern void calmaRemoveDegenerate(BoundaryTop *blist);
@@ -173,7 +180,7 @@ HashTable calmaUndefHash;
  * and a one-byte data type.
  */
 #define	calmaOutRH(count, type, datatype, f) \
-    { calmaOutI2(count, f); (void) putc(type, f); (void) putc(datatype, f); }
+    { calmaOutI2(count, f); (void) FPUTC(type, f); (void) FPUTC(datatype, f); }
 
 /*
  * calmaOutI2 --
@@ -186,8 +193,8 @@ HashTable calmaUndefHash;
     { \
 	union { short u_s; char u_c[2]; } u; \
 	u.u_s = htons(n); \
-	(void) putc(u.u_c[0], f); \
-	(void) putc(u.u_c[1], f); \
+	(void) FPUTC(u.u_c[0], f); \
+	(void) FPUTC(u.u_c[1], f); \
     }
 /*
  * calmaOutI4 --
@@ -200,10 +207,10 @@ HashTable calmaUndefHash;
     { \
 	union { long u_i; char u_c[4]; } u; \
 	u.u_i = htonl(n); \
-	(void) putc(u.u_c[0], f); \
-	(void) putc(u.u_c[1], f); \
-	(void) putc(u.u_c[2], f); \
-	(void) putc(u.u_c[3], f); \
+	(void) FPUTC(u.u_c[0], f); \
+	(void) FPUTC(u.u_c[1], f); \
+	(void) FPUTC(u.u_c[2], f); \
+	(void) FPUTC(u.u_c[3], f); \
     }
 
 static const char calmaMapTableStrict[] =
@@ -284,7 +291,7 @@ static const char calmaMapTablePermissive[] =
 bool
 CalmaWrite(
     CellDef *rootDef,	/* Pointer to CellDef to be written */
-    FILE *f)		/* Open output file */
+    FILETYPE f)		/* Open output file */
 {
     int oldCount = DBWFeedbackCount, problems, nerr;
     bool good;
@@ -378,8 +385,14 @@ CalmaWrite(
 
     /* Finish up by outputting the end-of-library marker */
     calmaOutRH(4, CALMA_ENDLIB, CALMA_NODATA, f);
+#ifdef HAVE_ZLIB
+    gzflush(f, Z_SYNC_FLUSH);
+    gzerror(f, &nerr);
+    if (nerr != 0) good = FALSE;
+#else
     fflush(f);
     if (ferror(f)) good = FALSE;
+#endif
 
     /* See if any problems occurred */
     if ((problems = (DBWFeedbackCount - oldCount)))
@@ -414,7 +427,7 @@ CalmaWrite(
 bool
 calmaDumpStructure(
     CellDef *def,
-    FILE *outf,
+    FILETYPE outf,
     HashTable *calmaDefHash,
     char *filename)
 {
@@ -648,11 +661,11 @@ calmaDumpStructure(
 			TxError("End of file with %d bytes remaining to be read.\n",
 				nbytes);
 			while (nbytes-- > 0)
-			    putc(0, outf);	// zero-pad output
+			    FPUTC(0, outf);	// zero-pad output
 			return (FALSE);
 		    }
 		    else
-			putc(byte, outf);
+			FPUTC(byte, outf);
 		}
 		break;
 	}
@@ -684,7 +697,7 @@ void
 calmaFullDump(
     CellDef *def,
     FILETYPE fi,
-    FILE *outf,
+    FILETYPE outf,
     char *filename)
 {
     int version, rval;
@@ -860,7 +873,7 @@ calmaWriteInitFunc(
 int
 calmaProcessUse(
     CellUse *use,	/* Process use->cu_def */
-    FILE *outf)		/* Stream file */
+    FILETYPE outf)		/* Stream file */
 {
     return (calmaProcessDef(use->cu_def, outf, FALSE));
 }
@@ -888,7 +901,7 @@ calmaProcessUse(
 int
 calmaProcessVendorUse(
     CellUse *use,	/* Process use->cu_def */
-    FILE *outf)	/* Stream file */
+    FILETYPE outf)	/* Stream file */
 {
     CellDef *def = use->cu_def;
     CellDef *srcdef;
@@ -912,7 +925,7 @@ calmaProcessVendorUse(
 int
 calmaProcessDef(
     CellDef *def,	/* Output this def's children, then the def itself */
-    FILE *outf,		/* Stream file */
+    FILETYPE outf,		/* Stream file */
     bool do_library)	/* If TRUE, output only children of def, but not def */
 {
     char *filename;
@@ -1251,7 +1264,7 @@ calmaProcessDef(
 			calmaOutStructName(CALMA_STRNAME, def, outf);
 		    }
 
-		    numbytes = fwrite(buffer, sizeof(char), (size_t)defsize, outf);
+		    numbytes = magicFWRITE(buffer, sizeof(char), (size_t)defsize, outf);
 		    if (numbytes != defsize)
 		    {
 			/* The structure header has already been written, so	*/
@@ -1366,7 +1379,7 @@ compport(const void *one, const void *two)
 void
 calmaOutFunc(
     CellDef *def,	/* Pointer to cell def to be written */
-    FILE *f,		/* Open output file */
+    FILETYPE f,		/* Open output file */
     const Rect *cliprect)/* Area to clip to (used for contact cells),
 			 * in CIF/GDS coordinates.
 			 */
@@ -1609,7 +1622,7 @@ calmaIsUseNameDefault(
 int
 calmaWriteUseFunc(
     CellUse *use,
-    FILE *f)
+    FILETYPE f)
 {
     /*
      * r90, r180, and r270 are Calma 8-byte real representations
@@ -1825,7 +1838,7 @@ void
 calmaOutStructName(
     int type,
     CellDef *def,
-    FILE *f)
+    FILETYPE f)
 {
     char *defname;
     unsigned char c;
@@ -1949,7 +1962,7 @@ calmaGetContactCell(
 
 bool
 CalmaGenerateArray(
-    FILE *f,		/* GDS output file */
+    FILETYPE f,		/* GDS output file */
     TileType type,	/* Magic tile type of contact */
     int llx,
     int lly,		/* Lower-left hand coordinate of the array
@@ -2020,7 +2033,7 @@ CalmaGenerateArray(
 
 void
 calmaWriteContacts(
-    FILE *f)
+    FILETYPE f)
 {
     TileType type;
     TileTypeBitMask tMask, *rMask;
@@ -2466,7 +2479,7 @@ calmaProcessBoundary(
     BoundaryTop *blist,
     calmaOutputStruct *cos)
 {
-    FILE *f = cos->f;
+    FILETYPE f = cos->f;
     LinkedBoundary *listtop, *lbref, *lbstop, *lbfree;
     BoundaryTop *bounds;
     int sval;
@@ -2588,7 +2601,7 @@ calmaMergePaintFunc(
     TileType dinfo,		/* Split tile information (unused) */
     calmaOutputStruct *cos)	/* Information needed by algorithm */
 {
-    FILE *f = cos->f;
+    FILETYPE f = cos->f;
     const Rect *clipArea = cos->area;
     Tile *t, *tp;
     TileType ttype;
@@ -2917,7 +2930,7 @@ calmaWritePaintFunc(
     TileType dinfo,		/* Split tile information */
     calmaOutputStruct *cos)	/* File for output and clipping area */
 {
-    FILE *f = cos->f;
+    FILETYPE f = cos->f;
     const Rect *clipArea = cos->area;
     Rect r, r2;
 
@@ -3024,7 +3037,7 @@ calmaWriteLabelFunc(
     int type,	/* CIF layer number to use for BOUNDARY record,
 		 * or -1 if not attached to a layer
 		 */
-    FILE *f)	/* Stream file */
+    FILETYPE f)	/* Stream file */
 {
     Point p;
     int calmanum, calmatype;
@@ -3194,7 +3207,7 @@ calmaPaintLabelFunc(
     TileType dinfo,		/* Split tile information (unused) */
     calmaOutputStruct *cos)	/* File for output and clipping area */
 {
-    FILE *f = cos->f;
+    FILETYPE f = cos->f;
     const Rect *clipArea = cos->area;
     Rect r, r2;
     Point p;
@@ -3253,7 +3266,7 @@ calmaPaintLabelFunc(
 void
 calmaOutHeader(
     CellDef *rootDef,
-    FILE *f)
+    FILETYPE f)
 {
     static double useru = 0.001;
     static double mum = 1.0e-9;
@@ -3314,7 +3327,7 @@ calmaOutHeader(
 void
 calmaOutDate(
     time_t t,	/* Time (UNIX format) to be output */
-    FILE *f)	/* Stream file */
+    FILETYPE f)	/* Stream file */
 {
     struct tm *datep = localtime(&t);
 
@@ -3350,7 +3363,7 @@ void
 calmaOutStringRecord(
     int type,		/* Type of this record (data type is ASCII string) */
     char *str,	/* String to be output */
-    FILE *f)	/* Stream file */
+    FILETYPE f)	/* Stream file */
 {
     int len;
     unsigned char c;
@@ -3392,15 +3405,15 @@ calmaOutStringRecord(
 	len = CALMANAMELENGTH;
     }
     calmaOutI2(len+4, f);	/* Record length */
-    (void) putc(type, f);		/* Record type */
-    (void) putc(CALMA_ASCII, f);	/* Data type */
+    (void) FPUTC(type, f);		/* Record type */
+    (void) FPUTC(CALMA_ASCII, f);	/* Data type */
 
     /* Output the string itself */
     while (len--)
     {
 	locstrprv = locstr;
 	c = (unsigned char) *locstr++;
-	if (c == 0) putc('\0', f);
+	if (c == 0) FPUTC('\0', f);
 	else
 	{
 	    if ((c > 127) || (c == 0))
@@ -3418,9 +3431,9 @@ calmaOutStringRecord(
 		locstrprv[0] = c;
 	    }
 	    if (!CalmaDoLower && islower(c))
-		(void) putc(toupper(c), f);
+		(void) FPUTC(toupper(c), f);
 	    else
-		(void) putc(c, f);
+		(void) FPUTC(c, f);
 	}
     }
     if (origstr != NULL)
@@ -3451,7 +3464,7 @@ calmaOutStringRecord(
 void
 calmaOutR8(
     double d,	/* Double value to write to output */
-    FILE *f)	/* Stream file */
+    FILETYPE f)	/* Stream file */
 {
     int c, i, sign, expon;
 
@@ -3498,11 +3511,11 @@ calmaOutR8(
 	}
     }
     c = (sign << 7) | expon;
-    (void) putc(c, f);
+    (void) FPUTC(c, f);
     for (i = 1; i < 8; i++)
     {
 	c = (int)(0xff & (mantissa >> (64 - (8 * i))));
-	(void) putc(c, f);
+	(void) FPUTC(c, f);
     }
 }
 
@@ -3526,10 +3539,10 @@ calmaOutR8(
 void
 calmaOut8(
     const char *str,	/* 8-byte string to be output */
-    FILE *f)	/* Stream file */
+    FILETYPE f)	/* Stream file */
 {
     int i;
 
     for (i = 0; i < 8; i++)
-	(void) putc(*str++, f);
+	(void) FPUTC(*str++, f);
 }

@@ -62,10 +62,10 @@ extern bool CalmaAllowAbstract;
 #define CALMA_POLYGON_KEEP	2
 
 /* Externally-visible procedures: */
-extern bool CalmaWrite(CellDef *rootDef, FILE *f);
+extern bool CalmaWrite(CellDef *rootDef, FILETYPE f);
 extern void CalmaReadFile(FILETYPE file, char *filename);
 extern void CalmaTechInit(void);
-extern bool CalmaGenerateArray(FILE *f, TileType type, int llx, int lly, int pitch, int cols, int rows);
+extern bool CalmaGenerateArray(FILETYPE f, TileType type, int llx, int lly, int pitch, int cols, int rows);
 extern void CalmaReadError(const char *format, ...) ATTR_FORMAT_PRINTF_1;
 
 /* C99 compat */
@@ -76,10 +76,7 @@ extern void calmaElementPath(void);
 extern void calmaElementText(void);
 extern bool calmaIsUseNameDefault(char *defName, char *useName);
 extern bool calmaParseStructure(char *filename);
-extern int calmaProcessDef(CellDef *def, FILE *outf, bool do_library);
-#ifdef HAVE_ZLIB
-extern int calmaProcessDefZ(CellDef *def, gzFile outf, bool do_library);
-#endif
+extern int calmaProcessDef(CellDef *def, FILETYPE outf, bool do_library);
 extern bool calmaReadI2Record(int type, int *pvalue);
 extern bool calmaReadI4Record(int type, int *pvalue);
 extern void calmaReadX(Point *p, int iscale);
@@ -94,10 +91,5 @@ extern bool calmaSkipBytes(int nbytes);
 extern bool calmaSkipExact(int type);
 extern bool calmaSkipTo(int what);
 extern void calmaUnexpected(int wanted, int got);
-
-#ifdef HAVE_ZLIB
-extern bool CalmaWriteZ(CellDef *rootDef, gzFile f);
-extern bool CalmaGenerateArrayZ(gzFile f, TileType type, int llx, int lly, int pitch, int cols, int rows);
-#endif
 
 #endif /* _MAGIC__CALMA__CALMA_H */
