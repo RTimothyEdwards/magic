@@ -623,8 +623,8 @@ keys_and_buttons:
 				case XK_Pointer_Button3:
 				case XK_Pointer_Button4:
 				case XK_Pointer_Button5:
-					LocRedirect = TX_INPUT_NORMAL;;
-					break;
+				    LocRedirect = TX_INPUT_NORMAL;;
+				    break;
 				}
 			}
 
@@ -663,6 +663,10 @@ keys_and_buttons:
 #else
 				    Tcl_RestoreInterpState(magicinterp, state);
 #endif
+				    break;
+				case XK_Escape:
+				    /* Cancel the command being typed */
+				    TxCancelCommand();
 				    break;
 				case XK_Up:
 				    Tcl_EvalEx(consoleinterp, "::tkcon::Event -1",
@@ -732,6 +736,11 @@ keys_and_buttons:
 						TxPrintf(" \b");
 						TxFlushOut();
 					}
+				}
+				else if (keysym == XK_Escape)
+				{
+					/* Cancel the command being typed */
+					TxCancelCommand();
 				}
 				else if (keysym == XK_Return)
 				{

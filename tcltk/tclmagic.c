@@ -1153,6 +1153,76 @@ TxSetPrompt(
     }
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * TxCancelCommand --
+ *
+ *	Cancel a command that is being typed into a layout window after
+ *	":" (that is, while keys are redirected to the console or the
+ *	terminal).  Called by the graphics drivers when the Escape key is
+ *	pressed.  With the TkCon console, the pending command line is
+ *	erased.  Otherwise, the partly typed command is removed from
+ *	TxBuffer (any complete lines already queued there, which end with
+ *	a newline, are kept) and erased from the terminal.  In both cases
+ *	the prompt is put back to the normal prompt.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Sets TxInputRedirect to TX_INPUT_NORMAL, so that keys in the layout
+ *	window are again interpreted as macros.  May free TxBuffer.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+TxCancelCommand(void)
+{
+    if (TxTkConsole)
+    {
+	Tcl_EvalEx(consoleinterp, ".text delete limit end", 22, 0);
+	TxSetPrompt('%');
+    }
+    else
+    {
+	char *lastnl;
+	int i, tl = 0;
+
+	if (TxBuffer != NULL)
+	{
+	    lastnl = strrchr(TxBuffer, '\n');
+	    if (lastnl == NULL)
+	    {
+		tl = strlen(TxBuffer);
+		*TxBuffer = '\0';
+	    }
+	    else
+	    {
+		tl = strlen(lastnl + 1);
+		*(lastnl + 1) = '\0';
+	    }
+
+	    /* An empty TxBuffer must not be left behind, as reading it	*/
+	    /* would return zero bytes, which looks like end-of-file.	*/
+
+	    if (*TxBuffer == '\0')
+	    {
+		Tcl_Free(TxBuffer);
+		TxBuffer = NULL;
+	    }
+	}
+
+	/* Erase the typed command, and turn ": " back into "% " */
+	for (i = 0; i < tl; i++)
+	    TxPrintf("\b \b");
+	TxPrintf("\b\b%% ");
+	TxFlushOut();
+    }
+    TxInputRedirect = TX_INPUT_NORMAL;
+}
+
 /*--------------------------------------------------------------*/
 /* Get a line from stdin (Tcl replacement for Tx function)	*/
 /*--------------------------------------------------------------*/

@@ -669,6 +669,10 @@ keys_and_buttons:
 				Tcl_RestoreInterpState(magicinterp, state);
 #endif
 				break;
+			    case XK_Escape:
+				/* Cancel the command being typed */
+				TxCancelCommand();
+				break;
 			    case XK_Up:
 				Tcl_EvalEx(consoleinterp, "::tkcon::Event -1",
 					17, 0);
@@ -737,6 +741,11 @@ keys_and_buttons:
 				TxPrintf(" \b");
 				TxFlushOut();
 			    }
+			}
+			else if (keysym == XK_Escape)
+			{
+			    /* Cancel the command being typed */
+			    TxCancelCommand();
 			}
 			else if (keysym == XK_Return)
 			{

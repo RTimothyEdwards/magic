@@ -924,12 +924,16 @@ keys_and_buttons:
 				Tcl_RestoreInterpState(magicinterp, state);
 #endif
 				break;
+			    case XK_Escape:
+				/* Cancel the command being typed */
+				TxCancelCommand();
+				break;
 			    case XK_Up:
-				Tcl_EvalEx(consoleinterp, "::tckon::Event -1",
+				Tcl_EvalEx(consoleinterp, "::tkcon::Event -1",
 						17, 0);
 				break;
 			    case XK_Down:
-				Tcl_EvalEx(consoleinterp, "::tckon::Event 1",
+				Tcl_EvalEx(consoleinterp, "::tkcon::Event 1",
 						16, 0);
 				break;
 			    case XK_Left:
@@ -993,6 +997,11 @@ keys_and_buttons:
 				TxPrintf(" \b");
 				TxFlushOut();
 			    }
+			}
+			else if (keysym == XK_Escape)
+			{
+			    /* Cancel the command being typed */
+			    TxCancelCommand();
 			}
 			else if (keysym == XK_Return)
 			{

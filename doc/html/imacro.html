@@ -57,6 +57,29 @@ Define or print an interactive macro.
       Unlike the <B>macro</B> command, commands entered by <B>imacro</B>
       are ultimately evaluated by the Tcl interpreter, and so may
       contain Tcl commands as well as magic commands. <P>
+
+      In the Tcl version of magic, while a command is being typed in a
+      layout window (after an interactive macro such as the default
+      "<B>:</B>" (colon) macro), the keys typed go to the command line.
+      The following keys edit the command (in the non-Tcl version of
+      magic, the command is typed in the terminal instead, using the
+      terminal's own line editing):
+      <DL>
+	 <DT> <B>Return</B>
+	 <DD> Execute the command.
+	 <DT> <B>BackSpace</B> or <B>Delete</B>
+	 <DD> Delete the last character.
+	 <DT> <B>Escape</B>
+	 <DD> Cancel the command:  erase it, and return to normal key
+	      macros in the layout window.
+	 <DT> <B>Left</B> and <B>Right</B> arrows
+	 <DD> Move the cursor on the command line (console only).
+	 <DT> <B>Up</B> and <B>Down</B> arrows
+	 <DD> Recall previous commands (console only).
+	 <DT> <B>Control-U</B>
+	 <DD> Erase the command, and continue typing a new one (console
+	      only).
+      </DL>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -75,6 +98,6 @@ Define or print an interactive macro.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
+<P><I>Last updated:</I> October 28, 2026 at 8:46am <P>
 </BODY>
 </HTML>
