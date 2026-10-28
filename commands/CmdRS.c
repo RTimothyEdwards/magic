@@ -1700,9 +1700,19 @@ Okay:
 	    GeoTransTrans(&tmp1, &trans, &rootTrans);
 
 	    if (less)
+	    {
 	      SelectRemoveCellUse(use, &rootTrans);
+	      if (use == SelectArrayUse) SelectArrayUse = NULL;
+	    }
 	    else
+	    {
 	      SelectCell(use, scx.scx_use->cu_def, &rootTrans, samePlace);
+
+	      /* Record which element of an array was selected */
+	      SelectArrayUse = use;
+	      SelectArrayX = p.p_x;
+	      SelectArrayY = p.p_y;
+	    }
 	    GeoTransRect(&trans, &use->cu_def->cd_bbox, &r);
 	    DBWSetBox(scx.scx_use->cu_def, &r);
 

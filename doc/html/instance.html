@@ -56,6 +56,28 @@ Operations on cell instances (uses).
 		if <I>name</I> is given, then return the orientation of the
 		named instance.  Otherwise, the orientation of all selected
 		instances is returned as an unordered list.
+	   <DT> <B>position</B> [<I>name</I>]
+	   <DD> Returns the position of the instance as "<I>x y</I>":  the
+		point in the parent cell where the origin (0, 0) of the
+		instance's cell is placed.  This is the translation part of
+		the instance's transform, and together with the
+		<B>orientation</B> (above) it describes the placement of
+		the instance.  Note that the position is generally not the
+		lower left corner of the instance's bounding box (the corner
+		that "<B>getcell</B>" places at the cursor box), unless the
+		cell's layout begins at its origin and the instance is not
+		rotated or flipped.  Values are given in the current units
+		(see the <B>units</B> command).  If <I>name</I> is given, then
+		return the position of the named instance.  Otherwise, the
+		position of the selected instance is returned, or a list of
+		{<I>x y</I>} pairs if more than one instance is selected.
+		For an array, the position is that of one element:  the
+		element given by the array indices in <I>name</I> (for
+		example, <B>mycell[1]</B> or <B>mycell[2][1]</B>), or the
+		element that was selected with "<B>select cell</B>"
+		even though the whole array is selected.  Otherwise (for
+		example, if the array was selected with "<B>select area</B>"),
+		it is the position of the first element.
 	   <DT> [<B>list</B>] <B>abutment</B>
 	   <DD> Returns the coordinates of the instance's abutment box
 		(the bounding box formed by the coordinates saved in the
@@ -137,6 +159,6 @@ Operations on cell instances (uses).
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> January 15, 2021 at 12:47pm <P>
+<P><I>Last updated:</I> October 28, 2026 at 11:54am <P>
 </BODY>
 </HTML>

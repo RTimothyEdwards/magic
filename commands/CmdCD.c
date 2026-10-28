@@ -1159,6 +1159,7 @@ CmdCellname(
 	"property	list or set cell definition properties",
 	"abutment	list instance abutment coordinates",
 	"orientation	list or set instance orientation",
+	"position	list instance position (origin in the parent cell)",
 	"rename		rename the indicated cell",
 	"writeable	make the cell definition read-only or read-write",
 	"modified	true if modified, false if not",
@@ -1169,7 +1170,7 @@ CmdCellname(
 		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE, IDX_DELETE,
 		   IDX_DEREFERENCE, IDX_FILEPATH, IDX_FLAGS, IDX_TIMESTAMP,
 		   IDX_LOCK, IDX_UNLOCK, IDX_PROPERTY, IDX_ABUTMENT,
-		   IDX_ORIENTATION, IDX_RENAME, IDX_READWRITE,
+		   IDX_ORIENTATION, IDX_POSITION, IDX_RENAME, IDX_READWRITE,
 		   IDX_MODIFIED } optionType;
 
     static const char * const cmdCellnameYesNo[] = {
@@ -1245,6 +1246,10 @@ CmdCellname(
 		return;
 	    case IDX_ORIENTATION:
 		TxError("Cell definitions do not have orientations."
+			"  Use \"instance\"?\n");
+		return;
+	    case IDX_POSITION:
+		TxError("Cell definitions do not have positions."
 			"  Use \"instance\"?\n");
 		return;
 	    case IDX_ABUTMENT:
@@ -1669,6 +1674,9 @@ CmdCellname(
 	    break;
 	case IDX_ABUTMENT:
 	    DBAbutmentUse(cellname, dolist);
+	    break;
+	case IDX_POSITION:
+	    DBPositionUse(cellname);
 	    break;
 	case IDX_LOCK:
 	    DBLockUse(cellname, TRUE);

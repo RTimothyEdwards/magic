@@ -74,6 +74,19 @@ CellDef *SelectRootDef = NULL;
 
 global CellUse *selectLastUse = NULL;
 
+/* When one element of an array is selected by "select cell" (or by
+ * clicking on it), the whole array is selected, but the element that was
+ * selected is recorded here (SelectArrayUse is the layout's use, and
+ * SelectArrayX, SelectArrayY are the element's indices), so that commands
+ * such as "instance position" can report on that element.  The record is
+ * cleared whenever the selection is cleared, or the cell is deselected,
+ * or cells are selected by area (which selects whole arrays).
+ */
+
+global CellUse *SelectArrayUse = NULL;
+global int SelectArrayX = 0;
+global int SelectArrayY = 0;
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -171,6 +184,7 @@ SelectClear()
     Rect r, expand;
     extern int selClearFunc();		/* Forward declaration. */
 
+    SelectArrayUse = NULL;
     if (SelectRootDef == NULL) return;
 
     scx.scx_area = SelectDef->cd_bbox;
@@ -468,27 +482,47 @@ SelectArea(scx, types, xMask, globmatch)
 
     /* Select labels. */
 
+    /* Labels attached to the requested types are selected.  If no
+     * specific types were requested ("select area label"), or all of
+     * them were ("select area" or "select area *"), then labels attached
+     * to space are selected, too.  The type mask itself is not changed,
+     * so that it does not affect the selection of cells below.
+     */
+
     if (TTMaskHasType(types, L_LABEL))
     {
-	TileTypeBitMask *maskptr;
+	TileTypeBitMask labelMask, missing;
 
-	TTMaskClearType(types, L_LABEL);
-	if (TTMaskIsZero(types))
-	    maskptr = &DBAllTypeBits;
-	else
-	    maskptr = types;
+	/* (L_CELL counts as a requested type here, so that "select area
+	 * subcell" does not select labels.)
+	 */
+	labelMask = *types;
+	TTMaskClearType(&labelMask, L_LABEL);
+
+	/* Types in "*" (all layers) that were not requested */
+	missing = DBAllButSpaceAndDRCBits;
+	TTMaskClearType(&missing, L_LABEL);
+	TTMaskClearType(&missing, L_CELL);
+	TTMaskClearMask(&missing, &labelMask);
+
+	if (TTMaskIsZero(&labelMask) || TTMaskIsZero(&missing))
+	    labelMask = DBAllTypeBits;
 
 	if (globmatch != NULL)
-	    DBCellCopyGlobLabels(scx, maskptr, xMask, SelectUse, &labelArea,
-		    globmatch);
+	    DBCellCopyGlobLabels(scx, &labelMask, xMask, SelectUse,
+		    &labelArea, globmatch);
 	else
-	    DBCellCopyAllLabels(scx, maskptr, xMask, SelectUse, &labelArea);
+	    DBCellCopyAllLabels(scx, &labelMask, xMask, SelectUse, &labelArea);
     }
 
     /* Select cell uses. */
 
     if (TTMaskHasType(types, L_CELL))
+    {
+	/* Whole arrays are selected, not specific elements */
+	SelectArrayUse = NULL;
         (void) DBCellCopyAllCells(scx, xMask, SelectUse, &cellArea);
+    }
     else
     {
 	cellArea.r_xbot = 0;

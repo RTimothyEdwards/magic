@@ -890,6 +890,7 @@ extern void DBLockUse();
 extern void DBUnlockUse();
 extern void DBOrientUse();
 extern void DBAbutmentUse();
+extern void DBPositionUse(char *UseName);
 
     /* Cell selection */
 extern CellUse *DBSelectCell();

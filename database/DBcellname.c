@@ -1687,6 +1687,220 @@ dbAbutmentUseFunc(selUse, use, transform, data)
     return 0;
 }
 
+/* Structure passed to dbPositionUseFunc() */
+typedef struct {
+#ifdef MAGIC_WRAPPER
+    Tcl_Obj *pu_list;	/* List of positions (Tcl version only) */
+#endif
+    bool pu_indexed;	/* If TRUE, report element (pu_x, pu_y) of an array */
+    int pu_x, pu_y;	/* Array element indices */
+} PositionUseData;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBPositionUse --
+ *
+ * 	This routine reports the position of a cell instance:  the point in
+ *	the coordinate system of the parent (edit) cell where the origin of
+ *	the instance's cell lands.  This is the translation part of the
+ *	instance's transform;  together with the orientation (see
+ *	DBOrientUse()), it describes the placement of the instance.  Note
+ *	that this is not the lower left corner of the instance's bounding
+ *	box, unless the cell's bounding box starts at its origin and the
+ *	instance is not rotated or flipped.  Values are given in the current
+ *	units (see the "units" command).
+ *
+ *	UseName is the name of a specific CellUse.  If NULL, then the
+ *	positions of all selected cell uses are reported.  For an array,
+ *	the position is that of the element given by the array indices in
+ *	UseName (e.g., "name[1]" or "name[2][1]"), or of the element that
+ *	was selected (with "select cell" or by clicking on it);  otherwise,
+ *	it is that of the first element.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	In the Tcl/Tk implementation, the result is set in the interpreter:
+ *	"x y" for a single instance, or a list of {x y} pairs for more than
+ *	one selected instance.  Otherwise, the positions are printed.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBPositionUse(
+    char *UseName)
+{
+    HashSearch hs;
+    HashEntry *entry;
+    CellDef *celldef;
+    CellUse *celluse;
+    PositionUseData pud;
+#ifdef MAGIC_WRAPPER
+#if TCL_MAJOR_VERSION < 9
+    int llen;
+#else
+    Tcl_Size llen;
+#endif
+#endif
+
+    int dbPositionUseFunc(CellUse *selUse, CellUse *use, Transform *transform,
+		ClientData data);
+
+#ifdef MAGIC_WRAPPER
+    pud.pu_list = Tcl_NewListObj(0, NULL);
+    Tcl_IncrRefCount(pud.pu_list);
+#endif
+    pud.pu_indexed = FALSE;
+
+    if (UseName == NULL)
+    {
+	SelEnumCells(TRUE, (int *)NULL, (SearchContext *)NULL,
+			dbPositionUseFunc, (ClientData)&pud);
+    }
+    else
+    {
+	SearchContext scx;
+
+	bzero(&scx, sizeof(SearchContext));
+
+	HashStartSearch(&hs);
+	while ((entry = HashNext(&dbCellDefTable, &hs)) != NULL)
+	{
+	    celldef = (CellDef *) HashGetValue(entry);
+	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
+	    {
+		celluse = celldef->cd_parents;   /* only need one */
+		if (celluse != (CellUse *)NULL)
+		{
+		    DBTreeFindUse(UseName, celluse, &scx);
+		    if (scx.scx_use != NULL) break;
+		}
+	    }
+	}
+
+	if (scx.scx_use == NULL)
+	    TxError("Cell %s is not currently loaded.\n", UseName);
+	else
+	{
+	    /* DBTreeFindUse() returns the array indices given in the	*/
+	    /* name.  Without indices, report the first element.	*/
+
+	    if (strchr(UseName, '[') != NULL)
+	    {
+		pud.pu_indexed = TRUE;
+		pud.pu_x = scx.scx_x;
+		pud.pu_y = scx.scx_y;
+	    }
+	    dbPositionUseFunc(NULL, scx.scx_use, NULL, (ClientData)&pud);
+	}
+    }
+
+#ifdef MAGIC_WRAPPER
+    /* A single position is returned as "x y", not as a list of one pair */
+    if ((Tcl_ListObjLength(magicinterp, pud.pu_list, &llen) == TCL_OK) &&
+		(llen == 1))
+    {
+	Tcl_Obj *pair;
+	Tcl_ListObjIndex(magicinterp, pud.pu_list, 0, &pair);
+	Tcl_SetObjResult(magicinterp, pair);
+    }
+    else
+	Tcl_SetObjResult(magicinterp, pud.pu_list);
+    Tcl_DecrRefCount(pud.pu_list);
+#endif
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbPositionUseFunc --
+ *
+ *	Callback function for DBPositionUse().  Reports the position of one
+ *	cell instance (for an array, of one element:  the one given in the
+ *	PositionUseData record if pu_indexed is set, otherwise the selected
+ *	element if this is the array from which an element was selected,
+ *	otherwise the first element).
+ *
+ * Results:
+ *	Always 0, to keep the search going.
+ *
+ * Side effects:
+ *	In the Tcl/Tk implementation, appends the position as a pair to
+ *	the list in the PositionUseData record.  Otherwise, prints the
+ *	position.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbPositionUseFunc(
+    CellUse *selUse,		/* Use from selection cell (unused) */
+    CellUse *use,		/* Use from layout corresponding to selection */
+    Transform *transform,	/* (unused) */
+    ClientData data)		/* PositionUseData record */
+{
+    PositionUseData *pud = (PositionUseData *)data;
+    Transform elemTrans;
+    int x, y;
+    char *xstr, *ystr;
+#ifdef MAGIC_WRAPPER
+    Tcl_Obj *pair;
+#endif
+
+    if (use == NULL)
+    {
+	TxError("No instance in selection!\n");
+	return 0;
+    }
+
+    if (EditCellUse && !DBIsChild(use, EditCellUse))
+    {
+	TxError("Cell %s (%s) isn't a child of the edit cell.\n",
+		use->cu_id, use->cu_def->cd_name);
+	return 0;
+    }
+
+    /* Choose the array element (the first element if not an array) */
+    if (pud->pu_indexed)
+    {
+	x = pud->pu_x;
+	y = pud->pu_y;
+    }
+    else if ((selUse != NULL) && (use == SelectArrayUse))
+    {
+	x = SelectArrayX;
+	y = SelectArrayY;
+    }
+    else
+    {
+	x = use->cu_xlo;
+	y = use->cu_ylo;
+    }
+
+    /* Transform of the element in the parent cell */
+    GeoTransTrans(DBGetArrayTransform(use, x, y), &use->cu_transform,
+		&elemTrans);
+
+    /* NOTE:  Ideally, the MagWindow pointer should get passed to this	*/
+    /* routine.  DBWPrintValue() cycles through four static strings,	*/
+    /* so the two results can be used together and are not freed.	*/
+    xstr = DBWPrintValue(elemTrans.t_c, (MagWindow *)NULL, TRUE);
+    ystr = DBWPrintValue(elemTrans.t_f, (MagWindow *)NULL, FALSE);
+
+#ifdef MAGIC_WRAPPER
+    pair = Tcl_NewListObj(0, NULL);
+    Tcl_ListObjAppendElement(magicinterp, pair, Tcl_NewStringObj(xstr, -1));
+    Tcl_ListObjAppendElement(magicinterp, pair, Tcl_NewStringObj(ystr, -1));
+    Tcl_ListObjAppendElement(magicinterp, pud->pu_list, pair);
+#else
+    TxPrintf("Position of %s:  %s %s\n", use->cu_id, xstr, ystr);
+#endif
+    return 0;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *

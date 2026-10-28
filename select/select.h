@@ -84,4 +84,9 @@ extern CellDef *SelectRootDef;
 extern CellDef *SelectDef;
 extern CellUse *SelectUse;
 
+/* The array element selected with "select cell" (see selCreate.c) */
+
+extern CellUse *SelectArrayUse;
+extern int SelectArrayX, SelectArrayY;
+
 #endif /* _MAGIC__SELECT__SELECT_H */
