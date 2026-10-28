@@ -1847,6 +1847,11 @@ int dbScaleProp(name, proprec, cps)
     int i, scalen, scaled;
     Point p;
 
+    /* Scale numerator held in point X value, */
+    /* scale denominator held in point Y value */
+    scalen = cps->cps_point.p_x;
+    scaled = cps->cps_point.p_y;
+
     /* Only "dimension" and "plane" type properties get scaled */
 
     if (proprec->prop_type == PROPERTY_TYPE_PLANE)
@@ -1864,11 +1869,6 @@ int dbScaleProp(name, proprec, cps)
     }
 
     if (proprec->prop_type != PROPERTY_TYPE_DIMENSION) return 0; 
-
-    /* Scale numerator held in point X value, */
-    /* scale denominator held in point Y value */
-    scalen = cps->cps_point.p_x;
-    scaled = cps->cps_point.p_y;
 
     for (i = 0; i < proprec->prop_len; i += 2)
     {
@@ -1905,7 +1905,10 @@ int dbMoveProp(name, proprec, cps)
     char *newvalue;
     Point p;
 
-    /* Only "dimension" and "plane" type properties get scaled */
+    origx = cps->cps_point.p_x;
+    origy = cps->cps_point.p_y;
+
+    /* Only "dimension" and "plane" type properties get moved */
 
     if (proprec->prop_type == PROPERTY_TYPE_PLANE)
     {
@@ -1922,9 +1925,6 @@ int dbMoveProp(name, proprec, cps)
     }
 
     if (proprec->prop_type != PROPERTY_TYPE_DIMENSION) return 0; 
-
-    origx = cps->cps_point.p_x;
-    origy = cps->cps_point.p_y;
 
     for (i = 0; i < proprec->prop_len; i += 2)
     {
