@@ -1199,6 +1199,7 @@ CmdSelect(
 	 case SEL_PICK:
 	    if ((more) || (less) || (primargs > 2)) goto usageError;
 	    SelectDelete("picked", FALSE);
+	    GeoTransRect(&SelectUse->cu_transform, &SelectDef->cd_bbox, &selarea);
 	    DBWHLRedraw(SelectRootDef, &selarea, FALSE);
 	    return;
 

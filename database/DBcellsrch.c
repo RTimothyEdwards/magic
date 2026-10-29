@@ -704,8 +704,8 @@ dbCellLabelSrFunc(scx, fp)
     Rect *r = &scx->scx_area;
     const TileTypeBitMask *mask = fp->tf_mask;
     CellDef *def = scx->scx_use->cu_def;
-    char *tnext;
-    int result;
+    char *tnext = NULL;
+    int result = 0;
     bool has_overlap;
 
     ASSERT(def != (CellDef *) NULL, "dbCellLabelSrFunc");
@@ -744,7 +744,6 @@ dbCellLabelSrFunc(scx, fp)
 
     /* Apply the function first to any of the labels in this def. */
 
-    result = 0;
     for (lab = def->cd_labels; lab; lab = lab->lab_next)
     {
 	has_overlap = FALSE;
@@ -770,8 +769,9 @@ dbCellLabelSrFunc(scx, fp)
 	    result = 1;
 
 cleanup:
-    /* Remove the trailing pathname component from the TerminalPath */
-    if (fp->tf_tpath != (TerminalPath *) NULL)
+    /* Remove the trailing pathname component from the TerminalPath	*/
+    /* (if one was added:  none is added for a top level window).	*/
+    if ((fp->tf_tpath != (TerminalPath *) NULL) && (tnext != NULL))
     {
 	fp->tf_tpath->tp_next = tnext;
 	*tnext = '\0';
