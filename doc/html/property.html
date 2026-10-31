@@ -119,6 +119,10 @@ Attach a "property" (string key and value pair) to the edit cell
 	     data for the cell.  The cell is then effectively an abstract
 	     view, because its contents are in the GDS file and do not
 	     necessarily match what is displayed (although they might).
+	     A relative file name is looked for in the same search path
+	     used to find cells, and then relative to the directory of the
+	     cell's own <B>.mag</B> file.  If the file has since been
+	     compressed, the name with "<B>.gz</B>" appended is also tried.
 	<DT> <B>GDS_START</B>
 	<DD> If a <B>GDS_FILE</B> is defined, then this value indicates the
 	     byte position of the start of mask data for this cell definition
@@ -252,6 +256,6 @@ Attach a "property" (string key and value pair) to the edit cell
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
+<P><I>Last updated:</I> October 31, 2026 at 4:57pm <P>
 </BODY>
 </HTML>

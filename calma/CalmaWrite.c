@@ -1039,6 +1039,32 @@ calmaProcessDef(
 	if (fi == NULL)
 	    fi = PaZOpen(filename, "r", ".gz", Path, CellLibPath, &retfilename);
 
+	/* A relative path may instead be relative to the directory of	*/
+	/* the cell's .mag file.  That directory is not in the search	*/
+	/* path if the cell was found through the path given in the	*/
+	/* parent's "use" line (e.g., a cell in a subdirectory).	*/
+
+	if ((fi == NULL) && (*filename != '/') && (*filename != '~') &&
+		(*filename != '$') && (def->cd_file != NULL))
+	{
+	    char *slash = strrchr(def->cd_file, '/');
+
+	    if (slash != NULL)
+	    {
+		int dlen = slash - def->cd_file;
+		char *relpath = mallocMagic(dlen + strlen(filename) + 2);
+
+		strncpy(relpath, def->cd_file, dlen);
+		relpath[dlen] = '/';
+		strcpy(relpath + dlen + 1, filename);
+		fi = PaZOpen(relpath, "r", "", ".", (char *)NULL, &retfilename);
+		if (fi == NULL)
+		    fi = PaZOpen(relpath, "r", ".gz", ".", (char *)NULL,
+				&retfilename);
+		freeMagic(relpath);
+	    }
+	}
+
 	if (fi == NULL)
 	{
 	    /* This is a rare error, but if the subcell is inside	*/
