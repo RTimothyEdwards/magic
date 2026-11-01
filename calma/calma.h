@@ -63,6 +63,9 @@ extern bool CalmaAllowAbstract;
 /* Externally-visible procedures: */
 extern bool CalmaWrite(CellDef *rootDef, FILETYPE f);
 extern void CalmaReadFile(FILETYPE file, char *filename);
+extern FILETYPE CalmaOpenVendorGDS(CellDef *def, char *filename, char **retfilename);
+extern int CalmaVendorStamp(CellDef *def);
+extern void CalmaVendorStampFlush(void);
 extern void CalmaTechInit(void);
 extern void CalmaReadError(const char *format, ...) ATTR_FORMAT_PRINTF_1;
 

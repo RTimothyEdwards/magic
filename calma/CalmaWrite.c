@@ -832,6 +832,70 @@ calmaWriteInitFunc(
 /*
  * ----------------------------------------------------------------------------
  *
+ * CalmaOpenVendorGDS --
+ *
+ * Open the GDS file named by the GDS_FILE property of a read-only
+ * (vendor) cell.
+ *
+ * Results:
+ *	The open file, or NULL if the file could not be found.  The
+ *	full name of the file that was opened is returned in *retfilename.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+FILETYPE
+CalmaOpenVendorGDS(
+    CellDef *def,	/* Cell containing the GDS_FILE property */
+    char *filename,	/* Value of the GDS_FILE property */
+    char **retfilename)	/* Return the name of the file opened */
+{
+    FILETYPE fi;
+
+    /* Use PaZOpen() so the paths searched are the same as were	*/
+    /* searched to find the .mag file that indicated this GDS file.	*/
+
+    fi = PaZOpen(filename, "r", "", Path, CellLibPath, retfilename);
+
+    /* Check if file may have been compressed */
+    if (fi == NULL)
+	fi = PaZOpen(filename, "r", ".gz", Path, CellLibPath, retfilename);
+
+    /* A relative path may instead be relative to the directory of	*/
+    /* the cell's .mag file.  That directory is not in the search	*/
+    /* path if the cell was found through the path given in the	*/
+    /* parent's "use" line (e.g., a cell in a subdirectory).		*/
+
+    if ((fi == NULL) && (*filename != '/') && (*filename != '~') &&
+	    (*filename != '$') && (def->cd_file != NULL))
+    {
+	char *slash = strrchr(def->cd_file, '/');
+
+	if (slash != NULL)
+	{
+	    int dlen = slash - def->cd_file;
+	    char *relpath = mallocMagic(dlen + strlen(filename) + 2);
+
+	    strncpy(relpath, def->cd_file, dlen);
+	    relpath[dlen] = '/';
+	    strcpy(relpath + dlen + 1, filename);
+	    fi = PaZOpen(relpath, "r", "", ".", (char *)NULL, retfilename);
+	    if (fi == NULL)
+		fi = PaZOpen(relpath, "r", ".gz", ".", (char *)NULL,
+			    retfilename);
+	    freeMagic(relpath);
+	}
+    }
+
+    return fi;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * calmaProcessUse --
  * calmaProcessDef --
  *
@@ -1030,40 +1094,7 @@ calmaProcessDef(
 	/* Give some feedback to the user */
 	TxPrintf("   Copying output for cell %s from %s\n", def->cd_name, filename);
 
-	/* Use PaZOpen() so the paths searched are the same as were	*/
-	/* searched to find the .mag file that indicated this GDS file.	*/
-
-	fi = PaZOpen(filename, "r", "", Path, CellLibPath, &retfilename);
-
-	/* Check if file may have been compressed */
-	if (fi == NULL)
-	    fi = PaZOpen(filename, "r", ".gz", Path, CellLibPath, &retfilename);
-
-	/* A relative path may instead be relative to the directory of	*/
-	/* the cell's .mag file.  That directory is not in the search	*/
-	/* path if the cell was found through the path given in the	*/
-	/* parent's "use" line (e.g., a cell in a subdirectory).	*/
-
-	if ((fi == NULL) && (*filename != '/') && (*filename != '~') &&
-		(*filename != '$') && (def->cd_file != NULL))
-	{
-	    char *slash = strrchr(def->cd_file, '/');
-
-	    if (slash != NULL)
-	    {
-		int dlen = slash - def->cd_file;
-		char *relpath = mallocMagic(dlen + strlen(filename) + 2);
-
-		strncpy(relpath, def->cd_file, dlen);
-		relpath[dlen] = '/';
-		strcpy(relpath + dlen + 1, filename);
-		fi = PaZOpen(relpath, "r", "", ".", (char *)NULL, &retfilename);
-		if (fi == NULL)
-		    fi = PaZOpen(relpath, "r", ".gz", ".", (char *)NULL,
-				&retfilename);
-		freeMagic(relpath);
-	    }
-	}
+	fi = CalmaOpenVendorGDS(def, filename, &retfilename);
 
 	if (fi == NULL)
 	{

@@ -34,6 +34,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "drc/drc.h"
 #include "utils/signals.h"
 #include "utils/malloc.h"
+#ifdef CALMA_MODULE
+#include "calma/calma.h"
+#endif
 
 /* Overall comments:
  *
@@ -236,6 +239,11 @@ DBUpdateStamps(def)
 	else
 	    dbStampFunc(def);
     }
+
+#ifdef CALMA_MODULE
+    /* Free any GDS file data read to compute vendor cell timestamps */
+    CalmaVendorStampFlush();
+#endif
 }
 
 /*ARGSUSED*/
@@ -273,10 +281,34 @@ dbStampFunc(cellDef, cdata)
      * to update its timestamp, as it cannot or should not.  Just clear
      * any flag suggesting that it needs a new timestamp.
      */
-    if (!(cellDef->cd_flags & CDFIXEDSTAMP))
-	cellDef->cd_timestamp = timestamp;
+    if (cellDef->cd_flags & CDFIXEDSTAMP)
+	cellDef->cd_flags &= ~CDGETNEWSTAMP;
 
-    cellDef->cd_flags &= ~CDGETNEWSTAMP;
+#ifdef CALMA_MODULE
+    /*
+     * The timestamp of a read-only (vendor GDS) cell is a hash of its
+     * GDS data and does not change when the cell's view in magic is
+     * modified.  It changes only if the GDS data has changed (e.g., the
+     * GDS_FILE property was changed).  If the GDS file cannot be found,
+     * the timestamp is left as it is.
+     */
+    else if (cellDef->cd_flags & CDVENDORGDS)
+    {
+	int newstamp;
+
+	cellDef->cd_flags &= ~CDGETNEWSTAMP;
+	newstamp = CalmaVendorStamp(cellDef);
+	if ((newstamp == 0) || (newstamp == cellDef->cd_timestamp))
+	    return 0;
+	cellDef->cd_timestamp = newstamp;
+    }
+#endif
+
+    else
+    {
+	cellDef->cd_timestamp = timestamp;
+	cellDef->cd_flags &= ~CDGETNEWSTAMP;
+    }
 
     // printf("Writing new timestamp %d for %s.\n", timestamp, cellDef->cd_name);
 

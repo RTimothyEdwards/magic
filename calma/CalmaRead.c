@@ -59,6 +59,9 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 /* C99 compat */
 #include "calma/calma.h"
 
+/* Forward declarations */
+static void calmaHashStamps(FILETYPE file);
+
 /* Globals for Calma reading */
 FILETYPE calmaInputFile = NULL;		/* Read from this stream */
 FILE *calmaErrorFile = NULL;		/* Write error output here */
@@ -306,6 +309,13 @@ done:
     }
 
     CIFReadCellCleanup(FILE_CALMA);
+
+    /* Cells read in read-only mode get a timestamp computed from	*/
+    /* the GDS contents, unless "gds datestamp" specified a value.	*/
+    if (CalmaReadOnly && !SigInterruptPending &&
+		((CalmaDateStamp == NULL) || (*CalmaDateStamp == (time_t)0)))
+	calmaHashStamps(file);
+
     HashKill(&calmaDefInitHash);
     UndoEnable();
 
@@ -314,6 +324,470 @@ done:
 	fclose(calmaErrorFile);
 	calmaErrorFile = NULL;
     }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * Content-based timestamps for read-only (vendor) cells.
+ *
+ * The GDS output for a read-only cell is copied verbatim from the GDS file
+ * named by its GDS_FILE property, so the cell's timestamp is a hash of the
+ * GDS structure data, regardless of the cell's view in magic (e.g., a full
+ * view read from GDS or an abstract view read from LEF).  Changes to the
+ * magic view do not change the timestamp, and regenerating a library from
+ * the same GDS data produces the same timestamps.  Magic only checks
+ * timestamps for equality, so these values can coexist with timestamps
+ * from time().
+ *
+ * The hash covers the records of the structure from GDS_START (the record
+ * following STRNAME) through ENDSTR, and therefore does not include the
+ * BGNSTR record with the creation and modification dates.  It also covers
+ * the hash values of all structures in the same file that the structure
+ * references, recursively.
+ * ----------------------------------------------------------------------------
+ */
+
+typedef struct _calmaStructHash
+{
+    unsigned long long csh_hash;  /* Hash of the structure's records	*/
+    int		csh_stamp;	/* Final timestamp, including subcells	*/
+    int		csh_state;	/* 0 = not done, 1 = in progress, 2 = done */
+    int		csh_nchild;	/* Number of subcell names in csh_children */
+    int		csh_maxchild;	/* Allocated size of csh_children	*/
+    char	**csh_children;	/* Names of structures referenced (SNAME) */
+} CalmaStructHash;
+
+typedef struct _calmaStampTable
+{
+    HashTable	cst_byName;	/* CalmaStructHash records by name	*/
+    HashTable	cst_byStart;	/* CalmaStructHash records by GDS_START */
+} CalmaStampTable;
+
+/* Tables of GDS files already hashed by CalmaVendorStamp(), by filename */
+static HashTable calmaStampCache;
+static bool calmaStampCacheInit = FALSE;
+
+#define CALMA_FNV_OFFSET	14695981039346656037ULL
+#define CALMA_FNV_PRIME		1099511628211ULL
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaFNVHash --
+ *
+ * Add a block of bytes to a 64-bit FNV-1a hash.
+ *
+ * Results:
+ *	The updated hash value.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static unsigned long long
+calmaFNVHash(
+    unsigned long long hash,
+    const unsigned char *bytes,
+    int nbytes)
+{
+    int i;
+
+    for (i = 0; i < nbytes; i++)
+    {
+	hash ^= (unsigned long long)bytes[i];
+	hash *= CALMA_FNV_PRIME;
+    }
+    return hash;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaStampTableRead --
+ *
+ * Read through a GDS file from the beginning and record the hash of
+ * the records of each structure and the names of the structures it
+ * references.
+ *
+ * Results:
+ *	A newly allocated CalmaStampTable.
+ *
+ * Side effects:
+ *	Rewinds and reads the file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static CalmaStampTable *
+calmaStampTableRead(
+    FILETYPE file)	/* GDS file to read */
+{
+    CalmaStampTable *cst;
+    CalmaStructHash *csh = NULL;
+    HashEntry *he;
+    unsigned char header[CALMAHEADERLENGTH];
+    char *data;
+    int nbytes, rtype, i;
+    bool needName = FALSE;
+    OFFTYPE offset = 0;
+
+    cst = (CalmaStampTable *)mallocMagic(sizeof(CalmaStampTable));
+    HashInit(&cst->cst_byName, 64, HT_STRINGKEYS);
+    HashInit(&cst->cst_byStart, 64, HT_WORDKEYS);
+    data = (char *)mallocMagic(65536);
+
+    REWIND(file);
+    while (magicFREAD(header, 1, CALMAHEADERLENGTH, file) == CALMAHEADERLENGTH)
+    {
+	nbytes = (header[0] << 8) | header[1];
+	rtype = header[2];
+	if (nbytes < CALMAHEADERLENGTH) break;
+	offset += nbytes;
+	nbytes -= CALMAHEADERLENGTH;
+	if ((nbytes > 0) && (magicFREAD(data, 1, nbytes, file) != nbytes))
+	    break;
+	data[nbytes] = '\0';
+
+	if (rtype == CALMA_ENDLIB) break;
+	if (rtype == CALMA_BGNSTR)
+	{
+	    csh = NULL;
+	    needName = TRUE;
+	    continue;
+	}
+	if (needName)
+	{
+	    needName = FALSE;
+	    if (rtype != CALMA_STRNAME) continue;
+
+	    csh = (CalmaStructHash *)mallocMagic(sizeof(CalmaStructHash));
+	    csh->csh_hash = CALMA_FNV_OFFSET;
+	    csh->csh_stamp = 0;
+	    csh->csh_state = 0;
+	    csh->csh_nchild = 0;
+	    csh->csh_maxchild = 0;
+	    csh->csh_children = NULL;
+
+	    /* The structure data starts after the STRNAME record */
+	    he = HashFind(&cst->cst_byStart, (char *)(spointertype)offset);
+	    HashSetValue(he, csh);
+
+	    /* If a structure name is repeated, subcell references	*/
+	    /* resolve to the first one.				*/
+	    he = HashFind(&cst->cst_byName, data);
+	    if (HashGetValue(he) == NULL) HashSetValue(he, csh);
+	    continue;
+	}
+	if (csh == NULL) continue;
+
+	csh->csh_hash = calmaFNVHash(csh->csh_hash, header, CALMAHEADERLENGTH);
+	csh->csh_hash = calmaFNVHash(csh->csh_hash, (unsigned char *)data, nbytes);
+
+	if (rtype == CALMA_SNAME)
+	{
+	    /* Record each subcell name, skipping immediate repeats */
+	    if ((csh->csh_nchild > 0) &&
+			!strcmp(csh->csh_children[csh->csh_nchild - 1], data))
+		continue;
+	    if (csh->csh_nchild == csh->csh_maxchild)
+	    {
+		char **newlist;
+
+		csh->csh_maxchild = (csh->csh_maxchild == 0) ? 8 :
+			csh->csh_maxchild * 2;
+		newlist = (char **)mallocMagic(csh->csh_maxchild * sizeof(char *));
+		for (i = 0; i < csh->csh_nchild; i++)
+		    newlist[i] = csh->csh_children[i];
+		if (csh->csh_children != NULL) freeMagic(csh->csh_children);
+		csh->csh_children = newlist;
+	    }
+	    csh->csh_children[csh->csh_nchild++] = StrDup((char **)NULL, data);
+	}
+	else if (rtype == CALMA_ENDSTR)
+	    csh = NULL;
+    }
+    freeMagic(data);
+    return cst;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaStampTableFree --
+ *
+ * Free a table created by calmaStampTableRead().
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Frees memory.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+calmaStampTableFree(
+    CalmaStampTable *cst)
+{
+    HashSearch hs;
+    HashEntry *he;
+    CalmaStructHash *csh;
+    int i;
+
+    /* Every record is in cst_byStart;  cst_byName may omit some */
+    HashStartSearch(&hs);
+    while ((he = HashNext(&cst->cst_byStart, &hs)) != NULL)
+    {
+	csh = (CalmaStructHash *)HashGetValue(he);
+	if (csh == NULL) continue;
+	for (i = 0; i < csh->csh_nchild; i++)
+	    freeMagic(csh->csh_children[i]);
+	if (csh->csh_children != NULL) freeMagic(csh->csh_children);
+	freeMagic(csh);
+    }
+    HashKill(&cst->cst_byName);
+    HashKill(&cst->cst_byStart);
+    freeMagic(cst);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaStructStamp --
+ *
+ * Compute the content-based timestamp of a GDS structure from the hash
+ * of its records and the timestamps of the structures it references in
+ * the same file, recursively.  References to structures that are not
+ * in the file contribute only their names, which are part of the
+ * structure's records.
+ *
+ * Results:
+ *	A positive, nonzero timestamp value.
+ *
+ * Side effects:
+ *	Records the computed timestamp in the structure's record.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static int
+calmaStructStamp(
+    CalmaStampTable *cst,	/* Table of the GDS file's structures */
+    CalmaStructHash *csh)	/* Structure to compute the stamp of */
+{
+    HashEntry *he;
+    CalmaStructHash *child;
+    unsigned long long hash;
+    unsigned char bytes[4];
+    int i, stamp;
+
+    if (csh->csh_state == 2) return csh->csh_stamp;
+
+    hash = csh->csh_hash;
+
+    /* A reference loop (which is not legal GDS) is not followed */
+    if (csh->csh_state == 0)
+    {
+	csh->csh_state = 1;
+	for (i = 0; i < csh->csh_nchild; i++)
+	{
+	    he = HashLookOnly(&cst->cst_byName, csh->csh_children[i]);
+	    if (he == NULL) continue;
+	    child = (CalmaStructHash *)HashGetValue(he);
+	    if (child == NULL) continue;
+	    stamp = calmaStructStamp(cst, child);
+	    bytes[0] = (stamp >> 24) & 0xff;
+	    bytes[1] = (stamp >> 16) & 0xff;
+	    bytes[2] = (stamp >> 8) & 0xff;
+	    bytes[3] = stamp & 0xff;
+	    hash = calmaFNVHash(hash, bytes, 4);
+	}
+    }
+
+    /* Fold to a positive 31-bit value;  zero is not a valid timestamp */
+    hash ^= (hash >> 31) ^ (hash >> 62);
+    csh->csh_stamp = (int)(hash & 0x7fffffff);
+    if (csh->csh_stamp == 0) csh->csh_stamp = 1;
+    csh->csh_state = 2;
+    return csh->csh_stamp;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaStampLookup --
+ *
+ * Find the content-based timestamp of the read-only cell 'def' in the
+ * table of its GDS file, using the cell's GDS_START property.
+ *
+ * Results:
+ *	The timestamp, or zero if the cell has no GDS_START and GDS_END
+ *	properties or no structure in the file starts at GDS_START.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static int
+calmaStampLookup(
+    CalmaStampTable *cst,
+    CellDef *def)
+{
+    HashEntry *he;
+    CalmaStructHash *csh;
+    OFFTYPE start;
+    bool found;
+
+    /* A cell with GDS_START but no GDS_END is dumped from the whole	*/
+    /* file and has no single structure to hash.			*/
+    DBPropGetDouble(def, "GDS_END", &found);
+    if (!found) return 0;
+    start = (OFFTYPE)DBPropGetDouble(def, "GDS_START", &found);
+    if (!found) return 0;
+
+    he = HashLookOnly(&cst->cst_byStart, (char *)(spointertype)start);
+    if (he == NULL) return 0;
+    csh = (CalmaStructHash *)HashGetValue(he);
+    if (csh == NULL) return 0;
+    return calmaStructStamp(cst, csh);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaHashStamps --
+ *
+ * Assign content-based timestamps to the read-only cells created from
+ * the GDS file that was just read.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Sets cd_timestamp of the read-only (CDVENDORGDS) cells read from
+ *	the file and clears their CDGETNEWSTAMP flags.  Rewinds and reads
+ *	the file again.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+calmaHashStamps(
+    FILETYPE file)	/* GDS file that was just read */
+{
+    CalmaStampTable *cst;
+    HashSearch hs;
+    HashEntry *he;
+    CellDef *def;
+    int stamp;
+
+    cst = calmaStampTableRead(file);
+
+    HashStartSearch(&hs);
+    while ((he = HashNext(&calmaDefInitHash, &hs)) != NULL)
+    {
+	def = (CellDef *)HashGetValue(he);
+	if (def == NULL) continue;
+	if (!(def->cd_flags & CDVENDORGDS)) continue;
+	if (def->cd_flags & CDFIXEDSTAMP) continue;
+
+	stamp = calmaStampLookup(cst, def);
+	if (stamp == 0) continue;
+	def->cd_timestamp = stamp;
+	def->cd_flags &= ~CDGETNEWSTAMP;
+    }
+    calmaStampTableFree(cst);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CalmaVendorStamp --
+ *
+ * Compute the content-based timestamp of a read-only cell from the GDS
+ * file named by its GDS_FILE property.  Each GDS file is read once and
+ * kept until CalmaVendorStampFlush() is called.
+ *
+ * Results:
+ *	The timestamp, or zero if the cell is not a read-only cell with
+ *	GDS_FILE, GDS_START, and GDS_END properties, or its GDS file cannot
+ *	be found, or the file has no structure at GDS_START.
+ *
+ * Side effects:
+ *	May open and read the GDS file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+CalmaVendorStamp(
+    CellDef *def)
+{
+    CalmaStampTable *cst;
+    HashEntry *he;
+    FILETYPE fi;
+    char *filename, *retfilename;
+    bool found;
+
+    filename = DBPropGetString(def, "GDS_FILE", &found);
+    if (!found || (filename == NULL) || (*filename == '\0')) return 0;
+
+    fi = CalmaOpenVendorGDS(def, filename, &retfilename);
+    if (fi == NULL) return 0;
+
+    if (!calmaStampCacheInit)
+    {
+	HashInit(&calmaStampCache, 8, HT_STRINGKEYS);
+	calmaStampCacheInit = TRUE;
+    }
+    he = HashFind(&calmaStampCache, retfilename);
+    cst = (CalmaStampTable *)HashGetValue(he);
+    if (cst == NULL)
+    {
+	cst = calmaStampTableRead(fi);
+	HashSetValue(he, cst);
+    }
+    FCLOSE(fi);
+
+    return calmaStampLookup(cst, def);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CalmaVendorStampFlush --
+ *
+ * Free the GDS file tables kept by CalmaVendorStamp().
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Frees memory.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+CalmaVendorStampFlush(void)
+{
+    HashSearch hs;
+    HashEntry *he;
+
+    if (!calmaStampCacheInit) return;
+
+    HashStartSearch(&hs);
+    while ((he = HashNext(&calmaStampCache, &hs)) != NULL)
+	if (HashGetValue(he) != NULL)
+	    calmaStampTableFree((CalmaStampTable *)HashGetValue(he));
+    HashKill(&calmaStampCache);
+    calmaStampCacheInit = FALSE;
 }
 
 /*

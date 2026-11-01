@@ -76,7 +76,10 @@ Read GDSII input or generate GDSII output.
 		 If <B>no</B>, then the datestamp is set to zero and will be
 		 created when the cell is saved to disk.  If <I>value</I>,
 		 then the specified value (in UNIX format of seconds since the
-		 epoch) will be used for the layout timestamp.
+		 epoch) will be used for the layout timestamp.  Cells read
+		 with <B>readonly</B> set are an exception unless a
+		 <I>value</I> is given:  their timestamps are computed from
+		 the GDS data (see <B>readonly</B>).
 	    <DT> <B>drccheck</B> [<B>yes</B>|<B>no</B>]
 	    <DD> If set to <B>no</B>, then do not mark cells read from GDS as
 		 requiring DRC checks (default <B>yes</B>).
@@ -171,7 +174,24 @@ Read GDSII input or generate GDSII output.
 		 be useful to keep a simplified respresentation in the case
 		 of pad cells or digital standard cells, for example, by
 		 reading them using a GDS input style that defines only metal
-		 layers.
+		 layers. <P>
+		 The timestamp of a read-only cell is not a date, but a hash
+		 value computed from the cell's data in the GDS file and the
+		 data of all the cells it references in the same file.  The
+		 date records of the GDS file are not included.  Because the
+		 GDS output for the cell is taken from the GDS file, changes
+		 to the cell's view in <B>magic</B> do not change the
+		 timestamp (although the cell is still marked as modified and
+		 can be saved), and every view of the cell that points to the
+		 same GDS data (such as a view generated from LEF and annotated
+		 with the GDS file position) has the same timestamp.  Reading
+		 the same GDS data again produces the same timestamps, so
+		 regenerating a library does not invalidate the timestamps
+		 recorded in layouts that use it.  The timestamp changes only
+		 if the GDS data changes, such as when the <B>GDS_FILE</B>,
+		 <B>GDS_START</B>, or <B>GDS_END</B> property of the cell is
+		 changed to point to different data.  A timestamp given by
+		 <B>gds datestamp</B> <I>value</I> overrides the hash value.
 	    <DT> <B>rescale</B> [<B>yes</B>|<B>no</B>]
 	    <DD> Allow or disallow internal grid subdivision while reading
 		 GDS input.  Default is "yes".  Normally, one wants to allow

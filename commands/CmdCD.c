@@ -1094,7 +1094,7 @@ outputCalma:
  *	cellname [list] children|parents|exists|instances|
  *			celldef|self|childinst [name]
  * or
- *	cellname [list] topcells|allcells|window
+ *	cellname [list] topcells|allcells|modified|window
  * or
  *	cellname delete [name]
  * or
@@ -1162,7 +1162,7 @@ CmdCellname(
 	"position	list instance position (origin in the parent cell)",
 	"rename		rename the indicated cell",
 	"writeable	make the cell definition read-only or read-write",
-	"modified	true if modified, false if not",
+	"modified	list modified cells",
 	NULL
     };
     typedef enum { IDX_CHILDREN, IDX_PARENTS, IDX_EXISTS, IDX_SELF,
@@ -1227,6 +1227,7 @@ CmdCellname(
 	switch (option) {
 	    case IDX_ALLCELLS:
 	    case IDX_TOPCELLS:
+	    case IDX_MODIFIED:
 	    case IDX_IN_WINDOW:
 		goto badusage;
 		break;

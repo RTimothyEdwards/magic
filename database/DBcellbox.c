@@ -181,7 +181,7 @@ DBCellSetModified(cellDef, ismod)
 			 * mark it as unmodified.
 			 */
 {
-    cellDef->cd_flags &= ~CDMODIFIED|CDGETNEWSTAMP;
+    cellDef->cd_flags &= ~(CDMODIFIED | CDGETNEWSTAMP);
     if (ismod)
 	cellDef->cd_flags |= CDMODIFIED|CDGETNEWSTAMP;
 }

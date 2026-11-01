@@ -61,6 +61,10 @@ Operations on cell definitions.
 		which the command was called if the "<TT>:</TT>" macro
 		was used to invoke the command.  Otherwise, the window
 		can be specified as the command (q.v. <I>tk_path_name</I>).
+	   <DT> [<B>list</B>] <B>modified</B>
+	   <DD> List the name of cells in the database which have been
+		modified.  Like <B>allcells</B>, cells that have not been
+		expanded are not searched and won't be listed.
 	   <DT> <B>create</B> <I>name</I>
 	   <DD> Create a new cell definition with name <I>name</I>.  This
 		is most often used with scripts, where it is not necessary

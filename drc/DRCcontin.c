@@ -757,7 +757,18 @@ drcCheckTile(tile, dinfo, arg)
     }
     if (DRCDisplayCheckTiles)
 	DBWAreaChanged(celldef, &square, DBW_ALLWINDOWS, &DRCLayers);
-    DBCellSetModified (celldef, TRUE);
+
+    /* The DRC check and error planes are saved with the cell, so the
+     * cell is marked as modified.  But a DRC update does not change the
+     * cell's contents, so it does not get a new timestamp (which would
+     * change the timestamp recorded in every parent).  Cells that cannot
+     * or should not be written back (non-editable cells, and cells whose
+     * contents come from a vendor GDS file, e.g., PDK library cells) are
+     * not marked as modified at all.  Their DRC errors are still kept in
+     * memory and displayed.
+     */
+    if (!(celldef->cd_flags & (CDNOEDIT | CDVENDORGDS)))
+	celldef->cd_flags |= CDMODIFIED;
     SigEnableInterrupts();
 
     return (1);		/* stop the area search: we modified the database! */

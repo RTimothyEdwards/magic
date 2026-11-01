@@ -2278,6 +2278,19 @@ cmdWriteallFunc(
 
     if (cmd->tx_argc == 2)
     {
+	/* Do not try to write cells that cannot be written back, or
+	 * the empty "(UNNAMED)" cell.  If such a cell was modified,
+	 * say so, since the changes will not be saved.
+	 */
+	if (def->cd_flags & CDNOEDIT)
+	{
+	    if (def->cd_flags & CDMODIFIED)
+		TxError("Cell '%s' is not writeable;  modified cell "
+			"not written.\n", def->cd_name);
+	    return 0;
+	}
+	if (!(def->cd_flags & CDMODIFIED) && !strcmp(def->cd_name, UNNAMED))
+	    return 0;
 	action = 4;
     }
     else if (cmd->tx_argc > 2)
