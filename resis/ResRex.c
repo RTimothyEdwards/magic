@@ -294,6 +294,7 @@ CmdExtResis(win, cmd)
 	"tolerance [value]    set ratio between resistor and device resistance (deprecated)",
 	"simplify [on/off]    turn on/off simplification of resistor nets",
 	"extout   [on/off]    turn on/off writing of .res.ext file",
+	"geoout   [on/off]    turn on/off writing of per-resistor geometry (.res.geo)",
 	"lumped   [on/off]    turn on/off writing of updated lumped resistances",
 	"silent   [on/off]    turn on/off printing of net statistics",
 	"debug	  [on/off]    turn on/off printing of detailed information",
@@ -314,7 +315,7 @@ CmdExtResis(win, cmd)
 typedef enum {
 	RES_BAD=-2, RES_AMBIG, RES_ALL,
 	RES_THRESH, RES_MINRES, RES_MINDELAY, RES_TOL,
-	RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT, RES_DEBUG,
+	RES_SIMP, RES_EXTOUT, RES_GEOOUT, RES_LUMPED, RES_SILENT, RES_DEBUG,
 	RES_SKIP, RES_FORCE, RES_IGNORE, RES_INCLUDE, RES_BOX,
 	RES_CELL, RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY,
 	RES_STATS, RES_HELP, RES_RUN
@@ -327,6 +328,7 @@ typedef enum {
 
     switch (option)
     {
+	case RES_GEOOUT:
 	case RES_SIMP:
 	case RES_EXTOUT:
 	case RES_LUMPED:
@@ -480,6 +482,21 @@ typedef enum {
 	    }
 	    return;
 
+	case RES_GEOOUT:
+	    if (cmd->tx_argc == 2)
+	    {
+		value = (ResOptionsFlags & ResOpt_GeoOut) ? TRUE : FALSE;
+		TxPrintf("%s\n", onOff[value]);
+	    }
+	    else
+	    {
+		value = Lookup(cmd->tx_argv[2], onOff);
+		if (value)
+		    ResOptionsFlags |= ResOpt_GeoOut;
+		else
+		    ResOptionsFlags &= ~ResOpt_GeoOut;
+	    }
+	    return;
 	case RES_SIMP:
 	    /* Enable or disable resistor network simplification.  Usually
 	     * enabled in conjunction with TDi calculations (see below).
@@ -1336,6 +1353,8 @@ ResCheckExtNodes(celldef, resisdata)
 		outfile = namebuf;
 	    }
 	ResExtFile = PaOpen(outfile, "w", ".res.ext", ".", (char *)NULL, (char **)NULL);
+	if (ResOptionsFlags & ResOpt_GeoOut)
+	    ResGeoFile = PaOpen(outfile, "w", ".res.geo", ".", (char *)NULL, (char **)NULL);
 	if (alloc) freeMagic(alloc);
 	outfile = celldef->cd_name;
     }
@@ -1439,6 +1458,7 @@ ResCheckExtNodes(celldef, resisdata)
     /* close output files */
 
     if (ResExtFile != NULL) (void) fclose(ResExtFile);
+    if (ResGeoFile != NULL) { (void) fclose(ResGeoFile); ResGeoFile = NULL; }
     if (ResLumpFile != NULL) (void) fclose(ResLumpFile);
     if (ResFHFile != NULL) (void) fclose(ResFHFile);
 }

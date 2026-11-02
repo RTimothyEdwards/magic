@@ -266,6 +266,7 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
         node1->rn_float.rn_area += resistor2->rr_value * node->rn_float.rn_area /
 		    (resistor1->rr_value + resistor2->rr_value);
 	resistor1->rr_value += resistor2->rr_value;
+	resistor1->rr_status |= RES_GEO_MERGED;
 	resistor1->rr_float.rr_area +=resistor2->rr_float.rr_area;
 	if (resistor1 == *reslist)
 	    *reslist = resistor1->rr_nextResistor;
@@ -585,6 +586,7 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 	if (c1 != 0 && c2 != 0)
 	{
 	    working->rr_value += current->rr_value;
+	    working->rr_status |= RES_GEO_MERGED;
 	    working->rr_float.rr_area += current->rr_float.rr_area;
 	}
 	else
