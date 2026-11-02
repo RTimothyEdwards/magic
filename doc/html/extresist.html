@@ -38,13 +38,15 @@ information.
 		analyzed for resistance extraction, in milliohms.  The default
 		<B>threshold</B> value is 10000 milliohms (10 ohms).  If
 		<I>value</I> is given, then set the lumped resistance threshold
-		to <I>value</I> milliohms.
+		to <I>value</I> milliohms.  A value of zero means that no
+		resistance cutoff is applied.
 	   <DT> <B>mindelay</B> [<I>value</I>]
 	   <DD> With no value given, returns the current delay time threshold
 		used to determine if a network will or will not be analyzed for
 		resistance extraction, in picoseconds.  The default
 		<B>mindelay</B> value is 1ps.  If <I>value</I> is given,
 		then set the delay threshold to <I>value</I> picoseconds.
+		A value of zero means that no delay cutoff is applied.
 	   <DT> <B>minres</B> [<I>value</I>]
 	   <DD> With no value given, returns the current absolute resistance
 		threshold used to prune small resistances from a network when
@@ -53,7 +55,9 @@ information.
 		the absolute resistance threshold to <I>value</I> milliohms.
 		Note that resistances smaller than <I>value</I> may still
 		appear in the output netlist if the algorithm is unable to
-		simplify the network around the resistor.
+		simplify the network around the resistor, and a resistor
+		between two ports is never removed.  A value of zero means
+		that no resistors are pruned.
 	   <DT> <B>simplify</B> [<B>on</B>|<B>off</B>]
 	   <DD> Turn on/off simplification of resistor nets.
 	   <DT> <B>extout</B> [<B>on</B>|<B>off</B>]
@@ -147,14 +151,21 @@ information.
       the lumped resistance estimate (see above).  For point-to-point
       wires, the lumped resistance is approximately equal to the actual
       wire resistance.  For branching networks, it will generally be an
-      over-estimate.  The default <B>threshold</B> value is set to
-      10 ohms. <P>
+      over-estimate.  The lumped resistance estimate is in whole ohms
+      and does not include contact resistance, so a network such as a
+      short via chain may have an estimate of zero.  Once the network
+      has been extracted, the <B>threshold</B> value is again evaluated
+      against the largest resistance from the start of the network to
+      any point in it, to determine if the extracted detailed network
+      should be output.  The default <B>threshold</B> value is set to
+      10 ohms.  A <B>threshold</B> of zero applies no resistance cutoff. <P>
 
       <B>extresist minres</B> (value in milliohms) sets a cutoff for
       individual resistors in the detailed resistor network.  Resistors
       below this threshold will get pruned out of the network if the
-      simplification algorithm is able to remove them.  The default
-      <B>minres</B> value is set to 1 ohm. <P>
+      simplification algorithm is able to remove them.  A resistor
+      connecting two ports is never removed, since that would merge the
+      ports.  The default <B>minres</B> value is set to 1 ohm. <P>
 
       <B>extresist mindelay</B> (value in picoseconds) sets a cutoff for
       considering a network for detailed resistance extraction based on
@@ -162,12 +173,20 @@ information.
       estimate.  Once the network has been extracted, the <B>mindelay</B>
       value is again evaluated against a revised calculation of the
       delay to determine if the extracted detailed network should be
-      output.  The default <B>mindelay<B> value is set to 0, indicating
-      that only the lumped resistance threshold should be used for
-      determining when to extract a detailed resistance network.
-      <B>mindelay</B> may be used in place of <B>threshold</B>, or both
+      output.  The default <B>mindelay</B> value is set to 1ps.  A
+      <B>mindelay</B> of zero applies no delay cutoff, so that only the
+      resistance threshold is used for determining when to extract a
+      detailed resistance network.  <B>mindelay</B> may be used in place
+      of <B>threshold</B> (by setting <B>threshold</B> to zero), or both
       may be used together, in which case a network is only extracted
-      if both <B>threshold</B> and <B>mindelay</B> are exceeded. <P>
+      if both <B>threshold</B> and <B>mindelay</B> are exceeded.  If
+      both are zero, then every net is extracted. <P>
+
+      A net that is not extracted as a resistor network is written to
+      the netlist as a single node, exactly as it would be without
+      <B>extresist</B>.  In particular, if the net has more than one
+      port, the ports are merged as they would be without
+      <B>extresist</B>. <P>
 
       More details on using <B>extresist</B> can be found in
       <B>magic</B> Tutorial number 8.

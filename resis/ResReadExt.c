@@ -62,6 +62,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #define		NODES_NODENAME		1
 #define		NODES_NODERES		2
+#define		NODES_NODECAP		3
 #define		NODES_NODEX		4
 #define		NODES_NODEY		5
 #define		NODES_NODETYPE		6
@@ -176,6 +177,7 @@ ResReadExt(CellDef *def)
  	 * merge nets in the cell, which is useful for netlisting but
 	 * not for annotating the extraction file. 
 	 */
+	locresult = 0;
 	switch (keyTable[n].k_key)
 	{
 	    case SCALE:
@@ -475,6 +477,7 @@ ResReadParentExt(CellDef *parent,
 	 * Note:  This method depends on the .ext file format having
 	 * all "use" lines before "connect" lines.
 	 */
+	locresult = 0;
 	switch (keyTable[n].k_key)
 	{
 	    case USE:
@@ -530,10 +533,16 @@ ResReadNode(int argc, char *argv[])
     node->location.p_x = atoi(argv[NODES_NODEX]);
     node->location.p_y = atoi(argv[NODES_NODEY]);
     node->type = DBTechNameType(argv[NODES_NODETYPE]);
+    node->status |= NODERECORD;
     noderesist = atoi(argv[NODES_NODERES]);
     if (noderesist < 0) noderesist = INFINITY;
     /* Make sure node resistance is in units of milliohms */
     node->resistance = (float)noderesist * (float)ExtCurStyle->exts_resistScale;
+
+    /* Capacitance to substrate.  (Coupling capacitance is added from	*/
+    /* the "cap" records by ResReadCapacitor().)			*/
+    node->nodecap = MagAtof(argv[NODES_NODECAP]);
+    node->capacitance += node->nodecap;
 
     if (node->type == -1)
     {
@@ -1080,6 +1089,7 @@ ResExtInitNode(entry)
 	node->status = FALSE;
 	node->forward = (ResExtNode *) NULL;
 	node->capacitance = 0;
+	node->nodecap = 0;
 	node->cap_couple = 0;
 	node->resistance = 0;
 	node->type = 0;

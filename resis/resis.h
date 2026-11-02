@@ -348,6 +348,8 @@ typedef struct resextnode
      					/* points to the merged node.     */
     float		capacitance;	/* Capacitance between node and   */
 					/* substrate			  */
+    float		nodecap;	/* The part of capacitance read	  */
+					/* from the .ext "node" record	  */
     float 		cap_couple;	/* Coupling capacitance 	  */
     float		resistance;     /* Lumped resistance 		  */
     float		minsizeres;	/* Minimum size resistor allowed  */
@@ -466,6 +468,7 @@ typedef struct capval
 #define	PORTNODE	0x0000200
 #define	REDUNDANT	0x0000400
 #define	DONTKILL	0x0000800
+#define	NODERECORD	0x0001000	/* Node was read from a "node" record */
 
 /* Capacitance table constants */
 

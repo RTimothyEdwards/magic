@@ -1091,9 +1091,13 @@ ResProcessNode(
     }
 
     /* Has this node been merged away or is it marked as skipped? */
-    /* If so, skip it */
+    /* If so, skip it.  Also skip any entry that does not correspond	*/
+    /* to a "node" record in the .ext file, such as a port with a	*/
+    /* different name than the node it belongs to.  That node will be	*/
+    /* extracted under its own name, and its network includes the port.	*/
 
-    if ((node->status & (FORWARD | REDUNDANT)) ||
+    if (!(node->status & NODERECORD) ||
+		(node->status & (FORWARD | REDUNDANT)) ||
 		((node->status & SKIP) &&
 	  	(ResOptionsFlags & ResOpt_ExtractAll) == 0))
 	return 0;
@@ -1235,6 +1239,9 @@ ResProcessNode(
      * by absolute resistance ("extresist threshold") or by effective signal
      * propagation delay ("extresist mindelay").  If either one is set to zero,
      * it will be ignored, although they can also be used in combination.
+     * Note that the lumped resistance in the .ext file has a resolution of
+     * one ohm and does not include contact resistance, so a zero threshold
+     * must not require it to be greater than zero.
      *
      * Note that the substrate net has a capacitance to substrate of zero by
      * definition, and should be the only net with a zero capacitance.
@@ -1245,10 +1252,10 @@ ResProcessNode(
     processThis = FALSE;
     if (ResOpt_ExtractAll & ResOptionsFlags)
 	processThis = TRUE;
-    else if ((node->capacitance > 0) && (node->resistance > resisdata->rthresh) &&
-		(node->resistance * node->capacitance > resisdata->mindelay))
-	processThis = TRUE;
-    else if ((node->capacitance == 0) && (node->resistance > resisdata->rthresh))
+    else if (((resisdata->rthresh == 0) ||
+			(node->resistance > resisdata->rthresh)) &&
+		((resisdata->mindelay == 0) || (node->capacitance == 0) ||
+			(node->resistance * node->capacitance > resisdata->mindelay)))
 	processThis = TRUE;
     else if (HashLookOnly(&ResForceTable, node->name) != NULL)
 	processThis = TRUE;
@@ -2100,30 +2107,31 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
     cp = newname + strlen(newname) - 1;
     if (*cp == '!' || *cp == '#') *cp = '\0';
 
-    /* Second cutoff (if mindelay is specified):  The original cutoff 
-     * was based on the original lumped resistance estimate from basic
-     * extraction.  Having done full network extraction, there is now
-     * a refined delay estimate rg_Tdi which may be much lower than
-     * the original estimate.  If the new estimate falls below the
-     * threshold, then return without outputting the node's network.
+    /* Second cutoff:  The original cutoff was based on the lumped
+     * resistance and delay estimates from basic extraction.  Having done
+     * full network extraction, there is now a refined resistance rg_maxres
+     * (the largest resistance from the origin to any point in the network)
+     * and, if mindelay is specified, a refined delay estimate rg_Tdi, both
+     * of which may be much lower than the original estimates.  The same
+     * rules apply as for the first cutoff:  A zero threshold or mindelay
+     * is no cutoff, and if both are given, then the network must exceed
+     * both.  If the network falls below either cutoff, then return without
+     * outputting the node's network.  The substrate net has zero
+     * capacitance by definition and so it also has zero delay by
+     * definition;  in that case, only the resistance is checked.
      */
-    if (resisdata->rg_Tdi == 0)
+    if ((resisdata->rthresh > 0) && (resisdata->rg_maxres < resisdata->rthresh))
     {
-	/* The substrate net has zero capacitance by definition and
-	 * so it also has zero delay by definition.  In that case,
-	 * check if the updated lumped resistance exceeds the
-	 * threshold or not.
-	 */
-	if (resisdata->rg_maxres < resisdata->rthresh)
-	    if (HashLookOnly(&ResForceTable, node->name) == NULL)
-	    {
-		if (ResOptionsFlags & ResOpt_Debug)
-		    TxPrintf("Not adding %s (maxres = %.2fohm)\n", node->name,
-				resisdata->rg_maxres * MILLIOHMSTOOHMS);
-		return 0;
-	    }
+	if (HashLookOnly(&ResForceTable, node->name) == NULL)
+	{
+	    if (ResOptionsFlags & ResOpt_Debug)
+		TxPrintf("Not adding %s (maxres = %.2fohm)\n", node->name,
+			resisdata->rg_maxres * MILLIOHMSTOOHMS);
+	    return 0;
+	}
     }
-    else if ((resisdata->rg_Tdi != -1) && (resisdata->rg_Tdi < resisdata->mindelay))
+    else if ((resisdata->mindelay > 0) && (node->capacitance > 0) &&
+		(resisdata->rg_Tdi != -1) && (resisdata->rg_Tdi < resisdata->mindelay))
     {
 	if (HashLookOnly(&ResForceTable, node->name) == NULL)
 	{

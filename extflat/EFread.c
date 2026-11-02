@@ -63,6 +63,20 @@ bool EFSaveLocs;	/* If TRUE, save location of merged top-level nodes */
 /* Data local to this file */
 static bool efReadDef(Def *def, bool dosubckt, bool resist, bool noscale, bool toplevel, bool isspice);
 
+/* An "equiv" statement between two port names read from a .ext file when
+ * the .res.ext file is also being read.  The two ports are kept separate
+ * while reading, because the .res.ext file normally connects them through
+ * a resistor network.  If the .res.ext file does not describe the net,
+ * then the ports are merged after reading it, as they would be without
+ * "extresist".
+ */
+typedef struct _efDeferredEquiv
+{
+    char *ede_name1;
+    char *ede_name2;
+    struct _efDeferredEquiv *ede_next;
+} EFDeferredEquiv;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -155,6 +169,9 @@ efReadDef(
     bool DoSubCircuit = dosubckt;
     HashSearch hs;
     HashEntry *he;
+    HashTable resNames;		/* Node names found in the .res.ext file */
+    bool resNamesInit = FALSE;
+    EFDeferredEquiv *deferred = NULL, *ede;
 
     /* Mark def as available */
     def->def_flags |= DEF_AVAILABLE;
@@ -377,6 +394,15 @@ readfile:
 
 	    /* equiv node1 node2 */
 	    case EQUIV:
+		/* Save the names to check after reading the .res.ext file */
+		if (resist && DoResist)
+		{
+		    ede = (EFDeferredEquiv *)mallocMagic(sizeof(EFDeferredEquiv));
+		    ede->ede_name1 = StrDup((char **)NULL, argv[1]);
+		    ede->ede_name2 = StrDup((char **)NULL, argv[2]);
+		    ede->ede_next = deferred;
+		    deferred = ede;
+		}
 		efBuildEquiv(def, argv[1], argv[2], resist, isspice);
 		break;
 
@@ -454,6 +480,7 @@ readfile:
 	     * so have no "intrinsic" resistance per se.
 	     */
 	    case RNODE:
+		if (resNamesInit) HashFind(&resNames, argv[1]);
 		cap = atoCap(argv[3])*cscale;
 		efBuildNode(def, FALSE, FALSE, FALSE, argv[1], (double) cap,
 			    atoi(argv[4]), atoi(argv[5]), argv[6],
@@ -598,6 +625,11 @@ resistChanged:
 	    /* resistor node1 node2 resistance */
 	    /* NOTE:  Value changed to floating-point 12/16/2019;     */
 	    case RESISTOR:
+		if (resNamesInit)
+		{
+		    HashFind(&resNames, argv[1]);
+		    HashFind(&resNames, argv[2]);
+		}
 		efBuildResistor(def, argv[1], argv[2],
 			    (float)(0.5 + (double)rscale * atof(argv[3])));
 		break;
@@ -656,8 +688,32 @@ resistChanged:
 	    inf = PaOpen(name, "r", ".res.ext", Path, EFLibPath, &efReadFileName);
 
 	if (inf != NULL)
+	{
+	    HashInit(&resNames, 32, HT_STRINGKEYS);
+	    resNamesInit = TRUE;
 	    goto readfile;
+	}
     }
+
+    /* Merge the ports of any "equiv" statement that were kept separate
+     * for "extresist" but which are not on a net described by the
+     * .res.ext file (that is, a net that was not extracted as a
+     * resistor network).  Otherwise the ports would be left unconnected.
+     */
+    while (deferred != NULL)
+    {
+	ede = deferred;
+	if (!resNamesInit ||
+		((HashLookOnly(&resNames, ede->ede_name1) == NULL) &&
+		(HashLookOnly(&resNames, ede->ede_name2) == NULL)))
+	    efBuildEquiv(def, ede->ede_name1, ede->ede_name2, FALSE, isspice);
+	deferred = ede->ede_next;
+	freeMagic(ede->ede_name1);
+	freeMagic(ede->ede_name2);
+	freeMagic(ede);
+    }
+    if (resNamesInit) HashKill(&resNames);
+
     if (line != NULL) freeMagic(line);
 
     /* If we are considering standard cells, only the first level of	*/

@@ -62,7 +62,12 @@ resMakePortBreakpoints(tile, list)
 	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
 	InitializeResNode(resptr, x, y, RES_NODE_ORIGIN);
 	resptr->rn_status = TRUE;
-	resptr->rn_noderes = 0;
+	/* Note:  rn_noderes is left at RES_INFINITY.  Only the starting
+	 * node of the net (see ResStartTile()) is an origin with zero
+	 * resistance.  Any other port with rn_noderes = 0 would also be
+	 * treated as an origin by ResSetPathRes(), so that the resistance
+	 * from the origin to that port would never be computed.
+	 */
 	resptr->rn_name = pl->rp_nodename;
 
 	/* Link back to the resnode from the ResConnect record */

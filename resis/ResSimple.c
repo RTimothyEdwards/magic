@@ -227,10 +227,13 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
     }
     /*
      * Two resistors in series? Combine them and move devices to
-     * appropriate end.
+     * appropriate end.  Do not eliminate the origin or a port (both
+     * marked RES_NODE_ORIGIN) or a sink, or else the port name would
+     * be lost from the network.
      */
     else if (numdrive + numreceive == 2 && (resistor1->rr_value < tolerance &&
-		resistor2->rr_value < tolerance))
+		resistor2->rr_value < tolerance) &&
+		!(node->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)))
     {
 	if ((resistor1->rr_status & RES_MARKED) == 0 &&
 		    (resistor1->rr_connection2 == node))
@@ -524,11 +527,22 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 	*reslist = locallist;
     }
 
-    while (*reslist != NULL && (*reslist)->rr_value < tolerance)
+    current = *reslist;
+    while (current != NULL && current->rr_value < tolerance)
     {
-	current = *reslist;
-	if (current->rr_nextResistor == NULL)
+	if ((*reslist)->rr_nextResistor == NULL)
 	   break;
+
+	/* A resistor between two ports (or a port and the origin) cannot
+	 * be eliminated without losing one of the port names, so leave it
+	 * in the network.
+	 */
+	if ((current->rr_connection1->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)) &&
+		(current->rr_connection2->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)))
+	{
+	    current = current->rr_nextResistor;
+	    continue;
+	}
 
 	working = NULL;
 	c1 = 0;
@@ -623,6 +637,9 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 	ResDoneWithNode(node1);
 	while (*pendingList != NULL)
 	    ResSimplifyNet(pendingList, biglist, reslist, tolerance);
+
+	/* The list has changed, so start again from the smallest */
+	current = *reslist;
     }
 }
 
@@ -891,11 +908,13 @@ ResPruneTree(node, minTdi, nodelist1, nodelist2, resistorlist)
      *	 2.  The direction of this resistor is toward the node
      *	      (This prevents the root from being eliminated
      *   3.  The time constant TDI is less than the tolerance.
+     *   4.  It is not a port (which would lose the port name).
      */
 
     if (node->rn_re != NULL &&
 	    node->rn_re->re_nextEl == NULL &&
-	    node->rn_re->re_thisEl->rr_connection2 == node)
+	    node->rn_re->re_thisEl->rr_connection2 == node &&
+	    !(node->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)))
     {
      	if (node->rn_client == (ClientData)NULL)
 	{

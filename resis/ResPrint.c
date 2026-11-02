@@ -222,7 +222,7 @@ ResPrintExtNode(outextfile, nodelist, node)
     ResExtNode *newnode;
     bool	DoKillNode = TRUE;
     bool	NeedFix = FALSE;
-    resNode	*snode;
+    resNode	*snode, *keepsnode;
 
     /* If any of the subnode names match the original node name, then	*/
     /* we don't want to rip out that node with a "killnode" statement.	*/
@@ -251,19 +251,24 @@ ResPrintExtNode(outextfile, nodelist, node)
 	NeedFix = TRUE;
     }
 
-    /* If somehow a node which is a port is still being marked as killed,
-     * treat the same way as above for device terminals that failed to
-     * extract.
-     */
-
-    if (DoKillNode && (node->status & PORTNODE))
-    {
-	DoKillNode = FALSE;
-	NeedFix = TRUE;
-    }
-
     if ((ResOptionsFlags & ResOpt_DoExtFile) && DoKillNode)
         fprintf(outextfile, "killnode \"%s\"\n", nodename);
+
+    /* If the original node is not killed, then it keeps the capacitance
+     * from its "node" record in the .ext file, while the capacitance
+     * has also been distributed over the subnodes.  To keep the total
+     * correct, subtract the original capacitance from the subnode that
+     * is the original node:  the one with the same name, or (if the
+     * node is patched up below) the first subnode.
+     */
+    keepsnode = NULL;
+    if (!DoKillNode)
+    {
+	for (snode = nodelist; snode != NULL; snode = snode->rn_more)
+	    if ((snode->rn_name != NULL) && !strcmp(snode->rn_name, nodename))
+		break;
+	keepsnode = (snode != NULL) ? snode : (NeedFix ? nodelist : NULL);
+    }
 
     /* Create "rnode" entries for each subnode */
 
@@ -285,10 +290,14 @@ ResPrintExtNode(outextfile, nodelist, node)
 
 	if (ResOptionsFlags & ResOpt_DoExtFile)
 	{
+	    float snodecap = snode->rn_float.rn_area;
+
+	    if (snode == keepsnode) snodecap -= node->nodecap;
+
 	    /* rnode name R C x y  type (R is always 0) */
      	    fprintf(outextfile, "rnode \"%s\" 0 %g %d %d %d\n",
 		    snode->rn_name,
-		    (snode->rn_float.rn_area / ExtCurStyle->exts_capScale),
+		    (snodecap / ExtCurStyle->exts_capScale),
 		    snode->rn_loc.p_x,
 		    snode->rn_loc.p_y,
 		    /* the following is TEMPORARILY set to 0 */
