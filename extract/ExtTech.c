@@ -3918,20 +3918,17 @@ zinit:
 		// Note that because sidewall caps are referred to
 		// a specific distance, the value (run / separation)
 		// is unscaled, so the capacitance does not get
-		// modified by the scalefactor.  However, the lambda
-		// reference for sidewall cap is 2 lambda, so if
-		// the reference is to be interpreted as 1 micron,
-		// the value needs to be divided by 2 (the factor of
-		// 2 is made up by the fact that the sidewall is
-		// independently accumulated on each plate of the
-		// capacitor).  ALSO:  ec_offset was multiplied up by
+		// modified by the scalefactor.  (The correction for
+		// the sidewall being independently accumulated on
+		// each plate of the capacitor is made when parsing
+		// the tech file, for all units;  see "sidewall" and
+		// "defaultsidewall".)  ec_offset was multiplied up by
 		// 1000 so that micron distances could be saved as
 		// integer values, so that factor needs to be divided out.
 
 		for (ec = style->exts_sideCoupleCap[r][s]; ec != NULL;
 				ec = ec->ec_next)
 		{
-		    ec->ec_cap *= 0.5;
 		    ec->ec_offset = (int)(((float)ec->ec_offset / dscale) + 0.5);
 		    ec->ec_offset /= 1000;
 		}
