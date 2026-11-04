@@ -2610,7 +2610,8 @@ defblockageVisit(
     CellDef *def = defobsdata->def;
     TileType magictype;
     TileTypeBitMask tmask;
-    int defBlockageGeometryFunc(Tile *tile, int plane, DefObsData *defobsdata);	/* Forward declaration */
+    int defBlockageGeometryFunc(Tile *tile, TileType dinfo, int plane,
+		DefObsData *defobsdata);	/* Forward declaration */
 
     /* For regular nets, only count those nodes having port	*/
     /* connections.  For special nets, only count those nodes	*/
@@ -2641,6 +2642,7 @@ defblockageVisit(
 int
 defBlockageGeometryFunc(
     Tile *tile,			/* Tile being visited */
+    TileType dinfo,		/* Split tile information (unused) */
     int plane,			/* Plane of the tile being visited */
     DefObsData *defobsdata)	/* Data passed to this function */
 {
