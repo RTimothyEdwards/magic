@@ -2999,7 +2999,12 @@ spcdevVisit(
 		    spcdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier,
 				name, esSpiceF);
 
-		    spcdevResPi(hierName, gate->dterm_node->efnode_name->efnn_hier,
+		    /* The first terminal of a resistor is the device body,
+		     * which is not output.  For any other device it is a
+		     * real terminal and keeps its capacitance.
+		     */
+		    if (dev->dev_class == DEV_RSUBCKT)
+			spcdevResPi(hierName, gate->dterm_node->efnode_name->efnn_hier,
 				source->dterm_node->efnode_name->efnn_hier,
 				drain->dterm_node->efnode_name->efnn_hier,
 				name);

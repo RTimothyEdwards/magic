@@ -70,9 +70,12 @@ extern const char * const extDevTable[];
 #define	EXT_DOCOUPLING		0x004	/* Extract coupling capacitance */
 #define	EXT_DORESISTANCE	0x008	/* Extract lumped resistance */
 #define	EXT_DOLENGTH		0x010	/* Extract pathlengths */
-#define	EXT_DOFRINGEHALO	0x020	/* Distributed fringe capacitance */
+#define	EXT_DOFRINGEHALO	0x020	/* Distributed fringe capacitance.  This
+					 * selects a model and is not included in
+					 * EXT_DOALL.
+					 */
 #define EXT_DOUNIQUE		0x100	/* Force unique nodes during extraction */
-#define	EXT_DOALL		0x13f	/* ALL OF THE ABOVE */
+#define	EXT_DOALL		0x11f	/* ALL OF THE ABOVE, except as noted */
 #define	EXT_DOLABELCHECK	0x040	/* Check for connections by label */
 #define EXT_DOALIASES		0x080	/* Output all node aliases */
 #define EXT_DOEXTRESIST		0x200	/* Do full R-C extraction */

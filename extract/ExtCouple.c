@@ -1133,11 +1133,14 @@ extAddCouple(bp, ecs)
      * that handles cases such as FET types not being declared in
      * defaultperimeter, as the edge between poly and FET will be
      * seen as a boundary.  The lack of any area coupling should
-     * then prevent it from being checked for fringe cap.
+     * then prevent it from being checked for fringe cap.  The legacy
+     * fringe model does not depend on the side halo, and styles using
+     * it often have no sidewall coupling, so it is not skipped here.
      */
 
     if (TTMaskIsZero(&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout]))
-	return 0;
+	if ((ExtOptions & EXT_DOFRINGEHALO) && (ExtCurStyle->exts_sideCoupleHalo != 0))
+	    return 0;
 
     /* Revert any edge contacts to their residues */
     if (DBIsContact(tin))
@@ -1332,6 +1335,7 @@ extFindOverlap(tp, area, esws)
     PlaneMask pMask;
     int pNum;
     Rect *rsave;
+    Rect rlegacy;
     Boundary *bp = esws->bp;
     TileType tin = TiGetType(bp->b_inside);
     TileType tout = TiGetType(bp->b_outside);
@@ -1349,6 +1353,27 @@ extFindOverlap(tp, area, esws)
 
     /* Replace esws->area with area */
     rsave = esws->area;
+
+    /* The legacy fringe model takes capacitance per unit length from an
+     * area one unit deep, so it does not use the depth of the walk area,
+     * which is the side halo (and may be zero).  esws->area has that one
+     * unit depth, so only clip it along the length of the edge.
+     */
+    if (!esws->fringe_halo)
+    {
+	rlegacy = *rsave;
+	if ((bp->b_direction == BD_TOP) || (bp->b_direction == BD_BOTTOM))
+	{
+	    rlegacy.r_xbot = area->r_xbot;
+	    rlegacy.r_xtop = area->r_xtop;
+	}
+	else
+	{
+	    rlegacy.r_ybot = area->r_ybot;
+	    rlegacy.r_ytop = area->r_ytop;
+	}
+	area = &rlegacy;
+    }
     esws->area = area;
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)

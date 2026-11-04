@@ -59,6 +59,14 @@ ExtKeep *ExtAllStyles = NULL;
 TileTypeBitMask *allExtractTypes = NULL;
 
 /* Forward declarations */
+/* Lowest tech file format with coefficients for distributed fringe	*/
+/* capacitance.								*/
+#define EXT_FRINGEHALO_FORMAT	34
+
+/* Set when a new technology is being loaded, until the fringe model	*/
+/* has been chosen for it.						*/
+static bool extFringeModelPending = FALSE;
+
 void extTechFinalStyle();
 void ExtLoadStyle();
 void ExtTechScale(int, int);
@@ -1119,6 +1127,11 @@ ExtTechInit()
     ExtKeep *style;
     int r;
 
+    /* The format version has not been read yet.  ExtTechFinal() sets	*/
+    /* the fringe model once it has been.				*/
+
+    extFringeModelPending = TRUE;
+
     /* Delete everything in ExtCurStyle */
 
     if (ExtCurStyle != NULL)
@@ -1552,7 +1565,7 @@ ExtTechSimpleSidewallCap(argc, argv)
     TileTypeBitMask types1, types2;
     CapValue capVal;
     EdgeCap *cnew;
-    int offset;
+    float offset;
     double doffset;
     int plane;
 
@@ -1567,11 +1580,11 @@ ExtTechSimpleSidewallCap(argc, argv)
 
     if (argc == 5)
     {
-	/* Save a value of 1000 * the offset, which will be converted
+	/* The offset is in the units of the tech file, and will be converted
 	 * appropriately to magic units like exts->sideCoupleHalo.
 	 */
 	sscanf(argv[4], "%lg", &doffset);
-	offset = (int)(0.5 + doffset * 1000.0);
+	offset = (float)doffset;
     }
     else
 	offset = 0;
@@ -2006,7 +2019,7 @@ ExtTechLine(sectionName, argc, argv)
     ParamList *subcktParams, *newParam;
     ExtDevice *devptr;
     int refcnt;
-    int offset;
+    float offset;
     double dhalo;
     double doffset;
     bool bad;
@@ -3319,7 +3332,7 @@ ExtTechLine(sectionName, argc, argv)
 	    if (argc == 7)
 	    {
 		sscanf(argv[6], "%lg", &doffset);
-		offset = (int)(0.5 + doffset * 1000.0);
+		offset = (float)doffset;
 	    }
 	    else
 		offset = 0;
@@ -3557,6 +3570,21 @@ ExtTechFinal()
 	ExtCurStyle->exts_status = TECH_LOADED;
     }
     extTechFinalStyle(ExtCurStyle);
+
+    /* Distributed fringe capacitance applies only to tech files with	*/
+    /* coefficients computed for it.  This happens only when a new	*/
+    /* technology is loaded and not when the extract section is reloaded */
+    /* for a change of style, which must not undo a user's choice made	*/
+    /* with "extract do|no fringehalo".					*/
+
+    if (extFringeModelPending)
+    {
+	if (TechFormatVersion >= EXT_FRINGEHALO_FORMAT)
+	    ExtOptions |= EXT_DOFRINGEHALO;
+	else
+	    ExtOptions &= ~EXT_DOFRINGEHALO;
+	extFringeModelPending = FALSE;
+    }
 
     /* Any type in the connection tables that is connected to	    */
     /* something other than itself is added to the list of	    */
@@ -3922,15 +3950,13 @@ zinit:
 		// the sidewall being independently accumulated on
 		// each plate of the capacitor is made when parsing
 		// the tech file, for all units;  see "sidewall" and
-		// "defaultsidewall".)  ec_offset was multiplied up by
-		// 1000 so that micron distances could be saved as
-		// integer values, so that factor needs to be divided out.
+		// "defaultsidewall".)  ec_offset is a distance in microns
+		// that is not limited to the layout grid.
 
 		for (ec = style->exts_sideCoupleCap[r][s]; ec != NULL;
 				ec = ec->ec_next)
 		{
-		    ec->ec_offset = (int)(((float)ec->ec_offset / dscale) + 0.5);
-		    ec->ec_offset /= 1000;
+		    ec->ec_offset /= dscale;
 		}
 	    }
 
@@ -4087,7 +4113,8 @@ ExtTechScale(scalen, scaled)
 	    {
 	    	// ec->ec_cap *= scalen;
 	    	// ec->ec_cap /= scaled;
-    		DBScaleValue(&(ec->ec_offset), scaled, scalen);
+		ec->ec_offset *= (float)scaled;
+		ec->ec_offset /= (float)scalen;
 	    }
 	    for (ec = style->exts_sideOverlapCap[i][j]; ec != NULL;
 				ec = ec->ec_next)

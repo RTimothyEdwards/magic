@@ -1049,6 +1049,7 @@ cmdExpandFunc(
 #define	DOALIASES      10
 #define	DOUNIQUE       11
 #define	DOEXTRESIST2   12
+#define	DOFRINGEHALO   13
 
 #define	LENCLEAR	0
 #define	LENDRIVER	1
@@ -1101,6 +1102,7 @@ CmdExtract(
 	"aliases		output all net name aliases",
 	"unique	 [notopports]	ensure unique node names during extraction",
 	"resistance		extract resistance (same as \"do extresist\")",
+	"fringehalo		distribute fringe capacitance over a halo",
 	NULL
     };
     static const char * const cmdExtLength[] =
@@ -1403,6 +1405,7 @@ CmdExtract(
 		TxPrintf("%s corners (scale factor %g)\n", OPTSET(EXT_DOCORNERS),
 			ExtCornerFactor);
 		TxPrintf("%s coupling\n", OPTSET(EXT_DOCOUPLING));
+		TxPrintf("%s fringehalo\n", OPTSET(EXT_DOFRINGEHALO));
 		TxPrintf("%s length\n", OPTSET(EXT_DOLENGTH));
 		TxPrintf("%s lumped R\n", OPTSET(EXT_DORESISTANCE));
 		TxPrintf("%s label check\n", OPTSET(EXT_DOLABELCHECK));
@@ -1455,6 +1458,7 @@ CmdExtract(
 		case DOALIASES:		option = EXT_DOALIASES; break;
 		case DOEXTRESIST:
 		case DOEXTRESIST2:	option = EXT_DOEXTRESIST; break;
+		case DOFRINGEHALO:	option = EXT_DOFRINGEHALO; break;
 		case DOUNIQUE:
 		    if (argc == 4)
 		    {

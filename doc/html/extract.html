@@ -65,6 +65,24 @@ Circuit netlist extractor
 			increases extraction time, so it is disabled by
 			default, and is not included in the options enabled
 			by "<B>all</B>".
+		  <DT> <B>fringehalo</B>
+		  <DD> Distribute the fringe capacitance of a shape edge over
+			the halo distance set by "<B>sidehalo</B>" in the
+			technology file.  When a technology file is loaded,
+			this is enabled if its format version is 34 or higher,
+			which are the files with coefficients computed for
+			this model, and disabled otherwise.  Loading a
+			technology overrides any earlier setting, but changing
+			the extraction style does not.  With
+			"<B>extract no fringehalo</B>", fringe capacitance
+			couples only to shapes directly below the edge, which
+			is the legacy model, and the <B>corners</B> option has
+			no effect.  The legacy model is also used for any
+			extraction style with "<B>sidehalo 0</B>".  This option
+			selects a model and only
+			matters when <B>coupling</B> is enabled, so it is not
+			changed by "<B>extract do all</B>" or
+			"<B>extract no all</B>".
 		  <DT> <B>lumped</B>
 		  <DD> Extract lumped resistance values.
 			The values extracted are "lumped" resistance and
@@ -96,7 +114,8 @@ Circuit netlist extractor
 			array instances, is guaranteed to be strictly positive.
 		  <DT> <B>all</B>
 		  <DD> Apply all standard options (does not include options
-			"local", "labelcheck", "aliases", or "resistance").
+			"local", "labelcheck", "aliases", "resistance",
+			"corners", or "fringehalo").
 		  <DT> <B>local</B>
 		  <DD> Write all .ext files to the current working directory.
 			If not specified, each .ext file will be placed in the

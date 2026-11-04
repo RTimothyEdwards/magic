@@ -934,9 +934,22 @@ spcdevHierVisit(
 		    l /= 2;	/* Halve the resistor length for each side */
 		}
 		else if (dev->dev_nterm > 2)
+		{
 		    spcdevOutNode(hc->hc_hierName,
 				drain->dterm_node->efnode_name->efnn_hier,
 				"subckt", esSpiceF);
+
+		    /* The first terminal of a resistor is the device body,
+		     * which is not output.  For any other device it is a
+		     * real terminal and keeps its capacitance.
+		     */
+		    if (dev->dev_class == DEV_RSUBCKT)
+			spcdevResPi(hc->hc_hierName,
+				gate->dterm_node->efnode_name->efnn_hier,
+				source->dterm_node->efnode_name->efnn_hier,
+				drain->dterm_node->efnode_name->efnn_hier,
+				"subckt");
+		}
 	    }
 	    else    /* class DEV_MSUBCKT */
 	    {
@@ -1027,13 +1040,6 @@ spcdevHierVisit(
 		spcHierWriteParams(hc, dev, scale, l, w, sdM, FALSE);
 		if (sdM != 1.0)
 		    fprintf(esSpiceF, " M=%g", sdM);
-	    }
-	    else
-	    {
-		spcdevResPi(hc->hc_hierName, gate->dterm_node->efnode_name->efnn_hier,
-			source->dterm_node->efnode_name->efnn_hier,
-			drain->dterm_node->efnode_name->efnn_hier,
-			"subckt");
 	    }
 	    break;
 

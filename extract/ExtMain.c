@@ -55,7 +55,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
      * and would only need to be disabled under exceptional circumstances.)
      */
 int ExtDoWarn = EXTWARN_DUP|EXTWARN_FETS;
-int ExtOptions = EXT_DOALL|EXT_DOLABELCHECK|EXT_DOALIASES;
+int ExtOptions = EXT_DOALL|EXT_DOFRINGEHALO|EXT_DOLABELCHECK|EXT_DOALIASES;
 char *ExtLocalPath = NULL;
 
     /*

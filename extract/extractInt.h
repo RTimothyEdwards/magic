@@ -473,7 +473,9 @@ typedef struct edgecap
 {
     struct edgecap	*ec_next;	/* Next edge capacitance rule in list */
     CapValue		 ec_cap;	/* Capacitance (attofarads) */
-    int			 ec_offset;	/* Offset to apply to separation */
+    float		 ec_offset;	/* Offset to apply to separation, not limited
+					 * to the layout grid.
+					 */
     TileTypeBitMask	 ec_near;	/* Types closest to causing edge, or in
 					 * the case of sideOverlaps, the
 					 * types we are overlapping.
