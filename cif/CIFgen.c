@@ -5321,10 +5321,21 @@ CIFGenLayer(
 	        }
 	        else
 		{
+		    int i;
+
 		    TTMaskSetMask(&bls.connect, &op->co_paintMask);
 		    DBSrPaintArea((Tile *)NULL, cellDef->cd_planes[bloats->bl_plane],
 			    &TiPlaneRect, &bls.connect, cifProcessResetFunc,
 			    (ClientData)NULL);
+
+		    /* Seed types (e.g., contacts) may also be marked on	*/
+		    /* other planes, as cifSrTiles() searches them all.	*/
+
+		    for (i = PL_DRC_CHECK; i < DBNumPlanes; i++)
+			if (i != bloats->bl_plane)
+			    DBSrPaintArea((Tile *)NULL, cellDef->cd_planes[i],
+				    &TiPlaneRect, &op->co_paintMask,
+				    cifProcessResetFunc, (ClientData)NULL);
 		}
 
 		break;
