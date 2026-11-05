@@ -224,6 +224,12 @@ typedef struct efnode
     EFCapValue	 efnode_cap;	/* Total capacitance to ground for this node */
     int		 efnode_type;	/* Index into type table for node */
     int		 efnode_num;	/* Number of items in efnode_hdr list */
+    int		 efnode_seq;	/* Order in which the node was created,
+				 * used to sort capacitors (see
+				 * efSortCaps()), since the order of
+				 * creation does not change between runs
+				 * and the address of the node may.
+				 */
     Rect	 efnode_loc;	/* Location of a 1x1 rect contained in this
 				 * node.  This information is provided in the
 				 * .ext file so it will be easy to map between

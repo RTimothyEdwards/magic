@@ -4015,14 +4015,13 @@ spcResBodyCaps(void)
     } MovedCap;
 
     HashTable bodies;
-    HashSearch hs;
     HashEntry *he, *he1, *he2;
-    EFCoupleKey *ck;
+    EFSortedCap *caps;
     EsResBody *body, *body1, *body2;
     MovedCap *moved = NULL, *mc;
     EFNode *t1[2], *t2[2];
     double cap;
-    int i, j;
+    int numcaps, i, j;
 
     if (esResBodyList == NULL) return;
 
@@ -4030,22 +4029,25 @@ spcResBodyCaps(void)
     for (body = esResBodyList; body != NULL; body = body->erb_next)
 	HashSetValue(HashFind(&bodies, (char *)body->erb_body), (char *)body);
 
-    /* Find the capacitors first, as the table cannot change during a search */
+    /* Find the capacitors first, as the table cannot change during a	*/
+    /* search.  Sort them, so that the values are added up in an order	*/
+    /* that does not depend on addresses.				*/
 
-    HashStartSearch(&hs);
-    while ((he = HashNext(&efCapHashTable, &hs)))
+    numcaps = efSortCaps(&caps);
+    for (i = numcaps - 1; i >= 0; i--)
     {
-	ck = (EFCoupleKey *)he->h_key.h_words;
-	if ((HashLookOnly(&bodies, (char *)ck->ck_1) == NULL) &&
-		(HashLookOnly(&bodies, (char *)ck->ck_2) == NULL))
+	he = caps[i].ec_entry;
+	if ((HashLookOnly(&bodies, (char *)caps[i].ec_node1) == NULL) &&
+		(HashLookOnly(&bodies, (char *)caps[i].ec_node2) == NULL))
 	    continue;
 
 	mc = (MovedCap *)mallocMagic(sizeof(MovedCap));
-	mc->mc_key = *ck;
+	mc->mc_key = *(EFCoupleKey *)he->h_key.h_words;
 	mc->mc_cap = (double)CapHashGetValue(he);
 	mc->mc_next = moved;
 	moved = mc;
     }
+    if (caps != NULL) freeMagic((char *)caps);
 
     for (mc = moved; mc != NULL; mc = mc->mc_next)
     {

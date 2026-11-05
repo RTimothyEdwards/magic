@@ -660,11 +660,11 @@ extArrayAdjust(ha, et1, et2)
 {
     CapValue cap;	/* value of capacitance WAS: int */
     NodeRegion *np;
-    CoupleKey *ck;
+    ExtCoupleCap *caps;
     HashEntry *he;
     NodeName *nn;
-    HashSearch hs;
     char *name;
+    int numcaps, i;
 
     /*
      * Initialize the capacitance, perimeter, and area values
@@ -691,19 +691,17 @@ extArrayAdjust(ha, et1, et2)
     extHierAdjustments(ha, &ha->ha_cumFlat, et1, et1);
     extHierAdjustments(ha, &ha->ha_cumFlat, et2, et2);
 
-    HashStartSearch(&hs);
-    while ((he = HashNext(&ha->ha_cumFlat.et_coupleHash, &hs)))
+    /* Write the capacitors in an order that does not depend on addresses */
+    numcaps = extSortCoupling(&ha->ha_cumFlat.et_coupleHash, &caps);
+    for (i = 0; i < numcaps; i++)
     {
-	cap = extGetCapValue(he)  / ExtCurStyle->exts_capScale;
-	if (cap == 0)
-	    continue;
-
-	ck = (CoupleKey *) he->h_key.h_words;
-	name = extArrayNodeName(ck->ck_1, ha, et1, et2);
+	cap = caps[i].ec_cap / ExtCurStyle->exts_capScale;
+	name = extArrayNodeName(caps[i].ec_node1, ha, et1, et2);
 	fprintf(ha->ha_outf, "cap \"%s\" ", name);
-	name = extArrayNodeName(ck->ck_2, ha, et1, et2);
+	name = extArrayNodeName(caps[i].ec_node2, ha, et1, et2);
 	fprintf(ha->ha_outf, "\"%s\" %lg\n", name, cap);
     }
+    if (caps != NULL) freeMagic((char *) caps);
 }
 
 char *

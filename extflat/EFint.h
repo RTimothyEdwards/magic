@@ -312,6 +312,17 @@ extern int efHNUseHash();
 extern EFCapValue CapHashGetValue();
 extern void CapHashSetValue();
 
+    /* Coupling capacitors in an order that does not depend on addresses */
+typedef struct
+{
+    EFNode	*ec_node1;	/* Node that sorts first */
+    EFNode	*ec_node2;	/* Node that sorts second */
+    HashEntry	*ec_entry;	/* Entry in efCapHashTable */
+} EFSortedCap;
+
+extern int efNodeSeqNum;
+extern int efSortCaps(EFSortedCap **caps);
+
    /* efBuild procedures */
 /* Warning: The capacitance argument to these should be always double
 	    regardless of whether you set EFCapValue to float or double

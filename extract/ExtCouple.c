@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>		/* For atan() */
 
 #include "utils/magic.h"
@@ -33,6 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extract/extract.h"
 #include "extract/extractInt.h"
 #include "textio/textio.h"
+#include "utils/malloc.h"
 
 /* --------------------- Data local to this file ---------------------- */
 
@@ -290,25 +292,158 @@ extOutputCoupling(table, outFile)
     HashTable *table;	/* Coupling capacitance hash table */
     FILE *outFile;	/* Output file */
 {
+    ExtCoupleCap *caps;
+    char *text;
+    CapValue cap;  /* value of capacitance. */
+    int numcaps, i;
+
+    numcaps = extSortCoupling(table, &caps);
+    for (i = 0; i < numcaps; i++)
+    {
+	cap = caps[i].ec_cap / ExtCurStyle->exts_capScale;
+	text = extNodeName((LabRegion *) caps[i].ec_node1);
+	fprintf(outFile, "cap \"%s\" ", text);
+	text = extNodeName((LabRegion *) caps[i].ec_node2);
+	fprintf(outFile, "\"%s\" %lg\n", text, cap);
+    }
+    if (caps != NULL) freeMagic((char *) caps);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extCoupleNodeCmp --
+ *
+ * Compare two nodes by location:  the plane, then the lower-leftmost point
+ * of the node on that plane (X, then Y), then the type of the tile there.
+ * Unlike the address of a node record, the location does not change from
+ * one run to the next.  No two nodes in a cell have the same location.
+ *
+ * Results:
+ *	Negative, zero, or positive.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static int
+extCoupleNodeCmp(
+    NodeRegion *node1,
+    NodeRegion *node2)
+{
+    if (node1->nreg_pnum != node2->nreg_pnum)
+	return (node1->nreg_pnum < node2->nreg_pnum) ? -1 : 1;
+    if (node1->nreg_ll.p_x != node2->nreg_ll.p_x)
+	return (node1->nreg_ll.p_x < node2->nreg_ll.p_x) ? -1 : 1;
+    if (node1->nreg_ll.p_y != node2->nreg_ll.p_y)
+	return (node1->nreg_ll.p_y < node2->nreg_ll.p_y) ? -1 : 1;
+    if (node1->nreg_type != node2->nreg_type)
+	return (node1->nreg_type < node2->nreg_type) ? -1 : 1;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extCoupleSortFunc --
+ *
+ * qsort() sorting function for extSortCoupling().
+ *
+ * Results:
+ *	Negative, zero, or positive, comparing the first nodes of the two
+ *	capacitors, then the second nodes.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static int
+extCoupleSortFunc(
+    const void *rec1,
+    const void *rec2)
+{
+    const ExtCoupleCap *c1 = (const ExtCoupleCap *) rec1;
+    const ExtCoupleCap *c2 = (const ExtCoupleCap *) rec2;
+    int cmp;
+
+    if ((cmp = extCoupleNodeCmp(c1->ec_node1, c2->ec_node1)) != 0)
+	return cmp;
+    return extCoupleNodeCmp(c1->ec_node2, c2->ec_node2);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extSortCoupling --
+ *
+ * Make a list of the capacitors with a nonzero value in a coupling
+ * capacitance hash table, sorted by the locations of their nodes (see
+ * extCoupleNodeCmp()), with the node that sorts first as the first node of
+ * each capacitor.  The hash table is keyed by the addresses of the nodes,
+ * so the order of a search of the table can change from one run to the
+ * next;  the sorted list does not.
+ *
+ * Results:
+ *	Returns the number of capacitors.  *caps is set to the list, which
+ *	the caller must free with freeMagic(), or to NULL if there are no
+ *	capacitors.
+ *
+ * Side effects:
+ *	Allocates memory.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extSortCoupling(
+    HashTable *table,		/* Coupling capacitance hash table */
+    ExtCoupleCap **caps)	/* Returns the sorted list */
+{
     HashEntry *he;
     CoupleKey *ck;
     HashSearch hs;
-    char *text;
-    CapValue cap;  /* value of capacitance. */
+    ExtCoupleCap *list;
+    CapValue cap;
+    int numcaps;
 
+    numcaps = 0;
+    HashStartSearch(&hs);
+    while ((he = HashNext(table, &hs)))
+	if (extGetCapValue(he) != 0) numcaps++;
+
+    *caps = NULL;
+    if (numcaps == 0) return 0;
+
+    list = (ExtCoupleCap *) mallocMagic(numcaps * sizeof (ExtCoupleCap));
+    numcaps = 0;
     HashStartSearch(&hs);
     while ((he = HashNext(table, &hs)))
     {
-	cap = extGetCapValue(he) / ExtCurStyle->exts_capScale;
-	if (cap == 0)
-	    continue;
+	cap = extGetCapValue(he);
+	if (cap == 0) continue;
 
 	ck = (CoupleKey *) he->h_key.h_words;
-	text = extNodeName((LabRegion *) ck->ck_1);
-	fprintf(outFile, "cap \"%s\" ", text);
-	text = extNodeName((LabRegion *) ck->ck_2);
-	fprintf(outFile, "\"%s\" %lg\n", text, cap);
+	if (extCoupleNodeCmp(ck->ck_1, ck->ck_2) <= 0)
+	{
+	    list[numcaps].ec_node1 = ck->ck_1;
+	    list[numcaps].ec_node2 = ck->ck_2;
+	}
+	else
+	{
+	    list[numcaps].ec_node1 = ck->ck_2;
+	    list[numcaps].ec_node2 = ck->ck_1;
+	}
+	list[numcaps].ec_cap = cap;
+	numcaps++;
     }
+
+    qsort(list, (size_t) numcaps, sizeof (ExtCoupleCap), extCoupleSortFunc);
+    *caps = list;
+    return numcaps;
 }
 
 /*

@@ -219,6 +219,19 @@ typedef struct nreg
 } NodeRegion;
 
     /*
+     * A coupling capacitor from a coupling capacitance hash table, as
+     * returned in sorted order by extSortCoupling().
+     */
+typedef struct
+{
+    NodeRegion	*ec_node1;	/* Node that sorts first */
+    NodeRegion	*ec_node2;	/* Node that sorts second */
+    CapValue	 ec_cap;	/* Capacitance, in internal units */
+} ExtCoupleCap;
+
+extern int extSortCoupling(HashTable *table, ExtCoupleCap **caps);
+
+    /*
      * Transistor region: labelled region with perimeter and area.
      * Used for each transistor in the flat extraction of a cell.
      */

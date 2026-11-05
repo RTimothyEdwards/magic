@@ -630,23 +630,118 @@ EFVisitCaps(capProc, cdata)
     int (*capProc)();
     ClientData cdata;
 {
+    EFSortedCap *caps;
+    EFCapValue cap;
+    int numcaps, i, result = 0;
+
+    /* Visit the capacitors in an order that does not depend on addresses */
+    numcaps = efSortCaps(&caps);
+    for (i = 0; i < numcaps; i++)
+    {
+	cap = CapHashGetValue(caps[i].ec_entry);
+	if ((*capProc)(caps[i].ec_node1->efnode_name->efnn_hier,
+		       caps[i].ec_node2->efnode_name->efnn_hier,
+		       (double) cap, cdata))
+	{
+	    result = 1;
+	    break;
+	}
+    }
+    if (caps != NULL) freeMagic((char *) caps);
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * efSortCapFunc --
+ *
+ * qsort() sorting function for efSortCaps().
+ *
+ * Results:
+ *	Negative, zero, or positive, comparing the sequence numbers of the
+ *	first nodes of the two capacitors, then of the second nodes.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static int
+efSortCapFunc(
+    const void *rec1,
+    const void *rec2)
+{
+    const EFSortedCap *c1 = (const EFSortedCap *) rec1;
+    const EFSortedCap *c2 = (const EFSortedCap *) rec2;
+
+    if (c1->ec_node1->efnode_seq != c2->ec_node1->efnode_seq)
+	return (c1->ec_node1->efnode_seq < c2->ec_node1->efnode_seq) ? -1 : 1;
+    if (c1->ec_node2->efnode_seq != c2->ec_node2->efnode_seq)
+	return (c1->ec_node2->efnode_seq < c2->ec_node2->efnode_seq) ? -1 : 1;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * efSortCaps --
+ *
+ * Make a list of the capacitors in efCapHashTable, sorted by the order in
+ * which their nodes were created (efnode_seq), with the node created first
+ * as the first node of each capacitor.  The hash table is keyed by the
+ * addresses of the nodes, so the order of a search of the table can change
+ * from one run to the next;  the sorted list does not.
+ *
+ * Results:
+ *	Returns the number of capacitors.  *caps is set to the list, which
+ *	the caller must free with freeMagic(), or to NULL if there are no
+ *	capacitors.
+ *
+ * Side effects:
+ *	Allocates memory.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+efSortCaps(
+    EFSortedCap **caps)		/* Returns the sorted list */
+{
     HashSearch hs;
     HashEntry *he;
     EFCoupleKey *ck;
-    EFCapValue cap;
+    EFSortedCap *list;
+    int numcaps;
 
+    *caps = NULL;
+    numcaps = HashGetNumEntries(&efCapHashTable);
+    if (numcaps == 0) return 0;
+
+    list = (EFSortedCap *) mallocMagic(numcaps * sizeof (EFSortedCap));
+    numcaps = 0;
     HashStartSearch(&hs);
     while ((he = HashNext(&efCapHashTable, &hs)))
     {
-	cap = CapHashGetValue(he);
 	ck = (EFCoupleKey *) he->h_key.h_words;
-	if ((*capProc)(ck->ck_1->efnode_name->efnn_hier,
-		       ck->ck_2->efnode_name->efnn_hier,
-		       (double) cap, cdata))
-	    return 1;
+	if (ck->ck_1->efnode_seq <= ck->ck_2->efnode_seq)
+	{
+	    list[numcaps].ec_node1 = ck->ck_1;
+	    list[numcaps].ec_node2 = ck->ck_2;
+	}
+	else
+	{
+	    list[numcaps].ec_node1 = ck->ck_2;
+	    list[numcaps].ec_node2 = ck->ck_1;
+	}
+	list[numcaps].ec_entry = he;
+	numcaps++;
     }
 
-    return 0;
+    qsort(list, (size_t) numcaps, sizeof (EFSortedCap), efSortCapFunc);
+    *caps = list;
+    return numcaps;
 }
 
 /*

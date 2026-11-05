@@ -62,6 +62,9 @@ int   EFDevNumTypes;
 char *EFLayerNames[MAXTYPES] = { "space" };
 int   EFLayerNumNames;
 
+/* Count of nodes created, for efnode_seq */
+int   efNodeSeqNum = 0;
+
 /* Forward declarations */
 EFNode *efBuildDevNode(Def *def, char *name, bool isSubsNode);
 void efNodeAddName(EFNode *node, HashEntry *he, HierName *hn, bool isNew);
@@ -286,6 +289,7 @@ efBuildNode(def, isSubsnode, isDevSubsnode, isExtNode, nodeName, nodeCap,
     newnode->efnode_loc.r_ytop = newnode->efnode_loc.r_ybot + 1;
     newnode->efnode_client = (ClientData) NULL;
     newnode->efnode_num = 1;
+    newnode->efnode_seq = efNodeSeqNum++;
     if (layerName) newnode->efnode_type =
 	    efBuildAddStr(EFLayerNames, &EFLayerNumNames, MAXTYPES, layerName);
     else newnode->efnode_type = 0;

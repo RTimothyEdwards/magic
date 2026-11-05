@@ -683,26 +683,29 @@ EFHierVisitCaps(hc, capProc, cdata)
     int (*capProc)();
     ClientData cdata;
 {
-    HashSearch hs;
-    HashEntry *he;
-    EFCoupleKey *ck;
+    EFSortedCap *caps;
     EFCapValue ccap;
+    int numcaps, i, result = 0;
 
     /* Visit capacitors flattened from a lower level, as well	*/
     /* as our own.  These have been created and saved in	*/
-    /* efCapHashTable using efFlatCaps().			*/
+    /* efCapHashTable using efFlatCaps().  Visit them in an	*/
+    /* order that does not depend on addresses.			*/
 
-    HashStartSearch(&hs);
-    while ((he = HashNext(&efCapHashTable, &hs)))
+    numcaps = efSortCaps(&caps);
+    for (i = 0; i < numcaps; i++)
     {
-	ccap = CapHashGetValue(he);
-	ck = (EFCoupleKey *) he->h_key.h_words;
-	if ((*capProc)(hc, ck->ck_1->efnode_name->efnn_hier,
-			ck->ck_2->efnode_name->efnn_hier,
+	ccap = CapHashGetValue(caps[i].ec_entry);
+	if ((*capProc)(hc, caps[i].ec_node1->efnode_name->efnn_hier,
+			caps[i].ec_node2->efnode_name->efnn_hier,
 			(double) ccap, cdata))
-	    return 1;
+	{
+	    result = 1;
+	    break;
+	}
     }
-    return 0;
+    if (caps != NULL) freeMagic((char *) caps);
+    return result;
 }
 
 /*

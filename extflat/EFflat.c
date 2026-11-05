@@ -516,6 +516,7 @@ efAddNodes(
 	else
 	    newnode->efnode_cap = (EFCapValue)0.0;
 	newnode->efnode_client = (ClientData) NULL;
+	newnode->efnode_seq = efNodeSeqNum++;
 	newnode->efnode_flags = node->efnode_flags;
 	newnode->efnode_type = node->efnode_type;
 	newnode->efnode_num = 1;

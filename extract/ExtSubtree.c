@@ -731,33 +731,30 @@ extSubtreeOutputCoupling(ha)
     HierExtractArg *ha;
 {
     CapValue cap;
-    CoupleKey *ck;
-    HashEntry *he;
+    ExtCoupleCap *caps;
     Tile *tp;
-    HashSearch hs;
     char *name;
+    int numcaps, i;
 
-    HashStartSearch(&hs);
-    while ((he = HashNext(&ha->ha_cumFlat.et_coupleHash, &hs)))
+    /* Write the capacitors in an order that does not depend on addresses */
+    numcaps = extSortCoupling(&ha->ha_cumFlat.et_coupleHash, &caps);
+    for (i = 0; i < numcaps; i++)
     {
 	TileType dinfo;
 
-	cap = extGetCapValue(he) / ExtCurStyle->exts_capScale;
-	if (cap == 0)
-	    continue;
+	cap = caps[i].ec_cap / ExtCurStyle->exts_capScale;
 
-	ck = (CoupleKey *) he->h_key.h_words;
-
-	tp = extNodeToTile(ck->ck_1, &ha->ha_cumFlat, &dinfo);
-	name = extSubtreeTileToNode(tp, dinfo, ck->ck_1->nreg_pnum,
+	tp = extNodeToTile(caps[i].ec_node1, &ha->ha_cumFlat, &dinfo);
+	name = extSubtreeTileToNode(tp, dinfo, caps[i].ec_node1->nreg_pnum,
 			&ha->ha_cumFlat, ha, TRUE);
 	fprintf(ha->ha_outf, "cap \"%s\" ", name);
 
-	tp = extNodeToTile(ck->ck_2, &ha->ha_cumFlat, &dinfo);
-	name = extSubtreeTileToNode(tp, dinfo, ck->ck_2->nreg_pnum,
+	tp = extNodeToTile(caps[i].ec_node2, &ha->ha_cumFlat, &dinfo);
+	name = extSubtreeTileToNode(tp, dinfo, caps[i].ec_node2->nreg_pnum,
 			&ha->ha_cumFlat, ha, TRUE);
 	fprintf(ha->ha_outf, "\"%s\" %lg\n", name, cap);
     }
+    if (caps != NULL) freeMagic((char *) caps);
 }
 
 /*
