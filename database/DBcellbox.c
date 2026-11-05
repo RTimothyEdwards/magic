@@ -760,7 +760,13 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
 	DBComputeUseBbox(use);
 	if ((parent = use->cu_parent) != (CellDef *) NULL)
 	{
-	    parent->cd_flags |= CDBOXESCHANGED;
+	    /* The parent needs to be written only if the bounding box it
+	     * recorded for this use is wrong.  This routine also gets called
+	     * to verify a bounding box after a timestamp mismatch, and the
+	     * use's area before that is only a guess from another parent.
+	     */
+	    if (!GEO_SAMERECT(use->cu_box, cellDef->cd_bbox))
+		parent->cd_flags |= CDBOXESCHANGED;
 	    DBPlaceCellNoModify(use, parent);
 	    if (last != parent)
 	    {

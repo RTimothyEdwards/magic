@@ -844,6 +844,11 @@ DBCellPrint(CellName, who, dolist)
 		{
 		    if ( (celldef->cd_flags & CDINTERNAL) != CDINTERNAL)
 		    {
+			/* The empty (UNNAMED) cell is only a placeholder */
+			if (!(celldef->cd_flags & CDMODIFIED) &&
+				!strcmp(celldef->cd_name, UNNAMED))
+			    continue;
+
 			found = 0;
 			for (celluse = celldef->cd_parents;
 			 	celluse != (CellUse *) NULL;
@@ -2076,6 +2081,8 @@ DBCellNewUse(cellDef, useName)
     cellUse = (CellUse *) mallocMagic((unsigned) (sizeof (CellUse)));
     cellUse->cu_id = StrDup((char **) NULL, useName);
     cellUse->cu_flags = (unsigned char)0;
+    cellUse->cu_stamp = 0;
+    cellUse->cu_box = GeoNullRect;
     cellUse->cu_expandMask = 0;
     cellUse->cu_transform = GeoIdentityTransform;
     cellUse->cu_def = cellDef;

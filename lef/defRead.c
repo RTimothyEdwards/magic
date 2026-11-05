@@ -35,6 +35,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "graphics/graphics.h"
 #include "utils/main.h"
 #include "cif/cif.h"
+#include "drc/drc.h"
 #include "lef/lefInt.h"
 
 /* C99 compat */
@@ -2754,6 +2755,13 @@ DefRead(
     {
 	DBAdjustLabels(rootDef, &TiPlaneRect);
 	DBReComputeBbox(rootDef);
+
+	/* New geometry has not been checked.  Annotating a cell (which adds
+	 * only labels) leaves its DRC state alone.
+	 */
+	if (!annotate)
+	    DRCCheckThis(rootDef, TT_CHECKPAINT, &rootDef->cd_bbox);
+
 	DBWAreaChanged(rootDef, &rootDef->cd_bbox, DBW_ALLWINDOWS,
 		&DBAllButSpaceBits);
 	DBCellSetModified(rootDef, TRUE);

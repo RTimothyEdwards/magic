@@ -430,6 +430,9 @@ typedef struct celldef
  *	    are up-to-date and do not need to be re-extracted.
  *	CDDONTUSE is used during extraction to flag cells that have no
  *	    contents and should be ignored.
+ *	CDCHECKINFILE means that the cell's file contains DRC check areas
+ *	    ("checkpaint"), so that running the DRC changes what needs to
+ *	    be in the file.
  */
 
 #define	CDAVAILABLE	 0x00001
@@ -452,6 +455,7 @@ typedef struct celldef
 #define CDFIXEDSTAMP	 0x20000
 #define CDNOEXTRACT	 0x40000
 #define CDDONTUSE	 0x80000
+#define CDCHECKINFILE	 0x100000
 
 #include "database/arrayinfo.h" /* ArrayInfo */
 
@@ -490,6 +494,12 @@ typedef struct celluse
 					 */
     CellDef		*cu_parent;	/* Cell def containing this use */
     ClientData		 cu_client;	/* This space for rent */
+    int			 cu_stamp;	/* Timestamp of the child, and */
+    Rect		 cu_box;	/* bounding box of the child, as
+					 * recorded for this use in the parent's
+					 * file.  Zero if this use has not been
+					 * read from or written to a file.
+					 */
 } CellUse;
 
 /* CellUse flags */

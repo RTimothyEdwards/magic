@@ -76,6 +76,9 @@ Read or write DEF format files.
       useful for labeling all of the regular nets if the DEF file was
       previously read without the <B>-labels</B> option. <P>
 
+      A cell read from a DEF file is marked as needing a DRC check.
+      A cell read with <B>-annotate</B> is not marked. <P>
+
       The "<B>-noblockage</B>" option will ignore all BLOCKAGES sections
       in the DEF file, in effect producing only mask layer geometry.  If
       not specified, then layer BLOCKAGES in the DEF file are treated

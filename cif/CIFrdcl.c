@@ -1792,7 +1792,13 @@ CIFReadCellCleanup(
     DBReComputeBbox(EditCellUse->cu_def);
     DBWAreaChanged(EditCellUse->cu_def, &EditCellUse->cu_def->cd_bbox,
 	    DBW_ALLWINDOWS, &DBAllButSpaceBits);
-    DBCellSetModified(EditCellUse->cu_def, TRUE);
+
+    /* A CIF file can have top-level geometry, which goes in the edit cell.
+     * Everything in a GDS file is in a structure, so the read does not
+     * change the edit cell.
+     */
+    if (filetype == FILE_CIF)
+	DBCellSetModified(EditCellUse->cu_def, TRUE);
 
     /* Clean up saved CIF/GDS planes in cd_client records of cells */
 

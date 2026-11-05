@@ -2421,8 +2421,12 @@ foreign_error:
 	    proprec->prop_value.prop_integer[3] = lefMacro->cd_bbox.r_ytop;
 
 	    DBPropPut(lefMacro, "FIXED_BBOX", proprec);
-	    DRCCheckThis(lefMacro, TT_CHECKPAINT, &lefMacro->cd_bbox);
 	}
+
+	/* This cell has new geometry that has not been checked.  A cell
+	 * that the LEF is only annotating (above) keeps its DRC state.
+	 */
+	DRCCheckThis(lefMacro, TT_CHECKPAINT, &lefMacro->cd_bbox);
     }
 
     /* Note:  When the LEF view is used to annotate an		*/

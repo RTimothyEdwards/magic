@@ -653,6 +653,7 @@ drcCheckTile(tile, dinfo, arg)
     Rect checkbox;
     CellDef * celldef;		/* First CellDef on DRCPending list. */
     Rect redisplayArea;		/* Area to be redisplayed. */
+    bool errorsChanged;		/* TRUE if the DRC errors are different */
     extern int drcXorFunc();	/* Forward declarations. */
     extern int drcPutBackFunc();
 
@@ -748,7 +749,8 @@ drcCheckTile(tile, dinfo, arg)
 
     (void) DBSrPaintArea((Tile *) NULL, celldef->cd_planes[PL_DRC_ERROR],
 	&square, &DBAllButSpaceBits, drcXorFunc, (ClientData) NULL);
-    if (DBBoundPlane(drcDisplayPlane, &redisplayArea))
+    errorsChanged = DBBoundPlane(drcDisplayPlane, &redisplayArea);
+    if (errorsChanged)
     {
 	GeoClip(&redisplayArea, &square);
 	if (!GEO_RECTNULL(&redisplayArea))
@@ -758,16 +760,22 @@ drcCheckTile(tile, dinfo, arg)
     if (DRCDisplayCheckTiles)
 	DBWAreaChanged(celldef, &square, DBW_ALLWINDOWS, &DRCLayers);
 
-    /* The DRC check and error planes are saved with the cell, so the
-     * cell is marked as modified.  But a DRC update does not change the
-     * cell's contents, so it does not get a new timestamp (which would
-     * change the timestamp recorded in every parent).  Cells that cannot
-     * or should not be written back (non-editable cells, and cells whose
-     * contents come from a vendor GDS file, e.g., PDK library cells) are
-     * not marked as modified at all.  Their DRC errors are still kept in
-     * memory and displayed.
+    /* The DRC check and error planes are saved with the cell.  A check
+     * makes the cell's file out of date only if the file has check areas,
+     * which are now cleared, or if the errors found are different.  This
+     * does not change the cell's contents, so it does not get a new timestamp
+     * (which would change the timestamp recorded in every parent).
+     *
+     * Cells that cannot or should not be written back (non-editable cells,
+     * and cells whose contents come from a vendor GDS file, e.g., PDK library
+     * cells) keep any new errors in memory only.  But they should not have
+     * check areas in the file.  If one does, it is marked as modified, so that
+     * the user keeps being told that it cannot be written, and something is
+     * wrong with it.
      */
-    if (!(celldef->cd_flags & (CDNOEDIT | CDVENDORGDS)))
+    if (celldef->cd_flags & CDCHECKINFILE)
+	celldef->cd_flags |= CDMODIFIED;
+    else if (errorsChanged && !(celldef->cd_flags & (CDNOEDIT | CDVENDORGDS)))
 	celldef->cd_flags |= CDMODIFIED;
     SigEnableInterrupts();
 

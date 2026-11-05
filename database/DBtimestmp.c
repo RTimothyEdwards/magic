@@ -168,6 +168,18 @@ DBFixMismatch()
 	    parentUse = parentUse->cu_nextuse)
 	{
 	    if (parentUse->cu_parent == NULL) continue;
+	    redisplay = TRUE;
+
+	    /* A parent that recorded the correct timestamp has already seen
+	     * this version of the child, and if it still needed to be checked,
+	     * it would have a check area of its own.  A vendor cell is trusted
+	     * to be clean, and it instantiates only other vendor cells.
+	     */
+	    if ((parentUse->cu_stamp == cellDef->cd_timestamp) &&
+		    (cellDef->cd_timestamp != 0))
+		continue;
+	    if (parentUse->cu_parent->cd_flags & CDVENDORGDS) continue;
+
 	    DBComputeArrayArea(&oldArea, parentUse, parentUse->cu_xlo,
 		parentUse->cu_ylo, &parentArea);
 	    DBComputeArrayArea(&oldArea, parentUse, parentUse->cu_xhi,
@@ -177,7 +189,6 @@ DBFixMismatch()
 	    DRCCheckThis(parentUse->cu_parent, TT_CHECKSUBCELL, &parentArea);
 	    DRCCheckThis(parentUse->cu_parent, TT_CHECKSUBCELL,
 		&(parentUse->cu_bbox));
-	    redisplay = TRUE;
 	}
 	cellDef->cd_flags |= CDPROCESSED;
 	clnew = (CellList *)mallocMagic(sizeof(CellList));
@@ -256,10 +267,16 @@ dbStampFunc(cellDef, cdata)
     CellDef *cd;
 
     /* The following check keeps us from making multiple recursive
-     * scans of any cell.
+     * scans of any cell.  The cell already has the new timestamp, which
+     * can also happen if it was last updated within the same second, so
+     * it no longer needs one.
      */
 
-    if (cellDef->cd_timestamp == timestamp) return 0;
+    if (cellDef->cd_timestamp == timestamp)
+    {
+	cellDef->cd_flags &= ~CDGETNEWSTAMP;
+	return 0;
+    }
 
     /* Non-editable cells should not try to update timestamps, as the
      * new timestamp cannot be written back to the file.  This is
@@ -377,6 +394,19 @@ DBStampMismatch(cellDef, wrongArea)
 
 /*
  * ----------------------------------------------------------------------------
+ *	DBFlagMismatches --
+ *
+ *	Called when a cell has been read from disk and found to have a
+ *	timestamp that its parents did not all expect.  Flag those parents
+ *	that recorded a different timestamp, as they need to be written to
+ *	correct it.  Other parents already have the correct timestamp.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Sets CDSTAMPSCHANGED in the affected parents.  checkDef->cd_timestamp
+ *	must have been set from the cell's file before calling this routine.
  * ----------------------------------------------------------------------------
  */
 
@@ -390,6 +420,8 @@ DBFlagMismatches(checkDef)
 		    parentUse = parentUse->cu_nextuse)
     {
 	if (parentUse->cu_parent == NULL) continue;
-	parentUse->cu_parent->cd_flags |= CDSTAMPSCHANGED;
+	if ((parentUse->cu_stamp != checkDef->cd_timestamp) ||
+		(checkDef->cd_timestamp == 0))
+	    parentUse->cu_parent->cd_flags |= CDSTAMPSCHANGED;
     }
 }

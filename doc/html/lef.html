@@ -178,6 +178,10 @@ LEF-format input and output
       area of labels to cover an entire port, and setting a bounding
       box on the cell corresponding to the LEF origin and size. <P>
 
+      A cell created from a LEF macro has new geometry, so it is marked as
+      needing a DRC check.  A cell that is only annotated by a LEF macro
+      is not marked, as such annotations do not change the DRC state. <P>
+
       Note that <B>lef write -hide</B> will generate only the minimum
       amount of obstruction bounding any non-pin geometry inside a
       layout.  To enforce a larger obstruction area, the property

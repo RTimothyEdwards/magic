@@ -1003,6 +1003,12 @@ done:
 
     cellDef->cd_flags &= ~(CDMODIFIED|CDBOXESCHANGED|CDGETNEWSTAMP);
 
+    /* Note whether the file has DRC check areas (see drcCheckTile()) */
+    if (DBBoundPlane(cellDef->cd_planes[PL_DRC_CHECK], &r))
+	cellDef->cd_flags |= CDCHECKINFILE;
+    else
+	cellDef->cd_flags &= ~CDCHECKINFILE;
+
     /*
      * Assign instance-ids to cell uses that didn't contain
      * explicit use identifiers.  Warn about duplicate instance
@@ -1036,10 +1042,11 @@ done:
 	    }
 	}
     }
+    cellDef->cd_timestamp = cellStamp;
+
     /* Update timestamp flags */
     if (has_mismatch) DBFlagMismatches(cellDef);
 
-    cellDef->cd_timestamp = cellStamp;
     if (cellStamp == 0)
     {
 	TxError("\"%s\" has a zero timestamp; it should be written out\n",
@@ -3019,6 +3026,9 @@ badTransform:
 		((locked) ? useid + 1 : useid) : (char *) NULL);
 
     if (locked) subCellUse->cu_flags |= CU_LOCKED;
+    subCellUse->cu_stamp = childStamp;
+    subCellUse->cu_box = r;
+
     /*
      * Instead of calling DBLinkCell for each cell, DBGenerateUniqueIds()
      * gets called for the entire cell at the end.
@@ -3056,7 +3066,15 @@ badTransform:
 	DBStampMismatch(subCellDef, &r);
 	if (!(subCellDef->cd_flags & CDAVAILABLE))
 	    subCellDef->cd_timestamp = 0;
-	else DBStampMismatch(subCellDef, &subCellDef->cd_bbox);
+	else
+	{
+	    /* The child has been read, so this parent is the one that
+	     * is wrong, and it needs to be written with the correct stamp.
+	     * If not, DBFlagMismatches() sorts it out when the child is read.
+	     */
+	    DBStampMismatch(subCellDef, &subCellDef->cd_bbox);
+	    cellDef->cd_flags |= CDSTAMPSCHANGED;
+	}
     }
 
 nextLine:
@@ -4953,6 +4971,16 @@ ioerror:
 	return (FALSE);
     }
     cellDef->cd_flags &= ~(CDMODIFIED|CDBOXESCHANGED|CDSTAMPSCHANGED);
+
+    /* The file now has any check areas that remain (see drcCheckTile()) */
+    {
+	Rect checkArea;
+
+	if (DBBoundPlane(cellDef->cd_planes[PL_DRC_CHECK], &checkArea))
+	    cellDef->cd_flags |= CDCHECKINFILE;
+	else
+	    cellDef->cd_flags &= ~CDCHECKINFILE;
+    }
     SigEnableInterrupts();
     return (TRUE);
 }
@@ -6273,6 +6301,8 @@ dbWriteCellFunc(cellUse, cdarg)
 	FPUTSR(arg->wa_file,cstring);
     }
 
+    cellUse->cu_stamp = cellUse->cu_def->cd_timestamp;
+    cellUse->cu_box = cellUse->cu_def->cd_bbox;
     sprintf(cstring, "timestamp %d\n", cellUse->cu_def->cd_timestamp);
     FPUTSR(arg->wa_file,cstring)
     sprintf(cstring, "transform %d %d %d %d %d %d\n",

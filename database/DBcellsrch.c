@@ -1972,7 +1972,11 @@ dbScaleCell(cellDef, scalen, scaled)
 
     if ((cellDef->cd_flags & CDAVAILABLE) == 0)
 	goto donecell;
-    else
+
+    /* The (UNNAMED) cell has no file to update.  If it has contents, then
+     * it has already been marked as modified.
+     */
+    if (strcmp(cellDef->cd_name, UNNAMED))
 	cellDef->cd_flags |= CDBOXESCHANGED;
 
     /* Enumerate all unique cell uses, and scale their position,	*/
