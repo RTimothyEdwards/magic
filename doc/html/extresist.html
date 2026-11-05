@@ -129,6 +129,14 @@ information.
       Finally, with the option <B>extresist on</B> set, <B>ext2spice</B>
       will generate the final, detailed simulation file. <P>
 
+      Capacitance to substrate is distributed over the nodes of the
+      resistor network.  Coupling capacitance remains between the two
+      nets, but is not distributed:  Each coupling capacitor connects to
+      one node on each net, regardless of where along the nets the
+      coupling occurs.  Coupling capacitance is counted as if to ground
+      when computing the delay that is compared against
+      <B>extresist mindelay</B>. <P>
+
       Prior to magic version 8.3.597, it was also necessary to run
       <B>ext2sim labels on</B> and <B>ext2sim</B> to write out a
       <TT>.sim</TT> and a <TT>.node</TT> file before running

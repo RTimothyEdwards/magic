@@ -167,6 +167,13 @@ ExtResisForDef(celldef, resisdata)
 	freeMagic((char *) node);
     }
     HashKill(&ResNodeTable);
+    while (ResCapList != NULL)
+    {
+	ResCap *oldCap = ResCapList;
+
+	ResCapList = ResCapList->rcap_next;
+	freeMagic((char *)oldCap);
+    }
     while (ResRDevList != NULL)
     {
 	oldRDev = ResRDevList;
@@ -1403,7 +1410,10 @@ ResCheckExtNodes(celldef, resisdata)
      */
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
+    {
 	ResPrintExtDev(ResExtFile, ResRDevList);
+	ResPrintExtCaps(ResExtFile);
+    }
 
     /*
      *	Write end statement to the FastHenry geometry file.

@@ -1170,6 +1170,7 @@ runexttospice:
 	else if (esDistrJunct)
      	    EFVisitDevs(devDistJunctVisit, (ClientData) NULL);
 	EFVisitDevs(spcdevVisit, (ClientData) NULL);
+	spcResBodyCaps();
 	TTMaskZero(&initMask);
 	if (flatFlags & EF_FLATCAPS)
 	    EFVisitCaps(spccapVisit, (ClientData) NULL);
@@ -1355,6 +1356,7 @@ main(
     } else if ( esDistrJunct )
      	EFVisitDevs(devDistJunctVisit, (ClientData) NULL);
     EFVisitDevs(spcdevVisit, (ClientData) NULL);
+    spcResBodyCaps();
     TTMaskZero(&initMask);
     if (flatFlags & EF_FLATCAPS)
 	EFVisitCaps(spccapVisit, (ClientData) NULL);
@@ -2210,6 +2212,14 @@ spcWriteParams(
     DevParam *plist, *dparam;
     int parmval;
     EFNode *dnode;
+    float ldiv;
+
+    /* A "tee" resistor is written as two devices in series.  Each has half
+     * of the length of the whole device, including any offset in the device
+     * record.
+     */
+    ldiv = ((dev->dev_class == DEV_RES || dev->dev_class == DEV_RSUBCKT)
+		&& esDoResistorTee) ? 2.0 : 1.0;
 
     plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
     while (plist != NULL)
@@ -2354,13 +2364,13 @@ spcWriteParams(
 		{
 		    fprintf(esSpiceF, " %s=", plist->parm_name);
 		    if (esScale < 0)
-			fprintf(esSpiceF, "%g", l * scale);
+			fprintf(esSpiceF, "%g", l * scale / ldiv);
 		    else if (plist->parm_scale != 1.0)
 			fprintf(esSpiceF, "%g", (double)l * scale * esScale
-				* plist->parm_scale * 1E-6);
+				* plist->parm_scale * 1E-6 / ldiv);
 		    else
 			esSIvalue(esSpiceF, 1.0E-6 * (l + plist->parm_offset)
-				* scale * esScale);
+				* scale * esScale / ldiv);
 		}
 		else
 		{
@@ -2526,10 +2536,10 @@ esOutputResistor(
     DevTerm *term2,		/* Terminals of the device */
     bool has_model,		/* Is this a modeled resistor? */
     int l,
-    int w,			/* Device length and width */
-    int dscale)			/* Device scaling (for split resistors) */
+    int w)			/* Device length and width */
 {
     float sdM;
+    int dscale = (esDoResistorTee) ? 2 : 1;	/* Each half of a tee resistor */
 
     /* Resistor is "Rnnn term1 term2 value" 		 */
     /* extraction sets two terminals, which are assigned */
@@ -2988,9 +2998,6 @@ spcdevVisit(
 				name, esSpiceF);
 		if ((dev->dev_class == DEV_RSUBCKT) && esDoResistorTee)
 		{
-		    l /= 2;	/* Halve the resistor.  Note that this may introduce
-				 * error if l is an odd value.
-				 */
 		    spcdevOutNode(hierName, gate->dterm_node->efnode_name->efnn_hier,
 				name, esSpiceF);
 		}
@@ -3053,7 +3060,6 @@ spcdevVisit(
 	    spcWriteParams(dev, hierName, scale, l, w, sdM, FALSE);
 	    if (sdM != 1.0)
 		fprintf(esSpiceF, " M=%g", sdM);
-	    break;
 
 	    if (dev->dev_class == DEV_RSUBCKT && esDoResistorTee)
 	    {
@@ -3116,19 +3122,19 @@ spcdevVisit(
 		/* the middle.					*/
 
 		esOutputResistor(dev, hierName, scale, gate, source, has_model,
-			l, w, 2);
+			l, w);
 		fprintf(esSpiceF, "\n%c", devchar);
 		if (gate->dterm_attrs)
 		    fprintf(esSpiceF, "%s%sB", EFHNToStr(hierName), gate->dterm_attrs);
 		else
 		    fprintf(esSpiceF, "%dB", esResNum - 1);
 		esOutputResistor(dev, hierName, scale, gate, drain, has_model,
-			l, w, 2);
+			l, w);
 	    }
 	    else
 	    {
 		esOutputResistor(dev, hierName, scale, source, drain, has_model,
-			l, w, 1);
+			l, w);
 
 		spcdevResPi(hierName, gate->dterm_node->efnode_name->efnn_hier,
 				source->dterm_node->efnode_name->efnn_hier,
@@ -3864,6 +3870,18 @@ spcnAPHier(
     return 0;
 }
 
+/* Resistor bodies that are not output as nodes (see spcdevResPi()) */
+
+typedef struct esresbody
+{
+    struct esresbody *erb_next;
+    EFNode *erb_body;
+    EFNode *erb_term1;
+    EFNode *erb_term2;
+} EsResBody;
+
+static EsResBody *esResBodyList = NULL;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3894,6 +3912,7 @@ spcdevResPi(
     HashEntry *he;
     EFNodeName *nngate, *nnsource, *nndrain;
     EFCapValue rescap;
+    EsResBody *body;
 
     he = EFHNConcatLook(prefix, gate_suffix, name);
     if (he == NULL) return;
@@ -3911,6 +3930,165 @@ spcdevResPi(
     nnsource->efnn_node->efnode_cap += rescap;
     nndrain->efnn_node->efnode_cap += rescap;
     nngate->efnn_node->efnode_cap = 0;
+
+    /* Coupling capacitors are handled after all devices are visited */
+
+    body = (EsResBody *)mallocMagic(sizeof(EsResBody));
+    body->erb_body = nngate->efnn_node;
+    body->erb_term1 = nnsource->efnn_node;
+    body->erb_term2 = nndrain->efnn_node;
+    body->erb_next = esResBodyList;
+    esResBodyList = body;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * spcAddCoupling --
+ *
+ * Add a coupling capacitor between two nodes to the capacitor table.  If one
+ * of the nodes is the substrate, then it is added to the capacitance to
+ * substrate of the other node.  Nothing is added between a node and itself.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Modifies efCapHashTable or the capacitance of a node.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+spcAddCoupling(
+    EFNode *n1,
+    EFNode *n2,
+    double cap)
+{
+    EFCoupleKey ck;
+    HashEntry *he;
+
+    if (n1 == n2) return;
+
+    if (n1->efnode_flags & EF_GLOB_SUBS_NODE)
+	n2->efnode_cap += cap;
+    else if (n2->efnode_flags & EF_GLOB_SUBS_NODE)
+	n1->efnode_cap += cap;
+    else
+    {
+	if (n1 < n2) ck.ck_1 = n1, ck.ck_2 = n2;
+	else ck.ck_1 = n2, ck.ck_2 = n1;
+	he = HashFind(&efCapHashTable, (char *)&ck);
+	CapHashSetValue(he, cap + (double)CapHashGetValue(he));
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * spcResBodyCaps --
+ *
+ * The body of a resistor that is output with the "pi" model is not a node
+ * in the netlist, so a coupling capacitor to it would be left floating.
+ * Apply the same model used for capacitance to substrate (see spcdevResPi()),
+ * and split each such capacitor evenly between the two terminals of the
+ * resistor.  This must be called after visiting devices and before visiting
+ * capacitors.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Modifies efCapHashTable, and frees the list of resistor bodies.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+spcResBodyCaps(void)
+{
+    typedef struct movedcap
+    {
+	struct movedcap *mc_next;
+	EFCoupleKey mc_key;
+	double mc_cap;
+    } MovedCap;
+
+    HashTable bodies;
+    HashSearch hs;
+    HashEntry *he, *he1, *he2;
+    EFCoupleKey *ck;
+    EsResBody *body, *body1, *body2;
+    MovedCap *moved = NULL, *mc;
+    EFNode *t1[2], *t2[2];
+    double cap;
+    int i, j;
+
+    if (esResBodyList == NULL) return;
+
+    HashInit(&bodies, 64, HT_WORDKEYS);
+    for (body = esResBodyList; body != NULL; body = body->erb_next)
+	HashSetValue(HashFind(&bodies, (char *)body->erb_body), (char *)body);
+
+    /* Find the capacitors first, as the table cannot change during a search */
+
+    HashStartSearch(&hs);
+    while ((he = HashNext(&efCapHashTable, &hs)))
+    {
+	ck = (EFCoupleKey *)he->h_key.h_words;
+	if ((HashLookOnly(&bodies, (char *)ck->ck_1) == NULL) &&
+		(HashLookOnly(&bodies, (char *)ck->ck_2) == NULL))
+	    continue;
+
+	mc = (MovedCap *)mallocMagic(sizeof(MovedCap));
+	mc->mc_key = *ck;
+	mc->mc_cap = (double)CapHashGetValue(he);
+	mc->mc_next = moved;
+	moved = mc;
+    }
+
+    for (mc = moved; mc != NULL; mc = mc->mc_next)
+    {
+	/* Zero the original.  A capacitor with no value is not output. */
+
+	he = HashLookOnly(&efCapHashTable, (char *)&mc->mc_key);
+	CapHashSetValue(he, 0.0);
+
+	he1 = HashLookOnly(&bodies, (char *)mc->mc_key.ck_1);
+	he2 = HashLookOnly(&bodies, (char *)mc->mc_key.ck_2);
+	body1 = (he1 != NULL) ? (EsResBody *)HashGetValue(he1) : NULL;
+	body2 = (he2 != NULL) ? (EsResBody *)HashGetValue(he2) : NULL;
+
+	t1[0] = (body1 != NULL) ? body1->erb_term1 : mc->mc_key.ck_1;
+	t1[1] = (body1 != NULL) ? body1->erb_term2 : NULL;
+	t2[0] = (body2 != NULL) ? body2->erb_term1 : mc->mc_key.ck_2;
+	t2[1] = (body2 != NULL) ? body2->erb_term2 : NULL;
+
+	cap = mc->mc_cap;
+	if (body1 != NULL) cap /= 2.0;
+	if (body2 != NULL) cap /= 2.0;
+
+	for (i = 0; i < 2; i++)
+	    for (j = 0; j < 2; j++)
+		if ((t1[i] != NULL) && (t2[j] != NULL))
+		    spcAddCoupling(t1[i], t2[j], cap);
+    }
+
+    /* Clean up */
+
+    while (moved != NULL)
+    {
+	mc = moved;
+	moved = moved->mc_next;
+	freeMagic((char *)mc);
+    }
+    HashKill(&bodies);
+    while (esResBodyList != NULL)
+    {
+	body = esResBodyList;
+	esResBodyList = esResBodyList->erb_next;
+	freeMagic((char *)body);
+    }
 }
 
 /*

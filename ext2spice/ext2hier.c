@@ -236,6 +236,14 @@ spcHierWriteParams(
     DevParam *plist, *dparam;
     int parmval;
     EFNode *dnode;
+    float ldiv;
+
+    /* A "tee" resistor is written as two devices in series.  Each has half
+     * of the length of the whole device, including any offset in the device
+     * record.
+     */
+    ldiv = ((dev->dev_class == DEV_RES || dev->dev_class == DEV_RSUBCKT)
+		&& esDoResistorTee) ? 2.0 : 1.0;
 
     /* Write all requested parameters to the subcircuit call.	*/
 
@@ -344,13 +352,13 @@ spcHierWriteParams(
 		{
 		    fprintf(esSpiceF, " %s=", plist->parm_name);
 		    if (esScale < 0)
-			fprintf(esSpiceF, "%g", l * scale);
+			fprintf(esSpiceF, "%g", l * scale / ldiv);
 		    else if (plist->parm_scale != 1.0)
 			fprintf(esSpiceF, "%g", (double)l * scale * esScale
-				* plist->parm_scale * 1E-6);
+				* plist->parm_scale * 1E-6 / ldiv);
 		    else
 			esSIvalue(esSpiceF, 1.0E-6 * (l + plist->parm_offset)
-				* scale * esScale);
+				* scale * esScale / ldiv);
 		}
 		else
 		{
@@ -518,10 +526,10 @@ esOutputHierResistor(
     DevTerm *term2,		/* Terminals of the device */
     bool has_model,		/* Is this a modeled resistor? */
     int l,
-    int w,			/* Device length and width */
-    int dscale)			/* Device scaling (for split resistors) */
+    int w)			/* Device length and width */
 {
     float sdM;
+    int dscale = (esDoResistorTee) ? 2 : 1;	/* Each half of a tee resistor */
 
     /* Resistor is "Rnnn term1 term2 value" 		 */
     /* extraction sets two terminals, which are assigned */
@@ -931,7 +939,6 @@ spcdevHierVisit(
 		    spcdevOutNode(hc->hc_hierName,
 				gate->dterm_node->efnode_name->efnn_hier,
 				"subckt", esSpiceF);
-		    l /= 2;	/* Halve the resistor length for each side */
 		}
 		else if (dev->dev_nterm > 2)
 		{
@@ -1051,19 +1058,19 @@ spcdevHierVisit(
 		/* the Tee model (see ext2spice.c).		*/
 
 		esOutputHierResistor(hc, dev, scale, gate, source, has_model,
-			l, w, 2);
+			l, w);
 		fprintf(esSpiceF, "\n%c", devchar);
 		if (gate->dterm_attrs)
 		    fprintf(esSpiceF, "%sB", gate->dterm_attrs);
 		else
 		    fprintf(esSpiceF, "%dB", esResNum - 1);
 		esOutputHierResistor(hc, dev, scale, gate, drain, has_model,
-			l, w, 2);
+			l, w);
 	    }
 	    else
 	    {
 		esOutputHierResistor(hc, dev, scale, source, drain, has_model,
-			l, w, 1);
+			l, w);
 
 		spcdevResPi(hc->hc_hierName, gate->dterm_node->efnode_name->efnn_hier,
 			source->dterm_node->efnode_name->efnn_hier,
@@ -2421,6 +2428,7 @@ esHierVisit(
 
 	/* Output devices */
 	EFHierVisitDevs(hcf, spcdevHierVisit, PTR2CD(NULL));
+	spcResBodyCaps();
 
 	/* Output lumped parasitic resistors */
 	EFHierVisitResists(hcf, spcresistHierVisit, PTR2CD(NULL));

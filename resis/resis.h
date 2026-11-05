@@ -365,7 +365,20 @@ typedef struct resextnode
      					/* in hash table.		  */
     char		*oldname;	/* Pointer to previous name of    */
      					/* node, if it exists		  */
+    char		*capnode;	/* If node was killed, the name	  */
+					/* of the subnode that takes its  */
+					/* coupling capacitors		  */
 } ResExtNode;
+
+/* A coupling capacitor ("cap" record) read from the .ext file */
+
+typedef struct rescap
+{
+    struct rescap	*rcap_next;
+    ResExtNode		*rcap_node1;
+    ResExtNode		*rcap_node2;
+    float		rcap_value;
+} ResCap;
 
 #define	RES_SUB_GND	0
 #define RES_SUB_VDD	1
@@ -523,6 +536,7 @@ extern RDev			*ResRDevList;
 extern int 			ResOptionsFlags;
 extern char			*ResCurrentNode;
 extern ResExtNode		*ResOriginalNodes;
+extern ResCap			*ResCapList;
 
 extern CellUse 			*ResUse;
 extern CellDef 			*ResDef;
@@ -621,6 +635,7 @@ extern int  ResExtNewNode();
 extern void ResExtProcessDrivePoints();
 extern int  ResWriteExtFile();
 extern void ResPrintExtNode();
+extern void ResPrintExtCaps(FILE *outextfile);
 extern void ResPrintExtRes();
 extern void ResPrintFHNodes();
 extern void ResPrintFHRects();

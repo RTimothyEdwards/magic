@@ -105,6 +105,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define MAXDIGIT		20
 
 ResExtNode	*ResOriginalNodes;	/*Linked List of Nodes 	*/
+ResCap		*ResCapList = NULL;	/* Coupling capacitors	*/
 char		RDEV_NOATTR[1] = {'0'};
 ResFixPoint	*ResFixList;
 
@@ -943,13 +944,17 @@ ResReadFET(int argc,
  *-------------------------------------------------------------------------
  *
  *  ResReadCapacitor-- Adds the capacitance  from a C line to the appropriate
- *	node. Coupling capacitors are added twice, moving the capacitance
- *	to the substrate.
+ *	node. Coupling capacitors are added to both nodes, for the purpose
+ *	of estimating delay (with the neighbor treated as grounded).  This
+ *	capacitance is not written to the output as capacitance to
+ *	substrate (see ResPrintExtNode());  the record is saved so that
+ *	it can be kept between the two nets (see ResPrintExtCaps()).
  *
  *  Results:
  *	Always return 0
  *
- *  Side Effects: modifies capacitance field  of ResExtNode.
+ *  Side Effects: modifies capacitance field  of ResExtNode.  Adds a record
+ *	to ResCapList.
  *
  *-------------------------------------------------------------------------
  */
@@ -960,21 +965,26 @@ ResReadCapacitor(int argc,
 {
     HashEntry	*entry1, *entry2;
     ResExtNode	*node1, *node2;
+    ResCap	*rcap;
 
     entry1 = HashFind(&ResNodeTable, argv[COUPLETERMINAL1]);
     node1 = ResExtInitNode(entry1);
+    entry2 = HashFind(&ResNodeTable, argv[COUPLETERMINAL2]);
+    node2 = ResExtInitNode(entry2);
+
+    rcap = (ResCap *)mallocMagic(sizeof(ResCap));
+    rcap->rcap_node1 = node1;
+    rcap->rcap_node2 = node2;
+    rcap->rcap_value = MagAtof(argv[COUPLEVALUE]);
+    rcap->rcap_next = ResCapList;
+    ResCapList = rcap;
 
     if (ResOptionsFlags & ResOpt_Signal)
     {
-        node1->capacitance += MagAtof(argv[COUPLEVALUE]);
-        entry2 = HashFind(&ResNodeTable, argv[COUPLETERMINAL2]);
-        node2 = ResExtInitNode(entry2);
-        node2->capacitance += MagAtof(argv[COUPLEVALUE]);
+        node1->capacitance += rcap->rcap_value;
+        node2->capacitance += rcap->rcap_value;
         return 0;
     }
-
-    entry2 = HashFind(&ResNodeTable, argv[COUPLETERMINAL2]);
-    node2 = ResExtInitNode(entry2);
 
     node1->cap_couple += MagAtof(argv[COUPLEVALUE]);
     node2->cap_couple += MagAtof(argv[COUPLEVALUE]);
@@ -1096,6 +1106,7 @@ ResExtInitNode(entry)
 	node->devices = NULL;
 	node->name = entry->h_key.h_name;
 	node->oldname = NULL;
+	node->capnode = NULL;
 	node->drivepoints = NULL;
 	node->sinkpoints = NULL;
 	node->location.p_x = INFINITY;

@@ -222,7 +222,8 @@ ResPrintExtNode(outextfile, nodelist, node)
     ResExtNode *newnode;
     bool	DoKillNode = TRUE;
     bool	NeedFix = FALSE;
-    resNode	*snode, *keepsnode;
+    resNode	*snode, *keepsnode, *capsnode;
+    float	totalcap, subfrac;
 
     /* If any of the subnode names match the original node name, then	*/
     /* we don't want to rip out that node with a "killnode" statement.	*/
@@ -270,6 +271,24 @@ ResPrintExtNode(outextfile, nodelist, node)
 	keepsnode = (snode != NULL) ? snode : (NeedFix ? nodelist : NULL);
     }
 
+    /* The capacitance distributed over the subnodes includes coupling
+     * capacitance, which is needed to estimate delay but is not capacitance
+     * to substrate.  Only the part from the "node" record is written.
+     * Coupling capacitors stay between the nets:  If the original node is
+     * kept, the "cap" record in the .ext file is still valid.  If not, then
+     * ResPrintExtCaps() moves it to the subnode with the largest share of
+     * the capacitance.
+     */
+    totalcap = 0.0;
+    capsnode = nodelist;
+    for (snode = nodelist; snode != NULL; snode = snode->rn_more)
+    {
+	totalcap += snode->rn_float.rn_area;
+	if (snode->rn_float.rn_area > capsnode->rn_float.rn_area)
+	    capsnode = snode;
+    }
+    subfrac = (totalcap != 0.0) ? (node->nodecap / totalcap) : 0.0;
+
     /* Create "rnode" entries for each subnode */
 
     for (snode = nodelist; snode != NULL; snode = snode->rn_more)
@@ -290,7 +309,7 @@ ResPrintExtNode(outextfile, nodelist, node)
 
 	if (ResOptionsFlags & ResOpt_DoExtFile)
 	{
-	    float snodecap = snode->rn_float.rn_area;
+	    float snodecap = snode->rn_float.rn_area * subfrac;
 
 	    if (snode == keepsnode) snodecap -= node->nodecap;
 
@@ -304,6 +323,9 @@ ResPrintExtNode(outextfile, nodelist, node)
 		    0);
 	}
     }
+
+    if (DoKillNode && (capsnode != NULL))
+	node->capnode = capsnode->rn_name;
 
     if (NeedFix)
     {
@@ -322,6 +344,48 @@ ResPrintExtNode(outextfile, nodelist, node)
 		node->name, nodelist->rn_name);
 	TxError("Warning:  Orphaned node \"%s\" arbitrarily attached to \"%s\"\n",
 		node->name, nodelist->rn_name);
+    }
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResPrintExtCaps --
+ *	Write a "cap" record for each coupling capacitor in the .ext file
+ *	with a node that was killed, because the record in the .ext file is
+ *	ignored for a killed node.  A killed node is replaced by the subnode
+ *	chosen by ResPrintExtNode().
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Writes to the .res.ext file.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResPrintExtCaps(FILE *outextfile)
+{
+    ResCap *rcap;
+    ResExtNode *node1, *node2;
+
+    for (rcap = ResCapList; rcap != NULL; rcap = rcap->rcap_next)
+    {
+	node1 = rcap->rcap_node1;
+	node2 = rcap->rcap_node2;
+	while (node1->status & FORWARD) node1 = node1->forward;
+	while (node2->status & FORWARD) node2 = node2->forward;
+
+	if ((node1 == node2) || ((node1->capnode == NULL) &&
+		(node2->capnode == NULL)))
+	    continue;
+
+	fprintf(outextfile, "cap \"%s\" \"%s\" %g\n",
+		(node1->capnode != NULL) ? node1->capnode : node1->name,
+		(node2->capnode != NULL) ? node2->capnode : node2->name,
+		rcap->rcap_value);
     }
 }
 

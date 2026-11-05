@@ -77,9 +77,10 @@ Convert extracted file(s) to a SPICE format file.
 	   <DD> Model resistor capacitance as a T-network.  Each resistor
 		device is split into two, with all substrate and overlap
 		capacitance placed on the node between the two half-length
-		devices.  Without this option, resistor devices lose all
-		parasitic capacitance information, and <B>ext2spice</B>
-		may produce warnings about unknown nodes.  However, use of
+		devices.  Without this option, the capacitance of the
+		resistor, including coupling capacitance to other nets, is
+		split evenly between the two terminals of the resistor (a
+		pi-network).  However, use of
 		this option may conflict with LVS (layout-vs.-schematic),
 		when only one resistor is expected per drawn device.
 	   <DT> <B>subcircuit</B> [<B>on</B>|<B>off</B>]
