@@ -344,8 +344,6 @@ typedef struct resextnode
     struct resextnode	*nextnode;	/* next node in OriginalNodes 	  */
      					/* linked list.			  */
     int			status;
-    struct resextnode	*forward;     	/* If node has been merged, this  */
-     					/* points to the merged node.     */
     float		capacitance;	/* Capacitance between node and   */
 					/* substrate			  */
     float		nodecap;	/* The part of capacitance read	  */
@@ -473,7 +471,6 @@ typedef struct capval
 
 /* Constants (ResExtNode "status" field) */
 
-#define	FORWARD		0x0000010
 #define	SKIP		0x0000020
 #define	FORCE		0x0000040
 #define	MINSIZE		0x0000080
@@ -636,6 +633,7 @@ extern void ResExtProcessDrivePoints();
 extern int  ResWriteExtFile();
 extern void ResPrintExtNode();
 extern void ResPrintExtCaps(FILE *outextfile);
+extern void ResAddCapacitors(void);
 extern void ResPrintExtRes();
 extern void ResPrintFHNodes();
 extern void ResPrintFHRects();

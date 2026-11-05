@@ -72,6 +72,9 @@ FILE	*ResFHFile;
 
 int	ResPortIndex;	/* Port ordering to backannotate into magic */
 
+static void ResSortNodesByName(ResExtNode **nodeList);
+static void ResSortDrivepoints(ResConnect **driverList);
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -1097,20 +1100,22 @@ ResProcessNode(
 	if (he != NULL) return 0;
     }
 
-    /* Has this node been merged away or is it marked as skipped? */
-    /* If so, skip it.  Also skip any entry that does not correspond	*/
-    /* to a "node" record in the .ext file, such as a port with a	*/
-    /* different name than the node it belongs to.  That node will be	*/
-    /* extracted under its own name, and its network includes the port.	*/
+    /* Skip a node marked redundant (see ResCheckPorts() and		*/
+    /* ResPrintExtNode()) or marked as skipped.  Also skip any entry	*/
+    /* that does not correspond to a "node" record in the .ext file,	*/
+    /* such as a port with a different name than the node it belongs	*/
+    /* to.  That node will be extracted under its own name, and its	*/
+    /* network includes the port.					*/
 
     if (!(node->status & NODERECORD) ||
-		(node->status & (FORWARD | REDUNDANT)) ||
+		(node->status & REDUNDANT) ||
 		((node->status & SKIP) &&
 	  	(ResOptionsFlags & ResOpt_ExtractAll) == 0))
 	return 0;
 
     ResCurrentNode = node->name;
     ResSortByGate(&node->devices);
+    ResSortDrivepoints(&node->drivepoints);
 
     resisdata->rg_devloc = (Point *) NULL;
     resisdata->rg_status = FALSE;
@@ -1396,6 +1401,13 @@ ResCheckExtNodes(celldef, resisdata)
       */
     if (ResOptionsFlags & ResOpt_FastHenry)
 	ResPrintReference(ResFHFile, ResRDevList, celldef);
+
+    /* Process nodes in order of name.  Extracting a net renames the	*/
+    /* terminals of its devices, and those names are used to sort the	*/
+    /* devices of nets extracted later (see devSortFunc()), so the	*/
+    /* order must not depend on the order of records in the .ext file.	*/
+
+    ResSortNodesByName(&ResOriginalNodes);
 
     for (node = ResOriginalNodes; node != NULL; node = node->nextnode)
     {
@@ -1881,80 +1893,254 @@ ResFixDevName(line, type, device, layoutnode)
 /*
  *-------------------------------------------------------------------------
  *
+ * nodeNameSortFunc ---
+ *
+ *	qsort() sorting function for ResSortNodesByName() below.
+ *
+ * Results:
+ *	Negative, zero, or positive, as for strcmp() on the node names.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static int
+nodeNameSortFunc(
+    const void *rec1,
+    const void *rec2)
+{
+    ResExtNode *node1 = *(ResExtNode **)rec1;
+    ResExtNode *node2 = *(ResExtNode **)rec2;
+
+    return strcmp(node1->name, node2->name);
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResSortNodesByName --
+ *
+ *	Sort a linked list of nodes by node name.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Reorders the list, and changes *nodeList to its new first entry.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static void
+ResSortNodesByName(
+    ResExtNode **nodeList)
+{
+    ResExtNode *node, **indexed;
+    int listlen, listidx;
+
+    listlen = 0;
+    for (node = *nodeList; node; node = node->nextnode) listlen++;
+    if (listlen < 2) return;
+
+    indexed = (ResExtNode **)mallocMagic(listlen * sizeof(ResExtNode *));
+    listidx = 0;
+    for (node = *nodeList; node; node = node->nextnode)
+	indexed[listidx++] = node;
+
+    qsort(indexed, (size_t)listlen, sizeof(ResExtNode *), nodeNameSortFunc);
+
+    for (listidx = 0; listidx < listlen - 1; listidx++)
+	indexed[listidx]->nextnode = indexed[listidx + 1];
+    indexed[listidx]->nextnode = NULL;
+
+    *nodeList = indexed[0];
+    freeMagic(indexed);
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * driverSortFunc ---
+ *
+ *	qsort() sorting function for ResSortDrivepoints() below.
+ *
+ * Results:
+ *	Negative, zero, or positive, comparing the lower left corner, then
+ *	the upper right corner, then the type.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static int
+driverSortFunc(
+    const void *rec1,
+    const void *rec2)
+{
+    Rect *r1 = &(*(ResConnect **)rec1)->rc_rect;
+    Rect *r2 = &(*(ResConnect **)rec2)->rc_rect;
+    TileType t1 = (*(ResConnect **)rec1)->rc_type;
+    TileType t2 = (*(ResConnect **)rec2)->rc_type;
+
+    if (r1->r_xbot != r2->r_xbot) return (r1->r_xbot < r2->r_xbot) ? -1 : 1;
+    if (r1->r_ybot != r2->r_ybot) return (r1->r_ybot < r2->r_ybot) ? -1 : 1;
+    if (r1->r_xtop != r2->r_xtop) return (r1->r_xtop < r2->r_xtop) ? -1 : 1;
+    if (r1->r_ytop != r2->r_ytop) return (r1->r_ytop < r2->r_ytop) ? -1 : 1;
+    if (t1 != t2) return (t1 < t2) ? -1 : 1;
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResSortDrivepoints --
+ *
+ *	Sort a node's list of drive points (ports and connections to
+ *	other cells) by location.  The first drive point may be used as
+ *	the starting point of the network, and the others are named in
+ *	list order, so the order must not depend on the order of records
+ *	in the .ext file.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Reorders the list, and changes *driverList to its new first entry.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static void
+ResSortDrivepoints(
+    ResConnect **driverList)
+{
+    ResConnect *driver, **indexed;
+    int listlen, listidx;
+
+    listlen = 0;
+    for (driver = *driverList; driver; driver = driver->rc_next) listlen++;
+    if (listlen < 2) return;
+
+    indexed = (ResConnect **)mallocMagic(listlen * sizeof(ResConnect *));
+    listidx = 0;
+    for (driver = *driverList; driver; driver = driver->rc_next)
+	indexed[listidx++] = driver;
+
+    qsort(indexed, (size_t)listlen, sizeof(ResConnect *), driverSortFunc);
+
+    for (listidx = 0; listidx < listlen - 1; listidx++)
+	indexed[listidx]->rc_next = indexed[listidx + 1];
+    indexed[listidx]->rc_next = NULL;
+
+    *driverList = indexed[0];
+    freeMagic(indexed);
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * devNameCmp ---
+ *
+ *	Compare two nodes by name, for devSortFunc() below.  A node name
+ *	does not depend on the order in which records were read from the
+ *	.ext file, but the address of the node record does.
+ *
+ * Results:
+ *	Negative, zero, or positive, as for strcmp().  A NULL node sorts
+ *	first.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static int
+devNameCmp(
+    ResExtNode *node1,
+    ResExtNode *node2)
+{
+    if (node1 == node2) return 0;
+    if (node1 == NULL) return -1;
+    if (node2 == NULL) return 1;
+    return strcmp(node1->name, node2->name);
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * devSortFunc ---
  *
  *	qsort() sorting function for gates.  See description in
  *	ResSortByGate() below.
  *
- * Returns:
- *	1 or -1 depending on comparison result.  The devices are sorted
- *	by gate first, then source or drain.
+ *	Devices connected by source or drain come first, sorted by gate
+ *	node and then by the node on the other side of the device, so that
+ *	devices in parallel are next to each other.  Then come devices
+ *	connected by substrate, and last those connected by gate.  Devices
+ *	that are otherwise equal are sorted by location and type.  Nodes are
+ *	compared by name, so that the order (and so the choice of driver
+ *	from among devices of equal size) does not depend on the order of
+ *	records in the .ext file or on memory addresses.
+ *
+ * Results:
+ *	Negative, zero, or positive, as required by qsort().
  *
  * Side effects:
- *	qsort() reorders the indexed list of which dev1 and dev2 are
- *	components.
+ *	None.
  *
  *-------------------------------------------------------------------------
  */
 
-int
-devSortFunc(rec1, rec2)
-    devPtr **rec1, **rec2;
+static int
+devSortFunc(
+    const void *rec1,
+    const void *rec2)
 {
-    devPtr *dev1 = *rec1;
-    devPtr *dev2 = *rec2;
+    devPtr *dev1 = *(devPtr **)rec1;
+    devPtr *dev2 = *(devPtr **)rec2;
     RDev *rd1 = dev1->thisDev;
     RDev *rd2 = dev2->thisDev;
+    ResExtNode *other1, *other2;
+    int rank1, rank2, cmp;
 
-    if (dev1->terminal == GATE)
-	return 1;
-    else if (dev2->terminal == GATE)
-	return -1;
-    else if (rd1->gate > rd2->gate)
-    	return 1;
-    else if (rd1->gate == rd2->gate)
+    /* Source and drain first, then substrate, then gate */
+
+    rank1 = (dev1->terminal == GATE) ? 2 : (dev1->terminal == SUBS) ? 1 : 0;
+    rank2 = (dev2->terminal == GATE) ? 2 : (dev2->terminal == SUBS) ? 1 : 0;
+    if (rank1 != rank2) return rank1 - rank2;
+
+    if (rank1 == 0)
     {
-	if ((dev1->terminal == SOURCE &&
-		dev2->terminal == SOURCE &&
-		rd1->drain > rd2->drain)    ||
-		(dev1->terminal == SOURCE &&
-		dev2->terminal == DRAIN &&
-		rd1->drain > rd2->source)    ||
-		(dev1->terminal == DRAIN &&
-		dev2->terminal == SOURCE &&
-		rd1->source > rd2->drain)    ||
-		(dev1->terminal == DRAIN &&
-		dev2->terminal == DRAIN &&
-		rd1->source >  rd2->source))
-	{
-	    return 1;
-	}
-	else if ((dev1->terminal == SOURCE &&
-		dev2->terminal == SOURCE &&
-		rd1->drain == rd2->drain)    ||
-		(dev1->terminal == SOURCE &&
-		dev2->terminal == DRAIN &&
-		rd1->drain == rd2->source)    ||
-		(dev1->terminal == DRAIN &&
-		dev2->terminal == SOURCE &&
-		rd1->source == rd2->drain)    ||
-		(dev1->terminal == DRAIN &&
-		dev2->terminal == DRAIN &&
-		rd1->source == rd2->source))
-	{
-	    return 0;
-	}
+	if ((cmp = devNameCmp(rd1->gate, rd2->gate)) != 0) return cmp;
+
+	/* Compare the node on the other side of the device */
+
+	other1 = (dev1->terminal == SOURCE) ? rd1->drain : rd1->source;
+	other2 = (dev2->terminal == SOURCE) ? rd2->drain : rd2->source;
+	if ((cmp = devNameCmp(other1, other2)) != 0) return cmp;
     }
-    return -1;
+
+    if (rd1->location.p_x != rd2->location.p_x)
+	return (rd1->location.p_x < rd2->location.p_x) ? -1 : 1;
+    if (rd1->location.p_y != rd2->location.p_y)
+	return (rd1->location.p_y < rd2->location.p_y) ? -1 : 1;
+    if (rd1->rs_ttype != rd2->rs_ttype)
+	return (rd1->rs_ttype < rd2->rs_ttype) ? -1 : 1;
+    return dev1->terminal - dev2->terminal;
 }
 
 /*
  *-------------------------------------------------------------------------
  *
  *  ResSortByGate -- sorts device pointers whose terminal field is either
- *	drain or source by gate node number, then by drain (source) number.
+ *	drain or source by gate node name, then by drain (source) name.
  *	This places devices with identical connections next to one
- *	another.
+ *	another.  See devSortFunc().
  *
  * Results: none
  *

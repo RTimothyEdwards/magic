@@ -240,6 +240,7 @@ ResReadExt(CellDef *def)
     }
     HashKill(&parentHash);
 
+    ResAddCapacitors();
     return(result);
 }
 
@@ -943,18 +944,15 @@ ResReadFET(int argc,
 /*
  *-------------------------------------------------------------------------
  *
- *  ResReadCapacitor-- Adds the capacitance  from a C line to the appropriate
- *	node. Coupling capacitors are added to both nodes, for the purpose
- *	of estimating delay (with the neighbor treated as grounded).  This
- *	capacitance is not written to the output as capacitance to
- *	substrate (see ResPrintExtNode());  the record is saved so that
- *	it can be kept between the two nets (see ResPrintExtCaps()).
+ *  ResReadCapacitor-- Saves a coupling capacitor from a "cap" record of
+ *	the .ext file, so that it can be kept between the two nets (see
+ *	ResPrintExtCaps()).  ResAddCapacitors() adds it to the capacitance
+ *	of the two nodes after the whole file has been read.
  *
  *  Results:
  *	Always return 0
  *
- *  Side Effects: modifies capacitance field  of ResExtNode.  Adds a record
- *	to ResCapList.
+ *  Side Effects: Adds a record to ResCapList.
  *
  *-------------------------------------------------------------------------
  */
@@ -978,17 +976,119 @@ ResReadCapacitor(int argc,
     rcap->rcap_value = MagAtof(argv[COUPLEVALUE]);
     rcap->rcap_next = ResCapList;
     ResCapList = rcap;
-
-    if (ResOptionsFlags & ResOpt_Signal)
-    {
-        node1->capacitance += rcap->rcap_value;
-        node2->capacitance += rcap->rcap_value;
-        return 0;
-    }
-
-    node1->cap_couple += MagAtof(argv[COUPLEVALUE]);
-    node2->cap_couple += MagAtof(argv[COUPLEVALUE]);
     return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * capSortFunc --
+ *
+ *	qsort() sorting function for ResAddCapacitors() below.
+ *
+ * Results:
+ *	Negative, zero, or positive, comparing the names of the first
+ *	nodes, then of the second nodes, then the values.
+ *
+ * Side Effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static int
+capSortFunc(
+    const void *rec1,
+    const void *rec2)
+{
+    ResCap *c1 = *(ResCap **)rec1;
+    ResCap *c2 = *(ResCap **)rec2;
+    int cmp;
+
+    if ((cmp = strcmp(c1->rcap_node1->name, c2->rcap_node1->name)) != 0)
+	return cmp;
+    if ((cmp = strcmp(c1->rcap_node2->name, c2->rcap_node2->name)) != 0)
+	return cmp;
+    if (c1->rcap_value != c2->rcap_value)
+	return (c1->rcap_value < c2->rcap_value) ? -1 : 1;
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResAddCapacitors --
+ *
+ *	Sort the coupling capacitors read by ResReadCapacitor() by node
+ *	name, and then add each one to the capacitance of both of its nodes,
+ *	for the purpose of estimating delay (with the neighbor treated as
+ *	grounded).  This capacitance is not written to the output as
+ *	capacitance to substrate (see ResPrintExtNode()).
+ *
+ *	The order of "cap" records in the .ext file can change from one
+ *	run of "extract" to the next, and a sum of floating-point values
+ *	can round differently when added in a different order, so the
+ *	capacitors are added in an order that does not depend on the file.
+ *	This also sets the order in which ResPrintExtCaps() writes them.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Reorders ResCapList, and modifies the capacitance (or cap_couple)
+ *	field of each node with a coupling capacitor.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResAddCapacitors(void)
+{
+    ResCap *rcap, **indexed;
+    ResExtNode *node;
+    int numcaps, i;
+
+    numcaps = 0;
+    for (rcap = ResCapList; rcap != NULL; rcap = rcap->rcap_next)
+    {
+	/* Put the node names of each capacitor in order */
+
+	if (strcmp(rcap->rcap_node1->name, rcap->rcap_node2->name) > 0)
+	{
+	    node = rcap->rcap_node1;
+	    rcap->rcap_node1 = rcap->rcap_node2;
+	    rcap->rcap_node2 = node;
+	}
+	numcaps++;
+    }
+    if (numcaps == 0) return;
+
+    indexed = (ResCap **)mallocMagic(numcaps * sizeof(ResCap *));
+    i = 0;
+    for (rcap = ResCapList; rcap != NULL; rcap = rcap->rcap_next)
+	indexed[i++] = rcap;
+
+    qsort(indexed, (size_t)numcaps, sizeof(ResCap *), capSortFunc);
+
+    for (i = 0; i < numcaps - 1; i++)
+	indexed[i]->rcap_next = indexed[i + 1];
+    indexed[i]->rcap_next = NULL;
+    ResCapList = indexed[0];
+    freeMagic(indexed);
+
+    for (rcap = ResCapList; rcap != NULL; rcap = rcap->rcap_next)
+    {
+	if (ResOptionsFlags & ResOpt_Signal)
+	{
+	    rcap->rcap_node1->capacitance += rcap->rcap_value;
+	    rcap->rcap_node2->capacitance += rcap->rcap_value;
+	}
+	else
+	{
+	    rcap->rcap_node1->cap_couple += rcap->rcap_value;
+	    rcap->rcap_node2->cap_couple += rcap->rcap_value;
+	}
+    }
 }
 
 /*
@@ -1097,7 +1197,6 @@ ResExtInitNode(entry)
 	node->nextnode = ResOriginalNodes;
 	ResOriginalNodes = node;
 	node->status = FALSE;
-	node->forward = (ResExtNode *) NULL;
 	node->capacitance = 0;
 	node->nodecap = 0;
 	node->cap_couple = 0;
@@ -1111,10 +1210,6 @@ ResExtInitNode(entry)
 	node->sinkpoints = NULL;
 	node->location.p_x = INFINITY;
 	node->location.p_y = INFINITY;
-    }
-    while (node->status & FORWARD)
-    {
-     	node = node->forward;
     }
     return node;
 }

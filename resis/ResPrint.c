@@ -375,8 +375,6 @@ ResPrintExtCaps(FILE *outextfile)
     {
 	node1 = rcap->rcap_node1;
 	node2 = rcap->rcap_node2;
-	while (node1->status & FORWARD) node1 = node1->forward;
-	while (node2->status & FORWARD) node2 = node2->forward;
 
 	if ((node1 == node2) || ((node1->capnode == NULL) &&
 		(node2->capnode == NULL)))
