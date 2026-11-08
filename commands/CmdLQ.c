@@ -47,6 +47,8 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "netmenu/netmenu.h"
 #include "cif/cif.h"
 #include "cif/CIFint.h"
+#include "extract/extract.h"
+#include "extract/extractInt.h"
 
 /* Forward declarations */
 
@@ -118,8 +120,15 @@ CmdLabelProc(
 	TxError("Can't have null label name.\n");
 	return;
     }
-    if (CmdIllegalChars(text, " /", "Label name"))
-	return;
+
+    /* Spaces and slashes are not allowed in net and pin names, but labels
+     * on non-electrical types (such as foundry information) may have them.
+     */
+
+    if ((type < TT_TECHDEPBASE) || (ExtCurStyle == NULL) ||
+		TTMaskHasType(&ExtCurStyle->exts_activeTypes, type))
+	if (CmdIllegalChars(text, " /", "Label name"))
+	    return;
 
     if (type < 0) type = TT_SPACE;
 

@@ -1300,6 +1300,70 @@ dbLockUseFunc(selUse, use, transform, data)
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbFindNamedUse --
+ *
+ *	Find a cell instance by name for the "instance" command options
+ *	that take an instance name.  If there is an edit cell, the name
+ *	is looked up in the edit cell only, since the commands operate
+ *	only on children of the edit cell.  Otherwise, every cell that
+ *	has a parent is searched until the name is found.
+ *
+ * Results:
+ *	Pointer to the CellUse found, or NULL if there is none, in which
+ *	case an error message is printed.  If found, the use and any array
+ *	indices given in the name are also recorded in scx.
+ *
+ * Side effects:
+ *	Cells along the path of the name are read from disk if they have
+ *	not been read yet.  Without an edit cell, so is every cell searched.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static CellUse *
+dbFindNamedUse(
+    char *UseName,		/* Instance name, possibly hierarchical */
+    SearchContext *scx)		/* Filled in by DBTreeFindUse() */
+{
+    HashSearch hs;
+    HashEntry *entry;
+    CellDef *celldef;
+    CellUse *celluse;
+
+    scx->scx_use = (CellUse *)NULL;
+
+    if (EditCellUse != (CellUse *)NULL)
+    {
+	DBTreeFindUse(UseName, EditCellUse, scx);
+	if (scx->scx_use == (CellUse *)NULL)
+	    TxError("Cell %s is not an instance in the edit cell %s.\n",
+			UseName, EditCellUse->cu_def->cd_name);
+	return scx->scx_use;
+    }
+
+    HashStartSearch(&hs);
+    while ((entry = HashNext(&dbCellDefTable, &hs)) != NULL)
+    {
+	celldef = (CellDef *) HashGetValue(entry);
+	if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
+	{
+	    celluse = celldef->cd_parents;   /* only need one */
+	    if (celluse != (CellUse *)NULL)
+	    {
+		DBTreeFindUse(UseName, celluse, scx);
+		if (scx->scx_use != NULL) break;
+	    }
+	}
+    }
+
+    if (scx->scx_use == (CellUse *)NULL)
+	TxError("Cell %s is not currently loaded.\n", UseName);
+    return scx->scx_use;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBLockUse --
  *
  * 	This routine sets or clears a cell instance's lock flag
@@ -1318,12 +1382,6 @@ DBLockUse(UseName, bval)
     char *UseName;
     bool bval;
 {
-    int found;
-    HashSearch hs;
-    HashEntry *entry;
-    CellDef *celldef;
-    CellUse *celluse;
-
     int dbLockUseFunc();
 
    /*
@@ -1346,25 +1404,8 @@ DBLockUse(UseName, bval)
 	SearchContext scx;
 
 	bzero(&scx, sizeof(SearchContext));
-	found = 0;
 
-	HashStartSearch(&hs);
-	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
-	{
-	    celldef = (CellDef *) HashGetValue(entry);
-	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
-	    {
-		celluse = celldef->cd_parents;   /* only need one */
-		if (celluse != (CellUse *)NULL) {
-		    DBTreeFindUse(UseName, celluse, &scx);
-		    if (scx.scx_use != NULL) break;
-		}
-	    }
-	}
-
-	if (scx.scx_use == NULL)
-	    TxError("Cell %s is not currently loaded.\n", UseName);
-	else
+	if (dbFindNamedUse(UseName, &scx) != NULL)
 	    dbLockUseFunc(NULL, scx.scx_use, NULL, (ClientData)&bval);
     }
 }
@@ -1397,12 +1438,6 @@ DBOrientUse(UseName, dodef)
     char *UseName;
     bool dodef;
 {
-    int found;
-    HashSearch hs;
-    HashEntry *entry;
-    CellDef *celldef;
-    CellUse *celluse;
-
     int dbOrientUseFunc();
 
    /*
@@ -1425,25 +1460,8 @@ DBOrientUse(UseName, dodef)
 	SearchContext scx;
 
 	bzero(&scx, sizeof(SearchContext));
-	found = 0;
 
-	HashStartSearch(&hs);
-	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
-	{
-	    celldef = (CellDef *) HashGetValue(entry);
-	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
-	    {
-		celluse = celldef->cd_parents;   /* only need one */
-		if (celluse != (CellUse *)NULL) {
-		    DBTreeFindUse(UseName, celluse, &scx);
-		    if (scx.scx_use != NULL) break;
-		}
-	    }
-	}
-
-	if (scx.scx_use == NULL)
-	    TxError("Cell %s is not currently loaded.\n", UseName);
-	else
+	if (dbFindNamedUse(UseName, &scx) != NULL)
 	    dbOrientUseFunc(NULL, scx.scx_use, NULL, (ClientData)&dodef);
     }
 }
@@ -1563,12 +1581,6 @@ DBAbutmentUse(UseName, dolist)
     char *UseName;
     bool dolist;
 {
-    int found;
-    HashSearch hs;
-    HashEntry *entry;
-    CellDef *celldef;
-    CellUse *celluse;
-
     int dbAbutmentUseFunc();
 
    /*
@@ -1588,25 +1600,8 @@ DBAbutmentUse(UseName, dolist)
 	SearchContext scx;
 
 	bzero(&scx, sizeof(SearchContext));
-	found = 0;
 
-	HashStartSearch(&hs);
-	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
-	{
-	    celldef = (CellDef *) HashGetValue(entry);
-	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
-	    {
-		celluse = celldef->cd_parents;   /* only need one */
-		if (celluse != (CellUse *)NULL) {
-		    DBTreeFindUse(UseName, celluse, &scx);
-		    if (scx.scx_use != NULL) break;
-		}
-	    }
-	}
-
-	if (scx.scx_use == NULL)
-	    TxError("Cell %s is not currently loaded.\n", UseName);
-	else
+	if (dbFindNamedUse(UseName, &scx) != NULL)
 	    dbAbutmentUseFunc(NULL, scx.scx_use, NULL, (ClientData)&dolist);
     }
 }
@@ -1738,10 +1733,6 @@ void
 DBPositionUse(
     char *UseName)
 {
-    HashSearch hs;
-    HashEntry *entry;
-    CellDef *celldef;
-    CellUse *celluse;
     PositionUseData pud;
 #ifdef MAGIC_WRAPPER
 #if TCL_MAJOR_VERSION < 9
@@ -1771,24 +1762,7 @@ DBPositionUse(
 
 	bzero(&scx, sizeof(SearchContext));
 
-	HashStartSearch(&hs);
-	while ((entry = HashNext(&dbCellDefTable, &hs)) != NULL)
-	{
-	    celldef = (CellDef *) HashGetValue(entry);
-	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
-	    {
-		celluse = celldef->cd_parents;   /* only need one */
-		if (celluse != (CellUse *)NULL)
-		{
-		    DBTreeFindUse(UseName, celluse, &scx);
-		    if (scx.scx_use != NULL) break;
-		}
-	    }
-	}
-
-	if (scx.scx_use == NULL)
-	    TxError("Cell %s is not currently loaded.\n", UseName);
-	else
+	if (dbFindNamedUse(UseName, &scx) != NULL)
 	{
 	    /* DBTreeFindUse() returns the array indices given in the	*/
 	    /* name.  Without indices, report the first element.	*/

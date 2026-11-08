@@ -975,7 +975,9 @@ DBWPrintCIFSqValue(int value,	/* value to print, in internal units */
  *	None.
  *
  * Side effects:
- *	Whatever the command procedure does.
+ *	Whatever the command procedure does.  Timestamp mismatches found
+ *	while executing the command are processed afterward.  In the Tcl
+ *	version, the command's result is preserved across that processing.
  *
  * ----------------------------------------------------------------------------
  */
@@ -986,6 +988,13 @@ DBWcommands(w, cmd)
     TxCommand *cmd;
 {
     int cmdNum;
+#ifdef MAGIC_WRAPPER
+#if TCL_MAJOR_VERSION < 9
+    Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
+#endif
 
     /* If it was a keyboard command, just dispatch to the proper
      * command routine.
@@ -1004,9 +1013,25 @@ DBWcommands(w, cmd)
 
     UndoNext();
 
-    /* Update timestamps now that it's safe */
+    /* Update timestamps now that it's safe.  In the Tcl version,
+     * messages printed by DBFixMismatch() are passed through "puts",
+     * which would overwrite the result of the command just executed,
+     * so preserve the interpreter result around it.
+     */
 
+#ifdef MAGIC_WRAPPER
+#if TCL_MAJOR_VERSION < 9
+    Tcl_SaveResult(magicinterp, &state);
     DBFixMismatch();
+    Tcl_RestoreResult(magicinterp, &state);
+#else
+    state = Tcl_SaveInterpState(magicinterp, TCL_OK);
+    DBFixMismatch();
+    Tcl_RestoreInterpState(magicinterp, state);
+#endif
+#else
+    DBFixMismatch();
+#endif
 }
 
 /*

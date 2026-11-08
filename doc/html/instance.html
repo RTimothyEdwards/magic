@@ -78,7 +78,7 @@ Operations on cell instances (uses).
 		even though the whole array is selected.  Otherwise (for
 		example, if the array was selected with "<B>select area</B>"),
 		it is the position of the first element.
-	   <DT> [<B>list</B>] <B>abutment</B>
+	   <DT> [<B>list</B>] <B>abutment</B> [<I>name</I>]
 	   <DD> Returns the coordinates of the instance's abutment box
 		(the bounding box formed by the coordinates saved in the
 		FIXED_BBOX property in the cell), translated into the
@@ -113,6 +113,12 @@ Operations on cell instances (uses).
       returns the result as a list.  In particular, in the Tcl
       version of magic, this list is a Tcl result that may be
       operated on by Tcl procedures. <P>
+
+      For the options <B>orientation</B>, <B>position</B>,
+      <B>abutment</B>, <B>lock</B>, and <B>unlock</B>, the instance
+      must be a child of the edit cell, and an instance <I>name</I>
+      is looked up in the edit cell.  Instances of the same name in
+      other cells are ignored. <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
