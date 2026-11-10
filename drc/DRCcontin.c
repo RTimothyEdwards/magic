@@ -242,18 +242,24 @@ DRCCheckThis (celldef, operation, area)
     else
     {
 	DRCPendingCookie *plast;
-	plast = DRCPendingRoot;
-	while (plast->dpc_next != NULL)
+
+	/* Check every entry, including the last one, so that the cell
+	 * is never added twice.  DRCRemovePending() removes only one
+	 * entry, so a duplicate would be left pointing to a freed
+	 * CellDef if the cell is deleted.
+	 */
+
+	for (plast = DRCPendingRoot; plast != NULL; plast = plast->dpc_next)
 	{
 	    if (plast->dpc_def == celldef) break;
-	    plast = plast->dpc_next;
-	}
-	if (plast->dpc_next == NULL)
-	{
-	    p = (DRCPendingCookie *) mallocMagic(sizeof (DRCPendingCookie));
-	    p->dpc_def = celldef;
-	    p->dpc_next = NULL;
-	    plast->dpc_next = p;
+	    if (plast->dpc_next == NULL)
+	    {
+		p = (DRCPendingCookie *) mallocMagic(sizeof (DRCPendingCookie));
+		p->dpc_def = celldef;
+		p->dpc_next = NULL;
+		plast->dpc_next = p;
+		break;
+	    }
 	}
     }
 

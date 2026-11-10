@@ -591,6 +591,15 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 		}
 	    }
 	}
+	/* A resistor that shares neither node with another resistor cannot
+	 * be merged into a neighbor (shouldn't happen).
+	 */
+	if (working == NULL)
+	{
+	    current = current->rr_nextResistor;
+	    continue;
+	}
+
 	/*
 	 * If the current resistor isn't a dead end, add its value and
 	 * area to that of the next smallest one.  If it is a dead end,
@@ -613,7 +622,15 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 			current->rr_connection1;
 	ResDeleteResPointer(current->rr_connection1, current);
 	ResDeleteResPointer(current->rr_connection2, current);
-	working->rr_lastResistor->rr_nextResistor = working->rr_nextResistor;
+
+	/* Unlink "working" so that it can be reinserted in sorted order.
+	 * Because resistors between ports are skipped above, "current" is
+	 * not necessarily first in the list, and "working" may be.
+	 */
+	if (working->rr_lastResistor == NULL)
+	    *reslist = working->rr_nextResistor;
+	else
+	    working->rr_lastResistor->rr_nextResistor = working->rr_nextResistor;
 	if (working->rr_nextResistor != NULL)
 	    working->rr_nextResistor->rr_lastResistor = working->rr_lastResistor;
 
