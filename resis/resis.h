@@ -613,6 +613,7 @@ extern int  ResDoSimplify();
 extern void ResDoneWithNode();
 extern void ResEliminateResistor();
 extern bool ResExtractNet();
+extern void ResFixParallel();
 extern int  ResFracture();
 extern void ResMergeNodes();
 extern void ResNewTermDevice();

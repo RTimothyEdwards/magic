@@ -462,14 +462,19 @@ ResMakeLabelPorts(def, resisdata)
 	    if (GEO_TOUCH(&slab->lab_rect, &rdriver->rc_rect))
 		break;
 	}
-	if (rdriver != NULL) break;
+	if (rdriver != NULL) continue;
 
 	/* Add a new sinkpoint to the node where the label is */
 	newsink = (ResConnect *)mallocMagic(sizeof(ResConnect));
 	newsink->rc_next = node->sinkpoints;
 	node->sinkpoints = newsink;
 
-	if (GEO_ENCLOSE(resisdata->rg_devloc, &slab->lab_rect))
+	/* If the drive point is a label or port (not a device) and this
+	 * label covers it, then the label's type is the drive point type.
+	 * A label covering a driving device's location is not.
+	 */
+	if ((resisdata->rg_status & DRIVEONLY) &&
+		GEO_ENCLOSE(resisdata->rg_devloc, &slab->lab_rect))
 	    resisdata->rg_ttype = slab->lab_type;
 
         newsink->rc_rect = slab->lab_rect;

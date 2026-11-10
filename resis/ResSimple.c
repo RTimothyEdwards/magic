@@ -431,6 +431,164 @@ qrescompare(const void *one, const void *two)
 /*
  *-------------------------------------------------------------------------
  *
+ * resFindSameNameNodes --
+ *
+ *	Find two different nodes of the network that have the same name.
+ *
+ * Results:
+ *	TRUE if such a pair was found, in which case *n1 and *n2 are set
+ *	to the two nodes.  FALSE otherwise.
+ *
+ * Side Effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+bool
+resFindSameNameNodes(reslist, n1, n2)
+    resResistor	*reslist;
+    resNode	**n1, **n2;
+{
+    HashTable	nameTable;
+    HashEntry	*he;
+    resResistor *res;
+    resNode	*node, *other;
+    int		i;
+    bool	found = FALSE;
+
+    HashInit(&nameTable, 32, HT_STRINGKEYS);
+    for (res = reslist; res != NULL && !found; res = res->rr_nextResistor)
+    {
+	for (i = 0; i < 2; i++)
+	{
+	    node = (i == 0) ? res->rr_connection1 : res->rr_connection2;
+	    if (node->rn_name == NULL) continue;
+	    he = HashFind(&nameTable, node->rn_name);
+	    other = (resNode *)HashGetValue(he);
+	    if (other == NULL)
+		HashSetValue(he, (ClientData)node);
+	    else if (other != node)
+	    {
+		*n1 = other;
+		*n2 = node;
+		found = TRUE;
+		break;
+	    }
+	}
+    }
+    HashKill(&nameTable);
+    return found;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResMergeSameNameNodes --
+ *
+ *	Merge all nodes of the network that have the same name.  Such nodes
+ *	are different connection points of the same port (e.g., the
+ *	multiple labels of a standard cell pin, any of which is a valid
+ *	connection point), and they are a single node in the netlist
+ *	output.  Without merging, a resistor between two of them would
+ *	connect the node to itself in the netlist, and resistors from two
+ *	of them to the same node would be unsimplified parallel resistors.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Nodes are merged, resistors connecting a merged node to itself are
+ *	eliminated, and the network is further simplified around each
+ *	merged node.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResMergeSameNameNodes(reslist, pendingList, biglist, tolerance)
+    resResistor	**reslist;
+    resNode	**pendingList, **biglist;
+    float	tolerance;
+{
+    resResistor *res;
+    resElement	*rcell;
+    resNode	*node1, *node2, *tnode;
+
+    /* Simplification may eliminate any node, so after each merge,	*/
+    /* search again from the beginning.					*/
+
+    while (resFindSameNameNodes(*reslist, &node1, &node2))
+    {
+	/* Keep the origin node, if it is one of the two */
+	if (node2->rn_why & RES_NODE_ORIGIN)
+	{
+	    tnode = node1;
+	    node1 = node2;
+	    node2 = tnode;
+	}
+	ResMergeNodes(node1, node2, pendingList, biglist);
+
+	/* Eliminate resistors that now connect node1 to itself */
+	rcell = node1->rn_re;
+	while (rcell != NULL)
+	{
+	    res = rcell->re_thisEl;
+	    if (res->rr_connection1 == res->rr_connection2)
+	    {
+		ResDeleteResPointer(node1, res);
+		ResDeleteResPointer(node1, res);
+		ResEliminateResistor(res, reslist);
+		rcell = node1->rn_re;
+	    }
+	    else
+		rcell = rcell->re_nextEl;
+	}
+
+	/* Combine resistors in parallel between node1 and another node.	*/
+	/* (ResDoneWithNode() does not do this for ports.)		*/
+	rcell = node1->rn_re;
+	while (rcell != NULL)
+	{
+	    resElement *rcell2;
+	    resResistor *res2;
+	    resNode *other, *other2;
+
+	    res = rcell->re_thisEl;
+	    other = (res->rr_connection1 == node1) ? res->rr_connection2 :
+			res->rr_connection1;
+	    for (rcell2 = rcell->re_nextEl; rcell2 != NULL;
+			rcell2 = rcell2->re_nextEl)
+	    {
+		res2 = rcell2->re_thisEl;
+		other2 = (res2->rr_connection1 == node1) ? res2->rr_connection2 :
+			res2->rr_connection1;
+		if ((other2 == other) &&
+			!TTMaskHasType(ResNoMergeMask + res->rr_tt, res2->rr_tt))
+		    break;
+	    }
+	    if (rcell2 != NULL)
+	    {
+		ResFixParallel(res2, res);
+		rcell = node1->rn_re;
+	    }
+	    else
+		rcell = rcell->re_nextEl;
+	}
+
+	/* Try further simplification around the merged node */
+	ResRemoveFromQueue(node1, biglist);
+	ResAddToQueue(node1, pendingList);
+	node1->rn_status &= ~(RES_DONE_ONCE | RES_FINISHED);
+	ResDoneWithNode(node1);
+	while (*pendingList != NULL)
+	    ResSimplifyNet(pendingList, biglist, reslist, tolerance);
+    }
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResScrunchNet-- Last ditch net simplification. Used to break deadlocks
  *	in ResSimplifyNet.  Resistors are sorted by value. The smallest
  *	resistor is combined with its smallest neighbor, and ResSimplifyNet
@@ -1079,6 +1237,10 @@ ResDoSimplify(resisdata)
 	    while (ResNodeQueue != NULL)
 	        ResSimplifyNet(&ResNodeQueue, &ResNodeList, &ResResList,
 				resisdata->minres);
+
+	    /* Merge nodes that are connection points of the same port */
+	    ResMergeSameNameNodes(&ResResList, &ResNodeQueue, &ResNodeList,
+			resisdata->minres);
 
 	    /*
 	     * Call ResScrunchNet to eliminate any remaining under-tolerance
