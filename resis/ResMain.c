@@ -451,6 +451,13 @@ ResMakeLabelPorts(def, resisdata)
 	/* missing terminal on a device.			*/
 	if (*(slab->lab_text) == '\0') continue;
 
+	/* Only ports are connection points.  Other labels are annotations,
+	 * and a net segment under one is named like any other subnode.
+	 * Multiple ports with the same name are all valid connection
+	 * points to the same node, and are merged during simplification.
+	 */
+	if (!(slab->lab_flags & PORT_DIR_MASK)) continue;
+
 	entry = HashFind(&ResNodeTable, slab->lab_text);
 	node = ResExtInitNode(entry);
 
