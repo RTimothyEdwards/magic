@@ -16,8 +16,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extract/extractInt.h"
 #include "resis/resis.h"
 
-TileTypeBitMask	ResNoMergeMask[NT];
-
 /* Forward declarations */
 
 extern void ResMergeNodes();
@@ -253,149 +251,146 @@ ResSeriesCheck(resptr)
     else if (res_next->re_nextEl == NULL)
     {
 	rr2 = res_next->re_thisEl;
-	if (!TTMaskHasType(ResNoMergeMask + rr1->rr_tt, rr2->rr_tt))
+	if (rr1->rr_connection1 == resptr)
 	{
-	    if (rr1->rr_connection1 == resptr)
+	    if (rr2->rr_connection1 == resptr)
 	    {
-		if (rr2->rr_connection1 == resptr)
+		resptr2 = rr1->rr_connection2;
+		if (rr1 == rr2)	/* This should not happen, but does? */
 		{
-		    resptr2 = rr1->rr_connection2;
-		    if (rr1 == rr2)	/* This should not happen, but does? */
-		    {
-			TxError("Internal error:  Resistor linked to itself!\n");
-			status = LOOP;
-			ResDeleteResPointer(rr2->rr_connection1, rr2);
-			ResDeleteResPointer(rr2->rr_connection2, rr2);
-			resptr2->rn_float.rn_area += rr2->rr_float.rr_area
-					+ rr2->rr_float.rr_area
-					+ resptr->rn_float.rn_area;
-			ResEliminateResistor(rr2, &ResResList);
-			ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
-		    }
-		    else if (rr1->rr_connection2 == rr2->rr_connection2)
-		    {
-			status = LOOP;
-			ResDeleteResPointer(rr1->rr_connection1, rr1);
-			ResDeleteResPointer(rr1->rr_connection2, rr1);
-			ResDeleteResPointer(rr2->rr_connection1, rr2);
-			ResDeleteResPointer(rr2->rr_connection2, rr2);
-			resptr2->rn_float.rn_area += rr1->rr_float.rr_area
-					+ rr2->rr_float.rr_area
-					+ resptr->rn_float.rn_area;
-			ResEliminateResistor(rr1, &ResResList);
-			ResEliminateResistor(rr2, &ResResList);
-			ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
-		    }
-		    else
-		    {
-			status = SERIES;
-			resptr3 = rr2->rr_connection2;
-			rr1->rr_connection1 = rr2->rr_connection2;
-			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
-		    }
-		    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
-		    {
-			resptr2->rn_status &= ~RES_TRUE;
-			ResDoneWithNode(resptr2);
-		    }
-		    resptr2 = NULL;
+		    TxError("Internal error:  Resistor linked to itself!\n");
+		    status = LOOP;
+		    ResDeleteResPointer(rr2->rr_connection1, rr2);
+		    ResDeleteResPointer(rr2->rr_connection2, rr2);
+		    resptr2->rn_float.rn_area += rr2->rr_float.rr_area
+				    + rr2->rr_float.rr_area
+				    + resptr->rn_float.rn_area;
+		    ResEliminateResistor(rr2, &ResResList);
+		    ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
+		}
+		else if (rr1->rr_connection2 == rr2->rr_connection2)
+		{
+		    status = LOOP;
+		    ResDeleteResPointer(rr1->rr_connection1, rr1);
+		    ResDeleteResPointer(rr1->rr_connection2, rr1);
+		    ResDeleteResPointer(rr2->rr_connection1, rr2);
+		    ResDeleteResPointer(rr2->rr_connection2, rr2);
+		    resptr2->rn_float.rn_area += rr1->rr_float.rr_area
+				    + rr2->rr_float.rr_area
+				    + resptr->rn_float.rn_area;
+		    ResEliminateResistor(rr1, &ResResList);
+		    ResEliminateResistor(rr2, &ResResList);
+		    ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
 		}
 		else
 		{
-  		    resptr2 = rr1->rr_connection2;
-		    if (rr1->rr_connection2 == rr2->rr_connection1)
-		    {
-			status = LOOP;
-			ResDeleteResPointer(rr1->rr_connection1, rr1);
-			ResDeleteResPointer(rr1->rr_connection2, rr1);
-			ResDeleteResPointer(rr2->rr_connection1, rr2);
-			ResDeleteResPointer(rr2->rr_connection2, rr2);
-	        	resptr2->rn_float.rn_area += rr1->rr_float.rr_area
-					+ rr2->rr_float.rr_area
-					+ resptr->rn_float.rn_area;
-			ResEliminateResistor(rr1, &ResResList);
-			ResEliminateResistor(rr2, &ResResList);
-			ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
-		    }
-		    else
-		    {
-			status = SERIES;
-			resptr3 = rr2->rr_connection1;
-			rr1->rr_connection1 = rr2->rr_connection1;
-			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
-		    }
-		    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
-		    {
-			resptr2->rn_status &= ~RES_TRUE;
-			ResDoneWithNode(resptr2);
-		    }
-		    resptr2 = NULL;
+		    status = SERIES;
+		    resptr3 = rr2->rr_connection2;
+		    rr1->rr_connection1 = rr2->rr_connection2;
+		    ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		}
-	    }	
+		if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
+		{
+		    resptr2->rn_status &= ~RES_TRUE;
+		    ResDoneWithNode(resptr2);
+		}
+		resptr2 = NULL;
+	    }
 	    else
 	    {
-		if (rr2->rr_connection1 == resptr)
+		resptr2 = rr1->rr_connection2;
+		if (rr1->rr_connection2 == rr2->rr_connection1)
 		{
-		    resptr2 = rr1->rr_connection1;
-		    if (rr1->rr_connection1 == rr2->rr_connection2)
-		    {
-			status = LOOP;
-			ResDeleteResPointer(rr1->rr_connection1, rr1);
-			ResDeleteResPointer(rr1->rr_connection2, rr1);
-			ResDeleteResPointer(rr2->rr_connection1, rr2);
-			ResDeleteResPointer(rr2->rr_connection2, rr2);
-	        	resptr2->rn_float.rn_area += rr1->rr_float.rr_area
-					+ rr2->rr_float.rr_area
-					+ resptr->rn_float.rn_area;
-			ResEliminateResistor(rr1, &ResResList);
-			ResEliminateResistor(rr2, &ResResList);
-			ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
-		    }
-		    else
-		    {
-			status = SERIES;
-			resptr3 = rr2->rr_connection2;
-			rr1->rr_connection2 = rr2->rr_connection2;
-			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
-		    }
-		    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
-		    {
-			resptr2->rn_status &= ~RES_TRUE;
-			ResDoneWithNode(resptr2);
-		    }
-		    resptr2 = NULL;
-		} 
+		    status = LOOP;
+		    ResDeleteResPointer(rr1->rr_connection1, rr1);
+		    ResDeleteResPointer(rr1->rr_connection2, rr1);
+		    ResDeleteResPointer(rr2->rr_connection1, rr2);
+		    ResDeleteResPointer(rr2->rr_connection2, rr2);
+		    resptr2->rn_float.rn_area += rr1->rr_float.rr_area
+				    + rr2->rr_float.rr_area
+				    + resptr->rn_float.rn_area;
+		    ResEliminateResistor(rr1, &ResResList);
+		    ResEliminateResistor(rr2, &ResResList);
+		    ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
+		}
 		else
 		{
-		    resptr2 = rr1->rr_connection1;
-		    if (rr1->rr_connection1 == rr2->rr_connection1)
-		    {
-			status = LOOP;
-			ResDeleteResPointer(rr1->rr_connection1, rr1);
-			ResDeleteResPointer(rr1->rr_connection2, rr1);
-			ResDeleteResPointer(rr2->rr_connection1, rr2);
-			ResDeleteResPointer(rr2->rr_connection2, rr2);
-	        	resptr2->rn_float.rn_area += rr1->rr_float.rr_area
-					+ rr2->rr_float.rr_area
-					+ resptr->rn_float.rn_area;
-			ResEliminateResistor(rr1, &ResResList);
-			ResEliminateResistor(rr2, &ResResList);
-			ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
-		    }
-		    else
-		    {
-			status = SERIES;
-			resptr3 = rr2->rr_connection1;
-			rr1->rr_connection2 = rr2->rr_connection1;
-			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
-		    }
-		    if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
-		    {
-			resptr2->rn_status &= ~RES_TRUE;
-			ResDoneWithNode(resptr2);
-		    }
-		    resptr2 = NULL;
+		    status = SERIES;
+		    resptr3 = rr2->rr_connection1;
+		    rr1->rr_connection1 = rr2->rr_connection1;
+		    ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		}
+		if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
+		{
+		    resptr2->rn_status &= ~RES_TRUE;
+		    ResDoneWithNode(resptr2);
+		}
+		resptr2 = NULL;
+	    }
+	}	
+	else
+	{
+	    if (rr2->rr_connection1 == resptr)
+	    {
+		resptr2 = rr1->rr_connection1;
+		if (rr1->rr_connection1 == rr2->rr_connection2)
+		{
+		    status = LOOP;
+		    ResDeleteResPointer(rr1->rr_connection1, rr1);
+		    ResDeleteResPointer(rr1->rr_connection2, rr1);
+		    ResDeleteResPointer(rr2->rr_connection1, rr2);
+		    ResDeleteResPointer(rr2->rr_connection2, rr2);
+		    resptr2->rn_float.rn_area += rr1->rr_float.rr_area
+				    + rr2->rr_float.rr_area
+				    + resptr->rn_float.rn_area;
+		    ResEliminateResistor(rr1, &ResResList);
+		    ResEliminateResistor(rr2, &ResResList);
+		    ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
+		}
+		else
+		{
+		    status = SERIES;
+		    resptr3 = rr2->rr_connection2;
+		    rr1->rr_connection2 = rr2->rr_connection2;
+		    ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
+		}
+		if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
+		{
+		    resptr2->rn_status &= ~RES_TRUE;
+		    ResDoneWithNode(resptr2);
+		}
+		resptr2 = NULL;
+	    } 
+	    else
+	    {
+		resptr2 = rr1->rr_connection1;
+		if (rr1->rr_connection1 == rr2->rr_connection1)
+		{
+		    status = LOOP;
+		    ResDeleteResPointer(rr1->rr_connection1, rr1);
+		    ResDeleteResPointer(rr1->rr_connection2, rr1);
+		    ResDeleteResPointer(rr2->rr_connection1, rr2);
+		    ResDeleteResPointer(rr2->rr_connection2, rr2);
+		    resptr2->rn_float.rn_area += rr1->rr_float.rr_area
+				    + rr2->rr_float.rr_area
+				    + resptr->rn_float.rn_area;
+		    ResEliminateResistor(rr1, &ResResList);
+		    ResEliminateResistor(rr2, &ResResList);
+		    ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
+		}
+		else
+		{
+		    status = SERIES;
+		    resptr3 = rr2->rr_connection1;
+		    rr1->rr_connection2 = rr2->rr_connection1;
+		    ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
+		}
+		if ((resptr2->rn_status & RES_TRUE) == RES_TRUE)
+		{
+		    resptr2->rn_status &= ~RES_TRUE;
+		    ResDoneWithNode(resptr2);
+		}
+		resptr2 = NULL;
 	    }
 	}
     }
@@ -457,8 +452,6 @@ ResParallelCheck(resptr)
 		r1 = rcell1->re_thisEl;
 		r2 = rcell2->re_thisEl;
 
-		if (TTMaskHasType(ResNoMergeMask+r1->rr_tt, r2->rr_tt)) continue;
-
 		ResFixParallel(r1, r2);
 	        status = PARALLEL;
 		resptr2 = NULL;
@@ -492,7 +485,6 @@ ResParallelCheck(resptr)
 
 	{
 	    r2 = rcell2->re_thisEl;
-	    if (TTMaskHasType(ResNoMergeMask+r1->rr_tt, r2->rr_tt)) continue;
 	    if (((r1->rr_connection1 == r2->rr_connection1) &&
 	            (r1->rr_connection2 == r2->rr_connection2))||
 	            ((r1->rr_connection1 == r2->rr_connection2) &&
@@ -591,10 +583,6 @@ ResTriangleCheck(resptr)
 	    {
 		rr3 = rcell3->re_thisEl;
 
-		/* Resistor can't be merged */
-		if (TTMaskHasType(ResNoMergeMask + rr1->rr_tt, rr3->rr_tt))
-		    continue;
-
 		/* rr3 must span two distinct neighbors of resptr, so	*/
 		/* skip rr3 if it is the resistor connecting resptr	*/
 		/* and n1.						*/
@@ -619,12 +607,6 @@ ResTriangleCheck(resptr)
 		    /* Found a triangle */
 		    rcell2 = (resElement *)HashGetValue(he2);
 		    rr2 = rcell2->re_thisEl;
-
-		    /* . . . But it can't be merged */
-		    if (TTMaskHasType(ResNoMergeMask + rr1->rr_tt, rr2->rr_tt))
-			continue;
-		    if (TTMaskHasType(ResNoMergeMask + rr2->rr_tt, rr3->rr_tt))
-			continue;
 
 		    status = TRIANGLE;
 		    if ((denom = rr1->rr_value + rr2->rr_value + rr3->rr_value) != 0.0)
@@ -741,18 +723,12 @@ ResTriangleCheck(resptr)
 		    rcell2 = rcell2->re_nextEl)
 	{
 	    rr2 = rcell2->re_thisEl;
-	    if (TTMaskHasType(ResNoMergeMask + rr1->rr_tt, rr2->rr_tt))
-		continue;
 	    n2 = (rr2->rr_connection1 == resptr) ? rr2->rr_connection2 :
 	       					    rr2->rr_connection1;
 	    for (rcell3 = n1->rn_re; rcell3 != NULL;
 			rcell3 = rcell3->re_nextEl)
 	    {
 		rr3 = rcell3->re_thisEl;
-		if (TTMaskHasType(ResNoMergeMask + rr1->rr_tt, rr3->rr_tt))
-		    continue;
-		if (TTMaskHasType(ResNoMergeMask + rr2->rr_tt, rr3->rr_tt))
-		    continue;
 
 		if (((rr3->rr_connection1 != n1) ||
 		        (rr3->rr_connection2 != n2)) &&

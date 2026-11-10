@@ -555,7 +555,6 @@ extern CellDef			*mainDef;
 extern TileTypeBitMask		ResTermTypesBitMask;
 extern TileTypeBitMask		ResSubTypesBitMask;
 extern	HashTable		ResDevTable;
-extern TileTypeBitMask		ResNoMergeMask[NT];
 extern int			ResPortIndex;
 
 /* Routines used by ResReadExt() */

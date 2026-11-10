@@ -563,9 +563,7 @@ ResMergeSameNameNodes(reslist, pendingList, biglist, tolerance)
 		res2 = rcell2->re_thisEl;
 		other2 = (res2->rr_connection1 == node1) ? res2->rr_connection2 :
 			res2->rr_connection1;
-		if ((other2 == other) &&
-			!TTMaskHasType(ResNoMergeMask + res->rr_tt, res2->rr_tt))
-		    break;
+		if (other2 == other) break;
 	    }
 	    if (rcell2 != NULL)
 	    {
