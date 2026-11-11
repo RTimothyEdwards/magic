@@ -34,7 +34,9 @@
 
 #include <stdio.h>
 
+#ifndef MAGIC_NO_TK
 #include <tk.h>
+#endif /* MAGIC_NO_TK */
 #include <tcl.h>
 
 #include "tcltk/tcldir.h"
@@ -46,18 +48,18 @@
 /*----------------------------------------------------------------------*/
 
 int
-magic_AppInit(interp)
-    Tcl_Interp *interp;
+magic_AppInit(Tcl_Interp *interp)
 {
     if (Tcl_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
 
+#ifndef MAGIC_NO_TK
     if (Tk_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
     Tcl_StaticPackage(interp, "Tk", Tk_Init, Tk_SafeInit);
-
+#endif /* MAGIC_NO_TK */
     /* This is where we replace the home ".wishrc" file with	*/
     /* magic's startup script.					*/
 
@@ -76,12 +78,15 @@ magic_AppInit(interp)
 /*----------------------------------------------------------------------*/
 
 int
-main(argc, argv)
-   int argc;
-   char **argv;
+main(int argc, char **argv)
 {
+#ifdef MAGIC_NO_TK
+    fprintf(stderr, "Magic was not built with Tk support. Relaunch magic with -dnull.\n");
+    return 1;
+#else
     Tk_Main(argc, argv, magic_AppInit);
     return 0;
+#endif /* MAGIC_NO_TK */
 }
 
 /*----------------------------------------------------------------------*/
