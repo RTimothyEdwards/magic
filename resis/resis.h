@@ -288,6 +288,7 @@ typedef struct resoptions
     float	    minres;	/* Minimum network resistance to output */
     float	    mindelay;	/* Minimum network delay to output */
     float	    rthresh;	/* Minimum individual resistance */
+    float	    prune;	/* Tolerance for removing negligible resistors */
     float	    frequency;	/* For FastHenry geometry extraction */
     struct saveList *savePlanes;
     CellDef	    *mainDef;

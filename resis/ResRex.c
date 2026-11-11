@@ -232,6 +232,7 @@ ResInit()
 	 */
 	resisdata->rthresh = 10000.0;
 	resisdata->minres = 1000.0;
+	resisdata->prune = 0.01;	/* See resPruneResistors() */
 	resisdata->mindelay = 1.0e9;	/* 1ps = 1.0e9zs
 	resisdata->frequency = 10e6;	/* 10 MHz default */
 
@@ -301,6 +302,7 @@ CmdExtResis(win, cmd)
 	"threshold [value]    set minimum network resistance threshold (milliohms)",
 	"minresist [value]    set minimum individual resistance threshold (milliohms)",
 	"mindelay  [value]    set minimum network delay threshold (picoseconds)",
+	"prune     [value]    set tolerance for removing negligible resistors (0 = off)",
 	"tolerance [value]    set ratio between resistor and device resistance (deprecated)",
 	"simplify [on/off]    turn on/off simplification of resistor nets",
 	"extout   [on/off]    turn on/off writing of .res.ext file",
@@ -323,7 +325,7 @@ CmdExtResis(win, cmd)
 
 typedef enum {
 	RES_BAD=-2, RES_AMBIG, RES_ALL,
-	RES_THRESH, RES_MINRES, RES_MINDELAY, RES_TOL,
+	RES_THRESH, RES_MINRES, RES_MINDELAY, RES_PRUNE, RES_TOL,
 	RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT, RES_DEBUG,
 	RES_SKIP, RES_FORCE, RES_IGNORE, RES_INCLUDE, RES_BOX,
 	RES_CELL, RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY,
@@ -374,6 +376,30 @@ typedef enum {
 #else
 		TxPrintf("Minimum network resistance is %g milliohms.\n",
 			resisdata->minres);
+#endif
+	    }
+	    return;
+
+	case RES_PRUNE:
+	    if (cmd->tx_argc > 2)
+	    {
+		float prune = MagAtof(cmd->tx_argv[2]);
+		if ((prune < 0) || (prune >= 1))
+		{
+		    TxError("Usage:  %s prune [value]  (0 <= value < 1)\n",
+				cmd->tx_argv[0]);
+		    return;
+		}
+		resisdata->prune = prune;
+	    }
+	    else
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp,
+			Tcl_NewDoubleObj((double)resisdata->prune));
+#else
+		TxPrintf("Resistor pruning tolerance is %g.\n",
+			resisdata->prune);
 #endif
 	    }
 	    return;

@@ -587,6 +587,373 @@ ResMergeSameNameNodes(reslist, pendingList, biglist, tolerance)
 /*
  *-------------------------------------------------------------------------
  *
+ * resFindResistor --
+ *
+ *	Find a resistor connecting two nodes.
+ *
+ * Results:
+ *	Pointer to the first resistor found between node1 and node2, or
+ *	NULL if the nodes are not connected by a resistor.
+ *
+ * Side Effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+resResistor *
+resFindResistor(node1, node2)
+    resNode *node1, *node2;
+{
+    resElement *rcell;
+    resResistor *res;
+
+    for (rcell = node1->rn_re; rcell != NULL; rcell = rcell->re_nextEl)
+    {
+	res = rcell->re_thisEl;
+	if ((res->rr_connection1 == node2) || (res->rr_connection2 == node2))
+	    return res;
+    }
+    return NULL;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * resCombineParallel --
+ *
+ *	Combine all resistors in parallel between a node and each of its
+ *	neighbors.
+ *
+ * Results:
+ *	FALSE if the node has a zero-valued resistor or a resistor
+ *	connecting it to itself, in which case nothing is done.  TRUE
+ *	otherwise.
+ *
+ * Side Effects:
+ *	Resistors are eliminated and changed.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+bool
+resCombineParallel(node)
+    resNode	*node;
+{
+    resElement	*rcell, *rcell2;
+    resResistor *res, *res2;
+    resNode	*other;
+
+    for (rcell = node->rn_re; rcell != NULL; rcell = rcell->re_nextEl)
+    {
+	res = rcell->re_thisEl;
+	if ((res->rr_value <= 0) || (res->rr_connection1 == res->rr_connection2))
+	    return FALSE;
+    }
+
+    rcell = node->rn_re;
+    while (rcell != NULL)
+    {
+	res = rcell->re_thisEl;
+	other = (res->rr_connection1 == node) ? res->rr_connection2 :
+		res->rr_connection1;
+	for (rcell2 = rcell->re_nextEl; rcell2 != NULL; rcell2 = rcell2->re_nextEl)
+	{
+	    res2 = rcell2->re_thisEl;
+	    if ((res2->rr_connection1 == other) || (res2->rr_connection2 == other))
+		break;
+	}
+	if (rcell2 != NULL)
+	{
+	    ResFixParallel(res2, res);
+	    rcell = node->rn_re;
+	}
+	else
+	    rcell = rcell->re_nextEl;
+    }
+    return TRUE;
+}
+
+/* Maximum number of neighbors of a node to be eliminated */
+#define RES_ELIM_MAXDEG 8
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * resEliminateNode --
+ *
+ *	Try to eliminate one internal node of the network by the star-mesh
+ *	transform (the generalization of the wye-delta transform):  The
+ *	resistors from the node to its neighbors, with conductances g_i
+ *	summing to G, are replaced by resistors between each pair of
+ *	neighbors i and j, with conductance g_i * g_j / G, combined in
+ *	parallel with any resistor already connecting i and j.  This is
+ *	exact for the resistance between all remaining nodes.  The node's
+ *	capacitance is distributed to its neighbors in proportion to g_i / G
+ *	(as is done when combining resistors in series).
+ *
+ *	Only nodes with no device terminals, no name (port), and which are
+ *	not the origin or a sink are eliminated, and only if the node has
+ *	at most "maxdeg" neighbors and the transform does not create more
+ *	new resistors than it removes.
+ *
+ * Results:
+ *	TRUE if the node was eliminated, FALSE if not.
+ *
+ * Side Effects:
+ *	Parallel resistors from the node to the same neighbor are combined
+ *	whether or not the node is eliminated.  If the node is eliminated,
+ *	it and its resistors are freed, and resistors are added or changed
+ *	between its neighbors.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+bool
+resEliminateNode(node, maxdeg, reslist, pendingList, biglist)
+    resNode	*node;
+    int		maxdeg;
+    resResistor	**reslist;
+    resNode	**pendingList, **biglist;
+{
+    resElement	*rcell;
+    resResistor *res, *rnew;
+    resNode	*nb[RES_ELIM_MAXDEG];
+    resResistor *nbres[RES_ELIM_MAXDEG];
+    float	g[RES_ELIM_MAXDEG], gtot, gadd;
+    int		d, i, j, imax, newcount;
+
+    if (node->rn_te != NULL) return FALSE;
+    if (node->rn_why & (RES_NODE_ORIGIN | RES_NODE_SINK)) return FALSE;
+    if (node->rn_name != NULL) return FALSE;
+    if (node->rn_re == NULL) return FALSE;
+
+    /* Leave nodes with zero-valued resistors or loops to ResDoneWithNode() */
+    if (!resCombineParallel(node)) return FALSE;
+
+    /* Collect the neighbors */
+    d = 0;
+    for (rcell = node->rn_re; rcell != NULL; rcell = rcell->re_nextEl)
+    {
+	if (d == maxdeg) return FALSE;
+	res = rcell->re_thisEl;
+	nbres[d] = res;
+	nb[d] = (res->rr_connection1 == node) ? res->rr_connection2 :
+		res->rr_connection1;
+	g[d] = 1.0 / res->rr_value;
+	d++;
+    }
+
+    /* Do not eliminate the node if that would add resistors */
+    newcount = 0;
+    for (i = 0; i < d; i++)
+	for (j = i + 1; j < d; j++)
+	    if (resFindResistor(nb[i], nb[j]) == NULL)
+		newcount++;
+    if (newcount > d) return FALSE;
+
+    gtot = 0.0;
+    imax = 0;
+    for (i = 0; i < d; i++)
+    {
+	gtot += g[i];
+	if (g[i] > g[imax]) imax = i;
+    }
+
+    /* Connect each pair of neighbors */
+    for (i = 0; i < d; i++)
+	for (j = i + 1; j < d; j++)
+	{
+	    gadd = g[i] * g[j] / gtot;
+	    if ((res = resFindResistor(nb[i], nb[j])) != NULL)
+		res->rr_value = 1.0 / ((1.0 / res->rr_value) + gadd);
+	    else
+	    {
+		rnew = (resResistor *)mallocMagic(sizeof(resResistor));
+		rnew->rr_connection1 = nb[i];
+		rnew->rr_connection2 = nb[j];
+		rnew->rr_value = 1.0 / gadd;
+		rnew->rr_status = 0;
+		rnew->rr_float.rr_area = 0.0;
+		rnew->rr_cl = 0;
+		rnew->rr_width = 0;
+		rnew->rr_tt = (g[i] > g[j]) ? nbres[i]->rr_tt : nbres[j]->rr_tt;
+
+		rnew->rr_lastResistor = NULL;
+		rnew->rr_nextResistor = *reslist;
+		if (*reslist != NULL) (*reslist)->rr_lastResistor = rnew;
+		*reslist = rnew;
+
+		rcell = (resElement *)mallocMagic(sizeof(resElement));
+		rcell->re_thisEl = rnew;
+		rcell->re_nextEl = nb[i]->rn_re;
+		nb[i]->rn_re = rcell;
+		rcell = (resElement *)mallocMagic(sizeof(resElement));
+		rcell->re_thisEl = rnew;
+		rcell->re_nextEl = nb[j]->rn_re;
+		nb[j]->rn_re = rcell;
+	    }
+	}
+
+    /* Distribute the node capacitance and flags to the neighbors */
+    for (i = 0; i < d; i++)
+	nb[i]->rn_float.rn_area += node->rn_float.rn_area * g[i] / gtot;
+    nb[imax]->rn_status |= (node->rn_status & RES_MAXTDI);
+
+    /* Remove the node and its resistors */
+    for (i = 0; i < d; i++)
+    {
+	ResDeleteResPointer(nb[i], nbres[i]);
+	ResDeleteResPointer(node, nbres[i]);
+	ResEliminateResistor(nbres[i], reslist);
+    }
+    ResCleanNode(node, TRUE, biglist, pendingList);
+    return TRUE;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * resPruneResistors --
+ *
+ *	Remove resistors that carry a negligible part of the current
+ *	between their two nodes.  Removing a resistor R between nodes a
+ *	and b increases the resistance between a and b, relative to its
+ *	value, by at most R' / R, where R' is the resistance between a and
+ *	b through the rest of the network.  Any single path from a to b is
+ *	an upper bound on R'.  A resistor is removed if a path through one
+ *	common neighbor of a and b (or a resistor in parallel) has less
+ *	than "tolerance" times its resistance ("extresist prune").  A
+ *	resistor which is the only connection between two parts of the
+ *	network has no such path and is never removed.  Such resistors are
+ *	typically produced when internal nodes are eliminated (see
+ *	resEliminateNode()).
+ *
+ * Results:
+ *	The number of resistors removed.
+ *
+ * Side Effects:
+ *	Resistors are eliminated.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+resPruneResistors(reslist, tolerance)
+    resResistor	**reslist;
+    float	tolerance;	/* Maximum relative change in resistance */
+{
+    resResistor *res, *next, *r1, *r2;
+    resElement	*rcell;
+    resNode	*a, *b, *c;
+    float	path, best;
+    int		count = 0;
+
+    for (res = *reslist; res != NULL; res = next)
+    {
+	next = res->rr_nextResistor;
+	a = res->rr_connection1;
+	b = res->rr_connection2;
+	if ((a == b) || (res->rr_value <= 0)) continue;
+
+	/* Find the lowest resistance of a path from a to b of one or
+	 * two resistors, not including res itself.
+	 */
+	best = -1.0;
+	for (rcell = a->rn_re; rcell != NULL; rcell = rcell->re_nextEl)
+	{
+	    r1 = rcell->re_thisEl;
+	    if (r1 == res) continue;
+	    c = (r1->rr_connection1 == a) ? r1->rr_connection2 :
+			r1->rr_connection1;
+	    if (c == b)
+		path = r1->rr_value;
+	    else if ((r2 = resFindResistor(c, b)) != NULL)
+		path = r1->rr_value + r2->rr_value;
+	    else
+		continue;
+	    if ((best < 0) || (path < best)) best = path;
+	}
+	if ((best < 0) || (best >= tolerance * res->rr_value)) continue;
+
+	ResDeleteResPointer(a, res);
+	ResDeleteResPointer(b, res);
+	ResEliminateResistor(res, reslist);
+	count++;
+    }
+    return count;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResEliminateNodes --
+ *
+ *	Combine all parallel resistors, then eliminate internal nodes of the
+ *	network wherever this does not increase the number of resistors
+ *	(see resEliminateNode()), taking nodes with fewer neighbors first.
+ *	This removes, for example, the internal nodes of via arrays drawn as
+ *	individual cuts, which form loops that cannot be reduced by series,
+ *	parallel, and delta-wye combinations.  Node elimination is exact
+ *	for the resistance between the remaining nodes.  Then remove
+ *	resistors that carry a negligible part of the current (see
+ *	resPruneResistors()), which changes the resistance between any two
+ *	nodes by a small, bounded amount, and repeat.  If "prune" is zero,
+ *	no resistors are removed.
+ *
+ * Results:
+ *	The number of nodes eliminated.
+ *
+ * Side Effects:
+ *	Nodes and resistors are eliminated or changed.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResEliminateNodes(reslist, pendingList, biglist, prune)
+    resResistor	**reslist;
+    resNode	**pendingList, **biglist;
+    float	prune;		/* Pruning tolerance, or 0 for none */
+{
+    resNode	*node, *next;
+    int		maxdeg, count, total = 0;
+
+    if (ResOptionsFlags & ResOpt_Geometry) return 0;
+
+    /* Parallel resistors are not combined at ports and device terminals
+     * during simplification;  combine them everywhere.
+     */
+    for (node = *biglist; node != NULL; node = node->rn_more)
+	(void) resCombineParallel(node);
+
+    /* Removing negligible resistors may allow more nodes to be
+     * eliminated, so repeat until nothing more is removed.
+     */
+    do
+    {
+	maxdeg = 1;
+	while (maxdeg <= RES_ELIM_MAXDEG)
+	{
+	    count = 0;
+	    for (node = *biglist; node != NULL; node = next)
+	    {
+		next = node->rn_more;
+		if (resEliminateNode(node, maxdeg, reslist, pendingList, biglist))
+		    count++;
+	    }
+	    total += count;
+	    if (count == 0) maxdeg++;
+	}
+    }
+    while ((prune > 0) && (resPruneResistors(reslist, prune) > 0));
+
+    return total;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResScrunchNet-- Last ditch net simplification. Used to break deadlocks
  *	in ResSimplifyNet.  Resistors are sorted by value. The smallest
  *	resistor is combined with its smallest neighbor, and ResSimplifyNet
@@ -1245,6 +1612,14 @@ ResDoSimplify(resisdata)
 	     * resistors.
 	     */
 	    ResScrunchNet(&ResResList, &ResNodeQueue, &ResNodeList, resisdata->minres);
+
+	    /* Eliminate internal nodes where this does not add resistors.
+	     * This is exact, so do it last:  ResScrunchNet() approximates by
+	     * folding small resistors into a neighbor, which is a poor
+	     * approximation when a node is a hub of the reduced network.
+	     */
+	    ResEliminateNodes(&ResResList, &ResNodeQueue, &ResNodeList,
+			resisdata->prune);
         }
     }
     return 0;

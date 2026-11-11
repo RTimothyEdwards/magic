@@ -58,6 +58,13 @@ information.
 		simplify the network around the resistor, and a resistor
 		between two ports is never removed.  A value of zero means
 		that no resistors are pruned.
+	   <DT> <B>prune</B> [<I>value</I>]
+	   <DD> With no value given, returns the current tolerance used to
+		remove negligible resistors from a network when simplifying.
+		The default <B>prune</B> value is 0.01.  If <I>value</I> is
+		given, then set the tolerance to <I>value</I>, which must be
+		at least zero and less than one.  A value of zero means that
+		no resistors are removed this way.
 	   <DT> <B>simplify</B> [<B>on</B>|<B>off</B>]
 	   <DD> Turn on/off simplification of resistor nets.
 	   <DT> <B>extout</B> [<B>on</B>|<B>off</B>]
@@ -174,6 +181,23 @@ information.
       simplification algorithm is able to remove them.  A resistor
       connecting two ports is never removed, since that would merge the
       ports.  The default <B>minres</B> value is set to 1 ohm. <P>
+
+      After the network has been simplified, internal nodes of the
+      network (nodes that are not device terminals or ports) are
+      eliminated wherever this does not increase the number of
+      resistors.  This does not change the resistance between any of
+      the remaining nodes, and it removes, for example, the internal
+      nodes of via arrays that are drawn as individual contact cuts.
+      Eliminating nodes may create resistors that carry a negligible
+      part of the current between their two nodes.  <B>extresist
+      prune</B> sets the tolerance for removing them:  A resistor is
+      removed if there is another path between its two nodes, through
+      at most one other node, with less than the tolerance times its
+      resistance.  Removing such a resistor increases the resistance
+      between any two nodes of the network by at most about that
+      fraction.  A resistor that is the only connection between two
+      parts of the network is never removed.  The default <B>prune</B>
+      value is 0.01 (1%). <P>
 
       <B>extresist mindelay</B> (value in picoseconds) sets a cutoff for
       considering a network for detailed resistance extraction based on
