@@ -8,8 +8,11 @@ magic_bin = __here__ / "bin" / "magic"
 
 def launch_magic():
     env = os.environ.copy()
-    env["CAD_ROOT"] = __here__ / "lib"
-    env["TCL_LIBRARY"] = __here__ / "lib" / "tcl8.6"
+    env["CAD_ROOT"] = str(__here__ / "lib")
+    wish = __here__ / "bin" / "wish9.1"
+    if wish.is_file():
+        env["MAGIC_WISH"] = str(wish)
+    env["TCL_LIBRARY"] = str(__here__ / "lib" / "tcl9.1")
     os.execle(magic_bin, "magic", *sys.argv[1:], env)
 
 

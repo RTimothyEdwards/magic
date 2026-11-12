@@ -23,13 +23,13 @@ import hashlib
 import io
 import os
 import pathlib
-import shutil
 import subprocess
 import sys
 import sysconfig
 import tarfile
 import tempfile
 import urllib.request
+import zipfile
 from collections.abc import Iterable
 from email.message import EmailMessage
 from email.policy import EmailPolicy
@@ -53,10 +53,43 @@ ENTRY_POINTS = f"""
 magic = {PROJECT_NAME}.__main__:launch_magic
 """
 
-TCL_URL = "https://github.com/tcltk/tcl/archive/refs/tags/core-8-6-16.tar.gz"
-TCL_SHA256 = "05c061cca79a17efc61ef7c1cd873227a02a7c1fdc114aa6a4ecdd33ecf167f4"
-TK_URL = "https://github.com/tcltk/tk/archive/refs/tags/core-8-6-16.tar.gz"
-TK_SHA256 = "8cef8214ce158ca62b05bc9e714d2db90aa37eb478679a22135b51386879fda6"
+TCL_URL = "https://github.com/tcltk/tcl/releases/download/core-9-1-0/tcl910-src.zip"
+TCL_SHA256 = "e425ca433ebbd84479bac7abb684e71f4efa3344fed12e67d0a3771e1d6d9d82"
+TK_URL = "https://github.com/tcltk/tk/releases/download/core-9-1-0/tk910-src.zip"
+TK_SHA256 = "d6f1183bb19661915cdb4e67a7620a6555d3e4caea08e9118ca22316fabde433"
+
+
+def _archive_filter(entry):
+    name = os.path.basename(entry.name)
+    if name in (
+        ".git",
+        ".github",
+        ".cache",
+        "build",
+        "dist",
+        "venv",
+        ".venv",
+        "test",
+        "__pycache__",
+    ):
+        return
+    if name.endswith(
+        (
+            ".whl",
+            ".tgz",
+            ".tar.gz",
+            ".dSYM",
+            ".so",
+            ".o",
+            ".dylib",
+            "magicdnull",
+            "magicexec",
+        )
+    ):
+        return
+    if name in ("Makefile", "defs.mak"):
+        return
+    return entry
 
 
 def build_sdist(sdist_dir, config_settings=None):
@@ -72,25 +105,7 @@ def build_sdist(sdist_dir, config_settings=None):
         version_tarinfo.size = len(version_bytes)
         sdist.addfile(version_tarinfo, io.BytesIO(version_bytes))
 
-        def exclude_build(entry):
-            name = os.path.basename(entry.name)
-            if name in (
-                ".git",
-                ".github",
-                ".cache",
-                "build",
-                "dist",
-                "venv",
-                ".venv",
-                "test",
-                "__pycache__",
-            ):
-                return
-            if name.endswith((".whl", ".tgz", ".tar.gz")):
-                return
-            return entry
-
-        sdist.add(os.getcwd(), arcname=DIST_NAME, filter=exclude_build)
+        sdist.add(os.getcwd(), arcname=DIST_NAME, filter=_archive_filter)
 
     return sdist_filename
 
@@ -162,6 +177,7 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
 
 
 def _download_hashed(url, dest, sha256_digest):
+    print(f"Downloading {url} to {dest}…", file=sys.stderr)
     urllib.request.urlretrieve(url, dest)
     with open(dest, "rb") as f:
         buffer = f.read()
@@ -172,17 +188,31 @@ def _download_hashed(url, dest, sha256_digest):
             raise RuntimeError(f"upstream hash for {url} source changed: {got}")
 
 
-def _ensure_tcltk(d):
-    _download_hashed(TCL_URL, d / "tcl.tar.gz", TCL_SHA256)
-    _download_hashed(TK_URL, d / "tk.tar.gz", TK_SHA256)
+def _ensure_tcltk(d: pathlib.Path, tk=False):
+    _download_hashed(TCL_URL, d / "tcl.zip", TCL_SHA256)
 
-    for current in ("tcl", "tk"):
-        with tarfile.open(d / f"{current}.tar.gz", mode="r:gz") as tf:
-            tf.extractall(d / f"{current}-src")
+    components = ["tcl"]
+    if tk:
+        components.append("tk")
+        _download_hashed(TK_URL, d / "tk.zip", TK_SHA256)
 
-        src_dir = next((d / f"{current}-src").glob("*"))
+    for component in components:
+        with zipfile.ZipFile(d / f"{component}.zip") as z:
+            z.extractall(d / f"{component}-src")
+
+        src_dir = next((d / f"{component}-src").glob("*"))
+
+        (src_dir / "unix" / "configure").chmod(0o775)
+
         subprocess.check_call(
-            ["./unix/configure", f"--prefix={d}", "--without-keysymdefdir"],
+            [
+                "./unix/configure",
+                f"--prefix={d}",
+                "--disable-bidi",
+                "--disable-xft",
+                "--disable-aqua",
+                "--disable-zipfs",
+            ],
             cwd=src_dir,
         )
         subprocess.check_call(
@@ -193,7 +223,7 @@ def _ensure_tcltk(d):
             ["make", "install"],
             cwd=src_dir,
         )
-        if current == "tk":
+        if component == "tk":
             subprocess.check_call(
                 ["make", "install-private-headers"],
                 cwd=src_dir,
@@ -217,28 +247,65 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
         with tempfile.TemporaryDirectory(f".{PROJECT_NAME}-build", "w") as d_str:
             d = pathlib.Path(d_str)
 
-            _ensure_tcltk(d)
+            # copy clean archive
+            magic_archive = d / build_sdist(d)
+            with tarfile.open(d / magic_archive, mode="r:gz") as tf:
+                tf.extractall(d)
+            magic_src_dir = d / DIST_NAME
+
+            tcl_opt = (f"--with-tcl={d}/lib",)
+            graphics_options = (
+                "--without-x",
+                "--without-tk",
+                "--without-cairo",
+                "--without-opengl",
+                "--disable-readline",
+            )
+            print("Detecting graphics...", file=sys.stderr)
+            graphics = False
+            with subprocess.Popen(
+                ["./configure", *tcl_opt],
+                cwd=magic_src_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                encoding="utf8",
+            ) as p:
+                for line in p.stdout:
+                    if line.startswith("checking for X") and "libraries" in line:
+                        graphics = True
+                        break
+                p.kill()
+            if graphics:
+                print(
+                    "Magic configure detects graphics, will compile and use Tk.",
+                    file=sys.stderr,
+                )
+                graphics_options = (f"--with-tk={d}/lib",)
+
+            _ensure_tcltk(d, graphics)
 
             subprocess.check_call(
                 [
                     "./configure",
+                    *tcl_opt,
+                    *graphics_options,
                     f"--prefix={d}",
-                    f"--with-tcl={d}/lib",
-                    f"--with-tk={d}/lib",
-                    "--without-cairo",
-                    "--disable-readline",
-                    "CFLAGS=-O0 -g -std=gnu99 -Wno-deprecated-non-prototype -Wno-implicit-function-declaration -Wno-parentheses -Wno-macro-redefined -Wdeprecated-declarations",
-                ]
+                    "CFLAGS=-std=gnu99 -Wno-deprecated-non-prototype -Wno-implicit-function-declaration -Wno-parentheses -Wno-macro-redefined -Wdeprecated-declarations",
+                ],
+                cwd=magic_src_dir,
             )
-            subprocess.check_call(["make", f"-j{os.cpu_count()}"])
-            subprocess.check_call(["make", "install"])
+            subprocess.check_call(["make", f"-j{os.cpu_count()}"], cwd=magic_src_dir)
+            subprocess.check_call(["make", "install"], cwd=magic_src_dir)
 
             # patch magicdnull
             for binary_to_patch in (
-                d / "bin" / "wish8.6",
+                d / "lib" / "magic" / "tcl" / "magicexec",
                 d / "lib" / "magic" / "tcl" / "magicdnull",
+                d / "bin" / "wish9.1",
             ):
-                for lib in ("tcl8.6", "tk8.6"):
+                if not binary_to_patch.exists():
+                    continue
+                for lib in ("tcl9.1", "tcl9tk9.1"):
                     if sys.platform == "darwin":
                         lib_path = d / "lib" / f"lib{lib}.dylib"
                         lib_relpath = lib_path.relative_to(
