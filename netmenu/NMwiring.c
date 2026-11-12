@@ -54,6 +54,10 @@ struct nmwarea
 {
     Rect nmwa_area;		/* Area to be deleted. */
     TileType nmwa_type;		/* Type of material to be erased. */
+    TileType nmwa_erase;	/* Type passed to DBErase():  for a split
+				 * tile, the full type with the side bit,
+				 * so that only that triangle is erased.
+				 */
     struct nmwarea *nmwa_next;	/* Next item in list, or NULL for end. */
 };
 
@@ -105,6 +109,34 @@ static int nmVCount= 0;
 /*
  * ----------------------------------------------------------------------------
  *
+ * nmwTileType --
+ *
+ *	Return the type of the part of a tile found by DBSrConnect():  for
+ *	a split tile, the type of the side given by dinfo, not always the
+ *	left side as TiGetType() would give.
+ *
+ * Results:
+ *	The tile type.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static TileType
+nmwTileType(
+    Tile *tile,			/* Tile found by the search */
+    TileType dinfo)		/* Split tile information from the search */
+{
+    if (IsSplit(tile) && (dinfo & TT_SIDE))
+	return SplitRightType(tile);
+    return TiGetType(tile);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * nmwRipTileFunc --
  *
  * 	This procedure is invoked by DBSrConnect when ripping up
@@ -117,7 +149,8 @@ static int nmVCount= 0;
  *	Always returns 0 to keep the search from aborting.
  *
  * Side effects:
- *	Adds rectangular areas to the list.
+ *	Adds rectangular areas to the list.  For a split tile, only the
+ *	side found by the search (dinfo) is recorded.
  *
  * ----------------------------------------------------------------------------
  */
@@ -125,7 +158,7 @@ static int nmVCount= 0;
 int
 nmwRipTileFunc(tile, dinfo, plane, listHead)
     Tile *tile;			/* Tile that is to be deleted. */
-    TileType dinfo;		/* (unused) */
+    TileType dinfo;		/* Split tile information */
     int plane;			/* Plane index of the tile */
     struct nmwarea **listHead;	/* Pointer to list head pointer. */
 {
@@ -133,7 +166,9 @@ nmwRipTileFunc(tile, dinfo, plane, listHead)
 
     new = (struct nmwarea *) mallocMagic(sizeof(struct nmwarea));
     TiToRect(tile, &new->nmwa_area);
-    new->nmwa_type = TiGetType(tile);
+    new->nmwa_type = nmwTileType(tile, dinfo);
+    new->nmwa_erase = (IsSplit(tile)) ? (TiGetTypeExact(tile) | dinfo) :
+		new->nmwa_type;
     new->nmwa_next = *listHead;
     *listHead = new;
     return 0;
@@ -184,7 +219,7 @@ NMRipup()
     free_magic1_t mm1 = freeMagic1_init();
     while (list != NULL)
     {
-	DBErase(EditCellUse->cu_def, &list->nmwa_area, list->nmwa_type);
+	DBErase(EditCellUse->cu_def, &list->nmwa_area, list->nmwa_erase);
 	TTMaskSetType(&maskBits, list->nmwa_type);
 	(void) DBEraseLabel(EditCellUse->cu_def, &list->nmwa_area, &maskBits, NULL);
 	TTMaskClearType(&maskBits, list->nmwa_type);
@@ -246,7 +281,7 @@ nmRipLocFunc(rect, name, label, area)
     free_magic1_t mm1 = freeMagic1_init();
     while (list != NULL)
     {
-	DBErase(EditCellUse->cu_def, &list->nmwa_area, list->nmwa_type);
+	DBErase(EditCellUse->cu_def, &list->nmwa_area, list->nmwa_erase);
 	TTMaskSetType(&maskBits, list->nmwa_type);
 	(void) DBEraseLabel(EditCellUse->cu_def, &list->nmwa_area, &maskBits, NULL);
 	TTMaskClearType(&maskBits, list->nmwa_type);
@@ -481,7 +516,7 @@ nmwNetTermFunc(scx, label, tpath, netPtr)
 int
 nmwNetTileFunc(tile, dinfo, plane, netPtr)
     Tile *tile;			/* Tile that is connected to net. */
-    TileType dinfo;		/* (unused) */
+    TileType dinfo;		/* Split tile information */
     int plane;			/* Plane index of the tile */
     char **netPtr;		/* Pointer to pointer to net name. */
 {
@@ -505,7 +540,7 @@ nmwNetTileFunc(tile, dinfo, plane, netPtr)
     tpath.tp_next = label;
     tpath.tp_last = &label[TERMLENGTH-1];
     nmwGotTerm = FALSE;
-    if (DBTreeSrLabels(&scx, &DBConnectTbl[TiGetType(tile)], 0, &tpath,
+    if (DBTreeSrLabels(&scx, &DBConnectTbl[nmwTileType(tile, dinfo)], 0, &tpath,
 	TF_LABEL_ATTACH, nmwNetTermFunc, (ClientData) netPtr) != 0)
     {
 	/* Non-zero return value means no current netlist.  Quit now. */
@@ -720,7 +755,7 @@ nmwVerifyLabelFunc2(scx, label, tpath, cd)
 int
 nmwVerifyTileFunc(
     Tile *tile,			/* Tile that is connected to this net. */
-    TileType dinfo,		/* (unused) */
+    TileType dinfo,		/* Split tile information */
     int plane,			/* Plane index of the tile. */
     ClientData cdata)		/* Processing function for each tile. */
 {
@@ -740,7 +775,7 @@ nmwVerifyTileFunc(
     tpath.tp_first = label;
     tpath.tp_next = label;
     tpath.tp_last = &label[TERMLENGTH-1];
-    (void) DBTreeSrLabels(&scx, &DBConnectTbl[TiGetType(tile)],
+    (void) DBTreeSrLabels(&scx, &DBConnectTbl[nmwTileType(tile, dinfo)],
 	0, &tpath, TF_LABEL_ATTACH, nmwVerifyLabelFunc2, cdata);
     return 0;
 }
