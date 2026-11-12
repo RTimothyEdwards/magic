@@ -20,6 +20,7 @@ import hashlib
 import io
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import sysconfig
@@ -193,22 +194,26 @@ def _ensure_tcltk(d: pathlib.Path, tk=False):
         components.append("tk")
         _download_hashed(TK_URL, d / "tk.zip", TK_SHA256)
 
+    tcl_src = None
     for component in components:
         with zipfile.ZipFile(d / f"{component}.zip") as z:
             z.extractall(d / f"{component}-src")
 
         src_dir = next((d / f"{component}-src").glob("*"))
-
-        (src_dir / "unix" / "configure").chmod(0o775)
+        if component == "tcl":
+            tcl_src = src_dir
 
         subprocess.check_call(
             [
+                "sh",
                 "./unix/configure",
                 f"--prefix={d}",
                 "--disable-bidi",
                 "--disable-xft",
                 "--disable-aqua",
                 "--disable-zipfs",
+                # some distros lack zlib headers
+                f"CFLAGS=-I{tcl_src / 'compat' / 'zlib'}",
             ],
             cwd=src_dir,
         )
@@ -245,6 +250,13 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
         with tempfile.TemporaryDirectory(f".{PROJECT_NAME}-build", "w") as d_str:
             d = pathlib.Path(d_str)
 
+            # Sanity checks
+            if sys.platform == "darwin":
+                if shutil.which("install_name_tool") is None:
+                    raise RuntimeError(
+                        "\n\tinstall_name_tool is not available: The Xcode command line tools must be installed to build the Magic wheel from source.\n\n\tsudo xcode-select --install"
+                    )
+
             # copy clean archive
             magic_archive = d / build_sdist(d)
             with tarfile.open(d / magic_archive, mode="r:gz") as tf:
@@ -259,7 +271,7 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
                 "--without-opengl",
                 "--disable-readline",
             )
-            print("Detecting X11...", file=sys.stderr)
+            print("Detecting X11 headers...", file=sys.stderr)
             graphics = False
             with subprocess.Popen(
                 ["./configure", *tcl_opt],
@@ -270,7 +282,7 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
             ) as p:
                 for line in p.stdout:
                     if line.startswith("checking for X"):
-                        if "libraries" in line:
+                        if "headers" in line:
                             graphics = True
                         break
                 p.kill()
