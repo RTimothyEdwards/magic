@@ -14,6 +14,8 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+from __future__ import annotations
+
 import hashlib
 import io
 import os
@@ -147,7 +149,7 @@ def get_metadata_files():
                 ("Summary", "A venerable VLSI layout tool"),
                 ("Description-Content-Type", "text/markdown"),
                 ("Classifier", "Programming Language :: Python :: 3"),
-                ("Requires-Python", ">=3.10"),
+                ("Requires-Python", ">=3.8"),
                 ("License", "MIT"),
             ],
             long_description,
@@ -215,14 +217,15 @@ def _ensure_tcltk(d: pathlib.Path, tk=False):
             cwd=src_dir,
         )
         subprocess.check_call(
-            ["make", "install"],
+            [
+                "make",
+                "install-binaries",
+                "install-libraries",
+                "install-headers",
+                "install-private-headers",
+            ],
             cwd=src_dir,
         )
-        if component == "tk":
-            subprocess.check_call(
-                ["make", "install-private-headers"],
-                cwd=src_dir,
-            )
 
 
 def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
@@ -266,8 +269,9 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
                 encoding="utf8",
             ) as p:
                 for line in p.stdout:
-                    if line.startswith("checking for X") and "libraries" in line:
-                        graphics = True
+                    if line.startswith("checking for X"):
+                        if "libraries" in line:
+                            graphics = True
                         break
                 p.kill()
             if graphics:
@@ -278,6 +282,11 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
                 graphics_options = (
                     f"--with-tk={d}/lib",
                     "--without-opengl",
+                )
+            else:
+                print(
+                    "Magic configure does not detect X11, building a batch-only build of Magic.",
+                    file=sys.stderr,
                 )
 
             _ensure_tcltk(d, graphics)
@@ -306,9 +315,7 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
                 if sys.platform == "darwin":
                     for lib in ("tcl9.1", "tcl9tk9.1"):
                         lib_path = d / "lib" / f"lib{lib}.dylib"
-                        lib_relpath = lib_path.relative_to(
-                            binary_to_patch.parent, walk_up=True
-                        )
+                        lib_relpath = os.path.relpath(lib_path, binary_to_patch.parent)
                         subprocess.check_call(
                             [
                                 "install_name_tool",
@@ -320,8 +327,8 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
                         )
                 else:
                     libdir_path = d / "lib"
-                    libdir_relpath = libdir_path.relative_to(
-                        binary_to_patch.parent, walk_up=True
+                    libdir_relpath = os.path.relpath(
+                        libdir_path, binary_to_patch.parent
                     )
                     subprocess.check_call(
                         [
