@@ -301,6 +301,97 @@ SimSelectArea(
 
 /*
  * ----------------------------------------------------------------------------
+ * simMarkSelFunc --
+ *
+ *	Callback for DBSrPaintArea() from simMarkTracedFunc().  Marks a tile
+ *	in the selection as belonging to a node that has already been named.
+ *
+ * Results:
+ *	Always 0 to keep the search going.
+ *
+ * Side effects:
+ *	Sets the tile's client field to 1, which SimSelectFunc() treats as
+ *	"already visited".
+ * ----------------------------------------------------------------------------
+ */
+
+int
+simMarkSelFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    ClientData cdata)		/* (unused) */
+{
+    TiSetClientINT(tile, 1);
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * simMarkTracedFunc --
+ *
+ *	Callback for DBSrPaintArea() over the planes of Select2Def, which
+ *	holds the node just traced by SimSelectNode().  Every tile of the
+ *	selection under this tile that connects to it (on any plane that
+ *	the tile's type occupies) belongs to the same node, so mark it as
+ *	visited.
+ *
+ *	This is needed because SimSrConnect(), which marks the parts of the
+ *	selection connected to the starting tile, searches only the flat
+ *	selection cell and does not follow connections between planes that
+ *	are not made through a contact type (such as a well to a substrate
+ *	marker layer).  Without this, each such piece of the selection would
+ *	be traced again over the entire node, which for a large net takes
+ *	a very long time.
+ *
+ * Results:
+ *	Always 0 to keep the search going.
+ *
+ * Side effects:
+ *	Marks tiles in SelectDef (see simMarkSelFunc()).
+ * ----------------------------------------------------------------------------
+ */
+
+int
+simMarkTracedFunc(
+    Tile *tile,
+    TileType dinfo,
+    ClientData cdata)		/* Plane number */
+{
+    int pNum = (int)CD2INT(cdata);
+    TileType type, ttype = 0;
+    Rect r;
+
+    if (IsSplit(tile))
+    {
+	type = (dinfo & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile);
+	ttype = TiGetTypeExact(tile) | dinfo;
+    }
+    else
+	type = TiGetTypeExact(tile);
+
+    TiToRect(tile, &r);
+    DBSrPaintNMArea((Tile *)NULL, SelectDef->cd_planes[pNum], ttype, &r,
+		&DBConnectTbl[type], simMarkSelFunc, (ClientData)NULL);
+
+    /* SimTreeCopyConnect() paints a contact only on its home plane, but
+     * the selection has it on all of the planes that it occupies.
+     */
+
+    if (DBIsContact(type))
+    {
+	int p;
+
+	for (p = PL_TECHDEPBASE; p < DBNumPlanes; p++)
+	    if ((p != pNum) && PlaneMaskHasPlane(DBTypePlaneMaskTbl[type], p))
+		DBSrPaintNMArea((Tile *)NULL, SelectDef->cd_planes[p], ttype,
+			&r, &DBConnectTbl[type], simMarkSelFunc,
+			(ClientData)NULL);
+    }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
  * SimSelectFunc
  *
  * 	This procedure is called for each tile in the current selection.
@@ -335,6 +426,7 @@ SimSelectFunc(
     TileListElt 	*newNodeTile;
     TileType 		type;
     bool		coord;
+    int			pNum;
 
     window = CmdGetRootPoint((Point *) NULL, &scx.scx_area);
     if (window == NULL) return 1;
@@ -399,6 +491,12 @@ SimSelectFunc(
 
     nameBuff[0] = '\0';
     nodeName = SimSelectNode(&scx, type, CU_DESCEND_ALL, nameBuff);
+
+    /* Mark all other parts of the selection that the trace reached */
+
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	DBSrPaintArea((Tile *)NULL, Select2Def->cd_planes[pNum], &TiPlaneRect,
+		&DBAllButSpaceAndDRCBits, simMarkTracedFunc, INT2CD(pNum));
 
     /* add the node name to the list only if it has not been seen yet */
 

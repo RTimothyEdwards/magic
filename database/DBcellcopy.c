@@ -92,7 +92,17 @@ struct copyLabelArg
     char *cla_glob;			/* If non-NULL, used for glob-style
 					 * matching of labels during copy.
 					 */
+    int cla_count;			/* Number of labels copied */
+    bool cla_hashinit;			/* TRUE if cla_labels is set up */
+    HashTable cla_labels;		/* Labels in the target cell, keyed
+					 * by area and text.
+					 */
 };
+
+/* Number of labels copied before dbCopyAllLabels() switches from	*/
+/* a linear search of the target cell's labels to a hash table.	*/
+
+#define CLA_HASH_THRESHOLD	16
 
 /*
  * ----------------------------------------------------------------------------
@@ -1205,6 +1215,8 @@ DBCellCopyAllLabels(scx, mask, xMask, targetUse, pArea)
     arg.cla_targetUse = targetUse;
     arg.cla_bbox = pArea;
     arg.cla_glob = NULL;
+    arg.cla_count = 0;
+    arg.cla_hashinit = FALSE;
     if (pArea != NULL)
     {
 	pArea->r_xbot = 0;
@@ -1213,6 +1225,7 @@ DBCellCopyAllLabels(scx, mask, xMask, targetUse, pArea)
     (void) DBTreeSrLabels(scx, mask, xMask, (TerminalPath *) 0,
 			TF_LABEL_ATTACH, dbCopyAllLabels,
 			(ClientData) &arg);
+    if (arg.cla_hashinit) HashKill(&arg.cla_labels);
 }
 
     /*ARGSUSED*/
@@ -1227,6 +1240,7 @@ dbCopyAllLabels(scx, lab, tpath, arg)
     Point labOffset;
     int targetPos, labRotate;
     CellDef *def;
+    char buf[DB_LABKEY_SIZE], *key;
 
     def = arg->cla_targetUse->cu_def;
     if (arg->cla_glob != NULL)
@@ -1243,7 +1257,43 @@ dbCopyAllLabels(scx, lab, tpath, arg)
      * duplicate.
      */
 
-    DBEraseLabelsByContent(def, &labTargetRect, -1, lab->lab_text);
+    /* Checking the target's label list for every label copied is
+     * quadratic in the number of labels.  After the first few labels,
+     * set up a hash table of the target's labels and use it to find
+     * out if there is a duplicate before searching the list for it.
+     */
+
+    if (!arg->cla_hashinit && (++arg->cla_count > CLA_HASH_THRESHOLD))
+    {
+	Label *tlab;
+
+	HashInit(&arg->cla_labels, 256, HT_STRINGKEYS);
+	for (tlab = def->cd_labels; tlab; tlab = tlab->lab_next)
+	{
+	    key = DBLabelHashKey(buf, DB_LABKEY_SIZE, &tlab->lab_rect,
+			tlab->lab_text);
+	    HashSetValue(HashFind(&arg->cla_labels, key), (ClientData)1);
+	    if (key != buf) freeMagic(key);
+	}
+	arg->cla_hashinit = TRUE;
+    }
+
+    if (arg->cla_hashinit)
+    {
+	HashEntry *he;
+
+	key = DBLabelHashKey(buf, DB_LABKEY_SIZE, &labTargetRect,
+			lab->lab_text);
+	he = HashFind(&arg->cla_labels, key);
+	if (key != buf) freeMagic(key);
+	if (HashGetValue(he) != NULL)
+	    DBEraseLabelsByContent(def, &labTargetRect, -1, lab->lab_text);
+	else
+	    HashSetValue(he, (ClientData)1);
+    }
+    else
+	DBEraseLabelsByContent(def, &labTargetRect, -1, lab->lab_text);
+
     DBPutFontLabel(def, &labTargetRect, lab->lab_font,
 		lab->lab_size, labRotate, &labOffset, targetPos,
 		lab->lab_text, lab->lab_type, lab->lab_flags, lab->lab_port);
@@ -1311,6 +1361,8 @@ DBCellCopyGlobLabels(scx, mask, xMask, targetUse, pArea, globmatch)
     arg.cla_targetUse = targetUse;
     arg.cla_bbox = pArea;
     arg.cla_glob = globmatch;
+    arg.cla_count = 0;
+    arg.cla_hashinit = FALSE;
     if (pArea != NULL)
     {
 	pArea->r_xbot = 0;
@@ -1319,6 +1371,7 @@ DBCellCopyGlobLabels(scx, mask, xMask, targetUse, pArea, globmatch)
     (void) DBTreeSrLabels(scx, mask, xMask, (TerminalPath *) 0,
 			TF_LABEL_ATTACH, dbCopyAllLabels,
 			(ClientData) &arg);
+    if (arg.cla_hashinit) HashKill(&arg.cla_labels);
 }
 
 /*

@@ -218,6 +218,50 @@ calmaReadPoint(
 /*
  * ----------------------------------------------------------------------------
  *
+ * calmaPortIndex --
+ *
+ *	Find the port index for a port label read from GDS, where ports
+ *	are numbered in the order in which they are read.  A port with
+ *	the same name as an existing port takes that port's index, so
+ *	that each port name has exactly one index;  otherwise the port
+ *	gets the next index after the highest one in use.  Numbering
+ *	starts at 1, as for "port make".
+ *
+ * Results:
+ *	The port index.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+calmaPortIndex(
+    CellDef *def,		/* Cell being read */
+    Label *lab,			/* Label to be indexed (may be NULL) */
+    const char *text)		/* Name of the port */
+{
+    Label *sl;
+    int idx, maxidx = 0;
+
+    for (sl = def->cd_labels; sl != NULL; sl = sl->lab_next)
+    {
+	/* Only ports have meaningful indexes (index 0 is valid) */
+	if ((sl == lab) || !(sl->lab_flags & PORT_DIR_MASK)) continue;
+	idx = (int)sl->lab_port;
+
+	/* Empty text marks a placeholder for a pin with no text yet */
+	if ((text[0] != '\0') && !strcmp(sl->lab_text, text))
+	    return idx;
+	if (idx > maxidx) maxidx = idx;
+    }
+    return maxidx + 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * calmaElementBoundary --
  *
  * Read a polygon.
@@ -362,23 +406,8 @@ calmaElementBoundary(void)
 		 * causes it to be recast as a port, or corresponding label has
 		 * not yet been seen.
 		 */
-	    	int i, idx;
-		Label *sl;
-
 		/* Order ports as encountered. */
-		i = -1;
-		for (sl = cifReadCellDef->cd_labels; sl != NULL; sl = sl->lab_next)
-		{
-		    idx = sl->lab_port;
-		    if (idx > i) i = idx;
-		    if ((idx > 0) && (sl != lab) && !strcmp(sl->lab_text, lab->lab_text))
-		    {
-			i = idx - 1;
-			break;
-		    }
-		}
-		i++;
-		lab->lab_port = i;
+		lab->lab_port = calmaPortIndex(cifReadCellDef, lab, lab->lab_text);
 		lab->lab_flags |= PORT_DIR_NORTH | PORT_DIR_SOUTH |
 				PORT_DIR_EAST | PORT_DIR_WEST;
 	    }
@@ -773,7 +802,7 @@ calmaElementText(void)
     TileType type;
     Rect r;
     double dval;
-    int size, micron, angle, font, pos, portnum, idx;
+    int size, micron, angle, font, pos, portnum;
 
     /* Skip CALMA_ELFLAGS, CALMA_PLEX */
     calmaSkipSet(calmaElementIgnore);
@@ -1028,7 +1057,7 @@ calmaElementText(void)
     }
     else
     {
-	int flags, i;
+	int flags;
 	Label *lab;
 	Label *sl;
 
@@ -1062,19 +1091,8 @@ calmaElementText(void)
 		    /* Port number from the placeholder is ignored;  find
 		     * a new valid port number for the new label name.
 		     */
-	    	    i = -1;
-		    for (sl = cifReadCellDef->cd_labels; sl != NULL; sl = sl->lab_next)
-		    {
-			idx = sl->lab_port;
-			if (idx > i) i = idx;
-			if ((idx > 0) && (sl != lab) && !strcmp(sl->lab_text, textbody))
-			{
-			    i = idx - 1;
-			    break;
-			}
-		    }
-		    i++;
-		    portnum = i;
+		    portnum = calmaPortIndex(cifReadCellDef, (Label *)NULL,
+				textbody);
 		    flags |= PORT_DIR_NORTH | PORT_DIR_SOUTH |
 				PORT_DIR_EAST | PORT_DIR_WEST;
 
@@ -1099,19 +1117,7 @@ calmaElementText(void)
 	    /* order in which labels arrive in the GDS stream.  If	*/
 	    /* ports have the same text, then give them the same index.	*/
 
-	    i = -1;
-	    for (sl = cifReadCellDef->cd_labels; sl != NULL; sl = sl->lab_next)
-	    {
-		idx = sl->lab_port;
-		if (idx > i) i = idx;
-		if ((idx > 0) && (sl != lab) && !strcmp(sl->lab_text, textbody))
-		{
-		    i = idx - 1;
-		    break;
-		}
-	    }
-	    i++;
-	    lab->lab_port = i;
+	    lab->lab_port = calmaPortIndex(cifReadCellDef, lab, textbody);
 	    lab->lab_flags |= PORT_DIR_NORTH | PORT_DIR_SOUTH |
 				PORT_DIR_EAST | PORT_DIR_WEST;
 	}

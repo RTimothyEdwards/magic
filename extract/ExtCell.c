@@ -483,6 +483,13 @@ extCellFile(def, f, isTop)
 
     UndoDisable();
 
+    /* Warn about inconsistent port names and indexes, which can cause
+     * ports to be silently dropped from the subcircuit in the netlist.
+     * This must be done before "extract do unique" assigns new names
+     * and indexes.
+     */
+    DBCheckPortIndices(def, TRUE);
+
     /* If "extract do unique" was specified, then make labels in the
      * cell unique.
      */

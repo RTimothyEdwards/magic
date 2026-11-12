@@ -49,6 +49,7 @@
 /* NOTE:  This should not be a global variable. . . */
 #define MAXPATHNAME 1024
 static char bestName[MAXPATHNAME];
+static bool bestIsPort;		/* TRUE if bestName is a top-level port */
 
 /*
  * ----------------------------------------------------------------------------
@@ -115,11 +116,18 @@ SimConnectFunc(
     }
     GeoTransRect(&scx->scx_trans, &tileArea, &newarea);
 
+    /* Process each tile (instance) only the first time it is found.
+     * Finding it again yields the same node name, and the check of the
+     * destination below would only find the tile already painted.
+     */
+
+    csa2 = (struct conSrArg2 *)cx->tc_filter->tf_arg;
+    if (DBConnectVisited(csa2, tile, dinfo, &newarea)) return 0;
+
     /* Clip the current area down to something that overlaps the
      * area of interest.
      */
 
-    csa2 = (struct conSrArg2 *)cx->tc_filter->tf_arg;
     GeoClip(&newarea, csa2->csa2_bounds);
     if (GEO_RECTNULL(&newarea)) return 0;
 
@@ -131,6 +139,7 @@ SimConnectFunc(
 
 	char *n = tpath->tp_next;
 	char c = *n;
+	bool isPort;
 
 	SigDisableInterrupts();
 	strncpy(nodeName, SimGetNodeName(cx->tc_scx, tile, dinfo, tpath->tp_first),
@@ -139,10 +148,17 @@ SimConnectFunc(
 
 	*n = c;
 
-	/* save the "best" name for this node */
+	/* Save the "best" name for this node.  A port of the top level
+	 * cell takes priority over any other name.
+	 */
 
-	if (bestName[0] == '\0' || efPreferredName(nodeName, bestName))
+	isPort = (SimNodeNameIsPort && (tpath->tp_next == tpath->tp_first));
+	if ((bestName[0] == '\0') || (isPort && !bestIsPort) ||
+		((isPort == bestIsPort) && efPreferredName(nodeName, bestName)))
+	{
 	    strcpy(bestName, nodeName);
+	    bestIsPort = isPort;
+	}
     }
 
     loctype = TiGetTypeExact(tile);
@@ -275,6 +291,7 @@ SimConnectFunc(
 	StackPush((ClientData)csa2->csa2_list, csa2->csa2_stack);
 	csa2->csa2_list = newlist;
 	csa2->csa2_top = 0;
+	csa2->csa2_lasttop = -1;
     }
 
     csa2->csa2_list[csa2->csa2_top].area = newarea;
@@ -357,12 +374,14 @@ SimTreeCopyConnect(
     csa2.csa2_lasttop = -1;
 
     csa2.csa2_stack = StackNew(100);
+    DBConnectVisitInit(&csa2);
 
     tpath.tp_first = tpath.tp_next = pathName;
     tpath.tp_last = pathName + MAXPATHNAME;
 
     pathName[0] = '\0';
     bestName[0] = '\0';
+    bestIsPort = FALSE;
 
     (void) SimTreeSrTiles(scx, mask, xMask, &tpath, SimConnectFunc,
 		(ClientData) &csa2);
@@ -396,6 +415,7 @@ SimTreeCopyConnect(
     }
     freeMagic((char *)csa2.csa2_list);
     StackFree(csa2.csa2_stack);
+    DBConnectVisitFree(&csa2);
 
     /* Recompute the bounding box of the destination and record
      * its area for redisplay.

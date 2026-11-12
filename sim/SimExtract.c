@@ -74,6 +74,9 @@ extern Stack *extNodeStack;
 
 static ExtStyle *simExtStyle = NULL;
 
+/* Set by SimGetNodeName() to TRUE if the name returned is a port label */
+bool SimNodeNameIsPort = FALSE;
+
     /*
      * Mask with a bit set for every type of transistor.
      */
@@ -737,6 +740,7 @@ SimGetNodeName(
     char 	*nname;
 
     SimSawAbortString = FALSE;
+    SimNodeNameIsPort = FALSE;
 
     if (SimUseCoords && simExtStyle != ExtCurStyle)
 	SimInitConnTables();
@@ -796,17 +800,26 @@ SimGetNodeName(
     }
 
     /* search the list of all labels for this node, creating the full
-     * node name and returning the "best" node name found.
+     * node name and returning the "best" node name found.  A port
+     * label is preferred over any label that is not a port.
      */
     for (ll = nodeList->nreg_labels; ll; ll = ll->ll_next) {
 	if (ll->ll_label->lab_text == text) {
+	    if (ll->ll_label->lab_flags & PORT_DIR_MASK)
+		SimNodeNameIsPort = TRUE;
 	    for (ll = ll->ll_next; ll; ll = ll->ll_next) {
 		nname = ll->ll_label->lab_text;
 		if (extLabType(nname, LABTYPE_NAME)) {
+		    bool isport = (ll->ll_label->lab_flags & PORT_DIR_MASK) ?
+				TRUE : FALSE;
+
 		    strcpy(nodename, path);
 		    strcat(nodename, nname);
-		    if (efPreferredName(nname, buff)) {
+		    if ((isport && !SimNodeNameIsPort) ||
+				((isport == SimNodeNameIsPort) &&
+				efPreferredName(nname, buff))) {
 			strcpy(buff, nname);
+			SimNodeNameIsPort = isport;
 		    }
 		    if (SimGetnodeAlias && SimIsGetnode) {
 			if (HashLookOnly(&SimGNAliasTbl, nodename)

@@ -577,7 +577,6 @@ extern int			ResAddPlumbing();
 extern void			ResAddDevPlumbing();
 extern int			ResRemovePlumbing();
 extern float			ResCalculateChildCapacitance();
-extern ResDevTile		*DBTreeCopyConnectDCS();
 extern Tile			*ResFindTile();
 extern resDevice		*ResGetDevice();
 extern resInfo 			*resAddField();

@@ -683,6 +683,221 @@ dbcUnconnectFunc(tile, dinfo, clientData)
 }
 
 
+/* Key for the csa2_visited hash table of source tiles already	*/
+/* processed by dbcConnectFunc().  This must be zeroed before	*/
+/* filling, as any structure padding is part of the key.	*/
+
+typedef struct
+{
+    Tile	*vk_tile;	/* Source tile */
+    Rect	 vk_area;	/* Tile area in destination coordinates */
+    int		 vk_side;	/* Side of a split tile, or zero */
+} dbcVisitKey;
+
+#define DBC_VISITKEY_WORDS (sizeof(dbcVisitKey) / sizeof(unsigned))
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBConnectVisitInit --
+ *
+ *	Set up the table of source tiles already processed by a
+ *	connectivity search (see DBConnectVisited()).
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Initializes csa2->csa2_visited, which must be freed with
+ *	DBConnectVisitFree() when the search is done.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBConnectVisitInit(
+    struct conSrArg2 *csa2)
+{
+    HashInit(&csa2->csa2_visited, 1024, DBC_VISITKEY_WORDS);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBConnectVisitFree --
+ *
+ *	Free the table set up by DBConnectVisitInit().
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Frees memory.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBConnectVisitFree(
+    struct conSrArg2 *csa2)
+{
+    HashKill(&csa2->csa2_visited);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBConnectVisited --
+ *
+ *	Check whether a source tile has already been processed by a
+ *	connectivity search, and mark it as processed if not.
+ *
+ *	In a connectivity search, each tile is found again from the search
+ *	area of every tile that it touches.  The check of the destination
+ *	cell for a tile covers the whole area of the tile, so repeating it
+ *	for a large tile with many neighbors (e.g., a power rail with many
+ *	contacts) makes the search time quadratic.  The transformed tile
+ *	area distinguishes the different instances of the same tile in the
+ *	hierarchy.
+ *
+ * Results:
+ *	TRUE if the tile was already processed, FALSE if not.
+ *
+ * Side effects:
+ *	Adds an entry for the tile to csa2->csa2_visited.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+DBConnectVisited(
+    struct conSrArg2 *csa2,
+    Tile *tile,			/* Source tile */
+    TileType dinfo,		/* Split tile information */
+    const Rect *area)		/* Tile area, transformed to the coordinates
+				 * of the destination, before clipping.
+				 */
+{
+    dbcVisitKey vkey;
+    HashEntry *he;
+
+    memset(&vkey, 0, sizeof(vkey));
+    vkey.vk_tile = tile;
+    vkey.vk_area = *area;
+    vkey.vk_side = (IsSplit(tile)) ? (dinfo & TT_SIDE) : 0;
+    he = HashFind(&csa2->csa2_visited, (char *)&vkey);
+    if (HashGetValue(he) != NULL) return TRUE;
+    HashSetValue(he, (ClientData)1);
+    return FALSE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbcLabelRecord --
+ *
+ *	Record a label of the given area, type, and text in the
+ *	csa2_labels hash table.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Adds an entry to the hash table, or adds the type to the mask of
+ *	an existing entry.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+dbcLabelRecord(csa2, r, type, text)
+    struct conSrArg2 *csa2;
+    const Rect *r;
+    TileType type;
+    const char *text;
+{
+    char buf[DB_LABKEY_SIZE], *key;
+    HashEntry *he;
+    TileTypeBitMask *tmask;
+
+    key = DBLabelHashKey(buf, DB_LABKEY_SIZE, r, text);
+    he = HashFind(&csa2->csa2_labels, key);
+    tmask = (TileTypeBitMask *)HashGetValue(he);
+    if (tmask == NULL)
+    {
+	tmask = (TileTypeBitMask *)mallocMagic(sizeof(TileTypeBitMask));
+	TTMaskZero(tmask);
+	HashSetValue(he, (ClientData)tmask);
+    }
+    TTMaskSetType(tmask, type);
+    if (key != buf) freeMagic(key);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbcLabelLookup --
+ *
+ *	Find the mask of types of labels in the destination which have
+ *	the given area and text.
+ *
+ * Results:
+ *	Pointer to the type mask, or NULL if there is no such label.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+TileTypeBitMask *
+dbcLabelLookup(csa2, r, text)
+    struct conSrArg2 *csa2;
+    const Rect *r;
+    const char *text;
+{
+    char buf[DB_LABKEY_SIZE], *key;
+    HashEntry *he;
+
+    key = DBLabelHashKey(buf, DB_LABKEY_SIZE, r, text);
+    he = HashLookOnly(&csa2->csa2_labels, key);
+    if (key != buf) freeMagic(key);
+    if (he == NULL) return (TileTypeBitMask *)NULL;
+    return (TileTypeBitMask *)HashGetValue(he);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbcLabelInit --
+ *
+ *	Set up the csa2_labels hash table from the labels already in
+ *	the destination cell.  DBTreeCopyConnect() does not clear the
+ *	destination, so it may already have labels.  This is done on
+ *	demand, when the first connected label is found, so that
+ *	searches that find no labels do not pay for it.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Initializes and fills csa2->csa2_labels.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+dbcLabelInit(csa2)
+    struct conSrArg2 *csa2;
+{
+    Label *lab;
+
+    HashInit(&csa2->csa2_labels, 256, HT_STRINGKEYS);
+    for (lab = csa2->csa2_use->cu_def->cd_labels; lab; lab = lab->lab_next)
+	dbcLabelRecord(csa2, &lab->lab_rect, lab->lab_type, lab->lab_text);
+    csa2->csa2_labinit = TRUE;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -719,6 +934,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
     int pos, rotate;
     char newlabtext[FLATTERMSIZE];
     char *newlabptr;
+    TileTypeBitMask *tmask;
     int dbcConnectFunc();		/* Forward declaration */
 
     GeoTransRect(&scx->scx_trans, &lab->lab_rect, &r);
@@ -752,16 +968,33 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 	newlabptr = lab->lab_text;
 
     /* Do not repeat a label copy;  check that the label doesn't	*/
-    /* already exist in the destination def first.			*/
-    if (DBCheckLabelsByContent(def, &r, lab->lab_type, lab->lab_text))
+    /* already exist in the destination def first.  The labels in	*/
+    /* the destination are tracked in a hash table, as a linear	*/
+    /* search of the label list for every label found makes the	*/
+    /* search time quadratic in the number of labels.			*/
+
+    if (!csa2->csa2_labinit) dbcLabelInit(csa2);
+
+    tmask = dbcLabelLookup(csa2, &r, lab->lab_text);
+    if (tmask && TTMaskHasType(tmask, lab->lab_type))
 	return 0;
 
-    if (DBCheckLabelsByContent(def, &r, lab->lab_type, newlabptr))
-	return 0;
+    if (newlabptr != lab->lab_text)
+    {
+	TileTypeBitMask *nmask = dbcLabelLookup(csa2, &r, newlabptr);
+	if (nmask && TTMaskHasType(nmask, lab->lab_type))
+	    return 0;
+    }
 
-    DBEraseLabelsByContent(def, &r, -1, lab->lab_text);
+    /* Replace any label with the same text and area on any other type */
+    if (tmask && !TTMaskIsZero(tmask))
+    {
+	DBEraseLabelsByContent(def, &r, -1, lab->lab_text);
+	TTMaskZero(tmask);
+    }
     DBPutFontLabel(def, &r, lab->lab_font, lab->lab_size, rotate, &offset,
 		pos, newlabptr, lab->lab_type, lab->lab_flags, lab->lab_port);
+    dbcLabelRecord(csa2, &r, lab->lab_type, newlabptr);
 
     if (lab->lab_flags & PORT_DIR_MASK)
     {
@@ -927,11 +1160,15 @@ dbcConnectFunc(tile, dinfo, cx)
     }
     GeoTransRect(&scx->scx_trans, &tileArea, &newarea);
 
+    /* Process each tile (instance) only the first time it is found */
+
+    csa2 = (struct conSrArg2 *)cx->tc_filter->tf_arg;
+    if (DBConnectVisited(csa2, tile, dinfo, &newarea)) return 0;
+
     /* Clip the current area down to something that overlaps the
      * area of interest.
      */
 
-    csa2 = (struct conSrArg2 *)cx->tc_filter->tf_arg;
     GeoClip(&newarea, csa2->csa2_bounds);
     if (GEO_RECTNULL(&newarea)) return 0;
 
@@ -1141,6 +1378,9 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 
     csa2.csa2_stack = StackNew(100);
 
+    DBConnectVisitInit(&csa2);
+    csa2.csa2_labinit = FALSE;
+
     DBTreeSrTiles(scx, mask, xMask, dbcConnectFunc, (ClientData) &csa2);
     while (csa2.csa2_top >= 0)
     {
@@ -1218,6 +1458,8 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
     }
     freeMagic((char *)csa2.csa2_list);
     StackFree(csa2.csa2_stack);
+    DBConnectVisitFree(&csa2);
+    if (csa2.csa2_labinit) HashFreeKill(&csa2.csa2_labels);
 
     /* Recompute the bounding box of the destination and record its area
      * for redisplay.

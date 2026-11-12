@@ -687,8 +687,7 @@ typedef struct treeFilter
 
 /* The following structure is used to hold several pieces of information
  * that must be passed through multiple levels of search function.  This
- * structure is used by DBSrConnect, DBTreeCopyConnect, SimTreeCopyConnect,
- * and DBTreeCopyConnectDCS.
+ * structure is used by DBSrConnect, DBTreeCopyConnect, and SimTreeCopyConnect.
  */
 
 struct conSrArg
@@ -728,6 +727,18 @@ struct conSrArg2
     conSrArea           *csa2_list;     /* List of areas to process */
     int                 csa2_top;       /* Index of next area to process */
     int                 csa2_lasttop;   /* Previous top index */
+
+    HashTable           csa2_visited;   /* Source tiles already processed,
+					 * keyed by tile and transformed area
+					 * (see DBConnectVisited())
+					 */
+
+    /* The following are used only by DBTreeCopyConnect */
+    HashTable           csa2_labels;    /* Destination labels, keyed by
+					 * area and text, value is a mask
+					 * of the label types.
+					 */
+    bool                csa2_labinit;   /* TRUE if csa2_labels is set up */
 };
 
 #define CSA2_LIST_SIZE 65536            /* Number of entries per list */
@@ -966,6 +977,10 @@ extern bool DBCellGetModified();
 extern void DBCellSetModified();
 extern void DBFixMismatch();
 extern void DBTreeCopyConnect();
+extern void DBConnectVisitInit(struct conSrArg2 *csa2);
+extern void DBConnectVisitFree(struct conSrArg2 *csa2);
+extern bool DBConnectVisited(struct conSrArg2 *csa2, Tile *tile, TileType dinfo,
+		const Rect *area);
 extern void DBSeeTypesAll();
 extern void DBUpdateStamps();
 extern void DBEnumerateTypes();
@@ -1033,6 +1048,11 @@ extern int  DBMoveCell();
 extern bool DBReLinkCell();
 extern int  DBBoundCellPlane();
 extern Label *DBCheckLabelsByContent();
+extern int DBCheckPortIndices(CellDef *def, bool report);
+extern char *DBLabelHashKey(char *buf, int bufsize, const Rect *rect,
+		const char *text);
+
+#define DB_LABKEY_SIZE	256	/* Size of buffer passed to DBLabelHashKey() */
 extern void DBMaskAddStacking();
 extern bool DBIsChild();
 extern void DBScaleEverything();

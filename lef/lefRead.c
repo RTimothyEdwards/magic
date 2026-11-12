@@ -1355,6 +1355,45 @@ LefReadGeometry(
 
 /*
  *------------------------------------------------------------
+ *
+ * lefPortIndex --
+ *
+ *	Find the port index for a label that is being made into a
+ *	port by LEF annotation.  If another port has the same name,
+ *	then use its index, so that each port name has exactly one
+ *	index (see DBCheckPortIndices());  otherwise, use the next
+ *	index after the highest one in use.
+ *
+ * Results:
+ *	The port index.
+ *
+ * Side effects:
+ *	None.
+ *
+ *------------------------------------------------------------
+ */
+
+int
+lefPortIndex(
+    CellDef *def,		/* Cell being annotated */
+    Label *lab)			/* Label being made into a port */
+{
+    Label *sl;
+    int idx, maxidx = -1;
+
+    for (sl = def->cd_labels; sl != NULL; sl = sl->lab_next)
+    {
+	if ((sl == lab) || !(sl->lab_flags & PORT_DIR_MASK)) continue;
+	idx = (int)sl->lab_port;
+	if (!strcmp(sl->lab_text, lab->lab_text))
+	    return idx;
+	if (idx > maxidx) maxidx = idx;
+    }
+    return maxidx + 1;
+}
+
+/*
+ *------------------------------------------------------------
  * LefReadPort --
  *
  *	A wrapper for LefReadGeometry, which adds a label
@@ -1416,21 +1455,7 @@ LefReadPort(
 		if (lanno->lab_flags & PORT_DIR_MASK)
 		    pinNum = lanno->lab_port;
 		else
-		{
-		    Label *sl;
-		    int idx;
-
-		    pinNum = -1;
-		    for (sl = lefMacro->cd_labels; sl != NULL; sl = sl->lab_next)
-		    {
-			if (sl->lab_flags & PORT_DIR_MASK)
-			{
-			    idx = sl->lab_port;
-			    if (idx > pinNum) pinNum = idx;
-			}
-		    }
-		    pinNum++;
-		}
+		    pinNum = lefPortIndex(lefMacro, lanno);
 	    }
 	    else
 	    {
@@ -1745,22 +1770,7 @@ LefReadPin(
 				if (lab->lab_flags & PORT_DIR_MASK)
 				    pinNum = lab->lab_port;
 				else
-				{
-				    Label *sl;
-				    int idx;
-
-				    pinNum = -1;
-				    for (sl = lefMacro->cd_labels; sl != NULL;
-						sl = sl->lab_next)
-				    {
-					if (sl->lab_flags & PORT_DIR_MASK)
-					{
-					    idx = sl->lab_port;
-					    if (idx > pinNum) pinNum = idx;
-					}
-				    }
-				    pinNum++;
-				}
+				    pinNum = lefPortIndex(lefMacro, lab);
 				needRect = FALSE;
 				lab->lab_flags &= ~(PORT_USE_MASK | PORT_DIR_MASK |
 					PORT_CLASS_MASK | PORT_SHAPE_MASK);

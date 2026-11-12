@@ -1018,6 +1018,11 @@ done:
      */
     DBGenerateUniqueIds(cellDef, TRUE);
 
+    /* Warn about port names with more than one index, or port indexes
+     * used by more than one name (see DBCheckPortIndices()).
+     */
+    DBCheckPortIndices(cellDef, TRUE);
+
     /*
      * If the timestamp in the cell didn't match expectations,
      * notify the timestamp manager.  Note:  it's possible that

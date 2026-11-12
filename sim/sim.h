@@ -19,6 +19,7 @@ extern  bool	SimRecomputeSel;
 extern 	bool	SimInitGetnode;
 extern	bool	SimGetnodeAlias;
 extern 	bool	SimSawAbortString;
+extern	bool	SimNodeNameIsPort;
 extern 	bool	SimRsimRunning;
 extern	bool	SimIsGetnode;
 extern	bool	SimHasCoords;

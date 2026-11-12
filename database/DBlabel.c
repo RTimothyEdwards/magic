@@ -368,6 +368,207 @@ DBEraseLabel(cellDef, area, mask, areaReturn)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBLabelHashKey --
+ *
+ * Generate a string key from a label's area and text, for use in a
+ * hash table (HT_STRINGKEYS) of the labels in a cell.  This replaces
+ * a linear search with DBCheckLabelsByContent() in routines that
+ * check every label added to a cell against the labels already there,
+ * which otherwise run in time quadratic in the number of labels.
+ *
+ * Results:
+ *	Pointer to the key string.  This is "buf" if the key fits in
+ *	"bufsize" characters;  otherwise the key is in allocated memory
+ *	that the caller must free with freeMagic().
+ *
+ * Side effects:
+ *	May allocate memory.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+DBLabelHashKey(buf, bufsize, rect, text)
+    char *buf;			/* Buffer for the key */
+    int bufsize;		/* Size of buf */
+    const Rect *rect;		/* Label area */
+    const char *text;		/* Label text */
+{
+    char *key = buf;
+    int len;
+
+    len = snprintf(buf, bufsize, "%d %d %d %d %s", rect->r_xbot,
+		rect->r_ybot, rect->r_xtop, rect->r_ytop, text);
+    if (len >= bufsize)
+    {
+	key = (char *)mallocMagic(len + 1);
+	sprintf(key, "%d %d %d %d %s", rect->r_xbot, rect->r_ybot,
+		rect->r_xtop, rect->r_ytop, text);
+    }
+    return key;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBCheckPortIndices --
+ *
+ * Check that the ports of a cell follow the rule that each port name
+ * has exactly one index, and each index belongs to exactly one name.
+ * A port name with two indexes, or two names with the same index,
+ * cause ports to be silently dropped from a SPICE subcircuit, and
+ * make connectivity searches through ports ambiguous.
+ *
+ * Results:
+ *	The number of violations found (counting each name with more than
+ *	one index once, and each index with more than one name once).
+ *	Each report lists all of the indexes, or all of the names.
+ *
+ * Side effects:
+ *	If "report" is TRUE, each violation is reported with TxError().
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+/* List of the distinct labels (one per distinct index or name) found for
+ * one port name or one port index, used by DBCheckPortIndices().
+ */
+
+typedef struct portchk
+{
+    Label		*pc_label;
+    struct portchk	*pc_next;
+} PortCheck;
+
+int
+DBCheckPortIndices(
+    CellDef *def,		/* Cell to check */
+    bool report)		/* If TRUE, print each violation */
+{
+    HashTable byName, byIndex;
+    HashEntry *he;
+    Label *lab;
+    PortCheck *pc, *pclist, *pcnext;
+    int errors = 0;
+    bool found;
+
+    HashInit(&byName, 32, HT_STRINGKEYS);
+    HashInit(&byIndex, 32, HT_WORDKEYS);
+
+    /* Collect, for each port name, a label for each distinct index,
+     * and for each index, a label for each distinct name.  These are
+     * kept in the order in which they appear in the label list.
+     */
+
+    for (lab = def->cd_labels; lab; lab = lab->lab_next)
+    {
+	if (!(lab->lab_flags & PORT_DIR_MASK)) continue;
+
+	he = HashFind(&byName, lab->lab_text);
+	found = FALSE;
+	for (pc = (PortCheck *)HashGetValue(he); pc; pc = pc->pc_next)
+	{
+	    if (pc->pc_label->lab_port == lab->lab_port)
+	    {
+		found = TRUE;
+		break;
+	    }
+	    if (pc->pc_next == NULL) break;
+	}
+	if (!found)
+	{
+	    PortCheck *newpc = (PortCheck *)mallocMagic(sizeof(PortCheck));
+	    newpc->pc_label = lab;
+	    newpc->pc_next = NULL;
+	    if (pc) pc->pc_next = newpc;
+	    else HashSetValue(he, (ClientData)newpc);
+	}
+
+	he = HashFind(&byIndex, (char *)(spointertype)lab->lab_port);
+	found = FALSE;
+	for (pc = (PortCheck *)HashGetValue(he); pc; pc = pc->pc_next)
+	{
+	    if (!strcmp(pc->pc_label->lab_text, lab->lab_text))
+	    {
+		found = TRUE;
+		break;
+	    }
+	    if (pc->pc_next == NULL) break;
+	}
+	if (!found)
+	{
+	    PortCheck *newpc = (PortCheck *)mallocMagic(sizeof(PortCheck));
+	    newpc->pc_label = lab;
+	    newpc->pc_next = NULL;
+	    if (pc) pc->pc_next = newpc;
+	    else HashSetValue(he, (ClientData)newpc);
+	}
+    }
+
+    /* Report each name with more than one index (in label order) */
+
+    for (lab = def->cd_labels; lab; lab = lab->lab_next)
+    {
+	if (!(lab->lab_flags & PORT_DIR_MASK)) continue;
+	he = HashLookOnly(&byName, lab->lab_text);
+	pclist = (PortCheck *)HashGetValue(he);
+	if (pclist == NULL) continue;	/* Already reported */
+	if (pclist->pc_next != NULL)
+	{
+	    errors++;
+	    if (report)
+	    {
+		TxError("Cell %s:  Port \"%s\" has more than one index (",
+			def->cd_name, lab->lab_text);
+		for (pc = pclist; pc; pc = pc->pc_next)
+		    TxError("%d%s", pc->pc_label->lab_port,
+				(pc->pc_next) ? ", " : ").\n");
+	    }
+	}
+	for (pc = pclist; pc; pc = pcnext)
+	{
+	    pcnext = pc->pc_next;
+	    freeMagic((char *)pc);
+	}
+	HashSetValue(he, NULL);
+    }
+
+    /* Report each index with more than one name */
+
+    for (lab = def->cd_labels; lab; lab = lab->lab_next)
+    {
+	if (!(lab->lab_flags & PORT_DIR_MASK)) continue;
+	he = HashLookOnly(&byIndex, (char *)(spointertype)lab->lab_port);
+	pclist = (PortCheck *)HashGetValue(he);
+	if (pclist == NULL) continue;	/* Already reported */
+	if (pclist->pc_next != NULL)
+	{
+	    errors++;
+	    if (report)
+	    {
+		TxError("Cell %s:  Port index %d is used by more than one "
+			"port (", def->cd_name, lab->lab_port);
+		for (pc = pclist; pc; pc = pc->pc_next)
+		    TxError("\"%s\"%s", pc->pc_label->lab_text,
+				(pc->pc_next) ? ", " : ").\n");
+	    }
+	}
+	for (pc = pclist; pc; pc = pcnext)
+	{
+	    pcnext = pc->pc_next;
+	    freeMagic((char *)pc);
+	}
+	HashSetValue(he, NULL);
+    }
+
+    HashKill(&byName);
+    HashKill(&byIndex);
+    return errors;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBCheckLabelsByContent --
  *
  * Return any label found on the label list for the given

@@ -1525,7 +1525,8 @@ complabel(
 #define PORT_NAME	12
 #define PORT_REMOVE	13
 #define PORT_RENUMBER	14
-#define PORT_HELP	15
+#define PORT_CHECK	15
+#define PORT_HELP	16
 
 void
 CmdPort(
@@ -1537,7 +1538,7 @@ CmdPort(
     int i, refidx, idx, pos, type, option, argc;
     unsigned int dirmask;
     bool found;
-    bool nonEdit = FALSE, doQuiet = FALSE;
+    bool nonEdit = FALSE, doQuiet = FALSE, doForce = FALSE;
     Label *lab, *sl;
     Rect editBox, tmpArea;
     CellDef *editDef;
@@ -1548,7 +1549,7 @@ CmdPort(
 	"use	[type]		get [set] port use type",
 	"shape	[type]		get [set] port shape type",
 	"index	[number]	get [set] port number",
-	"equivalent [number]	make port equivalent to another port",
+	"equivalent		(no longer supported)",
 	"exists			report if a label is a port or not",
 	"connections [dir...]	get [set] port connection directions",
 	"first			report the lowest port number used",
@@ -1559,6 +1560,7 @@ CmdPort(
 	"name			report the port name",
 	"remove			turn a port back into a label",
 	"renumber		renumber all ports",
+	"check			report inconsistent port names and indexes",
 	"help			print this help information",
 	NULL
     };
@@ -1639,21 +1641,27 @@ CmdPort(
     argstart = 1;
     argc = cmd->tx_argc;
 
-    if (argc > 1)
+    /* Trailing flags "-quiet" and "-force" may appear in either order */
+    while (argc > 1)
     {
 	if (!strcmp(cmd->tx_argv[argc - 1], "-quiet"))
-	{
 	    doQuiet = TRUE;
-	    argc--;
-	}
+	else if (!strcmp(cmd->tx_argv[argc - 1], "-force"))
+	    doForce = TRUE;
+	else
+	    break;
+	argc--;
     }
 
     if (argc > 6 || argc == 1)
         goto portWrongNumArgs;
     else
     {
-	/* Make sure edit box exists */
-	if (!ToolGetEditBox(&editBox)) return;
+	/* Make sure edit box exists (except for "port check", which	*/
+	/* applies to the whole edit cell)				*/
+	if ((Lookup(cmd->tx_argv[1], cmdPortOption) != PORT_CHECK) &&
+		!ToolGetEditBox(&editBox))
+	    return;
 
 	/* Handle syntax "port <name>|<index> [option ...]"	*/
 	/* Does not require a selection.			*/
@@ -1714,7 +1722,7 @@ CmdPort(
     {
 	/* Check for options that require only one selected port */
 
-	if (option != PORT_LAST && option != PORT_FIRST)
+	if (option != PORT_LAST && option != PORT_FIRST && option != PORT_CHECK)
 	{
 	    if (lab == NULL)
 	    {
@@ -1743,7 +1751,7 @@ CmdPort(
 	}
 	if ((option != PORT_LAST) && (option != PORT_FIRST) &&
 		(option != PORT_MAKEALL) && (option != PORT_RENUMBER)
-		&& (lab == NULL))
+		&& (option != PORT_CHECK) && (lab == NULL))
 	{
 	    /* Let "port remove" fail without complaining. */
 	    if (option != PORT_REMOVE)
@@ -1759,7 +1767,8 @@ CmdPort(
 
 	if ((option != PORT_MAKE) && (option != PORT_MAKEALL)
 		&& (option != PORT_EXISTS) && (option != PORT_RENUMBER)
-		&& (option != PORT_LAST) && (option != PORT_FIRST))
+		&& (option != PORT_LAST) && (option != PORT_FIRST)
+		&& (option != PORT_CHECK))
 	{
 	    /* label "lab" must already be a port */
 	    if (!(lab->lab_flags & PORT_DIR_MASK))
@@ -2024,15 +2033,52 @@ CmdPort(
 		else if (argc == 3)
 		{
 		    if (!StrIsInt(cmd->tx_argv[argstart + 1]))
-		        TxError("Usage:  port index <integer>\n");
+		        TxError("Usage:  port index <integer> [-force]\n");
 		    else
 		    {
-			for (sl = lab; sl; sl = sl->lab_next)
+			idx = atoi(cmd->tx_argv[argstart + 1]);
+			if (idx < 0)
+			{
+			    TxError("Port index must not be negative.\n");
+			    break;
+			}
+
+			/* Each index may belong to only one port name.  If
+			 * another name has the index, then refuse, unless
+			 * "-force" was given, in which case move all ports
+			 * (other than this one) at or above the index up
+			 * by one, to keep the same order.
+			 */
+			for (sl = editDef->cd_labels; sl; sl = sl->lab_next)
+			    if (((sl->lab_flags & PORT_DIR_MASK) != 0) &&
+					((int)sl->lab_port == idx) &&
+					strcmp(sl->lab_text, lab->lab_text))
+				break;
+			if (sl != NULL)
+			{
+			    if (!doForce)
+			    {
+				TxError("Port index %d is already used by port"
+					" \"%s\".\n", idx, sl->lab_text);
+				TxError("Use \"port index %d -force\" to move"
+					" ports at index %d and above up by one.\n",
+					idx, idx);
+				break;
+			    }
+			    for (sl = editDef->cd_labels; sl; sl = sl->lab_next)
+				if (((sl->lab_flags & PORT_DIR_MASK) != 0) &&
+					((int)sl->lab_port >= idx) &&
+					strcmp(sl->lab_text, lab->lab_text))
+				    sl->lab_port++;
+			}
+
+			/* Set all ports with this name to the same index */
+			for (sl = editDef->cd_labels; sl; sl = sl->lab_next)
 			{
 			    if (((sl->lab_flags & PORT_DIR_MASK) != 0) &&
 					!strcmp(sl->lab_text, lab->lab_text))
 			    {
-				sl->lab_port = (unsigned int)atoi(cmd->tx_argv[argstart + 1]);
+				sl->lab_port = (unsigned int)idx;
 			    }
 			}
 			editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
@@ -2136,6 +2182,20 @@ CmdPort(
 		goto parseindex;
 		break;
 
+	    case PORT_CHECK:
+		i = DBCheckPortIndices(editDef, !doQuiet);
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(i));
+#else
+		TxPrintf("%d port error%s found.\n", i, (i == 1) ? "" : "s");
+#endif
+		break;
+
+	    case PORT_EQUIV:
+		TxError("\"port equivalent\" is not supported.  Each port index"
+			" must belong to only one port name.\n");
+		break;
+
 	    case PORT_HELP:
 portWrongNumArgs:
 		TxError("Usage:  port [option], where [option] is one of:\n");
@@ -2190,11 +2250,19 @@ parseindex:
 			if (strcmp(sl->lab_text, lab->lab_text))
 			{
 			    TxError("Port index %d is already used by port %s.\n"
-					"Use command \"port index %d\" to force "
-					"equivalence after defining the port.\n",
-					idx, sl->lab_text, idx);
+					"Use \"port make\" without an index, then"
+					" \"port index %d -force\" to move the\n"
+					"ports at index %d and above up by one.\n",
+					idx, sl->lab_text, idx, idx);
 			    return;
 			}
+		    }
+		    else if (!strcmp(sl->lab_text, lab->lab_text))
+		    {
+			/* A port name may have only one index */
+			TxError("Port %s already has index %d.\n",
+				lab->lab_text, (int)sl->lab_port);
+			return;
 		    }
 		}
 	    }
