@@ -550,7 +550,6 @@ ResTriangleCheck(resptr)
     {
 	HashTable	NodeResTable;
 	HashEntry	*he, *he2;
-	HashSearch	hs;
 
 	/* Hash the neighboring connections */
 	HashInit(&NodeResTable, HT_DEFAULTSIZE, HT_WORDKEYS);
@@ -568,13 +567,16 @@ ResTriangleCheck(resptr)
 		HashSetValue(he, (char *)rcell2);
 	}
 
-	HashStartSearch(&hs);
-	while ((he = HashNext(&NodeResTable, &hs)))
+	/* Walk the geometric adjacency list, not pointer-hash bucket order.
+	 * Keep hash lookups for linear-time neighbor membership tests.
+	 */
+	for (rcell1 = resptr->rn_re; rcell1 != NULL; rcell1 = rcell1->re_nextEl)
 	{
-	    /* Get each node that neighbors resptr */
-	    n1 = (resNode *)he->h_key.h_ptr;
-	    rcell1 = (resElement *)HashGetValue(he);
 	    rr1 = rcell1->re_thisEl;
+	    n1 = rr1->rr_connection1;
+	    if (n1 == resptr) n1 = rr1->rr_connection2;
+	    he = HashLookOnly(&NodeResTable, (char *)n1);
+	    if ((resElement *)HashGetValue(he) != rcell1) continue;
 
 	    /* Check the list of resistors of neighbor n1 for any resistor whose
 	     * other end is also a neighbor of resptr.
