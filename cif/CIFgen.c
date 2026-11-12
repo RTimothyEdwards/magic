@@ -1351,6 +1351,10 @@ typedef struct _bloatStruct {
     Plane       **temps;
 } BloatStruct;
 
+/* Tiles marked by cifBloatAllFunc() and not yet cleared (see	*/
+/* cifBloatAllReset()).						*/
+static Stack *cifBloatResetStack = (Stack *)NULL;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1366,6 +1370,8 @@ typedef struct _bloatStruct {
  *	Uses the bloat table in the current CIFOp to expand the tile,
  *	depending on which tiles it abuts.  All bordering material that
  *	has bl_distance = 1 is painted into the result plane.
+ *	Tiles found are marked, and with no limiting distance they stay
+ *	marked until cifBloatAllReset() is called.
  *
  * ----------------------------------------------------------------------------
  */
@@ -1401,6 +1407,8 @@ cifBloatAllFunc(
 	BloatStack = StackNew(64);
     if (ResetStack == (Stack *)NULL)
 	ResetStack = StackNew(64);
+    if (cifBloatResetStack == (Stack *)NULL)
+	cifBloatResetStack = StackNew(64);
 
     /* If the type of the tile to be processed is not in the same plane	*/
     /* as the bloat type(s), then find any tile under the tile to be	*/
@@ -1507,6 +1515,12 @@ cifBloatAllFunc(
 	if (TiGetClientINT(t) != CIF_PENDING) continue;
         TiSetClientINT(t, CIF_PROCESSED);
 
+	/* Record the tile so that cifBloatAllReset() can clear its	*/
+	/* mark.  With a limiting distance, the mark is cleared at the	*/
+	/* end of this call instead (see ResetStack, below).		*/
+	if (op->co_distance == 0)
+	    STACKPUSH(PTR2CD(t), cifBloatResetStack);
+
 	/* Get the tile into CIF coordinates. */
 
 	TiToRect(t, &area);
@@ -1608,6 +1622,45 @@ cifBloatAllFunc(
 
     if (SigInterruptPending) return 1;
     return 0;	/* Keep the search alive. . . */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifBloatAllReset --
+ *
+ *	Clear the marks left by cifBloatAllFunc() on the tiles it found, for
+ *	CIFOP_BLOATALL and CIFOP_TAGGED (which uses the same search).  The
+ *	tiles were recorded as they were marked, so only those tiles are
+ *	visited, not whole planes.  The marked tiles may be on any plane
+ *	that has a seed or bloat type:  a contact seed is found on each of
+ *	its planes, and the search can spread from there into abutting
+ *	tiles of a bloat type that is also a contact.  The planes searched
+ *	are not modified until this routine is called, since results are
+ *	painted into a separate CIF plane, so the recorded tiles are valid.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Sets the client data of the recorded tiles to CIF_UNPROCESSED.
+ *	Tiles left marked would be read as region pointers by the
+ *	extractor (GitHub issue #570).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+cifBloatAllReset(void)
+{
+    Tile *t;
+
+    if (cifBloatResetStack == (Stack *)NULL) return;
+    while (!StackEmpty(cifBloatResetStack))
+    {
+	t = (Tile *)STACKPOP(cifBloatResetStack);
+	TiSetClient(t, CIF_UNPROCESSED);
+    }
 }
 
 /* Data structure to pass plane and minimum width to the callback function */
@@ -2379,27 +2432,74 @@ typedef struct
 /*
  *-------------------------------------------------------
  *
- * cifSquaresInitFunc --
+ * cifCollectTileFunc --
  *
- *	Find the first unprocessed tile in the plane.
+ *	Record one tile found by the search in cifCollectTiles().
  *
  * Results:
- *	Return 1 to stop the search and process.
- *	Otherwise, return 0 to keep the search going.
+ *	Return 0 to keep the search going.
+ *
+ * Side effects:
+ *	Pushes the tile onto the stack passed as client data.
  *
  *-------------------------------------------------------
  */
 
 int
-cifSquaresInitFunc(tile, dinfo, clientData)
-    Tile *tile;
-    TileType dinfo;		/* (unused) */
-    ClientData clientData;	/* (unused) */
+cifCollectTileFunc(
+    Tile *tile,
+    TileType dinfo,		/* (unused) */
+    Stack *stack)
 {
-    if (TiGetClient(tile) == CIF_UNPROCESSED)
-	return 1;
-    else
-	return 0;
+    STACKPUSH(PTR2CD(tile), stack);
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------
+ *
+ * cifCollectTiles --
+ *
+ *	Make a list of all CIF material tiles in an area of a plane, for
+ *	routines that process each connected region of material once.
+ *	Those routines used to find the next region by searching the
+ *	plane again for the first unprocessed tile, which visits all of
+ *	the tiles already processed each time, so the time grew with the
+ *	square of the number of tiles.  Instead, they take tiles from this
+ *	list and skip those already processed.  The regions are found in
+ *	the same order as before, since the list is in search order.
+ *
+ *	The plane must not be modified while the list is in use, since
+ *	that would free or change the tiles in the list.
+ *
+ * Results:
+ *	A new Stack, from which the tiles pop in search order (a tile
+ *	split diagonally may appear twice).  The caller must free it with
+ *	StackFree().
+ *
+ * Side effects:
+ *	None.
+ *
+ *-------------------------------------------------------
+ */
+
+Stack *
+cifCollectTiles(
+    Plane *plane,
+    const Rect *area)
+{
+    Stack *found, *list;
+
+    found = StackNew(256);
+    list = StackNew(256);
+    DBSrPaintArea((Tile *)NULL, plane, area, &CIFSolidBits,
+		cifCollectTileFunc, (ClientData)found);
+
+    /* Reverse the order so that tiles pop in search order */
+    while (!StackEmpty(found))
+	STACKPUSH(STACKPOP(found), list);
+    StackFree(found);
+    return list;
 }
 
 /*
@@ -2587,19 +2687,22 @@ cifRectBoundingBox(
     TileType type;
     bool simple;
     static Stack *BoxStack = (Stack *)NULL;
+    Stack *regions;
 
     if (BoxStack == (Stack *)NULL)
 	BoxStack = StackNew(64);
 
-    while (DBSrPaintArea((Tile *)tile, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresInitFunc, (ClientData)NULL) != 0)
+    regions = cifCollectTiles(plane, &TiPlaneRect);
+    while (!StackEmpty(regions))
     {
+	tile = (Tile *)STACKPOP(regions);
+	if (TiGetClient(tile) != CIF_UNPROCESSED) continue;
+
 	/* Now, search for (nontrivially) connected tiles in all	*/
 	/* directions.  Mark the tiles, and record the bounding box.	*/
 	/* (Largely copied from cifSquaresFillArea)			*/
 
 	simple = TRUE;
-	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
 	PUSHTILEONLY(tile, BoxStack);
@@ -2709,6 +2812,7 @@ cifRectBoundingBox(
 		}
 	}
     }
+    StackFree(regions);
 }
 
 /*
@@ -2750,6 +2854,7 @@ cifSquaresFillArea(
     linkedStrip *stripList;
     bool simple;
     static Stack *CutStack = (Stack *)NULL;
+    Stack *regions;
 
     pitch = squares->sq_size + squares->sq_sep;
     size = squares->sq_size + 2 * squares->sq_border;
@@ -2862,15 +2967,17 @@ cifSquaresFillArea(
 
     /* 2nd pass:  Search the plane for unmarked tiles */
 
-    while (DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresInitFunc, (ClientData)NULL) != 0)
+    regions = cifCollectTiles(plane, &TiPlaneRect);
+    while (!StackEmpty(regions))
     {
+	tile = (Tile *)STACKPOP(regions);
+	if (TiGetClient(tile) != CIF_UNPROCESSED) continue;
+
 	/* Now, search for (nontrivially) connected tiles in all	*/
 	/* directions.  Mark the tiles, and record the bounding box.	*/
 	/* (Largely copied from cifBloatAllFunc)			*/
 
 	simple = TRUE;
-	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
 	PUSHTILEONLY(tile, CutStack);
@@ -3042,6 +3149,7 @@ cifSquaresFillArea(
 		}
 	}
     }
+    StackFree(regions);
 
     /* Clear all the tiles that were processed */
     DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
@@ -3083,6 +3191,7 @@ cifSlotsFillArea(
     linkedStrip *stripList;
     bool simple, vertical;
     static Stack *CutStack = (Stack *)NULL;
+    Stack *regions;
 
     spitch = slots->sl_ssize + slots->sl_ssep;
     lpitch = slots->sl_lsize + slots->sl_lsep;
@@ -3206,15 +3315,17 @@ cifSlotsFillArea(
 
     /* 2nd pass:  Search the plane for unmarked tiles */
 
-    while (DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresInitFunc, (ClientData)NULL) != 0)
+    regions = cifCollectTiles(plane, &TiPlaneRect);
+    while (!StackEmpty(regions))
     {
+	tile = (Tile *)STACKPOP(regions);
+	if (TiGetClient(tile) != CIF_UNPROCESSED) continue;
+
 	/* Now, search for (nontrivially) connected tiles in all	*/
 	/* directions.  Mark the tiles, and record the bounding box.	*/
 	/* (Largely copied from cifBloatAllFunc)			*/
 
 	simple = TRUE;
-	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
 	PUSHTILEONLY(tile, CutStack);
@@ -3407,6 +3518,7 @@ cifSlotsFillArea(
 		}
 	}
     }
+    StackFree(regions);
 
     /* Clear all the tiles that were processed */
     DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
@@ -4832,13 +4944,17 @@ cifInteractingRegions(
     TileType type;
     bool interacts;
     static Stack *RegStack = (Stack *)NULL;
+    Stack *regions;
 
     if (RegStack == (Stack *)NULL)
 	RegStack = StackNew(64);
 
-    while (DBSrPaintArea((Tile *)tile, plane, area, &CIFSolidBits,
-		cifSquaresInitFunc, (ClientData)NULL) != 0)
+    regions = cifCollectTiles(plane, area);
+    while (!StackEmpty(regions))
     {
+	tile = (Tile *)STACKPOP(regions);
+	if (TiGetClient(tile) != CIF_UNPROCESSED) continue;
+
 	/* Now, search for (nontrivially) connected tiles in all	*/
 	/* directions.  Mark the tiles, and record the bounding box.	*/
 	/* This is the same method used for cifRectBoundingBox(),	*/
@@ -4851,7 +4967,6 @@ cifInteractingRegions(
 	/* interaction detection must.					*/
 
 	interacts = FALSE;
-	tile = PlaneGetHint(plane);
 	PUSHTILEONLY(tile, RegStack);
 	while (!StackEmpty(RegStack))
 	{
@@ -4973,6 +5088,7 @@ cifInteractingRegions(
 	/* Allow interrupts here */
 	if (SigInterruptPending) break;
     }
+    StackFree(regions);
 }
 
 /*
@@ -5310,22 +5426,7 @@ CIFGenLayer(
 		cifSrTiles(op, area, cellDef, temps, cifBloatAllFunc, (ClientData)&bls);
 
 	        /* Reset marked tiles */
-
-	        if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
-	        {
-		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, bls.temps++)
-			if (bloats->bl_distance[ttype] > 0)
-			    (void) DBSrPaintArea((Tile *)NULL, *bls.temps, &TiPlaneRect,
-				    &CIFSolidBits, cifProcessResetFunc,
-				    (ClientData)NULL);
-	        }
-	        else
-		{
-		    TTMaskSetMask(&bls.connect, &op->co_paintMask);
-		    DBSrPaintArea((Tile *)NULL, cellDef->cd_planes[bloats->bl_plane],
-			    &TiPlaneRect, &bls.connect, cifProcessResetFunc,
-			    (ClientData)NULL);
-		}
+		cifBloatAllReset();
 
 		break;
 
@@ -5567,22 +5668,7 @@ CIFGenLayer(
 		}
 
 	        /* Reset marked tiles */
-
-	        if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
-	        {
-		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, bls.temps++)
-			if (bloats->bl_distance[ttype] > 0)
-			    (void) DBSrPaintArea((Tile *)NULL, *bls.temps, &TiPlaneRect,
-				    &CIFSolidBits, cifProcessResetFunc,
-				    (ClientData)NULL);
-	        }
-	        else
-		{
-		    TTMaskSetMask(&bls.connect, &op->co_paintMask);
-		    DBSrPaintArea((Tile *)NULL, cellDef->cd_planes[bloats->bl_plane],
-			    &TiPlaneRect, &bls.connect, cifProcessResetFunc,
-			    (ClientData)NULL);
-		}
+		cifBloatAllReset();
 
 		/* Replace the client data */
 		op->co_client = (ClientData)text;

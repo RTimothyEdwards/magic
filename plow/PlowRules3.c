@@ -256,8 +256,9 @@ scanDown(inarg, type, canMoveInargEdge)
 }
 
 int
-scanDownError(tile, inarg)
+scanDownError(tile, dinfo, inarg)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct inarg *inarg;
 {
     Rect atomRect;
@@ -351,8 +352,9 @@ scanUp(inarg, type, canMoveInargEdge)
 }
 
 int
-scanUpError(tile, inarg)
+scanUpError(tile, dinfo, inarg)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
     struct inarg *inarg;
 {
     Rect atomRect;

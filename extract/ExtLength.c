@@ -689,8 +689,10 @@ extPathPairDistance(lab1, lab2, pMin, pMax)
  */
 
 int
-extPathResetClient(tile)
+extPathResetClient(tile, dinfo, clientData)
     Tile *tile;
+    TileType dinfo;		/* (unused) */
+    ClientData clientData;	/* (unused) */
 {
     TiSetClient(tile, CLIENTDEFAULT);
     return (0);
