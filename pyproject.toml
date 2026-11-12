@@ -1,5 +1,5 @@
 [build-system]
-requires = ["wheel"]
+requires = ["wheel", "patchelf; sys_platform == \"linux\""]
 backend-path = ["wheel_build"]
 build-backend = "backend"
 

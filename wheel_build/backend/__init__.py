@@ -1,11 +1,6 @@
-# Adapted from Silisizer Wheels
+# Adapted from Silisizer Wheels, in turn adapted from Yosys
 #
 # Copyright (C) 2026 Silimate Inc.
-#
-# Written by Mohamed Gaber <me@donn.website>
-#
-# Adapted from Yosys
-#
 # Copyright (C) 2026 Catherine <whitequark@whitequark.org>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -261,7 +256,7 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
                 "--without-opengl",
                 "--disable-readline",
             )
-            print("Detecting graphics...", file=sys.stderr)
+            print("Detecting X11...", file=sys.stderr)
             graphics = False
             with subprocess.Popen(
                 ["./configure", *tcl_opt],
@@ -277,10 +272,13 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
                 p.kill()
             if graphics:
                 print(
-                    "Magic configure detects graphics, will compile and use Tk.",
+                    "Magic configure detects X11, will compile and use Tk.",
                     file=sys.stderr,
                 )
-                graphics_options = (f"--with-tk={d}/lib",)
+                graphics_options = (
+                    f"--with-tk={d}/lib",
+                    "--without-opengl",
+                )
 
             _ensure_tcltk(d, graphics)
 
@@ -305,8 +303,8 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
             ):
                 if not binary_to_patch.exists():
                     continue
-                for lib in ("tcl9.1", "tcl9tk9.1"):
-                    if sys.platform == "darwin":
+                if sys.platform == "darwin":
+                    for lib in ("tcl9.1", "tcl9tk9.1"):
                         lib_path = d / "lib" / f"lib{lib}.dylib"
                         lib_relpath = lib_path.relative_to(
                             binary_to_patch.parent, walk_up=True
@@ -320,6 +318,19 @@ def build_wheel(wheel_dir, config_settings=None, metadata_directory=None):
                                 binary_to_patch,
                             ]
                         )
+                else:
+                    libdir_path = d / "lib"
+                    libdir_relpath = libdir_path.relative_to(
+                        binary_to_patch.parent, walk_up=True
+                    )
+                    subprocess.check_call(
+                        [
+                            "patchelf",
+                            "--add-rpath",
+                            "$ORIGIN/" + str(libdir_relpath),
+                            binary_to_patch,
+                        ]
+                    )
 
             for root, _, files in os.walk(d / "bin"):
                 for file in files:
