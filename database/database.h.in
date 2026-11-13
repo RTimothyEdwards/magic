@@ -739,7 +739,32 @@ struct conSrArg2
 					 * of the label types.
 					 */
     bool                csa2_labinit;   /* TRUE if csa2_labels is set up */
+
+    struct dbcVirtual   *csa2_virtual;  /* Connections by name (labels of
+					 * the same name in one cell), or
+					 * NULL if only drawn connections
+					 * are followed.  See
+					 * DBConnectVirtualInit().
+					 */
 };
+
+/* Which labels of the same name in one cell connect a net, for	*/
+/* DBTreeCopyConnectMode() and DBConnectVirtualInit().  These	*/
+/* follow the "extract do unique" setting for "select net" and	*/
+/* "getnode" (see ExtNameConnectMode()).				*/
+
+#define DB_CONN_PHYSICAL	0	/* None:  drawn connections only */
+#define DB_CONN_TOPPORTS	1	/* Ports in the top cell only */
+#define DB_CONN_ALLPORTS	2	/* Ports in any cell */
+#define DB_CONN_NAMES		3	/* Any labels in any cell */
+#define DB_CONN_MODEMASK	0x0f
+#define DB_CONN_REPORT		0x10	/* Report connections made by name */
+#define DB_CONN_ABSTRACT	0x20	/* In abstract views (cells with the
+					 * "LEFview" property), any labels
+					 * connect, whatever the mode, as
+					 * extraction does not make their
+					 * names unique.
+					 */
 
 #define CSA2_LIST_SIZE 65536            /* Number of entries per list */
 
@@ -981,6 +1006,12 @@ extern void DBConnectVisitInit(struct conSrArg2 *csa2);
 extern void DBConnectVisitFree(struct conSrArg2 *csa2);
 extern bool DBConnectVisited(struct conSrArg2 *csa2, Tile *tile, TileType dinfo,
 		const Rect *area);
+extern void DBConnectVirtualInit(struct conSrArg2 *csa2, int mode);
+extern void DBConnectVirtualFree(struct conSrArg2 *csa2);
+extern int DBConnectVirtualLabels(SearchContext *scx, const TileTypeBitMask *mask,
+		TileType dinfo, int xMask, struct conSrArg2 *csa2);
+extern bool DBConnectVirtualFlush(struct conSrArg2 *csa2);
+extern void DBTreeCopyConnectMode();
 extern void DBSeeTypesAll();
 extern void DBUpdateStamps();
 extern void DBEnumerateTypes();

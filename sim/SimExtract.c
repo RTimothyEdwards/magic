@@ -783,21 +783,12 @@ SimGetNodeName(
 	}
     }
 
-    /* Check whether or not to print out node name aliases.  Each alias
-     * found is hashed in a table in order to suppress printing of
-     * duplicate aliases.
+    /* Record node name aliases for "getnode alias on" (see
+     * SimAddAlias()).
      */
 
-    if (SimGetnodeAlias && SimIsGetnode) {
-	if (HashLookOnly(&SimGNAliasTbl, nodename) == (HashEntry *) NULL) {
-	    HashFind(&SimGNAliasTbl, nodename);
-#ifdef MAGIC_WRAPPER
-	    Tcl_AppendElement(magicinterp, nodename);
-#else
-	    TxPrintf("alias: %s\n", nodename);
-#endif
-	}
-    }
+    if (SimGetnodeAlias && SimIsGetnode)
+	SimAddAlias(nodename);
 
     /* search the list of all labels for this node, creating the full
      * node name and returning the "best" node name found.  A port
@@ -821,17 +812,8 @@ SimGetNodeName(
 			strcpy(buff, nname);
 			SimNodeNameIsPort = isport;
 		    }
-		    if (SimGetnodeAlias && SimIsGetnode) {
-			if (HashLookOnly(&SimGNAliasTbl, nodename)
-			    == (HashEntry *) NULL) {
-			    HashFind(&SimGNAliasTbl, nodename);
-#ifdef MAGIC_WRAPPER
-			    Tcl_AppendElement(magicinterp, nodename);
-#else
-			    TxPrintf("alias: %s\n", nodename);
-#endif
-			}
-		    }
+		    if (SimGetnodeAlias && SimIsGetnode)
+			SimAddAlias(nodename);
 		}
 	    }
 	    break;

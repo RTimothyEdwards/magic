@@ -36,6 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "select/selInt.h"
 #include "select/select.h"
 #include "drc/drc.h"
+#include "extract/extract.h"
 #include "utils/main.h"
 #include "utils/signals.h"
 
@@ -1003,9 +1004,12 @@ SelectRegion(scx, type, xMask, pArea, less)
  *	Starting from material of type "type" under scx, this procedure
  *	finds and highlights all material in all expanded cells that
  *	is electrically-connected to the starting material through a
- *	chain of expanded cells.  If pArea is specified, then the
- *	rectangle that it points to is filled in with the bounding box
- *	of the net that was selected.
+ *	chain of expanded cells.  Labels of the same name in one cell
+ *	also connect the net, as they do in the extracted netlist (see
+ *	ExtNameConnectMode()), and a warning is printed for each name
+ *	that connects material not otherwise connected.  If pArea is
+ *	specified, then the rectangle that it points to is filled in
+ *	with the bounding box of the net that was selected.
  *
  * ----------------------------------------------------------------------------
  */
@@ -1052,8 +1056,12 @@ SelectNet(scx, type, xMask, pArea, less)
 
     UndoDisable();
     DBCellClearDef(Select2Def);
-    DBTreeCopyConnect(scx, &mask, xMask, DBConnectTbl,
-	    &TiPlaneRect, SelectDoLabels, Select2Use);
+    /* Labels of the same name connect the net as they do in the	*/
+    /* extracted netlist (see "extract do unique").			*/
+
+    DBTreeCopyConnectMode(scx, &mask, xMask, DBConnectTbl,
+	    &TiPlaneRect, SelectDoLabels, Select2Use,
+	    ExtNameConnectMode() | DB_CONN_REPORT);
     UndoEnable();
 
     /* Network undo method added by Nishit and Tim, July 8-10, 2004 */

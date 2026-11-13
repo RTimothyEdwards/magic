@@ -108,6 +108,45 @@ bool extContainsGeometry();
 int extContainsCellFunc(CellUse *use, ClientData cdata); /* cb_database_srcellplanearea_t (const CellUse *allButUse) */
 bool extTimestampMisMatch();
 
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtNameConnectMode --
+ *
+ *	Say which labels of the same name in a cell are connected in the
+ *	extracted netlist, according to the "extract do unique" setting,
+ *	so that "select net" and "getnode" can follow the same connections:
+ *
+ *	    extract do unique			none (DB_CONN_PHYSICAL)
+ *	    extract do unique notopports	ports of the top cell
+ *						(DB_CONN_TOPPORTS)
+ *	    extract no unique			all labels (DB_CONN_NAMES)
+ *
+ *	Names are never made unique in abstract views (see extUniqueCell()),
+ *	so all labels of the same name in those cells are connected
+ *	(DB_CONN_ABSTRACT).
+ *
+ * Results:
+ *	A DB_CONN_* mode (see database.h), with DB_CONN_ABSTRACT.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+ExtNameConnectMode(void)
+{
+    if (!(ExtOptions & EXT_DOUNIQUE))
+	return DB_CONN_NAMES | DB_CONN_ABSTRACT;
+    else if (ExtOptions & EXT_DOUNIQNOTOPPORTS)
+	return DB_CONN_TOPPORTS | DB_CONN_ABSTRACT;
+    else
+	return DB_CONN_PHYSICAL | DB_CONN_ABSTRACT;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *

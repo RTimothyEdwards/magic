@@ -35,6 +35,7 @@ extern HashTable SimAbortSeenTbl;
 extern void SimGetnode(void);
 extern void SimGetsnode(void);
 extern void SimGetNodeCleanUp(void);
+extern void SimAddAlias(const char *name);
 extern int SimPutLabel(CellDef *cellDef, const Rect *rect, int align, const char *text, TileType type);
 extern int SimSrConnect(CellDef *def, const Rect *startArea, const TileTypeBitMask *mask, const TileTypeBitMask *connect,
                         const Rect *bounds, int (*func)(), ClientData clientData);

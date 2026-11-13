@@ -151,7 +151,11 @@ Circuit netlist extractor
 			for backwards compatibility.  Note the difference:
 			"extract unique" is a command that runs immediately, and
 			cannot be undone; "extract do unique" is an option setting
-			for "extract".
+			for "extract".  "extract do unique" without
+			"notopports" cancels a previous "extract do unique
+			notopports".  The commands "select net" and "getnode"
+			follow this setting when deciding whether labels of the
+			same name connect a net (see the "select" command).
 		  <DT> <B>resistance</B>
 		  <DD> (Added in magic version 8.3.597) This setting replaces
 			the use of the standalone command "extresist".  The
@@ -328,6 +332,6 @@ Circuit netlist extractor
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 8, 2021 at 4:56pm <P>
+<P><I>Last updated:</I> November 12, 2026 at 2:35pm <P>
 </BODY>
 </HTML>

@@ -105,6 +105,7 @@ extern void ExtPrintStyle();
 extern void ExtSetPath();
 extern void ExtPrintPath();
 extern void ExtRevertSubstrate();
+extern int ExtNameConnectMode(void);
 extern Plane *ExtCell();
 extern void ExtractOneCell();
 

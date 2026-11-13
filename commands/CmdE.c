@@ -1465,10 +1465,21 @@ CmdExtract(
 			if (!strncmp(argv[3], "notop", 5))
 			    option = EXT_DOUNIQNOTOPPORTS | EXT_DOUNIQUE;
 			else
+			{
 			    TxError("Usage:  extract do unique [notopports]\n");
+			    return;
+			}
 		    }
+		    else if (no)
+			option = EXT_DOUNIQNOTOPPORTS | EXT_DOUNIQUE;
 		    else
+		    {
+			/* "extract do unique" without "notopports" also
+			 * clears a previous "notopports".
+			 */
+			ExtOptions &= ~EXT_DOUNIQNOTOPPORTS;
 			option = EXT_DOUNIQUE;
+		    }
 		    break;
 		case DOLOCAL:
 		    /* "extract do local" and "extract no local" are kept for

@@ -33,8 +33,11 @@ Get node names of all selected paint
 	   <DD> Stop the <B>getnode</B> search when the node name
 		<I>string</I> is encountered.
 	   <DT> <B>alias</B> [<B>on</B>|<B>off</B>]
-	   <DD> If <B>on</B>, reports all names found for the node.  If
-		<B>off</B>, only the canonical name is returned.
+	   <DD> If <B>on</B>, reports all names found for the node.  For
+		each node selected, the result is then a list of the node's
+		canonical name followed by its other names;  for example,
+		<TT>{{R Q} {P N}}</TT> for two nodes.  If <B>off</B>, only
+		the canonical name of each node is returned.
 	   <DT> <B>globals</B> [<B>on</B>|<B>off</B>]
 	   <DD> If <B>on</B>, any global node name (names ending with "!")
 		will terminate the search, returning the global name.
@@ -58,7 +61,16 @@ Get node names of all selected paint
       <B>getnode</B> is implemented as a built-in command in <B>magic</B>.
       The node name search uses the same algorithm as the netlist
       connectivity selection function, and for very large networks, can
-      be quite slow.
+      be quite slow.  Like "<B>select net</B>", it follows connections
+      made by labels of the same name in a cell according to the
+      "<B>extract do unique</B>" setting, so that the node is the same
+      as in the extracted netlist (see the <B>select</B> command).
+      A port name of the top cell takes precedence over any other
+      name, so once one has been found, the search stops there (unless
+      <B>alias</B> is <B>on</B>).  For example, if the selection is on
+      a pad with a port label in the top cell, the name is returned
+      without tracing the rest of the net.  Connections
+      through an implicit (undrawn) substrate are not followed.
    </BLOCKQUOTE>
 
 <H3>See Also:</H3>
@@ -72,6 +84,6 @@ Get node names of all selected paint
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
+<P><I>Last updated:</I> November 12, 2026 at 2:35pm <P>
 </BODY>
 </HTML>

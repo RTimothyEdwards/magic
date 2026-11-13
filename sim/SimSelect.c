@@ -82,8 +82,17 @@ typedef struct TLE {
     Tile *tl_nodeTile;
     TileType tl_dinfo;
     const char *tl_simLabel;
+    char **tl_aliases;		/* Other names of the node ("getnode alias
+				 * on"), or NULL
+				 */
+    int tl_naliases;		/* Number of entries in tl_aliases */
     struct TLE *tl_next;
 } TileListElt;
+
+/* Aliases of the node currently being traced, for "getnode alias on" */
+static char **simAliases = (char **)NULL;
+static int simNumAliases = 0;
+static int simAliasSize = 0;
 
 
 TileListElt *NodeList = (TileListElt *) NULL;
@@ -188,6 +197,111 @@ NullFunc(void)
 
 /*
  * ----------------------------------------------------------------------------
+ * SimAddAlias --
+ *
+ *	Record one name of the node being traced, for "getnode alias on".
+ *	Names already recorded for this node are ignored.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Adds the name to simAliases and to SimGNAliasTbl.
+ * ----------------------------------------------------------------------------
+ */
+
+void
+SimAddAlias(
+    const char *name)
+{
+    if (HashLookOnly(&SimGNAliasTbl, name) != (HashEntry *) NULL) return;
+    HashFind(&SimGNAliasTbl, name);
+
+    if (simNumAliases == simAliasSize)
+    {
+	char **newlist;
+
+	simAliasSize = (simAliasSize == 0) ? 8 : 2 * simAliasSize;
+	newlist = (char **)mallocMagic(simAliasSize * sizeof(char *));
+	if (simNumAliases > 0)
+	    memcpy(newlist, simAliases, simNumAliases * sizeof(char *));
+	if (simAliases != NULL) freeMagic((char *)simAliases);
+	simAliases = newlist;
+    }
+    simAliases[simNumAliases++] = StrDup((char **)NULL, name);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * simTakeAliases --
+ *
+ *	Start or finish recording the aliases of one node.  With a node
+ *	list entry, the aliases recorded since the last call are given to
+ *	it;  with NULL, they are discarded.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Clears simAliases and SimGNAliasTbl.
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+simTakeAliases(
+    TileListElt *entry)
+{
+    int i;
+
+    if (entry != (TileListElt *)NULL)
+    {
+	entry->tl_aliases = (simNumAliases > 0) ? simAliases : (char **)NULL;
+	entry->tl_naliases = simNumAliases;
+	if (simNumAliases == 0 && simAliases != NULL)
+	    freeMagic((char *)simAliases);
+    }
+    else
+    {
+	for (i = 0; i < simNumAliases; i++)
+	    freeMagic(simAliases[i]);
+	if (simAliases != NULL) freeMagic((char *)simAliases);
+    }
+    simAliases = (char **)NULL;
+    simNumAliases = simAliasSize = 0;
+
+    HashKill(&SimGNAliasTbl);
+    HashInit(&SimGNAliasTbl, 120, HT_STRINGKEYS);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * simFreeAliases --
+ *
+ *	Free the aliases kept with a node list entry.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Frees memory.
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+simFreeAliases(
+    TileListElt *entry)
+{
+    int i;
+
+    for (i = 0; i < entry->tl_naliases; i++)
+	freeMagic(entry->tl_aliases[i]);
+    if (entry->tl_aliases != NULL) freeMagic((char *)entry->tl_aliases);
+    entry->tl_aliases = (char **)NULL;
+    entry->tl_naliases = 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
  * SimFreeNodeList
  *
  *	This procedure frees all space allocated for the node list
@@ -213,6 +327,7 @@ SimFreeNodeList(
     while (temp != NULL) {
 	current = temp;
 	temp = temp->tl_next;
+	simFreeAliases(current);
 	freeMagic((char*)current->tl_nodeName);
 	freeMagic(current);
     }
@@ -231,6 +346,7 @@ simFreeNodeEntry(
 	if( curr == entry )
 	{
 	    prev->tl_next = curr->tl_next;
+	    simFreeAliases(entry);
 	    freeMagic( (char*)entry->tl_nodeName );
 	    freeMagic( entry );
 	    return( prev );		/* next element in list */
@@ -490,6 +606,7 @@ SimSelectFunc(
     }
 
     nameBuff[0] = '\0';
+    if (SimGetnodeAlias && SimIsGetnode) simTakeAliases((TileListElt *)NULL);
     nodeName = SimSelectNode(&scx, type, CU_DESCEND_ALL, nameBuff);
 
     /* Mark all other parts of the selection that the trace reached */
@@ -512,9 +629,14 @@ SimSelectFunc(
 	newNodeTile->tl_nodeName = tmp;  /* assign to const */
 	newNodeTile->tl_nodeTile = tile;
 	newNodeTile->tl_dinfo = dinfo;
+	newNodeTile->tl_aliases = (char **)NULL;
+	newNodeTile->tl_naliases = 0;
 	newNodeTile->tl_next = *pHead;
 	*pHead = newNodeTile;
+	if (SimGetnodeAlias && SimIsGetnode) simTakeAliases(newNodeTile);
     }
+    else if (SimGetnodeAlias && SimIsGetnode)
+	simTakeAliases((TileListElt *)NULL);
     return(0);
 }
 
@@ -815,9 +937,58 @@ SimRsimMouse(
 
 /*
  * ----------------------------------------------------------------------------
+ * simOutputNode --
+ *
+ *	Return (or print) the name of one node for "getnode".  With
+ *	"getnode alias on", the result for the node is a list of the node
+ *	name followed by its other names.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Appends to the Tcl result, or prints the names.
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+simOutputNode(
+    TileListElt *current,
+    const char *what)		/* "node name" or "short node name" */
+{
+    int i;
+
+#ifdef MAGIC_WRAPPER
+    if (SimGetnodeAlias)
+    {
+	Tcl_DString ds;
+
+	Tcl_DStringInit(&ds);
+	Tcl_DStringAppendElement(&ds, current->tl_nodeName);
+	for (i = 0; i < current->tl_naliases; i++)
+	    if (strcmp(current->tl_aliases[i], current->tl_nodeName))
+		Tcl_DStringAppendElement(&ds, current->tl_aliases[i]);
+	Tcl_AppendElement(magicinterp, Tcl_DStringValue(&ds));
+	Tcl_DStringFree(&ds);
+    }
+    else
+	Tcl_AppendElement(magicinterp, current->tl_nodeName);
+#else
+    TxPrintf("%s : %s\n", what, current->tl_nodeName);
+    if (SimGetnodeAlias)
+	for (i = 0; i < current->tl_naliases; i++)
+	    if (strcmp(current->tl_aliases[i], current->tl_nodeName))
+		TxPrintf("    alias : %s\n", current->tl_aliases[i]);
+#endif
+}
+
+/*
+ * ----------------------------------------------------------------------------
  * SimGetnode
  *
- *	This procedure prints the node names of all selected nodes.
+ *	This procedure prints the node names of all selected nodes.  With
+ *	"getnode alias on", each node is a list of its name followed by its
+ *	other names (aliases).
  *
  * Results:
  *	None.
@@ -847,15 +1018,9 @@ SimGetnode(void)
 	return;
     }
 
+    /* Return the node names as the result of the command */
     for (; current != (TileListElt *) NULL; current = current->tl_next)
-    {
-#ifdef MAGIC_WRAPPER
-	/* Return the node name as the result of the command */
-	Tcl_AppendElement(magicinterp, current->tl_nodeName);
-#else
-	TxPrintf("node name : %s\n", current->tl_nodeName);
-#endif
-    }
+	simOutputNode(current, "node name");
 }
 
 /*
@@ -892,15 +1057,9 @@ SimGetsnode(void)
 	return;
     }
 
+    /* Return the node short names as the result of the command */
     for (; current != (TileListElt *) NULL; current = current->tl_next)
-    {
-#ifdef MAGIC_WRAPPER
-	/* Return the node short name as the result of the command */
-	Tcl_AppendElement(magicinterp, current->tl_nodeName);
-#else
-	TxPrintf("short node name : %s\n", current->tl_nodeName);
-#endif
-    }
+	simOutputNode(current, "short node name");
 }
 
 

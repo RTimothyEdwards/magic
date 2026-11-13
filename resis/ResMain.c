@@ -1354,15 +1354,17 @@ ResExtractNet(node, resisdata, cellname)
 
     /* Because node->type might come from a label with a sticky type
      * that does not correspond exactly to the layer underneath, include
-     * all connecting types.
+     * all connecting types.  Only drawn connections are followed:  the
+     * resistor network is built outward from the start point, so any
+     * material connected only by a label name would never be reached.
      */
     if (node->type != TT_SPACE)
     {
 	TTMaskZero(&FirstTileMask);
 	TTMaskSetMask(&FirstTileMask, &DBConnectTbl[node->type]);
 
-	DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
-					SEL_DO_LABELS, ResUse);
+	DBTreeCopyConnectMode(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
+					SEL_DO_LABELS, ResUse, DB_CONN_PHYSICAL);
     }
     else if (node->drivepoints)
     {
@@ -1375,8 +1377,8 @@ ResExtractNet(node, resisdata, cellname)
 	    TTMaskZero(&FirstTileMask);
 	    TTMaskSetMask(&FirstTileMask, &DBConnectTbl[drivepoint->rc_type]);
 
-	    DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
-					SEL_DO_LABELS, ResUse);
+	    DBTreeCopyConnectMode(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
+					SEL_DO_LABELS, ResUse, DB_CONN_PHYSICAL);
 	}
 	else
 	{

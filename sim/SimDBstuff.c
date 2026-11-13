@@ -37,6 +37,7 @@
 #include "textio/textio.h"
 #include "utils/signals.h"
 #include "utils/malloc.h"
+#include "extract/extract.h"
 #include "extract/extractInt.h"
 #include "sim/sim.h"
 #include "windows/windows.h"
@@ -255,11 +256,15 @@ SimConnectFunc(
 	newarea.r_ytop += 1;
     }
 
-    /* Abort the name search if the name is in the abort name search table
-     * or if the name is global and the SimIgnoreGlobals flag is not set.
+    /* Abort the name search if the name is in the abort name search table,
+     * or if the name is a port of the top cell (which no other name can
+     * take precedence over) and not all names are wanted, or if the name
+     * is global and the SimIgnoreGlobals flag is not set.
      */
 
     if (SimSawAbortString  || SigInterruptPending)
+	return 1;
+    else if (SimIsGetnode && bestIsPort && !SimGetnodeAlias)
 	return 1;
     else if (SimIsGetnode && !SimIgnoreGlobals)
     {
@@ -319,6 +324,12 @@ SimConnectFunc(
  *	Modified so the result cell is NOT first cleared of all paint.  This
  *	allows multiple calls, to highlight incomplete routing nets.
  *
+ *	Labels of the same name in a cell connect the node as they do in
+ *	the extracted netlist (see ExtNameConnectMode()), except that once
+ *	a top-level port name is found, connections by name are not
+ *	followed further (unless SimGetnodeAlias is set), since no other
+ *	name can take precedence.
+ *
  * Results:
  *	None.
  *
@@ -364,10 +375,12 @@ SimTreeCopyConnect(
     const TileTypeBitMask *newmask;
     struct conSrArg2 csa2;
     TileType newtype;
+    bool interrupted = FALSE;
 
     csa2.csa2_use = destUse;
     csa2.csa2_bounds = area;
     csa2.csa2_connect = connect;
+    csa2.csa2_topscx = scx;
 
     csa2.csa2_list = (conSrArea *)mallocMagic(CSA2_LIST_SIZE * sizeof(conSrArea));
     csa2.csa2_top = -1;
@@ -375,6 +388,12 @@ SimTreeCopyConnect(
 
     csa2.csa2_stack = StackNew(100);
     DBConnectVisitInit(&csa2);
+    csa2.csa2_labinit = FALSE;
+
+    /* Labels of the same name connect the net as they do in the	*/
+    /* extracted netlist (see "extract do unique").  These are not	*/
+    /* reported here;  "select net" reports them.			*/
+    DBConnectVirtualInit(&csa2, ExtNameConnectMode());
 
     tpath.tp_first = tpath.tp_next = pathName;
     tpath.tp_last = pathName + MAXPATHNAME;
@@ -385,34 +404,56 @@ SimTreeCopyConnect(
 
     (void) SimTreeSrTiles(scx, mask, xMask, &tpath, SimConnectFunc,
 		(ClientData) &csa2);
-    while (csa2.csa2_top >= 0)
+
+    /* Search drawn connections until they run out, then follow	*/
+    /* any connections by name and continue from there.		*/
+
+    while (TRUE)
     {
-	newmask = csa2.csa2_list[csa2.csa2_top].connectMask;
-	scx->scx_area = csa2.csa2_list[csa2.csa2_top].area;
-	newtype = csa2.csa2_list[csa2.csa2_top].dinfo;
-	if (csa2.csa2_top == 0)
+	while (csa2.csa2_top >= 0)
 	{
-	    if (StackLook(csa2.csa2_stack) != (ClientData)NULL)
+	    newmask = csa2.csa2_list[csa2.csa2_top].connectMask;
+	    scx->scx_area = csa2.csa2_list[csa2.csa2_top].area;
+	    newtype = csa2.csa2_list[csa2.csa2_top].dinfo;
+	    if (csa2.csa2_top == 0)
 	    {
-		freeMagic(csa2.csa2_list);
-		csa2.csa2_list = (conSrArea *)StackPop(csa2.csa2_stack);
-		csa2.csa2_top = CSA2_LIST_SIZE - 1;
+		if (StackLook(csa2.csa2_stack) != (ClientData)NULL)
+		{
+		    freeMagic(csa2.csa2_list);
+		    csa2.csa2_list = (conSrArea *)StackPop(csa2.csa2_stack);
+		    csa2.csa2_top = CSA2_LIST_SIZE - 1;
+		}
+		else
+		    csa2.csa2_top--;
 	    }
 	    else
 		csa2.csa2_top--;
+
+	    csa2.csa2_lasttop = csa2.csa2_top;
+
+	    if (newtype & TT_DIAGONAL)
+		SimTreeSrNMTiles(scx, newtype, newmask, xMask, &tpath,
+			    SimConnectFunc, (ClientData) &csa2);
+	    else
+		SimTreeSrTiles(scx, newmask, xMask, &tpath, SimConnectFunc,
+			    (ClientData) &csa2);
+
+	    /* Record labels for connections by name */
+	    if (DBConnectVirtualLabels(scx, newmask, newtype, xMask, &csa2) != 0)
+	    {
+		interrupted = TRUE;
+		break;
+	    }
 	}
-	else
-	    csa2.csa2_top--;
+	/* Once a top-level port name has been found, nothing found	*/
+	/* through a connection by name can take precedence, so stop,	*/
+	/* unless all names of the node are wanted ("getnode alias").	*/
 
-	csa2.csa2_lasttop = csa2.csa2_top;
-
-	if (newtype & TT_DIAGONAL)
-	    SimTreeSrNMTiles(scx, newtype, newmask, xMask, &tpath,
-			SimConnectFunc, (ClientData) &csa2);
-	else
-	    SimTreeSrTiles(scx, newmask, xMask, &tpath, SimConnectFunc,
-			(ClientData) &csa2);
+	if (interrupted) break;
+	if (bestIsPort && !SimGetnodeAlias) break;
+	if (!DBConnectVirtualFlush(&csa2)) break;
     }
+    DBConnectVirtualFree(&csa2);
     freeMagic((char *)csa2.csa2_list);
     StackFree(csa2.csa2_stack);
     DBConnectVisitFree(&csa2);

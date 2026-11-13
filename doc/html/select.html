@@ -154,6 +154,30 @@ create a new cell definition from a selection.
       net connects to a different layer type.  The <B>net</B> is
       the entire electrical network. <P>
 
+      A <B>net</B> selection follows connections made by labels as
+      well as by drawn material, in the same way as the extracted
+      netlist does:  labels of the same name in one cell may connect
+      parts of the net that are not connected by any drawn material.
+      Which labels connect in this way depends on the
+      "<B>extract do unique</B>" setting (see the <B>extract</B>
+      command):
+      <UL>
+	 <LI> <B>extract do unique</B> (the default):  none.  Only
+	      drawn material connects the net.
+	 <LI> <B>extract do unique notopports</B>:  ports of the same
+	      name in the top cell.
+	 <LI> <B>extract no unique</B>:  all labels of the same name, in
+	      any cell.
+      </UL>
+      In abstract views (cells read from LEF), labels of the same name
+      always connect, since extraction never makes them unique.
+      For each name that connects material not otherwise connected to
+      the net, a warning is printed giving the cell and the number of
+      areas connected by that name, and the location of the first one.
+      Note that connections through the substrate are only followed
+      where the substrate is drawn;  material connected to the net only
+      through an implicit (undrawn) substrate is not selected. <P>
+
       The <B>select labels</B> option sets the policy for the selection
       of labels when doing a <B>region</B> or <B>network</B> selection.
       The options are <B>select do labels</B>, which is the default
@@ -259,6 +283,6 @@ create a new cell definition from a selection.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 28, 2026 at 10:07am <P>
+<P><I>Last updated:</I> November 12, 2026 at 2:35pm <P>
 </BODY>
 </HTML>
