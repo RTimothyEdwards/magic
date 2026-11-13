@@ -29,6 +29,23 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_SED
 
+dnl Magic still has many K&R-style prototypes such as "extern int f();",
+dnl which C23 (the default in GCC 15 and later) reads as "int f(void)",
+dnl causing thousands of "conflicting types" errors.  Until the conversion
+dnl to ANSI prototypes is complete, compile as C17 (with GNU extensions)
+dnl if the compiler accepts it and the user has not chosen a standard.
+case "$CFLAGS" in
+    *-std=*) ;;
+    *)
+	AC_MSG_CHECKING([whether $CC accepts -std=gnu17])
+	magic_save_cflags="$CFLAGS"
+	CFLAGS="$CFLAGS -std=gnu17"
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [])],
+	    [AC_MSG_RESULT([yes])],
+	    [AC_MSG_RESULT([no]); CFLAGS="$magic_save_cflags"])
+	;;
+esac
+
 dnl SOURCE_DATE_EPOCH -> UTC date, for reproducible builds.  GNU date (Linux, or
 dnl coreutils `gdate` on macOS) converts an epoch with `-d @EPOCH`; BSD date
 dnl (native macOS/*BSD) uses `-r EPOCH`.  Decide here, at configure time, because

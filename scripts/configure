@@ -4239,6 +4239,35 @@ $as_echo "$ac_cv_path_SED" >&6; }
   rm -f conftest.sed
 
 
+case "$CFLAGS" in
+    *-std=*) ;;
+    *)
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC accepts -std=gnu17" >&5
+$as_echo_n "checking whether $CC accepts -std=gnu17... " >&6; }
+	magic_save_cflags="$CFLAGS"
+	CFLAGS="$CFLAGS -std=gnu17"
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }; CFLAGS="$magic_save_cflags"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+	;;
+esac
+
 for ac_prog in gdate
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
