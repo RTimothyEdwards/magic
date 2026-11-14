@@ -53,6 +53,13 @@ FILE * TxMoreFile = NULL;
 static int txMorePid;
 static bool txPrintFlag = TRUE;
 
+/* When non-NULL, all TxPrintf() and TxError() output is written
+ * directly to this file with plain vfprintf(), bypassing the terminal
+ * (or Tcl console) handling.  Used by the extractor to discard the
+ * messages of work that only rebuilds state (see extReplayCellFile()).
+ */
+FILE *TxRedirectFile = NULL;
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -112,6 +119,17 @@ TxPrintf(const char *fmt, ...)
 {
     va_list args;
     FILE *f;
+
+    if (TxRedirectFile != NULL)
+    {
+	if (txPrintFlag)
+	{
+	    va_start(args, fmt);
+	    vfprintf(TxRedirectFile, fmt, args);
+	    va_end(args);
+	}
+	return;
+    }
 
     if (txPrintFlag)
     {
@@ -311,6 +329,12 @@ void
 TxErrorV(const char *fmt, va_list args)
 {
     FILE *f;
+
+    if (TxRedirectFile != NULL)
+    {
+	vfprintf(TxRedirectFile, fmt, args);
+	return;
+    }
 
     TxFlushOut();
     if (TxMoreFile != NULL)

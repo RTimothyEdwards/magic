@@ -43,6 +43,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/stack.h"
 #include "utils/utils.h"
 #include "windows/windows.h"
+#include "dbwind/dbwind.h"
 #include "utils/main.h"
 #include "utils/undo.h"
 
@@ -53,6 +54,7 @@ int extOutputUsesFunc();
 
 Plane* extCellFile();
 void extHeader();
+Plane *extUpToDateCell(CellDef *def, bool isTop);
 
 /*
  * ----------------------------------------------------------------------------
@@ -75,6 +77,14 @@ void extHeader();
  * ----------------------------------------------------------------------------
  */
 
+/* When TRUE, extCellFile() only reproduces the side effects that
+ * extracting a cell leaves on its CellDef (unique labels, prepared
+ * substrate plane, and labels marked as unusable for merges) and skips
+ * the hierarchical extraction, which is the expensive part.  See
+ * extReplayCellFile().
+ */
+static bool extReplayOnly = FALSE;
+
 Plane *
 ExtCell(def, outName, isTop)
     CellDef *def;	/* Cell being extracted */
@@ -94,10 +104,11 @@ ExtCell(def, outName, isTop)
     if (noextract) return extPrepSubstrate(def);
 
     /* Incremental extraction:  If the cell is marked for no extraction,
-     * then just prepare the substrate plane and return it to the caller.
+     * then its .ext file is up to date.  Only rebuild the state that
+     * extracting its parents needs (see extUpToDateCell()).
      */
     if (def->cd_flags & CDNOEXTRACT)
-	return extPrepSubstrate(def);
+	return extUpToDateCell(def, isTop);
 
     f = ExtFileOpen(def, outName, "w", &filename);
 
@@ -129,6 +140,123 @@ ExtCell(def, outName, isTop)
 	TxPrintf("\n");
     }
     return savePlane;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extReplayCellFile --
+ *
+ * Reproduce the state that extracting 'def' leaves on it, without doing
+ * the hierarchical part of the extraction.  Extracting a parent cell
+ * reads state left on its children by their own extraction:
+ *
+ *   - labels made unique ("extract do unique");
+ *   - labels that extBasic() marks (lab_port = INFINITY) as not usable
+ *     for merges, because they are not written to the child's .ext file
+ *     as aliases ("extract no aliases");
+ *   - the prepared substrate plane.
+ *
+ * Everything the replay would print, its feedback entries, and its error
+ * and warning counts are discarded:  they were already reported when the
+ * cell was extracted.
+ *
+ * Results:
+ *	The saved substrate plane, exactly as ExtCell() would return it.
+ *
+ * Side effects:
+ *	Same changes to 'def' as ExtCell(), apart from writing a .ext file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Plane *
+extReplayCellFile(
+    CellDef *def,	/* Cell whose extraction side effects are replayed */
+    bool isTop)		/* TRUE if the cell is the top level cell */
+{
+    static FILE *nullf = NULL;
+    FILE *saveRedirect = TxRedirectFile;
+    int fbCount = DBWFeedbackCount;
+    Plane *savePlane;
+
+    if (nullf == NULL)
+    {
+#ifdef _WIN32
+	nullf = fopen("NUL", "w");
+#else
+	nullf = fopen("/dev/null", "w");
+#endif
+	if (nullf == NULL) nullf = tmpfile();
+	if (nullf == NULL)
+	{
+	    TxError("Cannot open a null output file;  names in cells that"
+		    " use %s may be wrong.\n", def->cd_name);
+	    return extPrepSubstrate(def);
+	}
+    }
+
+    TxRedirectFile = nullf;
+    extReplayOnly = TRUE;
+    savePlane = extCellFile(def, nullf, isTop);
+    extReplayOnly = FALSE;
+    TxRedirectFile = saveRedirect;
+
+    DBWFeedbackTruncate(fbCount);
+    extNumErrors = extNumWarnings = 0;
+    return savePlane;
+}
+
+/* TRUE if extracting a cell can leave label state that its parents
+ * read:  unique names ("do unique") or labels marked as unusable for
+ * merges ("no aliases").  See extReplayCellFile().
+ */
+#define extNeedLabelState() \
+	(!(ExtOptions & EXT_DOALIASES) || (ExtOptions & EXT_DOUNIQUE))
+
+/* Remove marks left on 'def' by an earlier extraction with "no aliases",
+ * as extCellFile() does before extracting the cell.
+ */
+void
+extClearLabelMarks(
+    CellDef *def)
+{
+    Label *lab;
+
+    for (lab = def->cd_labels; lab; lab = lab->lab_next)
+	if (lab->lab_port == INFINITY)
+	    lab->lab_port = 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extUpToDateCell --
+ *
+ * Called instead of extracting a cell whose .ext file is up to date
+ * (incremental extraction).  Its parents are about to be extracted and
+ * read the label state that extracting it leaves behind (see
+ * extReplayCellFile()).  That state is only needed if labels can be made
+ * unique or marked, so in the default case only the substrate plane is
+ * prepared.  Without this, a parent extracted in a new session would
+ * name nodes in this cell by labels that its .ext file does not define,
+ * and the netlist would lose those connections.
+ *
+ * Results:
+ *	The saved substrate plane, exactly as ExtCell() would return it.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Plane *
+extUpToDateCell(
+    CellDef *def,
+    bool isTop)
+{
+    if (extNeedLabelState())
+	return extReplayCellFile(def, isTop);
+    extClearLabelMarks(def);
+    return extPrepSubstrate(def);
 }
 
 /*
@@ -525,19 +653,25 @@ extCellFile(def, f, isTop)
 
     /* Extract the mask information in this cell */
     reg = (NodeRegion *) NULL;
-    if (!SigInterruptPending) reg = extBasic(def, f);
+    /* When only replaying, extBasic() is needed only for the labels it
+     * marks as unusable for merges, which happens only without aliases.
+     */
+    if (!SigInterruptPending &&
+		!(extReplayOnly && (ExtOptions & EXT_DOALIASES)))
+	reg = extBasic(def, f);
 
-    /* Do hierarchical extraction */
+    /* Do hierarchical extraction (not needed when only replaying) */
     extParentUse->cu_def = def;
-    if (!SigInterruptPending) extSubtree(extParentUse, reg, f);
-    if (!SigInterruptPending) extArray(extParentUse, f);
+    if (!SigInterruptPending && !extReplayOnly) extSubtree(extParentUse, reg, f);
+    if (!SigInterruptPending && !extReplayOnly) extArray(extParentUse, f);
 
     /* Clean up from basic extraction */
     if (reg) ExtFreeLabRegions((LabRegion *) reg);
     ExtResetTiles(def, CLIENTDEFAULT);
 
     /* Final pass: extract length information if desired */
-    if (!SigInterruptPending && isTop && (ExtOptions & EXT_DOLENGTH))
+    if (!SigInterruptPending && !extReplayOnly && isTop &&
+		(ExtOptions & EXT_DOLENGTH))
 	extLength(extParentUse, f);
 
     UndoEnable();

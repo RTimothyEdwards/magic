@@ -652,3 +652,46 @@ DBWFeedbackNth(nth, area, pRootDef, pStyle)
     if (pStyle != NULL) *pStyle = dbwfbArray[nth].fb_style;
     return dbwfbArray[nth].fb_text->string;
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBWFeedbackTruncate --
+ *
+ *	Remove every feedback entry added after the list had 'count'
+ *	entries, restoring it to that earlier state.  Used when extraction
+ *	is re-run only to rebuild the state a cell's extraction leaves
+ *	behind, whose errors were already reported when it was extracted.
+ *	Entries are only shown at the end of a command, so the removed
+ *	entries are never displayed.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Frees the removed entries.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBWFeedbackTruncate(
+    int count)
+{
+    Feedback *fb;
+
+    if (count < 0) count = 0;
+    while (DBWFeedbackCount > count)
+    {
+	fb = &dbwfbArray[--DBWFeedbackCount];
+	fb->fb_text->refcount--;
+	if (fb->fb_text->refcount == 0)
+	{
+	    freeMagic(fb->fb_text->string);
+	    freeMagic(fb->fb_text);
+	}
+	fb->fb_text = NULL;
+    }
+    if (dbwfbNextToShow > DBWFeedbackCount)
+	dbwfbNextToShow = DBWFeedbackCount;
+}

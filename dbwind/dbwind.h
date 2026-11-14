@@ -240,6 +240,7 @@ extern int DBWFeedbackCount;
 extern void DBWFeedbackClear();
 extern void DBWFeedbackAdd();
 extern char *DBWFeedbackNth();
+extern void DBWFeedbackTruncate(int count);
 
 /* Exported procedures and variables relating to elements: */
 
