@@ -231,37 +231,45 @@ DRCCheckThis (celldef, operation, area)
     DRCPendingRoot = p;
 #endif
 
-    /* Append new cell to check to the pending list */
-    if (DRCPendingRoot == NULL)
+    /* Put the cell at the end of the pending list.  If it is already
+     * on the list, it is moved to the end, not added again:
+     * DRCRemovePending() removes only one entry, so a duplicate would
+     * be left pointing to a freed CellDef if the cell is deleted.
+     *
+     * Moving the cell to the end keeps every cell behind its children
+     * on the list, because the check copies up errors from the
+     * children.  A cell can already be on the list ahead of a child
+     * that was added later;  for example, when an instance is deleted
+     * and replaced by an instance of a newly created cell, the parent
+     * is put on the list by the deletion, and the new cell is put on
+     * the list when it is painted, before it has any parent.  Placing
+     * the new instance then calls this routine for the parent again,
+     * which moves it behind the new cell.  Calls for a cell always
+     * propagate to all of its parents (below), so they always end up
+     * behind it.
+     */
+
+    pback = &DRCPendingRoot;
+    for (p = DRCPendingRoot; p != NULL; p = p->dpc_next)
+    {
+	if (p->dpc_def == celldef)
+	{
+	    *pback = p->dpc_next;	/* Unlink */
+	    break;
+	}
+	pback = &p->dpc_next;
+    }
+    if (p == NULL)
     {
 	p = (DRCPendingCookie *) mallocMagic(sizeof (DRCPendingCookie));
 	p->dpc_def = celldef;
-	p->dpc_next = NULL;
-	DRCPendingRoot = p;
     }
     else
-    {
-	DRCPendingCookie *plast;
+	/* The unlinked entry was not the last;  find the end of the list */
+	while (*pback != NULL) pback = &(*pback)->dpc_next;
 
-	/* Check every entry, including the last one, so that the cell
-	 * is never added twice.  DRCRemovePending() removes only one
-	 * entry, so a duplicate would be left pointing to a freed
-	 * CellDef if the cell is deleted.
-	 */
-
-	for (plast = DRCPendingRoot; plast != NULL; plast = plast->dpc_next)
-	{
-	    if (plast->dpc_def == celldef) break;
-	    if (plast->dpc_next == NULL)
-	    {
-		p = (DRCPendingCookie *) mallocMagic(sizeof (DRCPendingCookie));
-		p->dpc_def = celldef;
-		p->dpc_next = NULL;
-		plast->dpc_next = p;
-		break;
-	    }
-	}
-    }
+    p->dpc_next = NULL;
+    *pback = p;
 
     /* Mark the area in this celldef (but don't worry about this stuff
      * for undo purposes).  Also, it's important to disable interrupts
