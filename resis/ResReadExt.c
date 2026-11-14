@@ -698,6 +698,37 @@ ResReadPort(int argc,
 /*
  *-------------------------------------------------------------------------
  *
+ * resLookupNode --
+ *
+ *	Find the node record for a device terminal name.  A terminal may
+ *	name a node that has no "node" record in this cell's .ext file,
+ *	for example a global substrate name such as "Gnd!" in a cell that
+ *	has no well.  Unlike HashFind(), this does not add an empty entry
+ *	to ResNodeTable for such a name.
+ *
+ * Results:
+ *	Pointer to the node record, or NULL if there is none.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static ResExtNode *
+resLookupNode(
+    char *name)		/* Node name from a device record */
+{
+    HashEntry *entry;
+
+    entry = HashLookOnly(&ResNodeTable, name);
+    if (entry == NULL) return (ResExtNode *)NULL;
+    return (ResExtNode *)HashGetValue(entry);
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResNodeAddDevice --
  *
  *	Given a device and a node which connects to one of its terminals,
@@ -710,7 +741,8 @@ ResReadPort(int argc,
  *
  * Side effects:
  *	Allocates memory for a devPtr, adds to the node's "devices" linked
- *	list.
+ *	list.  Does nothing if "node" is NULL (see resLookupNode()), since
+ *	there is no geometry in this cell to analyze for such a node.
  * 
  *-------------------------------------------------------------------------
  */
@@ -721,6 +753,8 @@ ResNodeAddDevice(ResExtNode *node,
     int termtype)
 {
     devPtr *tptr;
+
+    if (node == (ResExtNode *)NULL) return;
 
     tptr = (devPtr *)mallocMagic((unsigned)(sizeof(devPtr)));
     tptr->thisDev = device;
@@ -751,7 +785,6 @@ ResReadDevice(int argc,
     int		rvalue, i, j, k, w, l, n;
     ExtDevice	*devptr;
     TileType	ttype;
-    HashEntry	*entry;
     ResExtNode	*node;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
@@ -817,14 +850,12 @@ ResReadDevice(int argc,
 
 	if (strcmp(argv[i], "None") && (!StrIsNumeric(argv[i])))
 	{
-	    entry = HashFind(&ResNodeTable, argv[i]);
-	    device->subs = (ResExtNode *)HashGetValue(entry);
+	    device->subs = resLookupNode(argv[i]);
 	    ResNodeAddDevice(device->subs, device, SUBS);
 	}
 	i++;
     }
-    entry = HashFind(&ResNodeTable, argv[i]);
-    device->gate = (ResExtNode *)HashGetValue(entry);
+    device->gate = resLookupNode(argv[i]);
     device->rs_gattr = StrDup((char **)NULL, argv[i + 2]);
     l = atoi(argv[i + 1]);
     w = 0;
@@ -833,8 +864,7 @@ ResReadDevice(int argc,
     
     if (i < argc - 2)
     {
-	entry = HashFind(&ResNodeTable, argv[i]);
-	device->source = (ResExtNode *)HashGetValue(entry);
+	device->source = resLookupNode(argv[i]);
 	device->rs_sattr = StrDup((char **)NULL, argv[i + 2]);
 	w = atoi(argv[i + 1]);
 	ResNodeAddDevice(device->source, device, SOURCE);
@@ -843,8 +873,7 @@ ResReadDevice(int argc,
 
     if (i < argc - 2)
     {
-	entry = HashFind(&ResNodeTable, argv[i]);
-	device->drain = (ResExtNode *)HashGetValue(entry);
+	device->drain = resLookupNode(argv[i]);
 	device->rs_dattr = StrDup((char **)NULL, argv[i + 2]);
 	w = MAX(w, atoi(argv[i + 1]));
 	ResNodeAddDevice(device->drain, device, DRAIN);
@@ -884,7 +913,6 @@ ResReadFET(int argc,
     int		rvalue, i, j, k, w, l;
     ExtDevice	*devptr;
     TileType	ttype;
-    HashEntry	*entry;
     ResExtNode	*node;
 
     device = (RDev *)mallocMagic((unsigned)(sizeof(RDev)));
@@ -912,17 +940,13 @@ ResReadFET(int argc,
 
     /* Find and record the FET terminal nodes */
 
-    entry = HashFind(&ResNodeTable, argv[FET_GATE]);
-    device->gate = (ResExtNode *)HashGetValue(entry);
+    device->gate = resLookupNode(argv[FET_GATE]);
     
-    entry = HashFind(&ResNodeTable, argv[FET_SOURCE]);
-    device->source = (ResExtNode *)HashGetValue(entry);
+    device->source = resLookupNode(argv[FET_SOURCE]);
 
-    entry = HashFind(&ResNodeTable, argv[FET_DRAIN]);
-    device->drain = (ResExtNode *)HashGetValue(entry);
+    device->drain = resLookupNode(argv[FET_DRAIN]);
 
-    entry = HashFind(&ResNodeTable, argv[FET_SUBS]);
-    device->subs = (ResExtNode *)HashGetValue(entry);
+    device->subs = resLookupNode(argv[FET_SUBS]);
 
     device->rs_ttype = extGetDevType(devptr->exts_deviceName);
 

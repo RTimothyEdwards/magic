@@ -143,12 +143,13 @@ ExtResisForDef(celldef, resisdata)
     while((entry = HashNext(&ResNodeTable, &hs)) != NULL)
     {
 	node = (ResExtNode *) HashGetValue(entry);
-	tptr = node->devices;
 	if (node == NULL)
 	{
 	    TxError("Error:  NULL Hash entry!\n");
 	    TxFlushErr();
+	    continue;
 	}
+	tptr = node->devices;
 	while (tptr != NULL)
 	{
 	    oldtptr = tptr;
