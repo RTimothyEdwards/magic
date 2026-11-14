@@ -1996,9 +1996,9 @@ CIFTechFinal(void)
 		}
 		/* Presence of op->co_opcode in CIFOP_OR indicates a copy */
 		/* of the SquaresData pointer from a following operator.  */
-		/* CIFOP_BBOX and CIFOP_MAXRECT uses the co_client field  */
-		/* as a flag field, while CIFOP_NET, CIFOP_MASKHINTS, and */
-		/* CIFOP_TAGGED use it for a string.			  */
+		/* CIFOP_BBOX, CIFOP_MAXRECT, and CIFOP_INTERACT use the  */
+		/* co_client field as a flag field, while CIFOP_NET,	  */
+		/* CIFOP_MASKHINTS, and CIFOP_TAGGED use it for a string. */
 		else
 		{
 		    switch (op->co_opcode)
@@ -2011,6 +2011,7 @@ CIFTechFinal(void)
 			case CIFOP_MANHATTAN:
 			case CIFOP_NET:
 			case CIFOP_TAGGED:
+			case CIFOP_INTERACT:
 			    break;
 			case CIFOP_BRIDGELIM:
 			case CIFOP_BRIDGE:

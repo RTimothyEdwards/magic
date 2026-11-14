@@ -2774,7 +2774,7 @@ cifRectBoundingBox(
 	/* Clear the tiles that were processed in this set */
 
 	TiSetClientINT(tile, CIF_IGNORE);
-	PUSHTILEONLY(tile, BoxStack);
+	STACKPUSH(PTR2CD(tile), BoxStack);
 	while (!StackEmpty(BoxStack))
 	{
 	    POPTILEONLY(t, BoxStack);
@@ -2784,7 +2784,7 @@ cifRectBoundingBox(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, BoxStack);
+		    STACKPUSH(PTR2CD(tp), BoxStack);
 		}
 
 	    /* Left */
@@ -2792,7 +2792,7 @@ cifRectBoundingBox(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, BoxStack);
+		    STACKPUSH(PTR2CD(tp), BoxStack);
 		}
 
 	    /* Bottom */
@@ -2800,7 +2800,7 @@ cifRectBoundingBox(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, BoxStack);
+		    STACKPUSH(PTR2CD(tp), BoxStack);
 		}
 
 	    /* Right */
@@ -2808,7 +2808,7 @@ cifRectBoundingBox(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, BoxStack);
+		    STACKPUSH(PTR2CD(tp), BoxStack);
 		}
 	}
     }
@@ -3111,7 +3111,7 @@ cifSquaresFillArea(
 	/* Clear the tiles that were processed */
 
 	TiSetClientINT(tile, CIF_IGNORE);
-	PUSHTILEONLY(tile, CutStack);
+	STACKPUSH(PTR2CD(tile), CutStack);
 	while (!StackEmpty(CutStack))
 	{
 	    POPTILEONLY(t, CutStack);
@@ -3121,7 +3121,7 @@ cifSquaresFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, CutStack);
+		    STACKPUSH(PTR2CD(tp), CutStack);
 		}
 
 	    /* Left */
@@ -3129,7 +3129,7 @@ cifSquaresFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, CutStack);
+		    STACKPUSH(PTR2CD(tp), CutStack);
 		}
 
 	    /* Bottom */
@@ -3137,7 +3137,7 @@ cifSquaresFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, CutStack);
+		    STACKPUSH(PTR2CD(tp), CutStack);
 		}
 
 	    /* Right */
@@ -3145,7 +3145,7 @@ cifSquaresFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, CutStack);
+		    STACKPUSH(PTR2CD(tp), CutStack);
 		}
 	}
     }
@@ -3480,7 +3480,7 @@ cifSlotsFillArea(
 	/* Clear the tiles that were processed */
 
 	TiSetClientINT(tile, CIF_IGNORE);
-	PUSHTILEONLY(tile, CutStack);
+	STACKPUSH(PTR2CD(tile), CutStack);
 	while (!StackEmpty(CutStack))
 	{
 	    POPTILEONLY(t, CutStack);
@@ -3490,7 +3490,7 @@ cifSlotsFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, CutStack);
+		    STACKPUSH(PTR2CD(tp), CutStack);
 		}
 
 	    /* Left */
@@ -3498,7 +3498,7 @@ cifSlotsFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, CutStack);
+		    STACKPUSH(PTR2CD(tp), CutStack);
 		}
 
 	    /* Bottom */
@@ -3506,7 +3506,7 @@ cifSlotsFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, CutStack);
+		    STACKPUSH(PTR2CD(tp), CutStack);
 		}
 
 	    /* Right */
@@ -3514,7 +3514,7 @@ cifSlotsFillArea(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, CutStack);
+		    STACKPUSH(PTR2CD(tp), CutStack);
 		}
 	}
     }
@@ -4141,6 +4141,9 @@ cifSrTiles(
 			&CIFSolidBits, func, (ClientData) cdArg);
 }
 
+/* Integer division rounding toward minus infinity (b > 0) */
+#define FLOORDIV(a, b) (((a) >= 0) ? ((a) / (b)) : -((-(a) + (b) - 1) / (b)))
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -4188,11 +4191,17 @@ cifSrTiles2(
 
     cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
 
-    /* When processing local database, rescale area */
-    r.r_xbot = area->r_xbot / cifScale;
-    r.r_xtop = area->r_xtop / cifScale;
-    r.r_ybot = area->r_ybot / cifScale;
-    r.r_ytop = area->r_ytop / cifScale;
+    /* When processing local database, rescale area.  Round the bottom
+     * and left edges down and the top and right edges up, so that the
+     * search finds exactly the magic tiles that overlap the area.  (If
+     * the edges were truncated, then a CIF edge not on the magic grid
+     * could miss an overlap, and the one unit by which the area is
+     * expanded to find touching material would be lost.)
+     */
+    r.r_xbot = FLOORDIV(area->r_xbot, cifScale);
+    r.r_ybot = FLOORDIV(area->r_ybot, cifScale);
+    r.r_xtop = -FLOORDIV(-area->r_xtop, cifScale);
+    r.r_ytop = -FLOORDIV(-area->r_ytop, cifScale);
     for (i = PL_DRC_CHECK; i < DBNumPlanes; i++)
     {
 	maskBits = DBPlaneTypes[i];
@@ -4933,14 +4942,14 @@ cifNotSquareFunc(
 void
 cifInteractingRegions(
     CIFOp *op,
-    const Rect *area,		/* Area of interest to check */
+    const Rect *area,		/* Area of interest to check, in magic units */
     CellDef *cellDef,
     Plane *temps[],		/* Planes to use for temporaries. */
     Plane *plane)
 {
     Tile *tile = NULL, *t, *tp;
-    Rect rect;
-    int i;
+    Rect rect, cifArea;
+    int i, scale;
     TileType type;
     bool interacts;
     static Stack *RegStack = (Stack *)NULL;
@@ -4949,7 +4958,21 @@ cifInteractingRegions(
     if (RegStack == (Stack *)NULL)
 	RegStack = StackNew(64);
 
-    regions = cifCollectTiles(plane, area);
+    /* "area" is in magic units, like the area passed to cifSrTiles(), but
+     * "plane" is a CIF plane, so the area must be scaled to CIF units to
+     * find the regions in it.  (If not, the regions found are those in an
+     * unrelated area of the plane, usually none at all.)  The area may be
+     * the whole plane (TiPlaneRect), so do not scale infinities.
+     */
+
+    scale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
+    cifArea = *area;
+    if (cifArea.r_xbot > TiPlaneRect.r_xbot) cifArea.r_xbot *= scale;
+    if (cifArea.r_ybot > TiPlaneRect.r_ybot) cifArea.r_ybot *= scale;
+    if (cifArea.r_xtop < TiPlaneRect.r_xtop) cifArea.r_xtop *= scale;
+    if (cifArea.r_ytop < TiPlaneRect.r_ytop) cifArea.r_ytop *= scale;
+
+    regions = cifCollectTiles(plane, &cifArea);
     while (!StackEmpty(regions))
     {
 	tile = (Tile *)STACKPOP(regions);
@@ -5041,7 +5064,7 @@ cifInteractingRegions(
 	/* op->co_paintMask (op->co_cifMask)					*/ 
 
 	TiSetClientINT(tile, CIF_IGNORE);
-	PUSHTILEONLY(tile, RegStack);
+	STACKPUSH(PTR2CD(tile), RegStack);
 	while (!StackEmpty(RegStack))
 	{
 	    POPTILEONLY(t, RegStack);
@@ -5057,7 +5080,7 @@ cifInteractingRegions(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, RegStack);
+		    STACKPUSH(PTR2CD(tp), RegStack);
 		}
 
 	    /* Left */
@@ -5065,7 +5088,7 @@ cifInteractingRegions(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, RegStack);
+		    STACKPUSH(PTR2CD(tp), RegStack);
 		}
 
 	    /* Bottom */
@@ -5073,7 +5096,7 @@ cifInteractingRegions(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, RegStack);
+		    STACKPUSH(PTR2CD(tp), RegStack);
 		}
 
 	    /* Right */
@@ -5081,7 +5104,7 @@ cifInteractingRegions(
 		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
 		    TiSetClientINT(tp, CIF_IGNORE);
-		    PUSHTILEONLY(tp, RegStack);
+		    STACKPUSH(PTR2CD(tp), RegStack);
 		}
 	}
 
