@@ -86,6 +86,9 @@ ExtCell(def, outName, isTop)
     Plane *savePlane;
     bool noextract;
 
+    /* Counts are for this cell only, even if it is not extracted */
+    extNumErrors = extNumWarnings = 0;
+
     /* If marked abstract, then don't extract the cell */
     DBPropGet(def, "noextract", &noextract);
     if (noextract) return extPrepSubstrate(def);
@@ -111,7 +114,6 @@ ExtCell(def, outName, isTop)
 	return NULL;
     }
 
-    extNumErrors = extNumWarnings = 0;
     savePlane = extCellFile(def, f, isTop);
     if (f != NULL) fclose(f);
 
