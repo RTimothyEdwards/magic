@@ -1341,6 +1341,12 @@ TxFlushErr()
     Tcl_InterpState state;
 #endif
 
+    if (TxRedirectFile != NULL)
+    {
+	fflush(TxRedirectFile);
+	return;
+    }
+
 #if TCL_MAJOR_VERSION < 9
     Tcl_SaveResult(magicinterp, &state);
 #else
@@ -1364,6 +1370,12 @@ TxFlushOut()
 #else
     Tcl_InterpState state;
 #endif
+
+    if (TxRedirectFile != NULL)
+    {
+	fflush(TxRedirectFile);
+	return;
+    }
 
 #if TCL_MAJOR_VERSION < 9
     Tcl_SaveResult(magicinterp, &state);
