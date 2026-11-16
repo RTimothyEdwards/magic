@@ -383,7 +383,7 @@ ResPrintExtCaps(FILE *outextfile)
 	fprintf(outextfile, "cap \"%s\" \"%s\" %g\n",
 		(node1->capnode != NULL) ? node1->capnode : node1->name,
 		(node2->capnode != NULL) ? node2->capnode : node2->name,
-		rcap->rcap_value);
+		rcap->rcap_value / ExtCurStyle->exts_capScale);
     }
 }
 

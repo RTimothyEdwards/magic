@@ -562,7 +562,7 @@ extern int			ResPortIndex;
 
 extern ResisData		*ResInit();
 extern int	      		ResReadDevice();
-extern int	      		ResReadCapacitor();
+extern int	      		ResReadCapacitor(int argc, char *argv[], double capScale);
 extern int	      		ResReadResistor();
 extern int	      		ResReadAttribute();
 extern int			ResReadMerge();
@@ -625,7 +625,8 @@ extern void ResPrintReference();
 extern void ResPrintResistorList();
 extern void ResPrintStats();
 extern void ResProcessJunction();
-extern ResExtNode *ResReadNode(int argc, char *argv[]);
+extern ResExtNode *ResReadNode(int argc, char *argv[], double resistScale,
+				double capScale);
 extern int  ResReadExt();
 extern void ResRemoveFromQueue();
 extern int  ResExtNewNode();
