@@ -140,6 +140,8 @@ ResReadExt(CellDef *def)
     ResExtNode *curnode;
     HashTable parentHash;
     HashEntry *he;
+    double resistScale = ExtCurStyle->exts_resistScale;
+    double capScale = ExtCurStyle->exts_capScale;
 
     /* Search for the .ext file in the same way that efReadDef() does. */
 
@@ -182,13 +184,14 @@ ResReadExt(CellDef *def)
 	switch (keyTable[n].k_key)
 	{
 	    case SCALE:
-		/* NOTE:  Currently the code assumes that the .ext
-		 * file is read back immediately and has the same
-		 * scale values currently in the extraction style.
-		 * However, this should be style-independent and
-		 * scale values should be read back and used.
-		 * (to be completed).
-		 */
+		resistScale = MagAtof(argv[1]);
+		capScale = MagAtof(argv[2]);
+		if (!isfinite(resistScale) || resistScale <= 0.0 ||
+			!isfinite(capScale) || capScale <= 0.0)
+		{
+		    efReadError("Invalid resistance or capacitance scale\n");
+		    locresult = 1;
+		}
 		break;
 	    case DEVICE:
 		locresult = ResReadDevice(argc, argv);
@@ -204,13 +207,13 @@ ResReadExt(CellDef *def)
 		break;
 	    case NODE:
 	    case SUBSTRATE:
-		curnode = ResReadNode(argc, argv);
+		curnode = ResReadNode(argc, argv, resistScale, capScale);
 		break;
 	    case ATTR:
 		locresult = ResReadAttribute(curnode, argc, argv);
 		break;
 	    case CAP:
-		locresult = ResReadCapacitor(argc, argv);
+		locresult = ResReadCapacitor(argc, argv, capScale);
 		break;
 	    default:
 		break;
@@ -523,7 +526,7 @@ ResReadParentExt(CellDef *parent,
  */
 
 ResExtNode *
-ResReadNode(int argc, char *argv[])
+ResReadNode(int argc, char *argv[], double resistScale, double capScale)
 {
     HashEntry	*entry;
     ResExtNode	*node;
@@ -539,11 +542,11 @@ ResReadNode(int argc, char *argv[])
     noderesist = atoi(argv[NODES_NODERES]);
     if (noderesist < 0) noderesist = INFINITY;
     /* Make sure node resistance is in units of milliohms */
-    node->resistance = (float)noderesist * (float)ExtCurStyle->exts_resistScale;
+    node->resistance = (float)((double)noderesist * resistScale);
 
     /* Capacitance to substrate.  (Coupling capacitance is added from	*/
     /* the "cap" records by ResReadCapacitor().)			*/
-    node->nodecap = MagAtof(argv[NODES_NODECAP]);
+    node->nodecap = MagAtof(argv[NODES_NODECAP]) * capScale;
     node->capacitance += node->nodecap;
 
     if (node->type == -1)
@@ -959,7 +962,8 @@ ResReadFET(int argc,
 
 int
 ResReadCapacitor(int argc,
-    char *argv[])
+    char *argv[],
+    double capScale)
 {
     HashEntry	*entry1, *entry2;
     ResExtNode	*node1, *node2;
@@ -973,7 +977,7 @@ ResReadCapacitor(int argc,
     rcap = (ResCap *)mallocMagic(sizeof(ResCap));
     rcap->rcap_node1 = node1;
     rcap->rcap_node2 = node2;
-    rcap->rcap_value = MagAtof(argv[COUPLEVALUE]);
+    rcap->rcap_value = MagAtof(argv[COUPLEVALUE]) * capScale;
     rcap->rcap_next = ResCapList;
     ResCapList = rcap;
     return 0;
