@@ -610,9 +610,11 @@ typedef enum {
 	    {
 		j = DBTechNoisyNameType(cmd->tx_argv[2]);
 		if (j >= 0)
+		{
 		    for (k = TT_TECHDEPBASE; k < TT_MAXTYPES; k++)
 			TTMaskClearType(&ResCopyMask[k], j);
-		TTMaskZero(&(ResCopyMask[j]));
+		    TTMaskZero(&(ResCopyMask[j]));
+		}
 	    }
 	    else
 	    {
