@@ -30,7 +30,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/styles.h"
 #include "resis/resis.h"
 
-#define MAXNAME			1000
 #define KV_TO_mV		1000000
 
 /*
@@ -53,10 +52,11 @@ ResPrintExtRes(outextfile, resistors, nodename)
 
 {
     int	        nodenum = 0;
-    char	newname[MAXNAME];
+    char	*newname;
     HashEntry  *entry;
     ResExtNode *node;
 
+    newname = mallocMagic(strlen(nodename) + 32);
     for (; resistors != NULL; resistors = resistors->rr_nextResistor)
     {
 	/*
@@ -90,6 +90,7 @@ ResPrintExtRes(outextfile, resistors, nodename)
 		    resistors->rr_value / (float)ExtCurStyle->exts_resistScale);
 	}
     }
+    freeMagic(newname);
 }
 
 /*
@@ -217,7 +218,7 @@ ResPrintExtNode(outextfile, nodelist, node)
 {
     char       *nodename = node->name;
     int		nodenum = 0;
-    char	newname[MAXNAME+32], tmpname[MAXNAME], *cp;
+    char	*newname, *tmpname, *cp;
     HashEntry  *entry;
     ResExtNode *newnode;
     bool	DoKillNode = TRUE;
@@ -289,17 +290,19 @@ ResPrintExtNode(outextfile, nodelist, node)
     }
     subfrac = (totalcap != 0.0) ? (node->nodecap / totalcap) : 0.0;
 
-    /* Create "rnode" entries for each subnode */
+    /* Create "rnode" entries for each subnode.  A generated name needs
+     * the original name plus a suffix, without truncating the original.
+     */
+
+    tmpname = StrDup((char **)NULL, nodename);
+    cp = tmpname + strlen(tmpname) - 1;
+    if (*cp == '!' || *cp == '#') *cp = '\0';
+    newname = mallocMagic(strlen(nodename) + 32);
 
     for (snode = nodelist; snode != NULL; snode = snode->rn_more)
     {
 	if (snode->rn_name == NULL)
 	{
-	    (void)sprintf(tmpname, "%s", nodename);
-
-	    cp = tmpname + strlen(tmpname) - 1;
-            if (*cp == '!' || *cp == '#') *cp = '\0';
-
      	    (void)sprintf(newname, "%s%s%d", tmpname, ".n", nodenum++);
      	    entry = HashFind(&ResNodeTable, newname);
 	    newnode = ResExtInitNode(entry);
@@ -323,6 +326,8 @@ ResPrintExtNode(outextfile, nodelist, node)
 		    0);
 	}
     }
+    freeMagic(newname);
+    freeMagic(tmpname);
 
     if (DoKillNode && (capsnode != NULL))
 	node->capnode = capsnode->rn_name;

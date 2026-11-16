@@ -34,7 +34,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "resis/resis.h"
 
 #define INITFLATSIZE		1024
-#define MAXNAME			1000
 
 /* Time constants are produced by multiplying attofarads by milliohms,  */
 /* giving zeptoseconds (yes, really.  Look it up).  This constant 	*/
@@ -1569,7 +1568,7 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
     ResExtNode		*extNode;
     char		*nodename;
 {
-    static char	newname[MAXNAME], oldnodename[MAXNAME];
+    char	*newname;
     int		notdecremented;
     ExtDevice  *devptr;
     resNode	*gate, *source, *drain, *subs;
@@ -1597,10 +1596,8 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
 	extDev->layout = layoutDev;
     }
     extDev->status |= TRUE;
-    if (strcmp(nodename, oldnodename) != 0)
-    {
-	strcpy(oldnodename, nodename);
-    }
+    /* Leave room for the terminal suffix and an integer node index. */
+    newname = mallocMagic(strlen(nodename) + 32);
     sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
     notdecremented = TRUE;
 
@@ -1850,6 +1847,8 @@ ResFixUpConnections(extDev, layoutDev, extNode, nodename)
     }
     else
 	resNodeNum--;
+
+    freeMagic(newname);
 }
 
 
@@ -2320,16 +2319,12 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
     ResisData	*resisdata;
     int		*nidx, *eidx;
 {
-    char	*cp, newname[MAXNAME];
+    char	*cp, *newname;
     devPtr	*ptr;
     resDevice	*layoutDev, *ResGetDevice();
     ResConnect *driver, *sink;
 
     ASSERT(resisdata->rg_Tdi != -1, "ResWriteExtFile");
-
-    sprintf(newname, "%s", node->name);
-    cp = newname + strlen(newname) - 1;
-    if (*cp == '!' || *cp == '#') *cp = '\0';
 
     /* Second cutoff:  The original cutoff was based on the lumped
      * resistance and delay estimates from basic extraction.  Having done
@@ -2404,6 +2399,12 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 	}
     }
 
+    /* Names are not limited by the size of a fixed stack buffer. */
+    newname = mallocMagic(strlen(node->name) + 32);
+    strcpy(newname, node->name);
+    cp = newname + strlen(newname) - 1;
+    if (*cp == '!' || *cp == '#') *cp = '\0';
+
     for (ptr = node->devices; ptr != NULL; ptr = ptr->nextDev)
 	if ((layoutDev = ResGetDevice(&ptr->thisDev->location,
 			ptr->thisDev->rs_ttype)))
@@ -2441,8 +2442,12 @@ ResWriteExtFile(celldef, node, resisdata, nidx, eidx)
 	if (ResResList)
 	    ResAlignNodes(ResNodeList, ResResList);
 	if (ResCreateCenterlines(ResResList, nidx, celldef) < 0)
+	{
+	    freeMagic(newname);
 	    return 0;
+	}
     }
+    freeMagic(newname);
     return 1;
 }
 
