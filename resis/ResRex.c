@@ -234,7 +234,7 @@ ResInit()
 	resisdata->rthresh = 10000.0;
 	resisdata->minres = 1000.0;
 	resisdata->prune = 0.01;	/* See resPruneResistors() */
-	resisdata->mindelay = 1.0e9;	/* 1ps = 1.0e9zs
+	resisdata->mindelay = 1.0e9;	/* 1ps = 1.0e9zs */
 	resisdata->frequency = 10e6;	/* 10 MHz default */
 
 	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
