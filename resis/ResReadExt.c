@@ -729,6 +729,41 @@ resLookupNode(
 /*
  *-------------------------------------------------------------------------
  *
+ * resLookupTerminal --
+ *
+ *	Like resLookupNode(), for a gate, source, or drain terminal of
+ *	'device'.  Such a terminal should always name a node declared in
+ *	the .ext file;  if it does not, the file is inconsistent and the
+ *	terminal is ignored, so say so.  Global names (ending in '!') are
+ *	not reported, since they need not be declared in every cell.
+ *
+ * Results:
+ *	As for resLookupNode().
+ *
+ * Side effects:
+ *	May print a warning.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+static ResExtNode *
+resLookupTerminal(
+    char *name,		/* Node name from a device record */
+    RDev *device)	/* Device whose terminal it is */
+{
+    ResExtNode *node = resLookupNode(name);
+    int len = strlen(name);
+
+    if ((node == (ResExtNode *)NULL) && (len > 0) && (name[len - 1] != '!'))
+	TxError("Warning:  device at (%d %d) has a terminal on undeclared"
+		" node \"%s\";  terminal ignored.\n",
+		device->location.p_x, device->location.p_y, name);
+    return node;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResNodeAddDevice --
  *
  *	Given a device and a node which connects to one of its terminals,
@@ -855,7 +890,7 @@ ResReadDevice(int argc,
 	}
 	i++;
     }
-    device->gate = resLookupNode(argv[i]);
+    device->gate = resLookupTerminal(argv[i], device);
     device->rs_gattr = StrDup((char **)NULL, argv[i + 2]);
     l = atoi(argv[i + 1]);
     w = 0;
@@ -864,7 +899,7 @@ ResReadDevice(int argc,
     
     if (i < argc - 2)
     {
-	device->source = resLookupNode(argv[i]);
+	device->source = resLookupTerminal(argv[i], device);
 	device->rs_sattr = StrDup((char **)NULL, argv[i + 2]);
 	w = atoi(argv[i + 1]);
 	ResNodeAddDevice(device->source, device, SOURCE);
@@ -873,7 +908,7 @@ ResReadDevice(int argc,
 
     if (i < argc - 2)
     {
-	device->drain = resLookupNode(argv[i]);
+	device->drain = resLookupTerminal(argv[i], device);
 	device->rs_dattr = StrDup((char **)NULL, argv[i + 2]);
 	w = MAX(w, atoi(argv[i + 1]));
 	ResNodeAddDevice(device->drain, device, DRAIN);
@@ -940,11 +975,11 @@ ResReadFET(int argc,
 
     /* Find and record the FET terminal nodes */
 
-    device->gate = resLookupNode(argv[FET_GATE]);
+    device->gate = resLookupTerminal(argv[FET_GATE], device);
     
-    device->source = resLookupNode(argv[FET_SOURCE]);
+    device->source = resLookupTerminal(argv[FET_SOURCE], device);
 
-    device->drain = resLookupNode(argv[FET_DRAIN]);
+    device->drain = resLookupTerminal(argv[FET_DRAIN], device);
 
     device->subs = resLookupNode(argv[FET_SUBS]);
 
