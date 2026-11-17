@@ -3863,7 +3863,7 @@ spcnAPHier(
     else
     {
 	fputs(afmt, outf);
-	esSIvalue(outf, 1.0E-12 * ((float)area * scale) * esScale * esScale);
+	esSIvalue(outf, 1.0E-12 * ((float)area * scale * scale) * esScale * esScale);
 	fputs(pfmt, outf);
 	esSIvalue(outf, 1.0E-6 * ((float)perim * scale) * esScale);
     }
