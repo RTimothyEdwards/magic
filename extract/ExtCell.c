@@ -55,6 +55,7 @@ int extOutputUsesFunc();
 Plane* extCellFile();
 void extHeader();
 Plane *extUpToDateCell(CellDef *def, bool isTop);
+void extOutputSortedUses(CellDef *def, FILE *f);
 
 /*
  * ----------------------------------------------------------------------------
@@ -755,8 +756,103 @@ extHeader(def, f)
 	fprintf(f, "parameters :%s %s\n", def->cd_name, propvalue);
     }
 
-    /* Output all calls on subcells */
-    (void) DBCellEnum(def, extOutputUsesFunc, (ClientData) f);
+    /* Output all calls on subcells, in a fixed order (see extOutputSortedUses) */
+    extOutputSortedUses(def, f);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extOutputSortedUses --
+ *
+ * Write the "use" lines for every subcell of 'def', sorted by instance
+ * name (then cell name and transform, in case instance names repeat).
+ * The order in which DBCellEnum() visits uses depends on whether the
+ * bins of the cell plane have been built yet, which happens on the
+ * first area search, so it can differ between two extractions of the
+ * same layout in one session.  Sorting makes the .ext file depend only
+ * on the layout.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Writes to 'f'.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+typedef struct
+{
+    CellUse **su_uses;
+    int su_count;
+    int su_size;
+} extSortedUses;
+
+int
+extCollectUseFunc(
+    CellUse *cu,
+    ClientData cdata)
+{
+    extSortedUses *su = (extSortedUses *) cdata;
+
+    if (su->su_count == su->su_size)
+    {
+	CellUse **newUses;
+
+	su->su_size = (su->su_size == 0) ? 64 : 2 * su->su_size;
+	newUses = (CellUse **) mallocMagic(su->su_size * sizeof(CellUse *));
+	if (su->su_count > 0)
+	{
+	    memcpy(newUses, su->su_uses, su->su_count * sizeof(CellUse *));
+	    freeMagic(su->su_uses);
+	}
+	su->su_uses = newUses;
+    }
+    su->su_uses[su->su_count++] = cu;
+    return 0;
+}
+
+int
+extUseCompare(
+    const void *a,
+    const void *b)
+{
+    const CellUse *u1 = *(const CellUse * const *) a;
+    const CellUse *u2 = *(const CellUse * const *) b;
+    const Transform *t1 = &u1->cu_transform, *t2 = &u2->cu_transform;
+    int cmp;
+
+    cmp = strcmp(u1->cu_id ? u1->cu_id : "", u2->cu_id ? u2->cu_id : "");
+    if (cmp != 0) return cmp;
+    cmp = strcmp(u1->cu_def->cd_name, u2->cu_def->cd_name);
+    if (cmp != 0) return cmp;
+    if (t1->t_c != t2->t_c) return (t1->t_c < t2->t_c) ? -1 : 1;
+    if (t1->t_f != t2->t_f) return (t1->t_f < t2->t_f) ? -1 : 1;
+    if (t1->t_a != t2->t_a) return (t1->t_a < t2->t_a) ? -1 : 1;
+    if (t1->t_b != t2->t_b) return (t1->t_b < t2->t_b) ? -1 : 1;
+    if (t1->t_d != t2->t_d) return (t1->t_d < t2->t_d) ? -1 : 1;
+    if (t1->t_e != t2->t_e) return (t1->t_e < t2->t_e) ? -1 : 1;
+    return 0;
+}
+
+void
+extOutputSortedUses(
+    CellDef *def,
+    FILE *f)
+{
+    extSortedUses su;
+    int i;
+
+    su.su_uses = NULL;
+    su.su_count = su.su_size = 0;
+    (void) DBCellEnum(def, extCollectUseFunc, (ClientData) &su);
+    if (su.su_count == 0) return;
+
+    qsort(su.su_uses, su.su_count, sizeof(CellUse *), extUseCompare);
+    for (i = 0; i < su.su_count; i++)
+	(void) extOutputUsesFunc(su.su_uses[i], f);
+    freeMagic(su.su_uses);
 }
 
 /*
