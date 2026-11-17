@@ -5187,7 +5187,11 @@ extFindNodes(def, clipArea, subonly)
 	    temp_subsnode = loc_subsnode;
     	}
     }
-    if (subonly == TRUE) return ((NodeRegion *) arg.fra_region);
+    if (subonly == TRUE)
+    {
+	SigEnableInterrupts();	/* Balance SigDisableInterrupts() above */
+	return ((NodeRegion *) arg.fra_region);
+    }
 
     /* Second pass:  Find all other nodes */
 
