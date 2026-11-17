@@ -2305,7 +2305,7 @@ spcWriteParams(
 			fprintf(esSpiceF, "%g", (double)parmval * scale
 				* esScale * plist->parm_scale * 1E-6);
 		    else
-			esSIvalue(esSpiceF, 1.0E-12 * (parmval + plist->parm_offset)
+			esSIvalue(esSpiceF, 1.0E-6 * (parmval + plist->parm_offset)
 				* scale * esScale);
 		}
 		else
