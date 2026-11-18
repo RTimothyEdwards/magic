@@ -1414,8 +1414,10 @@ DBCellRead(cellDef, ignoreTech, dereference, errptr)
 	result = (dbCellReadDef(f, cellDef, ignoreTech, usederef));
 
 #ifdef FILE_LOCKS
-	/* Close files that were locked by another user */
-	if ((FileLocking == FALSE) || (cellDef->cd_fd == -2)) FCLOSE(f);
+	/* Close files on which no lock is held:  files locked by	*/
+	/* another user, files that are not writeable, and all	*/
+	/* files when locking is disabled.				*/
+	if (cellDef->cd_fd < 0) FCLOSE(f);
 #else
 	/* When using fcntl() to enforce file locks, we can't	*/
 	/* close the file descriptor without losing the lock.	*/
@@ -1629,8 +1631,14 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 	else
 	    cellDef->cd_flags &= ~CDNOEDIT;
 
+	/* Keep the file descriptor only if it holds a lock on the file.	*/
+	/* Otherwise the caller closes the file, and cd_fd must not	*/
+	/* keep the number of a closed descriptor.			*/
+
 	if (is_locked == TRUE)
 	    cellDef->cd_fd = -2;	/* Indicates locked file */
+	else if ((FileLocking == FALSE) || (cellDef->cd_flags & CDNOEDIT))
+	    cellDef->cd_fd = -1;	/* No lock held */
 	else
 	    cellDef->cd_fd = fd;
 	cellDef->cd_flags &= ~CDNOTFOUND;
@@ -1685,7 +1693,8 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
  *	None.
  *
  * Side effects:
- *	See dbReadOpen() above.
+ *	See dbReadOpen() above.  The file is closed again unless it holds
+ *	the lock on the file (cellDef->cd_fd >= 0).
  *
  * ----------------------------------------------------------------------------
  */
@@ -1700,7 +1709,16 @@ DBOpenOnly(cellDef, name, setFileName, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
-    dbReadOpen(cellDef, setFileName, FALSE, errptr);
+    FILETYPE f;
+
+    f = dbReadOpen(cellDef, setFileName, FALSE, errptr);
+
+#ifdef FILE_LOCKS
+    /* Keep the file open only if it holds the lock */
+    if ((f != NULL) && (cellDef->cd_fd < 0)) FCLOSE(f);
+#else
+    if (f != NULL) FCLOSE(f);
+#endif
 }
 
 /*

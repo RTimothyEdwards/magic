@@ -95,6 +95,10 @@
  *	Pointer to FILE that was opened, or NULL if an error occurred.
  *
  * Side effects --
+ *	If is_locked is non-NULL, it is set to TRUE if another process
+ *	holds a lock on the file, and FALSE otherwise.  A file that
+ *	cannot be opened for writing is opened read-only, without a
+ *	lock, and is not reported as locked.
  *	System I/O
  *-------------------------------------------------------------------------
  */
@@ -135,10 +139,15 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
     /* Diagnostic */
     /* TxPrintf("Opening file <%s>\n", fname); */
 
+    /* If the file cannot be opened for writing (for example, it has no	*/
+    /* write permission or is on a read-only filesystem), then no lock	*/
+    /* can be set.  But the file is not locked by anyone else either,	*/
+    /* so leave is_locked FALSE and let the caller find that the file	*/
+    /* is not writeable.						*/
+
     fd = open(fname, O_RDWR);
     if (fd < 0)
     {
-	if (is_locked) *is_locked = TRUE;
 	f = path_gzdopen_internal(fname, O_RDONLY, "r", fdp);
 	goto done;
     }
@@ -220,6 +229,7 @@ done:
  *
  * Side effects --
  *	fdp pointer value filled with the file descriptor.
+ *	is_locked set as for flock_zopen() above.
  *	System I/O
  *-------------------------------------------------------------------------
  */
@@ -250,10 +260,12 @@ FILE *flock_open(filename, mode, is_locked, fdp)
     /* Diagnostic */
     /* TxPrintf("Opening file <%s>\n", filename); */
 
+    /* If the file cannot be opened for writing, then no lock can be	*/
+    /* set, but the file is not locked by anyone else.  See flock_zopen.	*/
+
     tmp = fopen(filename, "r+");
     if (tmp == NULL)
     {
-	if (is_locked) *is_locked = TRUE;
 	f = fopen(filename, "r");
 	goto done;
     }
