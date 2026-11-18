@@ -1471,7 +1471,7 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
     FILETYPE f = NULL;
     int fd;
     char *filename, *realname, *savename;
-    bool is_locked;
+    bool is_locked = FALSE;
 
 #ifdef FILE_LOCKS
     if (cellDef->cd_fd >= 0)
@@ -5904,7 +5904,7 @@ DBCellWrite(cellDef, fileName)
     result = TRUE;
     {
 	struct stat thestat;
-	bool is_locked;
+	bool is_locked = FALSE;
 	int fd;
 
 #ifdef FILE_LOCKS
