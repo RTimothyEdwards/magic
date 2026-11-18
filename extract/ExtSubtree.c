@@ -158,6 +158,51 @@ extClearUseFlags(use, clientData)
  * ----------------------------------------------------------------------------
  */
 
+#ifdef MAGIC_WRAPPER
+
+/* Minimum time between two calls to Tcl_DoOneEvent() during extraction */
+#define EXT_EVENT_INTERVAL_MS	50
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extProcessWindowEvents --
+ *
+ *	Let Tk process pending window events (so the console and layout
+ *	windows stay responsive during a long extraction), but at most once
+ *	every EXT_EVENT_INTERVAL_MS milliseconds.  Even with nothing to do,
+ *	each Tcl_DoOneEvent() call costs system calls through the Tcl
+ *	notifier, and extSubtree() can reach this point for every one of
+ *	its interaction areas.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	May run Tcl event handlers.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extProcessWindowEvents(void)
+{
+#ifdef HAVE_SYS_TIME_H
+    static struct timeval last = {0, 0};
+    struct timeval now;
+    long elapsed;
+
+    gettimeofday(&now, (struct timezone *) NULL);
+    elapsed = (now.tv_sec - last.tv_sec) * 1000L
+		+ (now.tv_usec - last.tv_usec) / 1000L;
+    if ((elapsed >= 0) && (elapsed < EXT_EVENT_INTERVAL_MS)) return;
+    last = now;
+#endif
+    while (Tcl_DoOneEvent(TCL_WINDOW_EVENTS | TCL_DONT_WAIT) != 0);
+}
+
+#endif	/* MAGIC_WRAPPER */
+
 #define	RECTAREA(r)	(((r)->r_xtop-(r)->r_xbot) * ((r)->r_ytop-(r)->r_ybot))
 
 void
@@ -324,12 +369,12 @@ extSubtree(parentUse, reg, f)
 		    GrDisplayStatus = DISPLAY_IN_PROGRESS;
 		    SigSetTimer(5);
 		}
+	    }
 
 #ifdef MAGIC_WRAPPER
-		/* We need to let Tk paint the console display */
-		while (Tcl_DoOneEvent(TCL_WINDOW_EVENTS | TCL_DONT_WAIT) != 0);
+	    /* Let Tk paint the console display */
+	    extProcessWindowEvents();
 #endif
-	    }
 	}
     }
 #else	/* exactinteractions */
