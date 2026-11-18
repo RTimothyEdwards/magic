@@ -1151,6 +1151,11 @@ extern void extEnumTerminal();
 extern void extEnumTerminal(Tile *tile, TileType dinfo,
         TileTypeBitMask *connect, void (*func)(), ClientData clientData);
 extern void ExtRevertUniqueCell(CellDef *def);
+extern Plane *ExtReplayCell(CellDef *def, bool isTop);
+extern bool ExtReplayIsCheap(void);
+extern bool extParallelWorker;
+extern bool extExtractStackParallel(struct stack *stack, CellDef *rootDef);
+extern bool ExtParallelAvailable(void);
 
 
 /* ------------------ Connectivity table management ------------------- */

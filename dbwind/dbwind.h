@@ -240,6 +240,10 @@ extern int DBWFeedbackCount;
 extern void DBWFeedbackClear();
 extern void DBWFeedbackAdd();
 extern char *DBWFeedbackNth();
+extern char *DBWFeedbackGetRaw(int nth, Rect *area, CellDef **pRootDef,
+		int *pScale, int *pStyle);
+extern void DBWFeedbackAddRoot(Rect *area, char *text, CellDef *rootDef,
+		int scaleFactor, int style);
 extern void DBWFeedbackTruncate(int count);
 
 /* Exported procedures and variables relating to elements: */

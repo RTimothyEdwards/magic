@@ -56,7 +56,9 @@ static bool txPrintFlag = TRUE;
 /* When non-NULL, all TxPrintf() and TxError() output is written
  * directly to this file with plain vfprintf(), bypassing the terminal
  * (or Tcl console) handling.  Used by the extractor to discard the
- * messages of work that only rebuilds state (see extReplayCellFile()).
+ * messages of work that only rebuilds state (see extReplayCellFile()),
+ * and by forked parallel extraction workers, which must never touch the
+ * parent's Tcl interpreter or display.
  */
 FILE *TxRedirectFile = NULL;
 

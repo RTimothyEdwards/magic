@@ -372,8 +372,9 @@ extSubtree(parentUse, reg, f)
 	    }
 
 #ifdef MAGIC_WRAPPER
-	    /* Let Tk paint the console display */
-	    extProcessWindowEvents();
+	    /* Let Tk paint the console display.  A forked parallel	*/
+	    /* extraction worker must never touch the display.		*/
+	    if (!extParallelWorker) extProcessWindowEvents();
 #endif
 	}
     }

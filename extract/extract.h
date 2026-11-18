@@ -86,6 +86,7 @@ extern const char * const extDevTable[];
 					 */
 
 extern int ExtOptions;		/* Bitmask of above */
+extern int ExtNumJobs;		/* Number of parallel extraction workers */
 extern char *ExtLocalPath;	/* If non-NULL, location to write .ext files */
 extern double ExtCornerFactor;	/* Scale factor for corner fringe cap model */
 

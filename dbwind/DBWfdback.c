@@ -376,6 +376,9 @@ DBWFeedbackClear(text)
  * ----------------------------------------------------------------------------
  */
 
+static void dbwfbAppend(Rect *area, char *text, CellDef *rootDef,
+		int scaleFactor, int style);
+
 void
 DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
     Rect *area;			/* The area to be highlighted. */
@@ -406,10 +409,8 @@ DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
 				 * turned into STYLE_SOLIDHIGHLIGHTS.
 				 */
 {
-    Rect tmp, tmp2, tmp3;
+    Rect tmp2;
     Transform transform;
-    int i;
-    Feedback *fb, *fblast;
     extern int dbwfbGetTransform();	/* Forward declaration. */
 
     /* Find a transform from this cell to the root, and use it to
@@ -432,7 +433,33 @@ DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
     transform.t_c *= scaleFactor;
     transform.t_f *= scaleFactor;
     GeoTransRect(&transform, area, &tmp2);
-    area = &tmp2;
+
+    dbwfbAppend(&tmp2, text, dbwfbRootDef, scaleFactor, style);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbwfbAppend --
+ *
+ *	Append one feedback entry whose area is already in the (scaled)
+ *	coordinates of its root definition.  Shared by DBWFeedbackAdd()
+ *	and DBWFeedbackAddRoot().
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static void
+dbwfbAppend(
+    Rect *area,		/* Area in scaled coordinates of rootDef */
+    char *text,
+    CellDef *rootDef,
+    int scaleFactor,
+    int style)
+{
+    Rect tmp, tmp3;
+    int i;
+    Feedback *fb, *fblast;
 
     /* Make sure there's enough space in the current array.  If
      * not, make a new array, copy the old to the new, then delete
@@ -470,7 +497,7 @@ DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
 	fb->fb_text->string = StrDup(NULL, text);
     }
 
-    fb->fb_rootDef = dbwfbRootDef;
+    fb->fb_rootDef = rootDef;
     fb->fb_scale = scaleFactor;
     fb->fb_style = style;
     DBWFeedbackCount++;
@@ -651,6 +678,68 @@ DBWFeedbackNth(nth, area, pRootDef, pStyle)
     if (pRootDef != NULL) *pRootDef = dbwfbArray[nth].fb_rootDef;
     if (pStyle != NULL) *pStyle = dbwfbArray[nth].fb_style;
     return dbwfbArray[nth].fb_text->string;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBWFeedbackGetRaw --
+ *
+ *	Return everything needed to recreate feedback entry 'nth' with
+ *	DBWFeedbackAddRoot():  its area in the scaled coordinates of its
+ *	root definition, the root definition, scale factor, and style.
+ *	Used to pass feedback from parallel extraction workers back to
+ *	the main process.
+ *
+ * Results:
+ *	The entry's text, or NULL if 'nth' is out of range.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+DBWFeedbackGetRaw(
+    int nth,
+    Rect *area,
+    CellDef **pRootDef,
+    int *pScale,
+    int *pStyle)
+{
+    if (nth < 0 || nth >= DBWFeedbackCount) return NULL;
+    *area = dbwfbArray[nth].fb_area;
+    *pRootDef = dbwfbArray[nth].fb_rootDef;
+    *pScale = dbwfbArray[nth].fb_scale;
+    *pStyle = dbwfbArray[nth].fb_style;
+    return dbwfbArray[nth].fb_text->string;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBWFeedbackAddRoot --
+ *
+ *	Like DBWFeedbackAdd(), but 'area' is already in the scaled
+ *	coordinates of 'rootDef' (as returned by DBWFeedbackGetRaw()), so
+ *	no transform to a displayed root cell is needed.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Adds a feedback entry.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBWFeedbackAddRoot(
+    Rect *area,
+    char *text,
+    CellDef *rootDef,
+    int scaleFactor,
+    int style)
+{
+    dbwfbAppend(area, text, rootDef, scaleFactor, style);
 }
 
 /*

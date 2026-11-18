@@ -1025,6 +1025,11 @@ extExtractStack(stack, doExtract, rootDef)
     LinkedDef *savelist = NULL, *revlist = NULL, *newld;
     struct saveList *newsl, *sl = (struct saveList *)NULL;
 
+    /* Parallel extraction, including "extresist" (see ExtParallel.c) */
+    if (doExtract && (ExtNumJobs > 1) && ExtParallelAvailable())
+	if (extExtractStackParallel(stack, rootDef))
+	    return;
+
     while ((def = (CellDef *) StackPop(stack)))
     {
 	if (ExtOptions & EXT_DOEXTRESIST)

@@ -1021,15 +1021,16 @@ cmdExpandFunc(
 #define	EXTDO		2
 #define EXTHALO		3
 #define EXTHELP		4
-#define	EXTLENGTH	5
-#define	EXTNO		6
-#define	EXTPARENTS	7
-#define EXTPATH		8
-#define	EXTSHOWPARENTS	9
-#define EXTSTEPSIZE	10
-#define	EXTSTYLE	11
-#define	EXTUNIQUE	12
-#define	EXTWARN		13
+#define EXTJOBS		5
+#define	EXTLENGTH	6
+#define	EXTNO		7
+#define	EXTPARENTS	8
+#define EXTPATH		9
+#define	EXTSHOWPARENTS	10
+#define EXTSTEPSIZE	11
+#define	EXTSTYLE	12
+#define	EXTUNIQUE	13
+#define	EXTWARN		14
 
 #define	WARNALL		0
 #define WARNDUP		1
@@ -1130,6 +1131,8 @@ CmdExtract(
 	"do [option]		enable extractor option",
 	"halo [value]		print or set the sidewall halo distance",
 	"help			print this help information",
+	"jobs [number]		print or set the number of parallel\n\
+			extraction jobs used by \"extract all\"",
 	"length [option]	control pathlength extraction information",
 	"no [option]		disable extractor option",
 	"parents		extract selected cell and all its parents",
@@ -1268,6 +1271,33 @@ CmdExtract(
 	    else
 		ExtCurStyle->exts_sideCoupleHalo = dist;
 	    break;
+
+	case EXTJOBS:
+	    if (argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(ExtNumJobs));
+#else
+		TxPrintf("Extraction uses %d parallel job%s\n", ExtNumJobs,
+			(ExtNumJobs == 1) ? "" : "s");
+#endif
+		return;
+	    }
+	    else if (argc != 3) goto wrongNumArgs;
+	    if (!StrIsInt(argv[2]) || (atoi(argv[2]) < 1))
+	    {
+		TxError("Number of jobs must be a positive integer.\n");
+		return;
+	    }
+	    ExtNumJobs = atoi(argv[2]);
+	    if ((ExtNumJobs > 1) && !ExtParallelAvailable())
+	    {
+		/* Keep the setting truthful:  this build is always serial */
+		TxError("Parallel extraction is not available in this build;"
+			"  using 1 job.\n");
+		ExtNumJobs = 1;
+	    }
+	    return;
 
 	case EXTSTEPSIZE:
 	    if (ExtCurStyle == NULL)

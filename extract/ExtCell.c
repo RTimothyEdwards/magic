@@ -82,7 +82,7 @@ void extOutputSortedUses(CellDef *def, FILE *f);
  * extracting a cell leaves on its CellDef (unique labels, prepared
  * substrate plane, and labels marked as unusable for merges) and skips
  * the hierarchical extraction, which is the expensive part.  See
- * extReplayCellFile().
+ * extReplayCellFile(), ExtReplayCell() and extract/ExtParallel.c.
  */
 static bool extReplayOnly = FALSE;
 
@@ -258,6 +258,58 @@ extUpToDateCell(
 	return extReplayCellFile(def, isTop);
     extClearLabelMarks(def);
     return extPrepSubstrate(def);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtReplayCell --
+ *
+ * Reproduce the state that ExtCell() leaves on 'def', without writing a
+ * .ext file or doing the hierarchical part of the extraction.  A
+ * parallel extraction worker that does not own a child cell must replay
+ * that state before extracting the child's parents.
+ *
+ * Results:
+ *	The saved substrate plane, exactly as ExtCell() would return it.
+ *
+ * Side effects:
+ *	Same changes to 'def' as ExtCell(), apart from writing a .ext file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Plane *
+ExtReplayCell(
+    CellDef *def,	/* Cell whose extraction side effects are replayed */
+    bool isTop)		/* TRUE if the cell is the top level cell */
+{
+    bool noextract;
+
+    DBPropGet(def, "noextract", &noextract);
+    if (noextract) return extPrepSubstrate(def);
+    if (def->cd_flags & CDNOEXTRACT)
+	return extUpToDateCell(def, isTop);
+    return extReplayCellFile(def, isTop);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtReplayIsCheap --
+ *
+ * Results:
+ *	TRUE if, with the current options, ExtReplayCell() does not need
+ *	extBasic():  it then only makes labels unique and prepares the
+ *	substrate plane, which is much cheaper than extracting the cell.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+ExtReplayIsCheap(void)
+{
+    return (ExtOptions & EXT_DOALIASES) ? TRUE : FALSE;
 }
 
 /*
