@@ -55,6 +55,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #endif
 
 #include "tcltk/tclmagic.h"
@@ -133,6 +134,48 @@ extJobIndex(
     return (int) CD2INT(HashGetValue(he)) - 1;
 }
 #define JOBINDEX(def)	extJobIndex(def)
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extReadSubtree --
+ *
+ *	Read from disk every cell used, directly or not, by 'def' that has
+ *	not been read yet.  Must be done before forking:  a serial run reads
+ *	such cells once, when its searches first reach them (for example
+ *	after "extract parents", which does not read the whole hierarchy
+ *	first), but each forked process would read its own copy, all of
+ *	them competing for the same file locks.  'visited' holds the cells
+ *	already handled, so that a cell used many times is visited once.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extReadSubtreeFunc(
+    CellUse *use,
+    ClientData cdata)
+{
+    HashTable *visited = (HashTable *) cdata;
+    CellDef *def = use->cu_def;
+    HashEntry *he = HashFind(visited, (char *) def);
+
+    if (HashGetValue(he) != NULL) return 0;
+    HashSetValue(he, INT2CD(1));
+    if ((def->cd_flags & CDAVAILABLE) == 0)
+	if (!DBCellRead(def, TRUE, TRUE, NULL))
+	    return 0;
+    (void) DBCellEnum(def, extReadSubtreeFunc, cdata);
+    return 0;
+}
+
+void
+extReadSubtree(
+    CellDef *def,
+    HashTable *visited)
+{
+    (void) DBCellEnum(def, extReadSubtreeFunc, (ClientData) visited);
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -428,16 +471,13 @@ extPrintLog(
     char *fileName)
 {
     FILE *f;
-    char buf[4096];
-    size_t len;
 
+    /* Messages are records that keep their stream (see TxRedirectFile) */
     f = fopen(fileName, "r");
     if (f == NULL) return;
-    while ((len = fread(buf, 1, sizeof(buf) - 1, f)) > 0)
-    {
-	buf[len] = '\0';
-	TxPrintf("%s", buf);
-    }
+    if (!TxPrintRedirected(f) || ferror(f))
+	TxError("Parallel extraction:  message file %s is damaged;  "
+		"some messages are missing.\n", fileName);
     fclose(f);
     unlink(fileName);
 }
@@ -773,6 +813,30 @@ extExtractStackParallel(
 
     nworkers = (ExtNumJobs < nwork) ? ExtNumJobs : nwork;
 
+    /* If the .ext files go to a directory that does not exist yet, create
+     * it here, as the first cell's extraction would, rather than in many
+     * workers at once.  If it cannot be created, each cell reports that,
+     * as in a serial run.
+     */
+    if ((ExtLocalPath != NULL) && strcmp(ExtLocalPath, "."))
+    {
+	struct stat st;
+
+	if ((stat(ExtLocalPath, &st) == -1) && (mkdir(ExtLocalPath, 0755) == 0))
+	    TxError("Path \"%s\" does not exist;  attempting to create it.\n",
+			ExtLocalPath);
+    }
+
+    /* Read every cell below the ones to extract (see extReadSubtree()) */
+    {
+	HashTable visited;
+
+	HashInit(&visited, 2 * n, HT_WORDKEYS);
+	for (i = 0; i < n; i++)
+	    extReadSubtree(extJobs[i].ej_def, &visited);
+	HashKill(&visited);
+    }
+
     shsize = EXT_SHSIZE(n);
     shared = (ExtShared *) mmap(NULL, shsize, PROT_READ | PROT_WRITE,
 		MAP_SHARED | MAP_ANON, -1, 0);
@@ -783,10 +847,13 @@ extExtractStackParallel(
     }
     memset(shared, 0, shsize);
 
+    /* A TMPDIR too long for the buffer would be cut short, losing the
+     * unique suffix that mkdtemp() needs.
+     */
     tmp = getenv("TMPDIR");
-    snprintf(logDir, sizeof(logDir), "%s/magic-ext-XXXXXX",
-		(tmp && *tmp) ? tmp : "/tmp");
-    if (mkdtemp(logDir) == NULL)
+    if ((snprintf(logDir, sizeof(logDir), "%s/magic-ext-XXXXXX",
+		(tmp && *tmp) ? tmp : "/tmp") >= (int) sizeof(logDir)) ||
+		(mkdtemp(logDir) == NULL))
     {
 	TxError("Parallel extraction:  cannot create temporary directory.\n");
 	munmap(shared, shsize);

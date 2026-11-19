@@ -54,13 +54,84 @@ static int txMorePid;
 static bool txPrintFlag = TRUE;
 
 /* When non-NULL, all TxPrintf() and TxError() output is written
- * directly to this file with plain vfprintf(), bypassing the terminal
- * (or Tcl console) handling.  Used by the extractor to discard the
- * messages of work that only rebuilds state (see extReplayCellFile()),
- * and by forked parallel extraction workers, which must never touch the
- * parent's Tcl interpreter or display.
+ * directly to this file, bypassing the terminal (or Tcl console)
+ * handling.  Used by the extractor to discard the messages of work that
+ * only rebuilds state (see extReplayCellFile()), and by forked parallel
+ * extraction workers, which must never touch the parent's Tcl
+ * interpreter or display.  Each message is written as a record (see
+ * txRedirectWrite()), so that the parent can print it again on the same
+ * stream, standard output or standard error (see TxPrintRedirected()).
  */
 FILE *TxRedirectFile = NULL;
+
+/*
+ * txRedirectWrite --
+ *	Write one message to TxRedirectFile as a record:  a tag ('O' for
+ *	TxPrintf() output, 'E' for TxError() output), the length of the
+ *	text as an int, then the text.
+ */
+static void
+txRedirectWrite(
+    int tag,
+    const char *fmt,
+    va_list args)
+{
+    char buf[1024], *text = buf;
+    va_list args2;
+    int len;
+
+    va_copy(args2, args);
+    len = vsnprintf(buf, sizeof(buf), fmt, args);
+    if (len >= (int) sizeof(buf))
+    {
+	text = (char *) mallocMagic(len + 1);
+	vsnprintf(text, len + 1, fmt, args2);
+    }
+    va_end(args2);
+    if (len > 0)
+    {
+	putc(tag, TxRedirectFile);
+	fwrite(&len, sizeof(int), 1, TxRedirectFile);
+	fwrite(text, 1, len, TxRedirectFile);
+    }
+    if (text != buf) freeMagic(text);
+}
+
+/*
+ * TxPrintRedirected --
+ *	Print the messages in a file written through TxRedirectFile, each
+ *	on the stream it was written for.
+ *
+ * Results:
+ *	FALSE if the file ends in the middle of a record, else TRUE.
+ */
+bool
+TxPrintRedirected(
+    FILE *f)
+{
+    int tag, len;
+    char buf[1024], *text;
+
+    while ((tag = getc(f)) != EOF)
+    {
+	if ((tag != 'O' && tag != 'E') ||
+		fread(&len, sizeof(int), 1, f) != 1 || len <= 0)
+	    return FALSE;
+	text = (len < (int) sizeof(buf)) ? buf : (char *) mallocMagic(len + 1);
+	if (fread(text, 1, len, f) != (size_t) len)
+	{
+	    if (text != buf) freeMagic(text);
+	    return FALSE;
+	}
+	text[len] = '\0';
+	if (tag == 'O')
+	    TxPrintf("%s", text);
+	else
+	    TxError("%s", text);
+	if (text != buf) freeMagic(text);
+    }
+    return TRUE;
+}
 
 
 /*
@@ -127,7 +198,7 @@ TxPrintf(const char *fmt, ...)
 	if (txPrintFlag)
 	{
 	    va_start(args, fmt);
-	    vfprintf(TxRedirectFile, fmt, args);
+	    txRedirectWrite('O', fmt, args);
 	    va_end(args);
 	}
 	return;
@@ -334,7 +405,7 @@ TxErrorV(const char *fmt, va_list args)
 
     if (TxRedirectFile != NULL)
     {
-	vfprintf(TxRedirectFile, fmt, args);
+	txRedirectWrite('E', fmt, args);
 	return;
     }
 

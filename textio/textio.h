@@ -67,6 +67,7 @@ extern void TxFlush(void);
 extern void TxFlushOut(void);
 extern void TxFlushErr(void);
 extern FILE *TxRedirectFile;	/* If non-NULL, all Tx output goes here */
+extern bool TxPrintRedirected(FILE *f);
 extern void TxUseMore(void);
 extern void TxStopMore(void);
 
