@@ -1127,6 +1127,35 @@ efBuildDevice(
      */
     
     ttype = extGetDevType(type);
+    if ((class == DEV_RES) || (class == DEV_RSUBCKT))
+    {
+	HashEntry *bodyhe = HashLookOnly(&def->def_nodes, argv[termstart]);
+	EFNodeName *bodynn = bodyhe ? (EFNodeName *)HashGetValue(bodyhe) : NULL;
+	ExtDevice *bodydev;
+	TileType bodytype;
+
+	/* Resistor names such as "None" can be shared by several metal
+	 * layers.  The body node keeps the actual layout type.  Include
+	 * that type in the device key so that stacked resistors at the
+	 * same coordinates remain distinct, while their .res.ext updates
+	 * still find the original device.
+	 */
+	if (bodynn && bodynn->efnn_node &&
+		(bodynn->efnn_node->efnode_type > 0))
+	{
+	    bodytype = DBTechNameType(
+		    EFLayerNames[bodynn->efnn_node->efnode_type]);
+	    if ((bodytype >= TT_TECHDEPBASE) && (bodytype < DBNumTypes))
+		for (bodydev = ExtCurStyle->exts_device[bodytype]; bodydev;
+				bodydev = bodydev->exts_next)
+		    if ((bodydev->exts_deviceClass == class) &&
+			    !strcmp(bodydev->exts_deviceName, type))
+		    {
+			ttype = bodytype;
+			break;
+		    }
+	}
+    }
     if (ttype < 0)
     {
 	/* For zero-ohm resistors used to separate ports on the same	*/
