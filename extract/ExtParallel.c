@@ -293,12 +293,28 @@ extCostCompare(
 #ifndef EXT_NO_FORK
 
 /*
+ * extCloseFile --
+ *	Close a file that was written, and return FALSE if any write to it
+ *	failed (for example because the disk is full).
+ */
+bool
+extCloseFile(
+    FILE *f)
+{
+    bool ok = !ferror(f);
+
+    if (fclose(f) != 0) ok = FALSE;
+    return ok;
+}
+
+/*
  * ----------------------------------------------------------------------------
  *
  * extSaveFeedback --
  *
  *	Write feedback entries 'first' .. DBWFeedbackCount-1 to 'fileName'
  *	so that the parent can re-create them with extLoadFeedback().
+ *	Returns FALSE if the file could not be written completely.
  *
  *	Record format (native byte order, same machine):
  *	    int xbot, ybot, xtop, ytop, scale, style, nameLen, textLen;
@@ -307,7 +323,7 @@ extCostCompare(
  * ----------------------------------------------------------------------------
  */
 
-void
+bool
 extSaveFeedback(
     int first,
     char *fileName)
@@ -318,9 +334,9 @@ extSaveFeedback(
     CellDef *rootDef;
     char *text;
 
-    if (first >= DBWFeedbackCount) return;
+    if (first >= DBWFeedbackCount) return TRUE;
     f = fopen(fileName, "w");
-    if (f == NULL) return;
+    if (f == NULL) return FALSE;
     for (nth = first; nth < DBWFeedbackCount; nth++)
     {
 	text = DBWFeedbackGetRaw(nth, &area, &rootDef, &hdr[4], &hdr[5]);
@@ -335,7 +351,7 @@ extSaveFeedback(
 	fwrite(rootDef->cd_name, 1, hdr[6], f);
 	fwrite(text, 1, hdr[7], f);
     }
-    fclose(f);
+    return extCloseFile(f);
 }
 
 /*
@@ -358,12 +374,14 @@ extLoadFeedback(
     Rect area;
     CellDef *rootDef;
     char *name, *text;
+    size_t got;
+    bool bad = FALSE;
 
     f = fopen(fileName, "r");
     if (f == NULL) return;
-    while (fread(hdr, sizeof(int), 8, f) == 8)
+    while ((got = fread(hdr, sizeof(int), 8, f)) == 8)
     {
-	if (hdr[6] < 0 || hdr[7] < 0) break;
+	if (hdr[6] < 0 || hdr[7] < 0) { bad = TRUE; break; }
 	name = (char *) mallocMagic(hdr[6] + 1);
 	text = (char *) mallocMagic(hdr[7] + 1);
 	if (fread(name, 1, hdr[6], f) != hdr[6] ||
@@ -371,6 +389,7 @@ extLoadFeedback(
 	{
 	    freeMagic(name);
 	    freeMagic(text);
+	    bad = TRUE;
 	    break;
 	}
 	name[hdr[6]] = '\0';
@@ -387,6 +406,9 @@ extLoadFeedback(
 	freeMagic(name);
 	freeMagic(text);
     }
+    if (bad || (got != 0) || ferror(f))
+	TxError("Parallel extraction:  feedback file %s is damaged;  "
+		"some feedback entries are missing.\n", fileName);
     fclose(f);
     unlink(fileName);
 }
@@ -503,21 +525,26 @@ extWorker(
 	if (extJobs[idx].ej_state == EJ_REPLAYED)
 	    extRevertReplay(&extJobs[idx]);
 
+	/* If a message or feedback file cannot be written, stop all the
+	 * workers:  the cell is not marked done, so the parent discards
+	 * everything and extracts serially.
+	 */
 	snprintf(logName, sizeof(logName), "%s/%d.log", logDir, idx);
 	logf = fopen(logName, "w");
-	TxRedirectFile = (logf != NULL) ? logf : extNullFile;
+	if (logf == NULL) goto failed;
+	TxRedirectFile = logf;
 
 	fbStart = DBWFeedbackCount;
 	extNumErrors = extNumWarnings = 0;
 	extJobs[idx].ej_savePlane = ExtCell(def, (char *) NULL, (def == rootDef));
 	extJobs[idx].ej_state = EJ_EXTRACTED;
 
-	if (logf != NULL) fclose(logf);
 	TxRedirectFile = extNullFile;
+	if (!extCloseFile(logf)) goto failed;
 	if (SigInterruptPending) break;
 
 	snprintf(logName, sizeof(logName), "%s/%d.fb", logDir, idx);
-	extSaveFeedback(fbStart, logName);
+	if (!extSaveFeedback(fbStart, logName)) goto failed;
 
 	errors[idx] = extNumErrors;
 	warnings[idx] = extNumWarnings;
@@ -557,7 +584,8 @@ extWorker(
 
 	    snprintf(logName, sizeof(logName), "%s/r%d.log", logDir, idx);
 	    logf = fopen(logName, "w");
-	    TxRedirectFile = (logf != NULL) ? logf : extNullFile;
+	    if (logf == NULL) goto failed;
+	    TxRedirectFile = logf;
 	    fbStart = DBWFeedbackCount;
 
 	    ResOptionsFlags |= ResOpt_Signal;
@@ -567,16 +595,21 @@ extWorker(
 			def->cd_name);
 	    ExtResisForDef(def, resisdata);
 
-	    if (logf != NULL) fclose(logf);
 	    TxRedirectFile = extNullFile;
+	    if (!extCloseFile(logf)) goto failed;
 	    if (SigInterruptPending) break;
 
 	    snprintf(logName, sizeof(logName), "%s/r%d.fb", logDir, idx);
-	    extSaveFeedback(fbStart, logName);
+	    if (!extSaveFeedback(fbStart, logName)) goto failed;
 	    __atomic_store_n(&resDone[idx], 1, __ATOMIC_SEQ_CST);
 	}
 	UndoEnable();
     }
+    goto finish;
+
+failed:
+    TxRedirectFile = extNullFile;
+    shared->es_abort = 1;
 
 finish:
     fflush(NULL);
