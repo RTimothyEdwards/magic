@@ -117,6 +117,7 @@ typedef struct
     int		es_nextRes;	/* Next claim (resistance round) */
     int		es_ndone;	/* Number of cells extracted so far */
     int		es_abort;	/* Set by the parent if a worker died */
+    int		es_active;	/* Number of workers still running */
     int		es_data[1];	/* Really 4 * nJobs:  see EXT_* macros */
 } ExtShared;
 
@@ -134,6 +135,13 @@ static dlong extTotalCost;	/* Sum of all job costs (cell-level mode) */
 
 /* TRUE only inside a worker forked by extSubtreeParallel() */
 static bool extSubtreeWorker = FALSE;
+
+/* While the main process extracts a cell itself during cell-level
+ * parallel extraction, the number of cell workers still running, so
+ * that extSubtreeParallel() keeps the total number of busy processes
+ * within the job count.  NULL otherwise.
+ */
+static int *extCellWorkersActive = NULL;
 
 /* Maps CellDef pointer -> job index + 1.  A hash table is used rather
  * than cd_client so that each def looks exactly as it does in a serial
@@ -835,6 +843,7 @@ finish:
     /* If the parent is gone, nobody will read the logs:  remove them */
     if (extParentGone()) extDiscardOutput(logDir, n);
     fflush(NULL);
+    __atomic_fetch_sub(&shared->es_active, 1, __ATOMIC_SEQ_CST);
     _exit(0);
 }
 
@@ -863,10 +872,15 @@ extParentJob(
     int fbStart;
     FILE *logf, *saveRedirect;
     CellDef *def = extJobs[idx].ej_def;
+    bool ok;
 
     snprintf(logName, sizeof(logName), "%s/%d.log", logDir, idx);
     logf = fopen(logName, "w");
-    if (logf == NULL) return;		/* Not done:  extracted serially */
+    if (logf == NULL)
+    {
+	shared->es_abort = 1;		/* Not done:  extracted serially */
+	return;
+    }
 
     extReplayDescendants(def, rootDef);
     if (extJobs[idx].ej_state == EJ_REPLAYED)
@@ -878,11 +892,17 @@ extParentJob(
     extJobs[idx].ej_savePlane = ExtCell(def, (char *) NULL, (def == rootDef));
     extJobs[idx].ej_state = EJ_EXTRACTED;
     TxRedirectFile = saveRedirect;
-    fclose(logf);
+    ok = extCloseFile(logf);
 
     snprintf(logName, sizeof(logName), "%s/%d.fb", logDir, idx);
-    extSaveFeedback(fbStart, logName);
+    if (ok) ok = extSaveFeedback(fbStart, logName);
     DBWFeedbackTruncate(fbStart);
+    if (!ok)
+    {
+	/* Not done:  stop the workers and extract serially */
+	shared->es_abort = 1;
+	return;
+    }
     if (SigInterruptPending) return;
 
     EXT_ERRORS(shared, n)[idx] = extNumErrors;
@@ -1111,7 +1131,15 @@ extExtractStackParallel(
 		nparent++;
 	    }
 
-    nworkers = (ExtNumJobs < nwork - nparent) ? ExtNumJobs : nwork - nparent;
+    /* Workers handle every other cell, including those with zero cost,
+     * which still have to be marked done.  While this process extracts
+     * a cell itself it counts as one of the jobs.
+     */
+    nworkers = nwork - nparent;
+    if (nworkers == 0 && n > nparent) nworkers = 1;
+    k = (nparent > 0) ? ExtNumJobs - 1 : ExtNumJobs;
+    if (k < 1) k = 1;
+    if (nworkers > k) nworkers = k;
 
     /* If the .ext files go to a directory that does not exist yet, create
      * it here, as the first cell's extraction would, rather than in many
@@ -1188,11 +1216,13 @@ extExtractStackParallel(
     running = 0;
     for (started = 0; started < nworkers; started++)
     {
+	__atomic_fetch_add(&shared->es_active, 1, __ATOMIC_SEQ_CST);
 	pid = fork();
 	if (pid == 0)
 	    extWorker(shared, order, rootDef, logDir, doResist); /* No return */
 	if (pid < 0)
 	{
+	    __atomic_fetch_sub(&shared->es_active, 1, __ATOMIC_SEQ_CST);
 	    TxError("Parallel extraction:  fork failed: %s\n", strerror(errno));
 	    break;
 	}
@@ -1202,9 +1232,11 @@ extExtractStackParallel(
     if (running == 0 && nworkers > 0) shared->es_abort = 1;
 
     /* Extract the cells kept for this process, largest first */
+    extCellWorkersActive = &shared->es_active;
     for (k = 0; k < n && !shared->es_abort && !SigInterruptPending; k++)
 	if (extJobs[order[k]].ej_parent)
 	    extParentJob(shared, order[k], rootDef, logDir);
+    extCellWorkersActive = NULL;
 
     /* Wait for all workers.  Only the workers' own process IDs are
      * waited for, so other children of this process (for example
@@ -1356,11 +1388,15 @@ restore:
 
 #define EXT_SUBTREE_BATCHES_PER_JOB	16
 
+extern long extSubtreeInteractionArea, extSubtreeClippedArea;
+
 /* Shared state for one call of extSubtreeParallel() */
 typedef struct
 {
     int		ss_next;	/* Next batch to claim */
     int		ss_abort;	/* Set by the parent if a worker died */
+    long	ss_interArea;	/* Statistics for ExtTimes (see ExtSubtree.c) */
+    long	ss_clipArea;
     int		ss_data[1];	/* Really 3 * nbatch:  done, errors, warnings */
 } ExtSubShared;
 
@@ -1394,6 +1430,12 @@ extAppendFile(
     if (in == NULL) return;
     while ((len = fread(buf, 1, sizeof(buf), in)) > 0)
 	fwrite(buf, 1, len, f);
+    if (ferror(in))
+    {
+	TxError("Parallel extraction:  cannot read %s;  output is incomplete.\n",
+		name);
+	extNumErrors++;
+    }
     fclose(in);
     unlink(name);
 }
@@ -1416,8 +1458,10 @@ extSubtreeWorkerMain(
     int step = ExtCurStyle->exts_stepSize;
     int ncols = (b->r_xtop - b->r_xbot + step - 1) / step;
     int bn, k, k0, k1, fbStart;
+    long interArea, clipArea;
     char name[1100];
     FILE *outf, *opsf, *logf;
+    bool ok;
 
     extSubtreeWorker = TRUE;
     extParallelWorker = TRUE;	/* Never touch Tcl or the display */
@@ -1439,6 +1483,9 @@ extSubtreeWorkerMain(
 	opsf = fopen(name, "w");
 	snprintf(name, sizeof(name), "%s/%d.log", dir, bn);
 	logf = fopen(name, "w");
+	/* Any file that cannot be written makes the parent continue
+	 * serially (see below)
+	 */
 	if (outf == NULL || opsf == NULL || logf == NULL) _exit(3);
 
 	ha->ha_outf = outf;
@@ -1446,6 +1493,8 @@ extSubtreeWorkerMain(
 	TxRedirectFile = logf;
 	fbStart = DBWFeedbackCount;
 	extNumErrors = extNumWarnings = 0;
+	interArea = extSubtreeInteractionArea;
+	clipArea = extSubtreeClippedArea;
 
 	/* As if no earlier piece had been processed (see above) */
 	(void) DBCellEnum(def, extClearSubFlagFunc, (ClientData) NULL);
@@ -1459,15 +1508,20 @@ extSubtreeWorkerMain(
 	    extSubtreeOneCut(ha, halo, &r);
 	}
 
-	fclose(outf);
-	fclose(opsf);
-	fclose(logf);
 	extHierOpLogStart(NULL);
 	TxRedirectFile = extNullFile;
+	ok = extCloseFile(outf);
+	if (!extCloseFile(opsf)) ok = FALSE;
+	if (!extCloseFile(logf)) ok = FALSE;
+	if (!ok) _exit(3);
 	if (SigInterruptPending) break;
 
 	snprintf(name, sizeof(name), "%s/%d.fb", dir, bn);
-	extSaveFeedback(fbStart, name);
+	if (!extSaveFeedback(fbStart, name)) _exit(3);
+	__atomic_fetch_add(&shared->ss_interArea,
+		extSubtreeInteractionArea - interArea, __ATOMIC_SEQ_CST);
+	__atomic_fetch_add(&shared->ss_clipArea,
+		extSubtreeClippedArea - clipArea, __ATOMIC_SEQ_CST);
 	SS_ERRORS(shared, nbatch)[bn] = extNumErrors;
 	SS_WARNINGS(shared, nbatch)[bn] = extNumWarnings;
 	__atomic_store_n(&SS_DONE(shared, nbatch)[bn], 1, __ATOMIC_SEQ_CST);
@@ -1519,7 +1573,7 @@ extSubtreeParallel(
     return FALSE;
 #else
     CellDef *def = ha->ha_parentUse->cu_def;
-    int njobs = ExtNumJobs, nbatch, i, k, running, status;
+    int njobs = ExtNumJobs, nbatch, i, k, running, started, status;
     size_t shsize;
     ExtSubShared *shared;
     pid_t pid, *pids;
@@ -1562,20 +1616,43 @@ extSubtreeParallel(
     TxFlush();
     fflush(NULL);
     pids = (pid_t *) mallocMagic(njobs * sizeof(pid_t));
-    running = 0;
-    for (i = 0; i < njobs; i++)
-    {
-	pid = fork();
-	if (pid == 0)
-	    extSubtreeWorkerMain(ha, halo, totcuts, nbatch, shared, dir);
-	if (pid < 0) break;
-	pids[running++] = pid;
-    }
-    if (running == 0) shared->ss_abort = 1;
+    running = started = 0;
 
-    while (running > 0)
+    /* Start up to njobs workers, but while cell workers are still busy
+     * (cell-level parallel extraction, see extParentJob()) only as many
+     * as there are free jobs, and more as the cell workers finish.  This
+     * process only waits, and does not count.  Nothing here changes the
+     * cell or the connection table between the forks, so every worker
+     * starts from the same state.
+     */
+    while (TRUE)
     {
-	int reaped = 0;
+	int reaped = 0, avail = njobs;
+
+	if (extCellWorkersActive != NULL)
+	    avail -= __atomic_load_n(extCellWorkersActive, __ATOMIC_SEQ_CST);
+	if (avail < 1) avail = 1;
+	while (started < njobs && running < avail && !shared->ss_abort &&
+		!SigInterruptPending &&
+		__atomic_load_n(&shared->ss_next, __ATOMIC_SEQ_CST) < nbatch)
+	{
+	    pid = fork();
+	    if (pid == 0)
+		extSubtreeWorkerMain(ha, halo, totcuts, nbatch, shared, dir);
+	    if (pid < 0)
+	    {
+		started = njobs;	/* Make do with the workers started */
+		break;
+	    }
+	    pids[running++] = pid;
+	    started++;
+	}
+	if (running == 0)
+	{
+	    /* No worker could be started */
+	    if (started == 0) shared->ss_abort = 1;
+	    break;
+	}
 
 	for (k = 0; k < running; k++)
 	{
@@ -1587,7 +1664,7 @@ extSubtreeParallel(
 	    pids[k--] = pids[--running];
 	    reaped++;
 	}
-	if (running == 0 || reaped > 0) continue;
+	if (reaped > 0) continue;
 
 	/* Progress messages, as extSubtree() prints them (every 5 s) */
 	if (GrDisplayStatus == DISPLAY_BREAK_PENDING)
@@ -1610,8 +1687,21 @@ extSubtreeParallel(
     }
     freeMagic(pids);
 
-    for (i = 0; i < nbatch; i++)
+    /* Every batch must have been finished and its files must still be
+     * there, since nothing can be undone once merging has begun.
+     */
+    for (i = 0; i < nbatch && ok; i++)
+    {
+	static const char * const exts[] = { "out", "ops", "log" };
+	int e;
+
 	if (!SS_DONE(shared, nbatch)[i]) ok = FALSE;
+	for (e = 0; e < 3 && ok; e++)
+	{
+	    snprintf(name, sizeof(name), "%s/%d.%s", dir, i, exts[e]);
+	    if (access(name, R_OK) != 0) ok = FALSE;
+	}
+    }
 
     if (!ok)
     {
@@ -1642,9 +1732,15 @@ extSubtreeParallel(
 	opsf = fopen(name, "r");
 	if (opsf != NULL)
 	{
+	    /* Cannot happen unless a file was damaged after it was
+	     * written;  count it as an error, since the output is wrong.
+	     */
 	    if (!extHierReplayOps(opsf, &ha->ha_connHash))
-		TxError("Parallel extraction:  bad connection log for %s.\n",
-			def->cd_name);
+	    {
+		TxError("Parallel extraction:  bad connection log for %s;  "
+			"its connections are incomplete.\n", def->cd_name);
+		extNumErrors++;
+	    }
 	    fclose(opsf);
 	    unlink(name);
 	}
@@ -1655,6 +1751,8 @@ extSubtreeParallel(
 	extNumErrors += SS_ERRORS(shared, nbatch)[i];
 	extNumWarnings += SS_WARNINGS(shared, nbatch)[i];
     }
+    extSubtreeInteractionArea += shared->ss_interArea;
+    extSubtreeClippedArea += shared->ss_clipArea;
     rmdir(dir);
     extTempUnregister(1);
     munmap(shared, shsize);

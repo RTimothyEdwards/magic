@@ -126,8 +126,9 @@ extHierLogName(
     if (op == EXT_OP_MERGE) extHierLogNameRef(name2);
 }
 
-/* Values are written as a bit mask of the resistance classes with a
- * non-zero perimeter or area, followed by the values of those classes.
+/* Values are written as the capacitance, then for each group of 32
+ * resistance classes a bit mask of the classes with a non-zero perimeter
+ * or area, followed by the values of those classes.
  */
 void
 extHierLogAdjust(
@@ -135,22 +136,26 @@ extHierLogAdjust(
     char *name,
     NodeRegion *np)	/* Values to add to or subtract from the node */
 {
-    int n;
-    unsigned int mask = 0;
+    int n, n0, nclasses = ExtCurStyle->exts_numResistClasses;
+    unsigned int mask;
 
-    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
-	if (np->nreg_pa[n].pa_perim != 0 || np->nreg_pa[n].pa_area != 0)
-	    mask |= (1U << n);
     putc(op, extHierOpLog);
     extHierLogNameRef(name);
     fwrite(&np->nreg_cap, sizeof(CapValue), 1, extHierOpLog);
-    fwrite(&mask, sizeof(unsigned int), 1, extHierOpLog);
-    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
-	if (mask & (1U << n))
-	{
-	    fwrite(&np->nreg_pa[n].pa_perim, sizeof(int), 1, extHierOpLog);
-	    fwrite(&np->nreg_pa[n].pa_area, sizeof(dlong), 1, extHierOpLog);
-	}
+    for (n0 = 0; n0 < nclasses; n0 += 32)
+    {
+	mask = 0;
+	for (n = n0; n < nclasses && n < n0 + 32; n++)
+	    if (np->nreg_pa[n].pa_perim != 0 || np->nreg_pa[n].pa_area != 0)
+		mask |= (1U << (n - n0));
+	fwrite(&mask, sizeof(unsigned int), 1, extHierOpLog);
+	for (n = n0; n < nclasses && n < n0 + 32; n++)
+	    if (mask & (1U << (n - n0)))
+	    {
+		fwrite(&np->nreg_pa[n].pa_perim, sizeof(int), 1, extHierOpLog);
+		fwrite(&np->nreg_pa[n].pa_area, sizeof(dlong), 1, extHierOpLog);
+	    }
+    }
 }
 
 /*
@@ -293,8 +298,7 @@ extHierReplayOps(
 	    case EXT_OP_SUB:
 		if (!(name1 = extHierReadName(f, &lr))) { ok = FALSE; break; }
 		node = extHierFindNode(table, name1, FALSE);
-		if (fread(&cap, sizeof(CapValue), 1, f) != 1 ||
-			fread(&mask, sizeof(unsigned int), 1, f) != 1)
+		if (fread(&cap, sizeof(CapValue), 1, f) != 1)
 		{
 		    ok = FALSE;
 		    break;
@@ -304,9 +308,17 @@ extHierReplayOps(
 		    if (c == EXT_OP_ADD) node->node_cap += cap;
 		    else node->node_cap -= cap;
 		}
-		for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+		mask = 0;
+		for (n = 0; ok && n < ExtCurStyle->exts_numResistClasses; n++)
 		{
-		    if (!(mask & (1U << n))) continue;
+		    /* A new mask word starts every 32 classes */
+		    if ((n % 32) == 0 &&
+			    fread(&mask, sizeof(unsigned int), 1, f) != 1)
+		    {
+			ok = FALSE;
+			break;
+		    }
+		    if (!(mask & (1U << (n % 32)))) continue;
 		    if (fread(&perim, sizeof(int), 1, f) != 1 ||
 			    fread(&area, sizeof(dlong), 1, f) != 1)
 		    {
@@ -612,10 +624,8 @@ extHierSubstrate(ha, use, x, y)
     freeMagic(childname);
 
     if (extHierOpLog)
-
         extHierLogName(EXT_OP_MERGE, node1->node_names->nn_name,
-
-    		node2->node_names->nn_name);
+		node2->node_names->nn_name);
 
     if (node1 != node2)
     {
@@ -851,9 +861,7 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 		node2 = nn ? nn->nn_node : extHierNewNode(he);
 
 		if (extHierOpLog)
-
 		    extHierLogName(EXT_OP_MERGE, node1->node_names->nn_name,
-
 				node2->node_names->nn_name);
 
 		if (node1 != node2)
@@ -1039,9 +1047,7 @@ extHierConnectFunc2(cum, dinfo, ha)
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
 
 	if (extHierOpLog)
-
 	    extHierLogName(EXT_OP_MERGE, node1->node_names->nn_name,
-
 			node2->node_names->nn_name);
 
 	if (node1 != node2)
@@ -1218,9 +1224,7 @@ extHierConnectFunc3(cum, dinfo, ha)
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
 
 	if (extHierOpLog)
-
 	    extHierLogName(EXT_OP_MERGE, node1->node_names->nn_name,
-
 			node2->node_names->nn_name);
 
 	if (node1 != node2)
@@ -1391,11 +1395,13 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
 	/* Ignore substrate nodes (failsafe:  should not happen) */
 	if (TiGetTypeExact(tp) == TT_SPACE) continue;
 
-	if (tp && extHierOpLog
-		&& (name = (*ha->ha_nodename)(tp, dinfo, np->nreg_pnum, lookFlat, ha, FALSE)))
+	if (tp == NULL) continue;
+	name = (*ha->ha_nodename)(tp, dinfo, np->nreg_pnum, lookFlat, ha, FALSE);
+	if (name == NULL) continue;
+
+	if (extHierOpLog)
 	    extHierLogAdjust(EXT_OP_SUB, name, np);
-	else if (tp && (name = (*ha->ha_nodename)(tp, dinfo, np->nreg_pnum, lookFlat, ha, FALSE))
-		&& (he = HashLookOnly(&ha->ha_connHash, name))
+	else if ((he = HashLookOnly(&ha->ha_connHash, name))
 		&& (nn = (NodeName *) HashGetValue(he)))
 	{
 	    /* Adjust the capacitance and resistance on the node */
