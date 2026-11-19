@@ -692,6 +692,7 @@ static struct
     char	*fc_logName;
     int		 fc_fbStart;	/* DBWFeedbackCount when it started */
     bool	 fc_live;	/* Its output now goes straight out */
+    bool	 fc_noLive;	/* Switching failed:  keep using the log */
 } extFlushCtx;
 
 /*
@@ -719,7 +720,11 @@ extGoLive(void)
     snprintf(name, sizeof(name), "%s/live.fb", extFlushCtx.fc_logDir);
     if (!extSaveFeedback(extFlushCtx.fc_fbStart, name))
     {
+	/* Keep logging, and do not try again for this cell:  each try
+	 * would write all of its feedback so far.
+	 */
 	unlink(name);
+	extFlushCtx.fc_noLive = TRUE;
 	return FALSE;
     }
     DBWFeedbackTruncate(extFlushCtx.fc_fbStart);
@@ -774,6 +779,7 @@ extFlushCellMessages(void)
      * prints directly (see extGoLive())
      */
     if ((extFlushCtx.fc_job >= 0) && !extFlushCtx.fc_live &&
+		!extFlushCtx.fc_noLive &&
 		(extFlushCtx.fc_ef->ef_nextMsg == extFlushCtx.fc_job) &&
 		extGoLive())
 	return;			/* Output stays direct */
@@ -1012,6 +1018,7 @@ extParentJob(
     extFlushCtx.fc_logName = logName;
     extFlushCtx.fc_fbStart = fbStart;
     extFlushCtx.fc_live = FALSE;
+    extFlushCtx.fc_noLive = FALSE;
     extFlushCellMessages();
 
     extJobs[idx].ej_savePlane = ExtCell(def, (char *) NULL, (def == rootDef));
@@ -1872,9 +1879,10 @@ extSubtreeParallel(
     /* Start up to njobs workers, but while cell workers are still busy
      * (cell-level parallel extraction, see extParentJob()) only as many
      * as there are free jobs, and more as the cell workers finish.  This
-     * process only waits, and does not count.  Nothing here changes the
-     * cell or the connection table between the forks, so every worker
-     * starts from the same state.
+     * process does not count.  Between forks it merges finished batches
+     * into the connection table;  a worker forked later starts from that
+     * state, which is still correct, since replaying its log only merges
+     * nodes that were already merged in its own copy.
      */
     while (TRUE)
     {
@@ -1887,6 +1895,10 @@ extSubtreeParallel(
 		!SigInterruptPending &&
 		__atomic_load_n(&shared->ss_next, __ATOMIC_SEQ_CST) < nbatch)
 	{
+	    /* This process may have printed or merged since the last fork:
+	     * leave nothing in its output buffers for the child to inherit.
+	     */
+	    fflush(NULL);
 	    pid = fork();
 	    if (pid == 0)
 		extSubtreeWorkerMain(ha, halo, totcuts, nbatch, shared, dir);
