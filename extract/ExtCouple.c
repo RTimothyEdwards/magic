@@ -551,7 +551,8 @@ extBasicOverlap(tile, dinfo, ecs)
 struct overlap
 {
     Rect		 o_clip;
-    int			 o_area;
+    /* Area can exceed 32 bits even when both coordinates are small. */
+    dlong		 o_area;
     PlaneMask		 o_pmask;
     TileTypeBitMask	 o_tmask;
 };
@@ -617,7 +618,7 @@ extAddOverlap(tbelow, dinfo, ecpls)
     {
 	GEOCLIP(&ov.o_clip, extCoupleSearchArea);
     }
-    ov.o_area = (ov.o_clip.r_ytop - ov.o_clip.r_ybot)
+    ov.o_area = (dlong)(ov.o_clip.r_ytop - ov.o_clip.r_ybot)
 	      * (ov.o_clip.r_xtop - ov.o_clip.r_xbot);
 
     if (IsSplit(tabove))
@@ -724,11 +725,11 @@ extSubtractOverlap(tile, dinfo, ov)
     struct overlap *ov;
 {
     Rect r;
-    int area;
+    dlong area;
 
     TITORECT(tile, &r);
     GEOCLIP(&r, &ov->o_clip);
-    area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    area = (dlong)(r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
     if (IsSplit(tile)) area /= 2;
     if (area > 0)
 	ov->o_area -= area;
@@ -749,12 +750,13 @@ extSubtractOverlap2(tile, dinfo, ov)
 {
     TileType ttype;
     struct overlap ovnew;
-    int area, pNum;
+    dlong area;
+    int pNum;
     Rect r;
 
     TITORECT(tile, &r);
     GEOCLIP(&r, &ov->o_clip);
-    area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    area = (dlong)(r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
     if (area <= 0)
 	return (0);
     if (IsSplit(tile))
@@ -810,14 +812,15 @@ extSubtractSideOverlap(tile, dinfo, sov)
     struct sideoverlap *sov;
 {
     Rect r;
-    int area, dnear, dfar, length;
+    dlong area;
+    int dnear, dfar, length;
     double mult, snear, sfar;
     TileType ta, tb;
     Boundary *bp = sov->so_esws->bp;
 
     TITORECT(tile, &r);
     GEOCLIP(&r, &sov->so_clip);
-    area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    area = (dlong)(r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
     if (area <= 0) return 0;
 
     ta = TiGetType(bp->b_inside);
@@ -889,7 +892,8 @@ extSubtractSideOverlap2(tile, dinfo, sov)
 {
     TileType ttype;
     struct sideoverlap sovnew;
-    int area, pNum;
+    dlong area;
+    int pNum;
     Rect r;
 
     if (IsSplit(tile))
@@ -899,7 +903,7 @@ extSubtractSideOverlap2(tile, dinfo, sov)
 
     TITORECT(tile, &r);
     GEOCLIP(&r, &sov->so_clip);
-    area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    area = (dlong)(r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
     if (area <= 0) return (0);
     if (IsSplit(tile)) area /= 2;
 
@@ -1796,7 +1800,8 @@ extSideOverlap(tp, dinfo, esws)
     struct overlap ov;
     HashEntry *he;
     EdgeCap *e;
-    int length, areaAccountedFor, areaTotal;
+    int length;
+    dlong areaAccountedFor, areaTotal;
     double afrac;
     CapValue cap;
     CoupleKey ck;
@@ -1822,7 +1827,7 @@ extSideOverlap(tp, dinfo, esws)
 
     TITORECT(tp, &ov.o_clip);
     GEOCLIP(&ov.o_clip, esws->area);
-    areaTotal = GEO_WIDTH(&ov.o_clip) * GEO_HEIGHT(&ov.o_clip);
+    areaTotal = (dlong)GEO_WIDTH(&ov.o_clip) * GEO_HEIGHT(&ov.o_clip);
     areaAccountedFor = 0;
  
     ta = TiGetType(bp->b_inside);

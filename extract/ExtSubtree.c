@@ -158,7 +158,8 @@ extClearUseFlags(use, clientData)
  * ----------------------------------------------------------------------------
  */
 
-#define	RECTAREA(r)	(((r)->r_xtop-(r)->r_xbot) * ((r)->r_ytop-(r)->r_ybot))
+#define	RECTAREA(r)	((dlong)((r)->r_xtop-(r)->r_xbot) * \
+				((r)->r_ytop-(r)->r_ybot))
 
 void
 extSubtree(parentUse, reg, f)
