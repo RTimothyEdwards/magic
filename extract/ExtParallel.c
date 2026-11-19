@@ -1189,8 +1189,9 @@ extExtractStackParallel(
     }
     extTempRegister(0, logDir);
 
+    /* This process counts as a job while it extracts cells itself */
     TxPrintf("Extracting %d cell%s with %d parallel jobs.\n", nwork,
-		(nwork == 1) ? "" : "s", nworkers);
+		(nwork == 1) ? "" : "s", nworkers + ((nparent > 0) ? 1 : 0));
     TxFlush();
 
     /* If replaying a cell is cheap (see ExtReplayIsCheap()), replay every
@@ -1596,6 +1597,15 @@ extSubtreeParallel(
     nbatch = njobs * EXT_SUBTREE_BATCHES_PER_JOB;
     if (nbatch > totcuts) nbatch = totcuts;
 
+    /* Read every cell below this one (see extReadSubtree()) */
+    {
+	HashTable visited;
+
+	HashInit(&visited, 64, HT_WORDKEYS);
+	extReadSubtree(def, &visited);
+	HashKill(&visited);
+    }
+
     shsize = SS_SIZE(nbatch);
     shared = (ExtSubShared *) mmap(NULL, shsize, PROT_READ | PROT_WRITE,
 		MAP_SHARED | MAP_ANON, -1, 0);
@@ -1603,9 +1613,11 @@ extSubtreeParallel(
     memset(shared, 0, shsize);
 
     tmp = getenv("TMPDIR");
-    snprintf(dir, sizeof(dir), "%s/magic-sub-XXXXXX", (tmp && *tmp) ? tmp : "/tmp");
-    if (mkdtemp(dir) == NULL)
+    if ((snprintf(dir, sizeof(dir), "%s/magic-sub-XXXXXX",
+		(tmp && *tmp) ? tmp : "/tmp") >= (int) sizeof(dir)) ||
+		(mkdtemp(dir) == NULL))
     {
+	TxError("Parallel extraction:  cannot create temporary directory.\n");
 	munmap(shared, shsize);
 	return FALSE;
     }
