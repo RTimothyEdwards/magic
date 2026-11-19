@@ -562,7 +562,7 @@ magic_completion_function(
     int start,
     int end)
 {
-    CPFunction *completion_func = (CPFunction *)NULL;
+    rl_compentry_func_t *completion_func = NULL;
     char **matches, **tokens;
     char *line = strdup(rl_line_buffer);
     int i;
