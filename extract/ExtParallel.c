@@ -118,7 +118,7 @@ typedef struct
     int		es_ndone;	/* Number of cells extracted so far */
     int		es_abort;	/* Set by the parent if a worker died */
     int		es_active;	/* Number of workers still running */
-    int		es_data[1];	/* Really 4 * nJobs:  see EXT_* macros */
+    int		es_data[1];	/* Really 5 * nJobs:  see EXT_* macros */
 } ExtShared;
 
 /* Per-job arrays inside es_data[] */
@@ -126,7 +126,8 @@ typedef struct
 #define EXT_ERRORS(sh, n)	((sh)->es_data + (n))
 #define EXT_WARNINGS(sh, n)	((sh)->es_data + 2 * (n))
 #define EXT_RESDONE(sh, n)	((sh)->es_data + 3 * (n))	/* extresist */
-#define EXT_SHSIZE(n)		(sizeof(ExtShared) + 4 * (n) * sizeof(int))
+#define EXT_CLAIMED(sh, n)	((sh)->es_data + 4 * (n))	/* taken by someone */
+#define EXT_SHSIZE(n)		(sizeof(ExtShared) + 5 * (n) * sizeof(int))
 
 static ExtJob *extJobs;
 static int extNumJobList;
@@ -864,7 +865,9 @@ extWorker(
 	k = __atomic_fetch_add(&shared->es_next, 1, __ATOMIC_SEQ_CST);
 	if (k >= n) break;
 	idx = order[k];
-	if (extJobs[idx].ej_parent) continue;	/* The main process does it */
+	/* Skip cells that the main process took (see below) */
+	if (__atomic_exchange_n(&EXT_CLAIMED(shared, n)[idx], 1, __ATOMIC_SEQ_CST))
+	    continue;
 	def = extJobs[idx].ej_def;
 
 	extReplayDescendants(def, rootDef);
@@ -972,9 +975,12 @@ finish:
  * extParentJob --
  *
  *	Extract one cell in the main process while the workers extract the
- *	others, writing its messages and feedback to the same files that a
- *	worker would, so they are replayed in serial order.  Unlike a worker
- *	this process may fork, so extSubtreeParallel() can split the cell.
+ *	others:  a cell kept for this process because it is big, or one
+ *	that no worker had taken yet.  Its messages and feedback go to the
+ *	same files that a worker would use, so they are printed in serial
+ *	order, until it can print directly (see extGoLive()).  Unlike a
+ *	worker this process may fork, so extSubtreeParallel() can split the
+ *	cell.
  *
  * ----------------------------------------------------------------------------
  */
@@ -1318,6 +1324,9 @@ extExtractStackParallel(
 	goto restore;
     }
     memset(shared, 0, shsize);
+    for (i = 0; i < n; i++)
+	if (extJobs[i].ej_parent)
+	    EXT_CLAIMED(shared, n)[i] = 1;	/* Taken by this process */
 
     /* A TMPDIR too long for the buffer would be cut short, losing the
      * unique suffix that mkdtemp() needs.
@@ -1396,15 +1405,17 @@ extExtractStackParallel(
 	    extFlushCells(shared, n, logDir, doResist, &ef, FALSE);
 	    extParentJob(shared, order[k], rootDef, logDir);
 	}
-    extFlushCtx.fc_shared = NULL;
-    extCellWorkersActive = NULL;
 
     /* Wait for all workers.  Only the workers' own process IDs are
      * waited for, so other children of this process (for example
      * started with Tcl "exec ... &") are left alone.  If a worker dies,
      * tell the others to stop so none of them waits forever at the
      * extresist barrier.  Meanwhile, print the results of finished cells
-     * in serial order.
+     * in serial order.  Workers take the big cells first, so the next
+     * cell to print may not have been taken by any worker yet, and
+     * every message would wait until the workers were done with the big
+     * cells:  this process then extracts that cell itself, which can
+     * usually print its output directly (see extGoLive()).
      */
     while (running > 0)
     {
@@ -1424,8 +1435,19 @@ extExtractStackParallel(
 	    reaped++;
 	}
 	if (running == 0 || reaped > 0) continue;
-	if (!shared->es_abort && !SigInterruptPending)
-	    extFlushCells(shared, n, logDir, doResist, &ef, FALSE);
+	if (shared->es_abort || SigInterruptPending)
+	{
+	    usleep(10000);
+	    continue;
+	}
+	extFlushCells(shared, n, logDir, doResist, &ef, FALSE);
+	if (!doResist && (ef.ef_nextMsg < n) &&
+		!__atomic_exchange_n(&EXT_CLAIMED(shared, n)[ef.ef_nextMsg], 1,
+		__ATOMIC_SEQ_CST))
+	{
+	    extParentJob(shared, ef.ef_nextMsg, rootDef, logDir);
+	    continue;
+	}
 #ifdef MAGIC_WRAPPER
 	/* Keep the layout window and console responsive while waiting,
 	 * as extSubtree() does during a long serial extraction.
@@ -1435,6 +1457,8 @@ extExtractStackParallel(
 	usleep(10000);
     }
     freeMagic(pids);
+    extFlushCtx.fc_shared = NULL;
+    extCellWorkersActive = NULL;
 
     /* Undo the replay done before forking and the extraction of the
      * cells kept for this process (top-down, as the serial code does)
