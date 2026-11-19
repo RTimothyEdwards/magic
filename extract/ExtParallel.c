@@ -63,6 +63,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #endif
 
@@ -100,6 +101,9 @@ typedef struct
     dlong	 ej_cost;	/* Estimated extraction cost */
     int		 ej_state;	/* Worker-local:  see EJ_* below */
     Plane	*ej_savePlane;	/* Worker-local:  substrate plane to revert */
+    bool	 ej_parent;	/* Extracted by the main process, which may
+				 * split it with extSubtreeParallel()
+				 */
 } ExtJob;
 
 #define EJ_NONE		0	/* Not yet touched in this worker */
@@ -393,6 +397,73 @@ extCloseFile(
 /*
  * ----------------------------------------------------------------------------
  *
+ * extTempRegister, extTempUnregister, extTempCleanup --
+ *
+ *	Remember the temporary directories that the main process is using
+ *	(slot 0:  cell-level jobs, slot 1:  jobs inside one cell), so that
+ *	they are removed if it exits while using them (for example on
+ *	SIGTERM, whose handler calls exit()).  Workers that outlive the main
+ *	process remove their own files (see extParentGone()), but a worker
+ *	that has already finished cannot.  Forked processes never run the
+ *	cleanup (they leave with _exit(), and it checks the process ID).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static char extTempDirs[2][1024];
+static pid_t extTempOwner = 0;
+
+static void
+extTempCleanup(void)
+{
+    DIR *d;
+    struct dirent *e;
+    char path[1300];
+    int slot;
+
+    if (getpid() != extTempOwner) return;
+    for (slot = 0; slot < 2; slot++)
+    {
+	if (extTempDirs[slot][0] == '\0') continue;
+	d = opendir(extTempDirs[slot]);
+	if (d != NULL)
+	{
+	    while ((e = readdir(d)) != NULL)
+	    {
+		if (e->d_name[0] == '.') continue;
+		snprintf(path, sizeof(path), "%s/%s", extTempDirs[slot], e->d_name);
+		unlink(path);
+	    }
+	    closedir(d);
+	}
+	rmdir(extTempDirs[slot]);
+	extTempDirs[slot][0] = '\0';
+    }
+}
+
+static void
+extTempRegister(
+    int slot,
+    char *dir)
+{
+    if (extTempOwner == 0)
+    {
+	extTempOwner = getpid();
+	atexit(extTempCleanup);
+    }
+    strncpy(extTempDirs[slot], dir, sizeof(extTempDirs[slot]) - 1);
+}
+
+static void
+extTempUnregister(
+    int slot)
+{
+    extTempDirs[slot][0] = '\0';
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * extSaveFeedback --
  *
  *	Write feedback entries 'first' .. DBWFeedbackCount-1 to 'fileName'
@@ -666,6 +737,7 @@ extWorker(
 	k = __atomic_fetch_add(&shared->es_next, 1, __ATOMIC_SEQ_CST);
 	if (k >= n) break;
 	idx = order[k];
+	if (extJobs[idx].ej_parent) continue;	/* The main process does it */
 	def = extJobs[idx].ej_def;
 
 	extReplayDescendants(def, rootDef);
@@ -764,6 +836,59 @@ finish:
     if (extParentGone()) extDiscardOutput(logDir, n);
     fflush(NULL);
     _exit(0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extParentJob --
+ *
+ *	Extract one cell in the main process while the workers extract the
+ *	others, writing its messages and feedback to the same files that a
+ *	worker would, so they are replayed in serial order.  Unlike a worker
+ *	this process may fork, so extSubtreeParallel() can split the cell.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extParentJob(
+    ExtShared *shared,
+    int idx,
+    CellDef *rootDef,
+    char *logDir)
+{
+    int n = extNumJobList;
+    char logName[1024];
+    int fbStart;
+    FILE *logf, *saveRedirect;
+    CellDef *def = extJobs[idx].ej_def;
+
+    snprintf(logName, sizeof(logName), "%s/%d.log", logDir, idx);
+    logf = fopen(logName, "w");
+    if (logf == NULL) return;		/* Not done:  extracted serially */
+
+    extReplayDescendants(def, rootDef);
+    if (extJobs[idx].ej_state == EJ_REPLAYED)
+	extRevertReplay(&extJobs[idx]);
+
+    saveRedirect = TxRedirectFile;
+    TxRedirectFile = logf;
+    fbStart = DBWFeedbackCount;
+    extJobs[idx].ej_savePlane = ExtCell(def, (char *) NULL, (def == rootDef));
+    extJobs[idx].ej_state = EJ_EXTRACTED;
+    TxRedirectFile = saveRedirect;
+    fclose(logf);
+
+    snprintf(logName, sizeof(logName), "%s/%d.fb", logDir, idx);
+    extSaveFeedback(fbStart, logName);
+    DBWFeedbackTruncate(fbStart);
+    if (SigInterruptPending) return;
+
+    EXT_ERRORS(shared, n)[idx] = extNumErrors;
+    EXT_WARNINGS(shared, n)[idx] = extNumWarnings;
+    __atomic_store_n(&EXT_DONE(shared, n)[idx], 1, __ATOMIC_SEQ_CST);
+    __atomic_fetch_add(&shared->es_ndone, 1, __ATOMIC_SEQ_CST);
 }
 
 #endif /* !EXT_NO_FORK */
@@ -877,7 +1002,7 @@ extExtractStackParallel(
     return FALSE;
 #else
     CellDef *def;
-    int n, cap, i, nwork, nworkers, started, running, status;
+    int n, cap, i, k, nwork, nworkers, nparent, started, running, status;
     int errorcnt = 0, warnings = 0;
     int *order;
     size_t shsize;
@@ -906,6 +1031,7 @@ extExtractStackParallel(
 	extJobs[n].ej_def = def;
 	extJobs[n].ej_state = EJ_NONE;
 	extJobs[n].ej_savePlane = NULL;
+	extJobs[n].ej_parent = FALSE;
 	n++;
     }
     extNumJobList = n;
@@ -968,7 +1094,24 @@ extExtractStackParallel(
     if (nwork <= 1)
 	goto restore;
 
-    nworkers = (ExtNumJobs < nwork) ? ExtNumJobs : nwork;
+    /* A cell that is at least its share of the whole job is extracted by
+     * this process, while the workers extract the others, so that it can
+     * be split among parallel jobs by extSubtreeParallel().  A worker
+     * cannot do that:  fork() in a process that was itself forked from
+     * a threaded Tcl aborts in Tcl's fork handlers on macOS.  Resistance
+     * extraction never splits a cell.
+     */
+    nparent = 0;
+    if (!doResist)
+	for (i = 0; i < n; i++)
+	    if (extJobs[i].ej_cost > 0 &&
+		    extJobs[i].ej_cost * ExtNumJobs >= extTotalCost)
+	    {
+		extJobs[i].ej_parent = TRUE;
+		nparent++;
+	    }
+
+    nworkers = (ExtNumJobs < nwork - nparent) ? ExtNumJobs : nwork - nparent;
 
     /* If the .ext files go to a directory that does not exist yet, create
      * it here, as the first cell's extraction would, rather than in many
@@ -1016,6 +1159,7 @@ extExtractStackParallel(
 	munmap(shared, shsize);
 	goto restore;
     }
+    extTempRegister(0, logDir);
 
     TxPrintf("Extracting %d cell%s with %d parallel jobs.\n", nwork,
 		(nwork == 1) ? "" : "s", nworkers);
@@ -1055,7 +1199,12 @@ extExtractStackParallel(
 	pids[running++] = pid;
     }
     /* If no worker could be started, nothing can make progress */
-    if (running == 0) shared->es_abort = 1;
+    if (running == 0 && nworkers > 0) shared->es_abort = 1;
+
+    /* Extract the cells kept for this process, largest first */
+    for (k = 0; k < n && !shared->es_abort && !SigInterruptPending; k++)
+	if (extJobs[order[k]].ej_parent)
+	    extParentJob(shared, order[k], rootDef, logDir);
 
     /* Wait for all workers.  Only the workers' own process IDs are
      * waited for, so other children of this process (for example
@@ -1068,7 +1217,7 @@ extExtractStackParallel(
     ef.ef_fbStart = DBWFeedbackCount;
     while (running > 0)
     {
-	int k, reaped = 0;
+	int reaped = 0;
 
 	for (k = 0; k < running; k++)
 	{
@@ -1096,17 +1245,12 @@ extExtractStackParallel(
     }
     freeMagic(pids);
 
-    /* Undo the replay done before forking */
-    if (preReplayed)
-	for (i = n - 1; i >= 0; i--)
-	{
-	    if (ExtOptions & EXT_DOUNIQUE)
-		ExtRevertUniqueCell(extJobs[i].ej_def);
-	    if (extJobs[i].ej_savePlane != NULL)
-		ExtRevertSubstrate(extJobs[i].ej_def, extJobs[i].ej_savePlane);
-	    extJobs[i].ej_savePlane = NULL;
-	    extJobs[i].ej_state = EJ_NONE;
-	}
+    /* Undo the replay done before forking and the extraction of the
+     * cells kept for this process (top-down, as the serial code does)
+     */
+    for (i = n - 1; i >= 0; i--)
+	if (preReplayed || extJobs[i].ej_state != EJ_NONE)
+	    extRevertReplay(&extJobs[i]);
 
     for (i = 0; i < n; i++)
     {
@@ -1122,6 +1266,7 @@ extExtractStackParallel(
     if (!ok && !SigInterruptPending)
     {
 	extDiscardOutput(logDir, n);
+	extTempUnregister(0);
 	munmap(shared, shsize);
 	DBWFeedbackTruncate(ef.ef_fbStart);
 	if (ef.ef_printed > 0)
@@ -1160,6 +1305,7 @@ extExtractStackParallel(
 	    extLoadFeedback(fileName);
 	}
     rmdir(logDir);
+    extTempUnregister(0);
     munmap(shared, shsize);
 
     for (i = 0; i < n; i++)
@@ -1373,7 +1519,7 @@ extSubtreeParallel(
     return FALSE;
 #else
     CellDef *def = ha->ha_parentUse->cu_def;
-    int njobs = ExtNumJobs, nbatch, i, k, running, status, idx;
+    int njobs = ExtNumJobs, nbatch, i, k, running, status;
     size_t shsize;
     ExtSubShared *shared;
     pid_t pid, *pids;
@@ -1386,15 +1532,12 @@ extSubtreeParallel(
     if (ExtOptions & EXT_DOEXTRESIST) return FALSE;	/* Port lists use pointers */
     if (totcuts < 4 * njobs) return FALSE;
 
-    /* Inside cell-level parallel extraction, only split a cell that is
-     * at least its share of the whole job;  the other workers are busy.
+    /* Never fork inside a worker:  in a process that was itself forked
+     * from a threaded Tcl, fork() aborts in Tcl's fork handlers on macOS.
+     * Cell-level parallel extraction keeps the cells worth splitting for
+     * the main process instead (see extParentJob()).
      */
-    if (extParallelWorker)
-    {
-	idx = (extJobs != NULL) ? JOBINDEX(def) : -1;
-	if (idx < 0 || extJobs[idx].ej_cost * njobs < extTotalCost)
-	    return FALSE;
-    }
+    if (extParallelWorker) return FALSE;
 
     nbatch = njobs * EXT_SUBTREE_BATCHES_PER_JOB;
     if (nbatch > totcuts) nbatch = totcuts;
@@ -1412,6 +1555,7 @@ extSubtreeParallel(
 	munmap(shared, shsize);
 	return FALSE;
     }
+    extTempRegister(1, dir);
 
     TxPrintf("Extracting interactions in %s with %d parallel jobs.\n",
 		def->cd_name, njobs);
@@ -1481,6 +1625,7 @@ extSubtreeParallel(
 		unlink(name);
 	    }
 	rmdir(dir);
+	extTempUnregister(1);
 	munmap(shared, shsize);
 	if (SigInterruptPending) return TRUE;
 	TxError("Parallel extraction of %s incomplete;  continuing serially.\n",
@@ -1511,6 +1656,7 @@ extSubtreeParallel(
 	extNumWarnings += SS_WARNINGS(shared, nbatch)[i];
     }
     rmdir(dir);
+    extTempUnregister(1);
     munmap(shared, shsize);
     if (progress)
     {
