@@ -859,7 +859,34 @@ ResReadDevice(int argc,
 		argv[DEV_NAME]);
     }
 
-    device->rs_ttype = extGetDevType(devptr->exts_deviceName);
+    /* Resistor models need not have unique names:  ideal resistors on
+     * different metal layers all commonly use "None".  The first device
+     * terminal identifies the resistor body, whose node record retains
+     * the actual layout type.  Use that type when it defines the same
+     * resistor model, rather than resolving the name to the first layer.
+     * A MOS gate, in contrast, can have its node location on ordinary
+     * interconnect, so keep the name-based lookup for other classes.
+     */
+    if ((devptr->exts_deviceClass == DEV_RES) ||
+	    (devptr->exts_deviceClass == DEV_RSUBCKT))
+    {
+	TileType bodytype = device->gate->type;
+	ExtDevice *bodydev;
+
+	if ((bodytype >= TT_TECHDEPBASE) && (bodytype < DBNumTypes))
+	    for (bodydev = ExtCurStyle->exts_device[bodytype]; bodydev;
+			bodydev = bodydev->exts_next)
+		if ((bodydev->exts_deviceClass == devptr->exts_deviceClass) &&
+			!strcmp(bodydev->exts_deviceName, argv[DEV_NAME]))
+		{
+		    devptr = bodydev;
+		    ttype = bodytype;
+		    break;
+		}
+    }
+
+    device->rs_devptr = devptr;
+    device->rs_ttype = ttype;
     device->rs_wl = (l == 0) ? 0.0 : (float)w / (float)l;
 
     ResRDevList = device;
