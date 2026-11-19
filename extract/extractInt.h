@@ -1153,6 +1153,21 @@ extern void extEnumTerminal(Tile *tile, TileType dinfo,
 extern void ExtRevertUniqueCell(CellDef *def);
 extern Plane *ExtReplayCell(CellDef *def, bool isTop);
 extern bool ExtReplayIsCheap(void);
+
+/* Connection-table operation log (ExtHier.c), for parallel extraction
+ * inside one cell (ExtParallel.c)
+ */
+#define EXT_OP_TOUCH	1	/* Name entered into the table */
+#define EXT_OP_MERGE	2	/* Nodes of two names merged */
+#define EXT_OP_ADD	3	/* Values added to a name's node, if present */
+#define EXT_OP_SUB	4	/* Values subtracted, if present */
+extern FILE *extHierOpLog;
+extern void extHierOpLogStart(FILE *f);
+extern void extHierLogName(int op, char *name1, char *name2);
+extern void extHierLogAdjust(int op, char *name, NodeRegion *np);
+extern bool extHierReplayOps(FILE *f, HashTable *table);
+extern void extSubtreeOneCut(HierExtractArg *ha, int halo, Rect *r);
+extern bool extSubtreeParallel(HierExtractArg *ha, int halo, int totcuts);
 extern bool extParallelWorker;
 extern bool extExtractStackParallel(struct stack *stack, CellDef *rootDef);
 extern bool ExtParallelAvailable(void);

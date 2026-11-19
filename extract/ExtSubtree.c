@@ -205,6 +205,99 @@ extProcessWindowEvents(void)
 
 #define	RECTAREA(r)	(((r)->r_xtop-(r)->r_xbot) * ((r)->r_ytop-(r)->r_ybot))
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extSubtreeOneCut --
+ *
+ *	Process one cookie-cutter piece 'r' of the cell being extracted
+ *	(see extSubtree()):  find its interaction area and extract it.
+ *	Pieces are independent except through ha->ha_connHash and the
+ *	CU_SUB_EXTRACTED flags of the subcell uses, which is what lets
+ *	extSubtreeParallel() process them in parallel.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	See extSubtreeInteraction().
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extSubtreeOneCut(
+    HierExtractArg *ha,
+    int halo,
+    Rect *r)
+{
+    CellDef *def = ha->ha_parentUse->cu_def;
+    Rect rlab, rbloat;
+    Label *lab;
+    SearchContext scx;
+    int result;
+
+    rbloat = *r;
+    rbloat.r_xbot -= halo, rbloat.r_ybot -= halo;
+    rbloat.r_xtop += halo, rbloat.r_ytop += halo;
+    result = DRCFindInteractions(def, &rbloat, halo, &ha->ha_interArea);
+
+    // Check area for labels.  Expand interaction area to include
+    // the labels.  This catches labels that are not attached to
+    // any geometry in the cell and therefore do not get flagged by
+    // DRCFindInteractions().
+
+    if (result != -1)
+    {
+    	for (lab = def->cd_labels; lab; lab = lab->lab_next)
+	    if (GEO_OVERLAP(&lab->lab_rect, r) ||
+			GEO_TOUCH(&lab->lab_rect, r))
+	    {
+		/* Clip the label area to the area of rbloat */
+		rlab = lab->lab_rect;
+		GEOCLIP(&rlab, &rbloat);
+		if (result == 0) {
+		    /* If result == FALSE then ha->ha_interArea is invalid. */
+		    ha->ha_interArea = rlab;
+		    /* Ensure that the interaction area is not zero */
+		    if (ha->ha_interArea.r_xtop - ha->ha_interArea.r_xbot == 0)
+		    {
+			ha->ha_interArea.r_xtop++;
+			ha->ha_interArea.r_xbot--;
+		    }
+		    if (ha->ha_interArea.r_ytop - ha->ha_interArea.r_ybot == 0)
+		    {
+			ha->ha_interArea.r_ytop++;
+			ha->ha_interArea.r_ybot--;
+		    }
+		    result = 1;
+		}
+		else
+	            GeoIncludeAll(&rlab, &ha->ha_interArea);
+	    }
+    }
+
+    if (result > 0)
+    {
+	ha->ha_clipArea = ha->ha_interArea;
+	GEOCLIP(&ha->ha_clipArea, r);
+	extSubtreeInteractionArea += RECTAREA(&ha->ha_interArea);
+	extSubtreeClippedArea += RECTAREA(&ha->ha_clipArea);
+	extSubtreeInteraction(ha);
+    }
+    else if (result != -1)
+    {
+	/* Make sure substrate connections have been handled	*/
+	/* even if there were no other interactions found.	*/
+
+	ha->ha_clipArea = *r;
+	scx.scx_trans = GeoIdentityTransform;
+	scx.scx_area = *r;
+	scx.scx_use = ha->ha_parentUse;
+	DBCellSrArea(&scx, extSubstrateFunc, (ClientData)ha);
+    }
+}
+
 void
 extSubtree(parentUse, reg, f)
     CellUse *parentUse;
@@ -215,12 +308,9 @@ extSubtree(parentUse, reg, f)
     CellDef *def = parentUse->cu_def;
     int halo = ExtCurStyle->exts_sideCoupleHalo	 + 1;
     HierExtractArg ha;
-    Rect r, rlab, rbloat, *b;
-    Label *lab;
-    int result;
+    Rect r, *b;
     int cuts, totcuts;
     float pdone, plast;
-    SearchContext scx;
     int savedDisplayStatus;
     bool longTime = FALSE;
 
@@ -287,6 +377,10 @@ extSubtree(parentUse, reg, f)
     pdone = 0.0;
     plast = 0.0;
 
+    /* Large cells:  process the pieces in parallel (see ExtParallel.c) */
+    if (extSubtreeParallel(&ha, halo, totcuts))
+	goto done;
+
     for (r.r_ybot = b->r_ybot; r.r_ybot < b->r_ytop; r.r_ybot = r.r_ytop)
     {
 	r.r_ytop = r.r_ybot + ExtCurStyle->exts_stepSize;
@@ -295,65 +389,7 @@ extSubtree(parentUse, reg, f)
 	    r.r_xtop = r.r_xbot + ExtCurStyle->exts_stepSize;
 	    if (SigInterruptPending)
 		goto done;
-	    rbloat = r;
-	    rbloat.r_xbot -= halo, rbloat.r_ybot -= halo;
-	    rbloat.r_xtop += halo, rbloat.r_ytop += halo;
-	    result = DRCFindInteractions(def, &rbloat, halo, &ha.ha_interArea);
-
-	    // Check area for labels.  Expand interaction area to include
-	    // the labels.  This catches labels that are not attached to
-	    // any geometry in the cell and therefore do not get flagged by
-	    // DRCFindInteractions().
-
-	    if (result != -1)
-	    {
-	    	for (lab = def->cd_labels; lab; lab = lab->lab_next)
-		    if (GEO_OVERLAP(&lab->lab_rect, &r) ||
-				GEO_TOUCH(&lab->lab_rect, &r))
-		    {
-			/* Clip the label area to the area of rbloat */
-			rlab = lab->lab_rect;
-			GEOCLIP(&rlab, &rbloat);
-			if (result == 0) {
-			    /* If result == FALSE then ha.ha_interArea is invalid. */
-			    ha.ha_interArea = rlab;
-			    /* Ensure that the interaction area is not zero */
-			    if (ha.ha_interArea.r_xtop - ha.ha_interArea.r_xbot == 0)
-			    {
-				ha.ha_interArea.r_xtop++;
-				ha.ha_interArea.r_xbot--;
-			    }
-			    if (ha.ha_interArea.r_ytop - ha.ha_interArea.r_ybot == 0)
-			    {
-				ha.ha_interArea.r_ytop++;
-				ha.ha_interArea.r_ybot--;
-			    }
-			    result = 1;
-			}
-			else
-		            GeoIncludeAll(&rlab, &ha.ha_interArea);
-		    }
-	    }
-
-	    if (result > 0)
-	    {
-		ha.ha_clipArea = ha.ha_interArea;
-		GEOCLIP(&ha.ha_clipArea, &r);
-		extSubtreeInteractionArea += RECTAREA(&ha.ha_interArea);
-		extSubtreeClippedArea += RECTAREA(&ha.ha_clipArea);
-		extSubtreeInteraction(&ha);
-	    }
-	    else if (result != -1)
-	    {
-		/* Make sure substrate connections have been handled	*/
-		/* even if there were no other interactions found.	*/
-
-		ha.ha_clipArea = r;
-		scx.scx_trans = GeoIdentityTransform;
-		scx.scx_area = r;
-		scx.scx_use = ha.ha_parentUse;
-		DBCellSrArea(&scx, extSubstrateFunc, (ClientData)&ha);
-	    }
+	    extSubtreeOneCut(&ha, halo, &r);
 
 	    cuts++;
 	    pdone = 100.0 * ((float)cuts / (float)totcuts);
@@ -736,7 +772,9 @@ extSubtreeAdjustInit(ha)
      */
     for (np = ha->ha_cumFlat.et_nodes; np; np = np->nreg_next)
     {
-	if ((name = extNodeName((LabRegion *) np))
+	if (extHierOpLog && (name = extNodeName((LabRegion *) np)))
+	    extHierLogAdjust(EXT_OP_ADD, name, np);
+	else if ((name = extNodeName((LabRegion *) np))
 		&& (he = HashLookOnly(&ha->ha_connHash, name))
 		&& (nn = (NodeName *) HashGetValue(he)))
 	{

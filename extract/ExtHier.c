@@ -54,6 +54,290 @@ ExtTree *extHierFreeOneList = (ExtTree *) NULL;
     /* Appended to the name of each new CellDef created by extHierNewOne() */
 int extHierOneNameSuffix = 0;
 
+/*
+ * Operation log for parallel extraction inside one cell (see
+ * extSubtreeParallel() in ExtParallel.c).  When extHierOpLog is non-NULL,
+ * every change to the connection table ha_connHash is also written to it
+ * by name, so that the main process can replay the changes made by each
+ * worker, in the order a serial run would make them, into a single table
+ * (extHierReplayOps()).  Adjustments are logged whether or not the name
+ * is in the worker's own table:  whether it applies depends on names
+ * added by interaction areas that other workers processed, so the check
+ * is made at replay time, exactly as a serial run makes it.
+ */
+FILE *extHierOpLog = NULL;
+
+Node *extHierNewNode();
+
+/* Names already written to the current log, mapped to their number + 1.
+ * The first use of a name writes the name;  later uses write its number.
+ */
+static HashTable extHierLogNames;
+static int extHierLogNextId = 0;
+static bool extHierLogNamesInit = FALSE;
+
+/*
+ * extHierOpLogStart --
+ *	Start a new operation log on 'f' (NULL to stop logging).
+ */
+void
+extHierOpLogStart(
+    FILE *f)
+{
+    if (extHierLogNamesInit) HashKill(&extHierLogNames);
+    HashInit(&extHierLogNames, 1024, HT_STRINGKEYS);
+    extHierLogNamesInit = TRUE;
+    extHierLogNextId = 0;
+    extHierOpLog = f;
+}
+
+/* Write a reference to 'name':  its number, followed by the name itself
+ * the first time it is used in this log.
+ */
+static void
+extHierLogNameRef(
+    char *name)
+{
+    HashEntry *he = HashFind(&extHierLogNames, name);
+    int id, len;
+
+    if (HashGetValue(he) != NULL)
+    {
+	id = (int) CD2INT(HashGetValue(he)) - 1;
+	fwrite(&id, sizeof(int), 1, extHierOpLog);
+	return;
+    }
+    id = extHierLogNextId++;
+    HashSetValue(he, INT2CD(id + 1));
+    fwrite(&id, sizeof(int), 1, extHierOpLog);
+    len = strlen(name);
+    fwrite(&len, sizeof(int), 1, extHierOpLog);
+    fwrite(name, 1, len, extHierOpLog);
+}
+
+void
+extHierLogName(
+    int op,		/* EXT_OP_TOUCH or EXT_OP_MERGE */
+    char *name1,
+    char *name2)	/* Second name for EXT_OP_MERGE, else NULL */
+{
+    putc(op, extHierOpLog);
+    extHierLogNameRef(name1);
+    if (op == EXT_OP_MERGE) extHierLogNameRef(name2);
+}
+
+/* Values are written as a bit mask of the resistance classes with a
+ * non-zero perimeter or area, followed by the values of those classes.
+ */
+void
+extHierLogAdjust(
+    int op,		/* EXT_OP_ADD or EXT_OP_SUB */
+    char *name,
+    NodeRegion *np)	/* Values to add to or subtract from the node */
+{
+    int n;
+    unsigned int mask = 0;
+
+    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+	if (np->nreg_pa[n].pa_perim != 0 || np->nreg_pa[n].pa_area != 0)
+	    mask |= (1U << n);
+    putc(op, extHierOpLog);
+    extHierLogNameRef(name);
+    fwrite(&np->nreg_cap, sizeof(CapValue), 1, extHierOpLog);
+    fwrite(&mask, sizeof(unsigned int), 1, extHierOpLog);
+    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+	if (mask & (1U << n))
+	{
+	    fwrite(&np->nreg_pa[n].pa_perim, sizeof(int), 1, extHierOpLog);
+	    fwrite(&np->nreg_pa[n].pa_area, sizeof(dlong), 1, extHierOpLog);
+	}
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extHierReplayOps --
+ *
+ *	Apply an operation log written by extHierLogName() and
+ *	extHierLogAdjust() to the connection table 'table', making the
+ *	same changes, in the same order, as the code that wrote the log.
+ *	Merges follow the rule used everywhere in this file:  the node
+ *	with fewer names is merged into the other.  (Port lists are only
+ *	used by "extract do extresist", which does not use the log.)
+ *
+ * Results:
+ *	TRUE if the whole log was read, FALSE if it was malformed.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+/* Reader side of extHierLogNameRef():  names defined so far in this log */
+typedef struct
+{
+    char **lr_names;
+    int lr_count;
+    int lr_size;
+} ExtLogReader;
+
+static char *
+extHierReadName(
+    FILE *f,
+    ExtLogReader *lr)
+{
+    int id, len;
+    char *name;
+
+    if (fread(&id, sizeof(int), 1, f) != 1 || id < 0) return NULL;
+    if (id < lr->lr_count) return lr->lr_names[id];
+    if (id != lr->lr_count) return NULL;
+    if (fread(&len, sizeof(int), 1, f) != 1 || len < 0) return NULL;
+    name = (char *) mallocMagic(len + 1);
+    if (fread(name, 1, len, f) != len)
+    {
+	freeMagic(name);
+	return NULL;
+    }
+    name[len] = '\0';
+    if (lr->lr_count == lr->lr_size)
+    {
+	char **newNames;
+
+	lr->lr_size = (lr->lr_size == 0) ? 1024 : 2 * lr->lr_size;
+	newNames = (char **) mallocMagic(lr->lr_size * sizeof(char *));
+	if (lr->lr_count > 0)
+	{
+	    memcpy(newNames, lr->lr_names, lr->lr_count * sizeof(char *));
+	    freeMagic(lr->lr_names);
+	}
+	lr->lr_names = newNames;
+    }
+    lr->lr_names[lr->lr_count++] = name;
+    return name;
+}
+
+static Node *
+extHierFindNode(
+    HashTable *table,
+    char *name,
+    bool create)
+{
+    HashEntry *he;
+    NodeName *nn;
+
+    if (create)
+	he = HashFind(table, name);
+    else if ((he = HashLookOnly(table, name)) == NULL)
+	return (Node *) NULL;
+    nn = (NodeName *) HashGetValue(he);
+    if (nn) return nn->nn_node;
+    return create ? extHierNewNode(he) : (Node *) NULL;
+}
+
+bool
+extHierReplayOps(
+    FILE *f,
+    HashTable *table)
+{
+    ExtLogReader lr;
+    NodeName *nn;
+    Node *node, *node1, *node2;
+    CapValue cap;
+    unsigned int mask;
+    char *name1, *name2;
+    int c, n, perim;
+    dlong area;
+    bool ok = TRUE;
+
+    lr.lr_names = NULL;
+    lr.lr_count = lr.lr_size = 0;
+
+    while (ok && (c = getc(f)) != EOF)
+    {
+	switch (c)
+	{
+	    case EXT_OP_TOUCH:
+		if (!(name1 = extHierReadName(f, &lr))) { ok = FALSE; break; }
+		(void) extHierFindNode(table, name1, TRUE);
+		break;
+
+	    case EXT_OP_MERGE:
+		if (!(name1 = extHierReadName(f, &lr))) { ok = FALSE; break; }
+		if (!(name2 = extHierReadName(f, &lr))) { ok = FALSE; break; }
+		node1 = extHierFindNode(table, name1, FALSE);
+		node2 = extHierFindNode(table, name2, FALSE);
+		if (node1 == NULL || node2 == NULL) { ok = FALSE; break; }
+		if (node1 == node2) break;
+		if (node1->node_len < node2->node_len)
+		{
+		    for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
+			nn->nn_node = node2;
+		    nn->nn_node = node2;
+		    nn->nn_next = node2->node_names->nn_next;
+		    node2->node_names->nn_next = node1->node_names;
+		    node2->node_len += node1->node_len;
+		    freeMagic((char *) node1);
+		}
+		else
+		{
+		    for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
+			nn->nn_node = node1;
+		    nn->nn_node = node1;
+		    nn->nn_next = node1->node_names;
+		    node1->node_names = node2->node_names;
+		    node1->node_len += node2->node_len;
+		    freeMagic((char *) node2);
+		}
+		break;
+
+	    case EXT_OP_ADD:
+	    case EXT_OP_SUB:
+		if (!(name1 = extHierReadName(f, &lr))) { ok = FALSE; break; }
+		node = extHierFindNode(table, name1, FALSE);
+		if (fread(&cap, sizeof(CapValue), 1, f) != 1 ||
+			fread(&mask, sizeof(unsigned int), 1, f) != 1)
+		{
+		    ok = FALSE;
+		    break;
+		}
+		if (node)
+		{
+		    if (c == EXT_OP_ADD) node->node_cap += cap;
+		    else node->node_cap -= cap;
+		}
+		for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+		{
+		    if (!(mask & (1U << n))) continue;
+		    if (fread(&perim, sizeof(int), 1, f) != 1 ||
+			    fread(&area, sizeof(dlong), 1, f) != 1)
+		    {
+			ok = FALSE;
+			break;
+		    }
+		    if (node == NULL) continue;
+		    if (c == EXT_OP_ADD)
+		    {
+			node->node_pa[n].pa_perim += perim;
+			node->node_pa[n].pa_area += area;
+		    }
+		    else
+		    {
+			node->node_pa[n].pa_perim -= perim;
+			node->node_pa[n].pa_area -= area;
+		    }
+		}
+		break;
+
+	    default:
+		ok = FALSE;
+		break;
+	}
+    }
+
+    for (n = 0; n < lr.lr_count; n++) freeMagic(lr.lr_names[n]);
+    if (lr.lr_names) freeMagic(lr.lr_names);
+    return ok;
+}
+
 /* Forward declarations */
 int extHierConnectFunc1();
 int extHierConnectFunc2();
@@ -242,6 +526,7 @@ extHierSubstrate(ha, use, x, y)
     /* Don't process "(none)" nodes! */
     if (*name1 == '(' && !strcmp(name1, "(none)")) return 0;
     he = HashFind(table, name1);
+    if (extHierOpLog) extHierLogName(EXT_OP_TOUCH, name1, NULL);
     nn = (NodeName *) HashGetValue(he);
     node1 = nn ? nn->nn_node : extHierNewNode(he);
 
@@ -320,10 +605,17 @@ extHierSubstrate(ha, use, x, y)
 	sprintf(childname, "%s/%s", use->cu_id, name2);
     }
     he = HashFind(table, childname);
+    if (extHierOpLog) extHierLogName(EXT_OP_TOUCH, childname, NULL);
     nn = (NodeName *) HashGetValue(he);
     node2 = nn ? nn->nn_node : extHierNewNode(he);
 
     freeMagic(childname);
+
+    if (extHierOpLog)
+
+        extHierLogName(EXT_OP_MERGE, node1->node_names->nn_name,
+
+    		node2->node_names->nn_name);
 
     if (node1 != node2)
     {
@@ -546,6 +838,7 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 
 		/* Register the name, like is done in extHierConnectFunc2 */
 		he = HashFind(table, lab->lab_text);
+		if (extHierOpLog) extHierLogName(EXT_OP_TOUCH, lab->lab_text, NULL);
 		nn = (NodeName *) HashGetValue(he);
 		node1 = nn ? nn->nn_node : extHierNewNode(he);
 
@@ -553,8 +846,15 @@ extHierConnectFunc1(oneTile, dinfo, ha)
 			extHierOneFlat, ha, TRUE);
 		if (*name == '(' && !strcmp(name, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 		he = HashFind(table, name);
+		if (extHierOpLog) extHierLogName(EXT_OP_TOUCH, name, NULL);
 		nn = (NodeName *) HashGetValue(he);
 		node2 = nn ? nn->nn_node : extHierNewNode(he);
+
+		if (extHierOpLog)
+
+		    extHierLogName(EXT_OP_MERGE, node1->node_names->nn_name,
+
+				node2->node_names->nn_name);
 
 		if (node1 != node2)
 		{
@@ -726,6 +1026,7 @@ extHierConnectFunc2(cum, dinfo, ha)
 	name1 = (*ha->ha_nodename)(cum, dinfo, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
 	if (*name1 == '(' && !strcmp(name1, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 	he = HashFind(table, name1);
+	if (extHierOpLog) extHierLogName(EXT_OP_TOUCH, name1, NULL);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
@@ -733,8 +1034,15 @@ extHierConnectFunc2(cum, dinfo, ha)
 		extHierOneFlat, ha, TRUE);
 	if (*name2 == '(' && !strcmp(name2, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 	he = HashFind(table, name2);
+	if (extHierOpLog) extHierLogName(EXT_OP_TOUCH, name2, NULL);
 	nn = (NodeName *) HashGetValue(he);
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
+
+	if (extHierOpLog)
+
+	    extHierLogName(EXT_OP_MERGE, node1->node_names->nn_name,
+
+			node2->node_names->nn_name);
 
 	if (node1 != node2)
 	{
@@ -898,14 +1206,22 @@ extHierConnectFunc3(cum, dinfo, ha)
 			extHierCumFlat, ha, TRUE);
 	if (*name1 == '(' && !strcmp(name1, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 	he = HashFind(table, name1);
+	if (extHierOpLog) extHierLogName(EXT_OP_TOUCH, name1, NULL);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
 	name2 = lab->lab_text;
 	if (*name2 == '(' && !strcmp(name2, "(none)")) return 0;	/* Don't process "(none)" nodes! */
 	he = HashFind(table, name2);
+	if (extHierOpLog) extHierLogName(EXT_OP_TOUCH, name2, NULL);
 	nn = (NodeName *) HashGetValue(he);
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
+
+	if (extHierOpLog)
+
+	    extHierLogName(EXT_OP_MERGE, node1->node_names->nn_name,
+
+			node2->node_names->nn_name);
 
 	if (node1 != node2)
 	{
@@ -1075,7 +1391,10 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
 	/* Ignore substrate nodes (failsafe:  should not happen) */
 	if (TiGetTypeExact(tp) == TT_SPACE) continue;
 
-	if (tp	&& (name = (*ha->ha_nodename)(tp, dinfo, np->nreg_pnum, lookFlat, ha, FALSE))
+	if (tp && extHierOpLog
+		&& (name = (*ha->ha_nodename)(tp, dinfo, np->nreg_pnum, lookFlat, ha, FALSE)))
+	    extHierLogAdjust(EXT_OP_SUB, name, np);
+	else if (tp && (name = (*ha->ha_nodename)(tp, dinfo, np->nreg_pnum, lookFlat, ha, FALSE))
 		&& (he = HashLookOnly(&ha->ha_connHash, name))
 		&& (nn = (NodeName *) HashGetValue(he)))
 	{
