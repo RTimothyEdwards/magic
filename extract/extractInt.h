@@ -1156,6 +1156,7 @@ extern bool ExtReplayIsCheap(void);
 extern bool extParallelWorker;
 extern bool extExtractStackParallel(struct stack *stack, CellDef *rootDef);
 extern bool ExtParallelAvailable(void);
+extern int ExtParallelCPUs(void);
 
 
 /* ------------------ Connectivity table management ------------------- */

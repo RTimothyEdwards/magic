@@ -45,12 +45,20 @@
 #define EXT_NO_FORK
 #endif
 
+/* For sched_getaffinity() and CPU_COUNT() (see ExtParallelCPUs()) */
+#if defined(__linux__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #ifndef EXT_NO_FORK
 #include <unistd.h>
+#ifdef __linux__
+#include <sched.h>
+#endif
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -316,10 +324,18 @@ extRevertReplay(
  *
  * extCostCompare --
  *
- *	qsort() comparator:  highest cost first, then bottom-up order.
+ *	qsort() comparator for the order in which workers take cells.
+ *	Big cells (cost at least extBigCost) come first, highest cost first,
+ *	so that no big cell is left for the end of the run.  All other
+ *	cells follow in bottom-up order, the order in which a serial run
+ *	extracts them and in which their messages are printed, so that the
+ *	parent can print results while the workers run (see
+ *	extFlushCells()).
  *
  * ----------------------------------------------------------------------------
  */
+
+static dlong extBigCost;
 
 int
 extCostCompare(
@@ -327,9 +343,15 @@ extCostCompare(
     const void *b)
 {
     int ia = *(const int *) a, ib = *(const int *) b;
+    bool bigA = (extJobs[ia].ej_cost >= extBigCost);
+    bool bigB = (extJobs[ib].ej_cost >= extBigCost);
 
-    if (extJobs[ia].ej_cost > extJobs[ib].ej_cost) return -1;
-    if (extJobs[ia].ej_cost < extJobs[ib].ej_cost) return 1;
+    if (bigA != bigB) return bigA ? -1 : 1;
+    if (bigA)
+    {
+	if (extJobs[ia].ej_cost > extJobs[ib].ej_cost) return -1;
+	if (extJobs[ia].ej_cost < extJobs[ib].ej_cost) return 1;
+    }
     return ia - ib;
 }
 
@@ -480,6 +502,72 @@ extPrintLog(
 		"some messages are missing.\n", fileName);
     fclose(f);
     unlink(fileName);
+}
+
+/* Progress of printing the workers' results in serial order (see
+ * extFlushCells())
+ */
+typedef struct
+{
+    int		ef_next;	/* Next cell whose extraction output to print */
+    int		ef_nextRes;	/* Next cell whose extresist output to print */
+    int		ef_fbStart;	/* DBWFeedbackCount before anything was loaded */
+    int		ef_printed;	/* Number of cells printed so far */
+    int		ef_errors;	/* Totals of the cells printed */
+    int		ef_warnings;
+} ExtFlush;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extFlushCells --
+ *
+ *	Print the messages and load the feedback of every cell that is done
+ *	and whose predecessors in serial (bottom-up) order have all been
+ *	printed, so the output appears while the workers run, in the same
+ *	order as a serial run.  Resistance extraction output follows once
+ *	every cell's extraction output has been printed.  Called by the
+ *	parent while it waits, and once more at the end.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extFlushCells(
+    ExtShared *shared,
+    int n,
+    char *logDir,
+    bool doResist,
+    ExtFlush *ef)
+{
+    char fileName[1100];
+    int i;
+
+    while ((ef->ef_next < n) &&
+		__atomic_load_n(&EXT_DONE(shared, n)[ef->ef_next], __ATOMIC_SEQ_CST))
+    {
+	i = ef->ef_next++;
+	snprintf(fileName, sizeof(fileName), "%s/%d.log", logDir, i);
+	extPrintLog(fileName);
+	snprintf(fileName, sizeof(fileName), "%s/%d.fb", logDir, i);
+	extLoadFeedback(fileName);
+	ef->ef_errors += EXT_ERRORS(shared, n)[i];
+	ef->ef_warnings += EXT_WARNINGS(shared, n)[i];
+	ef->ef_printed++;
+	TxFlush();
+    }
+    if (!doResist || (ef->ef_next < n)) return;
+    while ((ef->ef_nextRes < n) &&
+		__atomic_load_n(&EXT_RESDONE(shared, n)[ef->ef_nextRes], __ATOMIC_SEQ_CST))
+    {
+	i = ef->ef_nextRes++;
+	snprintf(fileName, sizeof(fileName), "%s/r%d.log", logDir, i);
+	extPrintLog(fileName);
+	snprintf(fileName, sizeof(fileName), "%s/r%d.fb", logDir, i);
+	extLoadFeedback(fileName);
+	ef->ef_printed++;
+	TxFlush();
+    }
 }
 
 /*
@@ -699,6 +787,41 @@ ExtParallelAvailable(void)
 /*
  * ----------------------------------------------------------------------------
  *
+ * ExtParallelCPUs --
+ *
+ *	Number of CPUs this process may run on, the most parallel jobs that
+ *	can usefully run at once.  On Linux this honours the CPU affinity
+ *	mask, so a container or "taskset" limited to some CPUs is reported
+ *	correctly.
+ *
+ * Results:
+ *	At least 1;  1 in a build without fork().
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+ExtParallelCPUs(void)
+{
+#ifdef EXT_NO_FORK
+    return 1;
+#else
+    long ncpu = -1;
+
+#if defined(__linux__) && defined(CPU_COUNT)
+    cpu_set_t set;
+
+    if (sched_getaffinity(0, sizeof(set), &set) == 0)
+	ncpu = CPU_COUNT(&set);
+#endif
+    if (ncpu < 1) ncpu = sysconf(_SC_NPROCESSORS_ONLN);
+    return (ncpu < 1) ? 1 : (int) ncpu;
+#endif
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * extExtractStackParallel --
  *
  *	Extract every CellDef on 'stack' (bottommost first) using up to
@@ -739,6 +862,7 @@ extExtractStackParallel(
     ExtShared *shared;
     pid_t pid, *pids;
     bool ok = TRUE, preReplayed;
+    ExtFlush ef;
     bool doResist = (ExtOptions & EXT_DOEXTRESIST) ? TRUE : FALSE;
     char logDir[1024], fileName[1100];
     const char *tmp;
@@ -795,6 +919,14 @@ extExtractStackParallel(
 	extJobs[i].ej_cost++;
     }
 
+    /* A cell is big if it is at least a quarter of one job's share */
+    {
+	dlong total = 0;
+
+	for (i = 0; i < n; i++) total += extJobs[i].ej_cost;
+	extBigCost = total / (4 * (dlong) ExtNumJobs);
+	if (extBigCost < 1) extBigCost = 1;
+    }
     order = (int *) mallocMagic(n * sizeof(int));
     for (i = 0; i < n; i++) order[i] = i;
     qsort(order, n, sizeof(int), extCostCompare);
@@ -904,8 +1036,11 @@ extExtractStackParallel(
      * waited for, so other children of this process (for example
      * started with Tcl "exec ... &") are left alone.  If a worker dies,
      * tell the others to stop so none of them waits forever at the
-     * extresist barrier.
+     * extresist barrier.  Meanwhile, print the results of finished cells
+     * in serial order.
      */
+    memset(&ef, 0, sizeof(ef));
+    ef.ef_fbStart = DBWFeedbackCount;
     while (running > 0)
     {
 	int k, reaped = 0;
@@ -924,6 +1059,8 @@ extExtractStackParallel(
 	    reaped++;
 	}
 	if (running == 0 || reaped > 0) continue;
+	if (!shared->es_abort && !SigInterruptPending)
+	    extFlushCells(shared, n, logDir, doResist, &ef);
 #ifdef MAGIC_WRAPPER
 	/* Keep the layout window and console responsive while waiting,
 	 * as extSubtree() does during a long serial extraction.
@@ -953,20 +1090,31 @@ extExtractStackParallel(
     }
 
     /* If the run is incomplete for any reason other than an interrupt,
-     * discard everything the workers produced and extract serially, so
-     * that no message or feedback entry appears twice.  Otherwise replay
-     * messages and feedback in serial (bottom-up) order:  first the
-     * extraction of every cell, then resistance extraction.
+     * discard everything the workers produced and extract serially.  The
+     * feedback entries already loaded are removed, so none appears twice;
+     * messages already printed are printed again by the serial run.
      */
     if (!ok && !SigInterruptPending)
     {
 	extDiscardOutput(logDir, n);
 	munmap(shared, shsize);
-	TxError("Parallel extraction incomplete;  extracting serially.\n");
+	DBWFeedbackTruncate(ef.ef_fbStart);
+	if (ef.ef_printed > 0)
+	    TxError("Parallel extraction incomplete;  extracting serially "
+			"(messages above are repeated).\n");
+	else
+	    TxError("Parallel extraction incomplete;  extracting serially.\n");
 	goto restore;
     }
 
-    for (i = 0; i < n; i++)
+    /* Print what is left in serial (bottom-up) order:  first the
+     * extraction of every cell, then resistance extraction.  After an
+     * interrupt, also print whatever the unfinished cells left.
+     */
+    extFlushCells(shared, n, logDir, doResist, &ef);
+    errorcnt = ef.ef_errors;
+    warnings = ef.ef_warnings;
+    for (i = ef.ef_next; i < n; i++)
     {
 	snprintf(fileName, sizeof(fileName), "%s/%d.log", logDir, i);
 	extPrintLog(fileName);
@@ -979,7 +1127,7 @@ extExtractStackParallel(
 	}
     }
     if (doResist)
-	for (i = 0; i < n; i++)
+	for (i = ef.ef_nextRes; i < n; i++)
 	{
 	    snprintf(fileName, sizeof(fileName), "%s/r%d.log", logDir, i);
 	    extPrintLog(fileName);

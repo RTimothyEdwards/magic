@@ -1131,8 +1131,8 @@ CmdExtract(
 	"do [option]		enable extractor option",
 	"halo [value]		print or set the sidewall halo distance",
 	"help			print this help information",
-	"jobs [number]		print or set the number of parallel\n\
-			extraction jobs used by \"extract all\"",
+	"jobs [number|auto]	print or set the number of parallel\n\
+			extraction jobs (at most the number of CPUs)",
 	"length [option]	control pathlength extraction information",
 	"no [option]		disable extractor option",
 	"parents		extract selected cell and all its parents",
@@ -1284,12 +1284,26 @@ CmdExtract(
 		return;
 	    }
 	    else if (argc != 3) goto wrongNumArgs;
-	    if (!StrIsInt(argv[2]) || (atoi(argv[2]) < 1))
+	    if (!strcmp(argv[2], "auto"))
+		ExtNumJobs = ExtParallelCPUs();
+	    else if (!StrIsInt(argv[2]) || (atoi(argv[2]) < 1))
 	    {
-		TxError("Number of jobs must be a positive integer.\n");
+		TxError("Number of jobs must be a positive integer or \"auto\".\n");
 		return;
 	    }
-	    ExtNumJobs = atoi(argv[2]);
+	    else
+	    {
+		int ncpu = ExtParallelCPUs();
+
+		/* More jobs than CPUs only adds processes and memory */
+		ExtNumJobs = atoi(argv[2]);
+		if (ExtParallelAvailable() && (ExtNumJobs > ncpu))
+		{
+		    TxPrintf("Using %d parallel job%s (%d CPU%s available).\n",
+			    ncpu, (ncpu == 1) ? "" : "s", ncpu, (ncpu == 1) ? "" : "s");
+		    ExtNumJobs = ncpu;
+		}
+	    }
 	    if ((ExtNumJobs > 1) && !ExtParallelAvailable())
 	    {
 		/* Keep the setting truthful:  this build is always serial */
