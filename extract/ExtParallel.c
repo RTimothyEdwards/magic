@@ -606,7 +606,8 @@ extPrintLog(
  */
 typedef struct
 {
-    int		ef_next;	/* Next cell whose extraction output to print */
+    int		ef_nextMsg;	/* Next cell whose messages to print */
+    int		ef_next;	/* Next cell whose feedback to load */
     int		ef_nextRes;	/* Next cell whose extresist output to print */
     int		ef_fbStart;	/* DBWFeedbackCount before anything was loaded */
     int		ef_printed;	/* Number of cells printed so far */
@@ -624,7 +625,10 @@ typedef struct
  *	printed, so the output appears while the workers run, in the same
  *	order as a serial run.  Resistance extraction output follows once
  *	every cell's extraction output has been printed.  Called by the
- *	parent while it waits, and once more at the end.
+ *	parent while it waits, and once more at the end.  With 'msgOnly',
+ *	only messages are printed:  feedback is loaded later, since this
+ *	process may be collecting the feedback of a cell it extracts
+ *	itself (see extFlushCellMessages()).
  *
  * ----------------------------------------------------------------------------
  */
@@ -635,23 +639,29 @@ extFlushCells(
     int n,
     char *logDir,
     bool doResist,
-    ExtFlush *ef)
+    ExtFlush *ef,
+    bool msgOnly)
 {
     char fileName[1100];
     int i;
 
-    while ((ef->ef_next < n) &&
-		__atomic_load_n(&EXT_DONE(shared, n)[ef->ef_next], __ATOMIC_SEQ_CST))
+    while ((ef->ef_nextMsg < n) &&
+		__atomic_load_n(&EXT_DONE(shared, n)[ef->ef_nextMsg], __ATOMIC_SEQ_CST))
     {
-	i = ef->ef_next++;
+	i = ef->ef_nextMsg++;
 	snprintf(fileName, sizeof(fileName), "%s/%d.log", logDir, i);
 	extPrintLog(fileName);
+	ef->ef_printed++;
+	TxFlush();
+    }
+    if (msgOnly) return;
+    while (ef->ef_next < ef->ef_nextMsg)
+    {
+	i = ef->ef_next++;
 	snprintf(fileName, sizeof(fileName), "%s/%d.fb", logDir, i);
 	extLoadFeedback(fileName);
 	ef->ef_errors += EXT_ERRORS(shared, n)[i];
 	ef->ef_warnings += EXT_WARNINGS(shared, n)[i];
-	ef->ef_printed++;
-	TxFlush();
     }
     if (!doResist || (ef->ef_next < n)) return;
     while ((ef->ef_nextRes < n) &&
@@ -665,6 +675,109 @@ extFlushCells(
 	ef->ef_printed++;
 	TxFlush();
     }
+}
+
+/* While this process extracts a cell itself (see extParentJob()), what
+ * extFlushCellMessages() needs to print the messages of other cells
+ */
+static struct
+{
+    ExtShared	*fc_shared;	/* NULL when not set */
+    int		 fc_n;
+    char	*fc_logDir;
+    ExtFlush	*fc_ef;
+    FILE	*fc_redirect;	/* TxRedirectFile outside the cell's extraction */
+    int		 fc_job;	/* Cell being extracted here, or -1 */
+    FILE	*fc_logf;	/* Its log file */
+    char	*fc_logName;
+    int		 fc_fbStart;	/* DBWFeedbackCount when it started */
+    bool	 fc_live;	/* Its output now goes straight out */
+} extFlushCtx;
+
+/*
+ * extGoLive --
+ *	Called once every cell before the one this process is extracting
+ *	(fc_job) has had its messages printed:  from now on, that cell's
+ *	output can go out directly, as in a serial run, instead of to its
+ *	log file.  Print what it logged so far, and put its feedback entries
+ *	after those of the cells before it, which are loaded now.
+ *
+ * Results:
+ *	TRUE if the cell's output now goes out directly.
+ */
+bool
+extGoLive(void)
+{
+    ExtFlush *ef = extFlushCtx.fc_ef;
+    char name[1100];
+    FILE *f;
+    int i, n = extFlushCtx.fc_n;
+
+    /* Set this cell's feedback aside, load that of the cells before it,
+     * then put this cell's back after them.
+     */
+    snprintf(name, sizeof(name), "%s/live.fb", extFlushCtx.fc_logDir);
+    if (!extSaveFeedback(extFlushCtx.fc_fbStart, name))
+    {
+	unlink(name);
+	return FALSE;
+    }
+    DBWFeedbackTruncate(extFlushCtx.fc_fbStart);
+    while (ef->ef_next < ef->ef_nextMsg)
+    {
+	i = ef->ef_next++;
+	snprintf(name, sizeof(name), "%s/%d.fb", extFlushCtx.fc_logDir, i);
+	extLoadFeedback(name);
+	ef->ef_errors += EXT_ERRORS(extFlushCtx.fc_shared, n)[i];
+	ef->ef_warnings += EXT_WARNINGS(extFlushCtx.fc_shared, n)[i];
+    }
+    snprintf(name, sizeof(name), "%s/live.fb", extFlushCtx.fc_logDir);
+    extLoadFeedback(name);
+
+    /* Print its messages so far;  the rest go out directly */
+    fflush(extFlushCtx.fc_logf);
+    f = fopen(extFlushCtx.fc_logName, "r");
+    if (f != NULL)
+    {
+	if (!TxPrintRedirected(f))
+	    TxError("Parallel extraction:  message file %s is damaged;  "
+			"some messages are missing.\n", extFlushCtx.fc_logName);
+	fclose(f);
+    }
+    TxFlush();
+    ef->ef_printed++;
+    extFlushCtx.fc_live = TRUE;
+    return TRUE;
+}
+
+/*
+ * extFlushCellMessages --
+ *	Called by extSubtreeParallel() while it waits:  print the messages
+ *	of the cells that the workers have finished, as extFlushCells()
+ *	does, while this process splits a cell of its own.  That cell's
+ *	own messages are being written to its log file, so output is sent
+ *	where it would go outside the cell's extraction.
+ */
+void
+extFlushCellMessages(void)
+{
+    FILE *saveRedirect;
+
+    if ((extFlushCtx.fc_shared == NULL) || extFlushCtx.fc_shared->es_abort)
+	return;
+    saveRedirect = TxRedirectFile;
+    TxRedirectFile = extFlushCtx.fc_redirect;
+    extFlushCells(extFlushCtx.fc_shared, extFlushCtx.fc_n,
+		extFlushCtx.fc_logDir, FALSE, extFlushCtx.fc_ef, TRUE);
+
+    /* Once every earlier cell is printed, the cell being extracted here
+     * prints directly (see extGoLive())
+     */
+    if ((extFlushCtx.fc_job >= 0) && !extFlushCtx.fc_live &&
+		(extFlushCtx.fc_ef->ef_nextMsg == extFlushCtx.fc_job) &&
+		extGoLive())
+	return;			/* Output stays direct */
+    TxRedirectFile = saveRedirect;
 }
 
 /*
@@ -872,7 +985,7 @@ extParentJob(
     int fbStart;
     FILE *logf, *saveRedirect;
     CellDef *def = extJobs[idx].ej_def;
-    bool ok;
+    bool ok, live;
 
     snprintf(logName, sizeof(logName), "%s/%d.log", logDir, idx);
     logf = fopen(logName, "w");
@@ -889,14 +1002,38 @@ extParentJob(
     saveRedirect = TxRedirectFile;
     TxRedirectFile = logf;
     fbStart = DBWFeedbackCount;
+
+    /* While this cell is extracted, the results of other cells are
+     * printed as they finish;  once all cells before it are printed,
+     * its own output goes out directly (see extFlushCellMessages()).
+     */
+    extFlushCtx.fc_job = idx;
+    extFlushCtx.fc_logf = logf;
+    extFlushCtx.fc_logName = logName;
+    extFlushCtx.fc_fbStart = fbStart;
+    extFlushCtx.fc_live = FALSE;
+    extFlushCellMessages();
+
     extJobs[idx].ej_savePlane = ExtCell(def, (char *) NULL, (def == rootDef));
     extJobs[idx].ej_state = EJ_EXTRACTED;
+    live = extFlushCtx.fc_live;
+    extFlushCtx.fc_job = -1;
+    extFlushCtx.fc_live = FALSE;
     TxRedirectFile = saveRedirect;
     ok = extCloseFile(logf);
 
-    snprintf(logName, sizeof(logName), "%s/%d.fb", logDir, idx);
-    if (ok) ok = extSaveFeedback(fbStart, logName);
-    DBWFeedbackTruncate(fbStart);
+    if (live)
+    {
+	/* Everything was printed and its feedback is in place */
+	unlink(logName);
+	ok = TRUE;
+    }
+    else
+    {
+	snprintf(logName, sizeof(logName), "%s/%d.fb", logDir, idx);
+	if (ok) ok = extSaveFeedback(fbStart, logName);
+	DBWFeedbackTruncate(fbStart);
+    }
     if (!ok)
     {
 	/* Not done:  stop the workers and extract serially */
@@ -1232,11 +1369,27 @@ extExtractStackParallel(
     /* If no worker could be started, nothing can make progress */
     if (running == 0 && nworkers > 0) shared->es_abort = 1;
 
-    /* Extract the cells kept for this process, largest first */
+    /* Extract the cells kept for this process, largest first.  Print
+     * the results of the cells that the workers finish meanwhile, in
+     * serial order:  between cells, and while a cell is split (see
+     * extFlushCellMessages()).
+     */
+    memset(&ef, 0, sizeof(ef));
+    ef.ef_fbStart = DBWFeedbackCount;
     extCellWorkersActive = &shared->es_active;
+    extFlushCtx.fc_shared = shared;
+    extFlushCtx.fc_n = n;
+    extFlushCtx.fc_logDir = logDir;
+    extFlushCtx.fc_ef = &ef;
+    extFlushCtx.fc_redirect = TxRedirectFile;
+    extFlushCtx.fc_job = -1;
     for (k = 0; k < n && !shared->es_abort && !SigInterruptPending; k++)
 	if (extJobs[order[k]].ej_parent)
+	{
+	    extFlushCells(shared, n, logDir, doResist, &ef, FALSE);
 	    extParentJob(shared, order[k], rootDef, logDir);
+	}
+    extFlushCtx.fc_shared = NULL;
     extCellWorkersActive = NULL;
 
     /* Wait for all workers.  Only the workers' own process IDs are
@@ -1246,8 +1399,6 @@ extExtractStackParallel(
      * extresist barrier.  Meanwhile, print the results of finished cells
      * in serial order.
      */
-    memset(&ef, 0, sizeof(ef));
-    ef.ef_fbStart = DBWFeedbackCount;
     while (running > 0)
     {
 	int reaped = 0;
@@ -1267,7 +1418,7 @@ extExtractStackParallel(
 	}
 	if (running == 0 || reaped > 0) continue;
 	if (!shared->es_abort && !SigInterruptPending)
-	    extFlushCells(shared, n, logDir, doResist, &ef);
+	    extFlushCells(shared, n, logDir, doResist, &ef, FALSE);
 #ifdef MAGIC_WRAPPER
 	/* Keep the layout window and console responsive while waiting,
 	 * as extSubtree() does during a long serial extraction.
@@ -1314,13 +1465,13 @@ extExtractStackParallel(
      * extraction of every cell, then resistance extraction.  After an
      * interrupt, also print whatever the unfinished cells left.
      */
-    extFlushCells(shared, n, logDir, doResist, &ef);
+    extFlushCells(shared, n, logDir, doResist, &ef, FALSE);
     errorcnt = ef.ef_errors;
     warnings = ef.ef_warnings;
     for (i = ef.ef_next; i < n; i++)
     {
 	snprintf(fileName, sizeof(fileName), "%s/%d.log", logDir, i);
-	extPrintLog(fileName);
+	if (i >= ef.ef_nextMsg) extPrintLog(fileName);
 	snprintf(fileName, sizeof(fileName), "%s/%d.fb", logDir, i);
 	extLoadFeedback(fileName);
 	if (EXT_DONE(shared, n)[i])
@@ -1396,15 +1547,18 @@ typedef struct
 {
     int		ss_next;	/* Next batch to claim */
     int		ss_abort;	/* Set by the parent if a worker died */
-    long	ss_interArea;	/* Statistics for ExtTimes (see ExtSubtree.c) */
-    long	ss_clipArea;
-    int		ss_data[1];	/* Really 3 * nbatch:  done, errors, warnings */
+    long	ss_data[1];	/* Really 5 * nbatch:  done, errors, warnings,
+				 * and the interaction and clipped areas for
+				 * ExtTimes (see ExtSubtree.c)
+				 */
 } ExtSubShared;
 
 #define SS_DONE(sh, n)		((sh)->ss_data)
 #define SS_ERRORS(sh, n)	((sh)->ss_data + (n))
 #define SS_WARNINGS(sh, n)	((sh)->ss_data + 2 * (n))
-#define SS_SIZE(n)		(sizeof(ExtSubShared) + 3 * (n) * sizeof(int))
+#define SS_INTER(sh, n)		((sh)->ss_data + 3 * (n))
+#define SS_CLIP(sh, n)		((sh)->ss_data + 4 * (n))
+#define SS_SIZE(n)		(sizeof(ExtSubShared) + 5 * (n) * sizeof(long))
 
 #ifndef EXT_NO_FORK
 
@@ -1415,6 +1569,39 @@ extClearSubFlagFunc(
 {
     use->cu_flags &= ~CU_SUB_EXTRACTED;
     return 0;
+}
+
+/*
+ * extSubtreeBatch --
+ *	Process the pieces of batch 'bn' of the cell being extracted, as if
+ *	no earlier piece had been processed (see above).  Done by a worker,
+ *	or by the parent for a batch that no worker finished.
+ */
+void
+extSubtreeBatch(
+    HierExtractArg *ha,
+    int halo,
+    int totcuts,
+    int nbatch,
+    int bn)
+{
+    CellDef *def = ha->ha_parentUse->cu_def;
+    Rect *b = &def->cd_bbox, r;
+    int step = ExtCurStyle->exts_stepSize;
+    int ncols = (b->r_xtop - b->r_xbot + step - 1) / step;
+    int k, k0, k1;
+
+    k0 = (int) (((dlong) bn * totcuts) / nbatch);
+    k1 = (int) (((dlong) (bn + 1) * totcuts) / nbatch);
+    (void) DBCellEnum(def, extClearSubFlagFunc, (ClientData) NULL);
+    for (k = k0; k < k1 && !SigInterruptPending; k++)
+    {
+	r.r_xbot = b->r_xbot + (k % ncols) * step;
+	r.r_ybot = b->r_ybot + (k / ncols) * step;
+	r.r_xtop = r.r_xbot + step;
+	r.r_ytop = r.r_ybot + step;
+	extSubtreeOneCut(ha, halo, &r);
+    }
 }
 
 /* Append the contents of file 'name' to 'f', then delete it */
@@ -1454,11 +1641,7 @@ extSubtreeWorkerMain(
     ExtSubShared *shared,
     char *dir)
 {
-    CellDef *def = ha->ha_parentUse->cu_def;
-    Rect *b = &def->cd_bbox, r;
-    int step = ExtCurStyle->exts_stepSize;
-    int ncols = (b->r_xtop - b->r_xbot + step - 1) / step;
-    int bn, k, k0, k1, fbStart;
+    int bn, fbStart;
     long interArea, clipArea;
     char name[1100];
     FILE *outf, *opsf, *logf;
@@ -1475,8 +1658,6 @@ extSubtreeWorkerMain(
     {
 	bn = __atomic_fetch_add(&shared->ss_next, 1, __ATOMIC_SEQ_CST);
 	if (bn >= nbatch) break;
-	k0 = (int) (((dlong) bn * totcuts) / nbatch);
-	k1 = (int) (((dlong) (bn + 1) * totcuts) / nbatch);
 
 	snprintf(name, sizeof(name), "%s/%d.out", dir, bn);
 	outf = fopen(name, "w");
@@ -1497,17 +1678,7 @@ extSubtreeWorkerMain(
 	interArea = extSubtreeInteractionArea;
 	clipArea = extSubtreeClippedArea;
 
-	/* As if no earlier piece had been processed (see above) */
-	(void) DBCellEnum(def, extClearSubFlagFunc, (ClientData) NULL);
-
-	for (k = k0; k < k1 && !SigInterruptPending; k++)
-	{
-	    r.r_xbot = b->r_xbot + (k % ncols) * step;
-	    r.r_ybot = b->r_ybot + (k / ncols) * step;
-	    r.r_xtop = r.r_xbot + step;
-	    r.r_ytop = r.r_ybot + step;
-	    extSubtreeOneCut(ha, halo, &r);
-	}
+	extSubtreeBatch(ha, halo, totcuts, nbatch, bn);
 
 	extHierOpLogStart(NULL);
 	TxRedirectFile = extNullFile;
@@ -1519,10 +1690,8 @@ extSubtreeWorkerMain(
 
 	snprintf(name, sizeof(name), "%s/%d.fb", dir, bn);
 	if (!extSaveFeedback(fbStart, name)) _exit(3);
-	__atomic_fetch_add(&shared->ss_interArea,
-		extSubtreeInteractionArea - interArea, __ATOMIC_SEQ_CST);
-	__atomic_fetch_add(&shared->ss_clipArea,
-		extSubtreeClippedArea - clipArea, __ATOMIC_SEQ_CST);
+	SS_INTER(shared, nbatch)[bn] = extSubtreeInteractionArea - interArea;
+	SS_CLIP(shared, nbatch)[bn] = extSubtreeClippedArea - clipArea;
 	SS_ERRORS(shared, nbatch)[bn] = extNumErrors;
 	SS_WARNINGS(shared, nbatch)[bn] = extNumWarnings;
 	__atomic_store_n(&SS_DONE(shared, nbatch)[bn], 1, __ATOMIC_SEQ_CST);
@@ -1543,6 +1712,76 @@ extSubtreeWorkerMain(
 	rmdir(dir);
     }
     _exit(0);
+}
+
+/*
+ * extSubtreeMergeOrDo --
+ *	Add batch 'bn' to the cell's output, in order:  append its .ext
+ *	lines, replay its connection log, print its messages and load its
+ *	feedback.  If no worker finished the batch, or its files are gone,
+ *	extract it in this process instead, which gives the same result.
+ */
+void
+extSubtreeMergeOrDo(
+    HierExtractArg *ha,
+    int halo,
+    int totcuts,
+    int nbatch,
+    ExtSubShared *shared,
+    char *dir,
+    int bn,
+    bool *announced)
+{
+    static const char * const exts[] = { "out", "ops", "log" };
+    CellDef *def = ha->ha_parentUse->cu_def;
+    char name[1100];
+    FILE *opsf;
+    bool done;
+    int e;
+
+    done = (__atomic_load_n(&SS_DONE(shared, nbatch)[bn], __ATOMIC_SEQ_CST) != 0);
+    for (e = 0; e < 3 && done; e++)
+    {
+	snprintf(name, sizeof(name), "%s/%d.%s", dir, bn, exts[e]);
+	if (access(name, R_OK) != 0) done = FALSE;
+    }
+    if (!done)
+    {
+	if (!*announced)
+	    TxError("Parallel extraction of %s incomplete;  finishing it in "
+			"this process.\n", def->cd_name);
+	*announced = TRUE;
+	extSubtreeBatch(ha, halo, totcuts, nbatch, bn);
+	return;
+    }
+
+    snprintf(name, sizeof(name), "%s/%d.out", dir, bn);
+    extAppendFile(name, ha->ha_outf);
+    snprintf(name, sizeof(name), "%s/%d.ops", dir, bn);
+    opsf = fopen(name, "r");
+    if (opsf != NULL)
+    {
+	/* Cannot happen unless a file was damaged after it was
+	 * written;  count it as an error, since the output is wrong.
+	 */
+	if (!extHierReplayOps(opsf, &ha->ha_connHash))
+	{
+	    TxError("Parallel extraction:  bad connection log for %s;  "
+		    "its connections are incomplete.\n", def->cd_name);
+	    extNumErrors++;
+	}
+	fclose(opsf);
+	unlink(name);
+    }
+    snprintf(name, sizeof(name), "%s/%d.log", dir, bn);
+    extPrintLog(name);
+    snprintf(name, sizeof(name), "%s/%d.fb", dir, bn);
+    extLoadFeedback(name);
+    extNumErrors += (int) SS_ERRORS(shared, nbatch)[bn];
+    extNumWarnings += (int) SS_WARNINGS(shared, nbatch)[bn];
+    extSubtreeInteractionArea += SS_INTER(shared, nbatch)[bn];
+    extSubtreeClippedArea += SS_CLIP(shared, nbatch)[bn];
+    TxFlush();
 }
 
 #endif /* !EXT_NO_FORK */
@@ -1580,8 +1819,8 @@ extSubtreeParallel(
     pid_t pid, *pids;
     char dir[1024], name[1100];
     const char *tmp;
-    bool ok = TRUE, progress = FALSE;
-    FILE *opsf;
+    bool progress = FALSE, announced = FALSE;
+    int next = 0;			/* Next batch to merge */
 
     if (njobs <= 1 || extSubtreeWorker) return FALSE;
     if (ExtOptions & EXT_DOEXTRESIST) return FALSE;	/* Port lists use pointers */
@@ -1666,17 +1905,29 @@ extSubtreeParallel(
 	    break;
 	}
 
+	/* A worker that fails only loses the batch it was working on,
+	 * which this process extracts itself below.
+	 */
 	for (k = 0; k < running; k++)
 	{
 	    pid = waitpid(pids[k], &status, WNOHANG);
 	    if (pid == 0) continue;
 	    if ((pid < 0) && (errno == EINTR)) continue;
-	    if ((pid < 0) || !WIFEXITED(status) || WEXITSTATUS(status) != 0)
-		shared->ss_abort = 1;
 	    pids[k--] = pids[--running];
 	    reaped++;
 	}
 	if (reaped > 0) continue;
+
+	/* Merge the batches that are done, in order, while the others run */
+	while ((next < nbatch) && !SigInterruptPending &&
+		__atomic_load_n(&SS_DONE(shared, nbatch)[next], __ATOMIC_SEQ_CST))
+	    extSubtreeMergeOrDo(ha, halo, totcuts, nbatch, shared, dir,
+			next++, &announced);
+
+	/* Print the messages of other cells that have finished (cell-level
+	 * parallel extraction, see extParentJob())
+	 */
+	extFlushCellMessages();
 
 	/* Progress messages, as extSubtree() prints them (every 5 s) */
 	if (GrDisplayStatus == DISPLAY_BREAK_PENDING)
@@ -1684,7 +1935,8 @@ extSubtreeParallel(
 	    int ndone = 0;
 
 	    for (k = 0; k < nbatch; k++)
-		ndone += __atomic_load_n(&SS_DONE(shared, nbatch)[k], __ATOMIC_SEQ_CST);
+		ndone += (int) __atomic_load_n(&SS_DONE(shared, nbatch)[k],
+			__ATOMIC_SEQ_CST);
 	    TxPrintf("Completed %d%%\n", (100 * ndone) / nbatch);
 	    TxFlushOut();
 	    progress = TRUE;
@@ -1699,76 +1951,29 @@ extSubtreeParallel(
     }
     freeMagic(pids);
 
-    /* Every batch must have been finished and its files must still be
-     * there, since nothing can be undone once merging has begun.
+    /* Merge the rest in order;  extract any batch that no worker
+     * finished (a worker failed, or none could be started) here.
      */
-    for (i = 0; i < nbatch && ok; i++)
-    {
-	static const char * const exts[] = { "out", "ops", "log" };
-	int e;
+    while ((next < nbatch) && !SigInterruptPending)
+	extSubtreeMergeOrDo(ha, halo, totcuts, nbatch, shared, dir,
+		next++, &announced);
 
-	if (!SS_DONE(shared, nbatch)[i]) ok = FALSE;
-	for (e = 0; e < 3 && ok; e++)
-	{
-	    snprintf(name, sizeof(name), "%s/%d.%s", dir, i, exts[e]);
-	    if (access(name, R_OK) != 0) ok = FALSE;
-	}
-    }
-
-    if (!ok)
+    /* Remove whatever is left (unfinished batches, or an interrupt) */
+    for (i = 0; i < nbatch; i++)
     {
 	static const char * const exts[] = { "out", "ops", "log", "fb" };
 	int e;
 
-	for (i = 0; i < nbatch; i++)
-	    for (e = 0; e < 4; e++)
-	    {
-		snprintf(name, sizeof(name), "%s/%d.%s", dir, i, exts[e]);
-		unlink(name);
-	    }
-	rmdir(dir);
-	extTempUnregister(1);
-	munmap(shared, shsize);
-	if (SigInterruptPending) return TRUE;
-	TxError("Parallel extraction of %s incomplete;  continuing serially.\n",
-		def->cd_name);
-	return FALSE;
-    }
-
-    /* Merge the batches in order, exactly as a serial run produces them */
-    for (i = 0; i < nbatch; i++)
-    {
-	snprintf(name, sizeof(name), "%s/%d.out", dir, i);
-	extAppendFile(name, ha->ha_outf);
-	snprintf(name, sizeof(name), "%s/%d.ops", dir, i);
-	opsf = fopen(name, "r");
-	if (opsf != NULL)
+	for (e = 0; e < 4; e++)
 	{
-	    /* Cannot happen unless a file was damaged after it was
-	     * written;  count it as an error, since the output is wrong.
-	     */
-	    if (!extHierReplayOps(opsf, &ha->ha_connHash))
-	    {
-		TxError("Parallel extraction:  bad connection log for %s;  "
-			"its connections are incomplete.\n", def->cd_name);
-		extNumErrors++;
-	    }
-	    fclose(opsf);
+	    snprintf(name, sizeof(name), "%s/%d.%s", dir, i, exts[e]);
 	    unlink(name);
 	}
-	snprintf(name, sizeof(name), "%s/%d.log", dir, i);
-	extPrintLog(name);
-	snprintf(name, sizeof(name), "%s/%d.fb", dir, i);
-	extLoadFeedback(name);
-	extNumErrors += SS_ERRORS(shared, nbatch)[i];
-	extNumWarnings += SS_WARNINGS(shared, nbatch)[i];
     }
-    extSubtreeInteractionArea += shared->ss_interArea;
-    extSubtreeClippedArea += shared->ss_clipArea;
     rmdir(dir);
     extTempUnregister(1);
     munmap(shared, shsize);
-    if (progress)
+    if (progress && !SigInterruptPending)
     {
 	TxPrintf("Completed 100%%\n");
 	TxFlushOut();
