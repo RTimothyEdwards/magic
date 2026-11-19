@@ -286,6 +286,7 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	for (quad = 0; quad < 4; quad++)
 	{
 	    bool locconn;
+	    TileType type, dinfo;
 
 	    /*
 	     * Visit each of the four quadrants surrounding the center
@@ -300,11 +301,13 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	    GOTOPOINT(tp, &p);
 	    PlaneSetHint(def->cd_planes[pNum], tp);
 
-	    locconn = extConnectsTo(TiGetType(tp), lab->lab_type, connTo);
-	    if (locconn && extHasRegion(tp, CLIENTDEFAULT))
+	    type = DBTypeAtPoint(tp, &p, &dinfo);
+	    locconn = extConnectsTo(type, lab->lab_type, connTo);
+	    reg = (LabRegion *)ExtGetRegion(tp, dinfo);
+	    if (locconn && reg != (LabRegion *)CLIENTDEFAULT &&
+		    reg != (LabRegion *)VISITPENDING)
 	    {
 		found = TRUE;
-		reg = (LabRegion *) ExtGetRegion(tp, (TileType)0);
 		ll = (LabelList *) mallocMagic((unsigned) (sizeof (LabelList)));
 		ll->ll_label = lab;
 		if (lab->lab_flags & PORT_DIR_MASK)
@@ -453,6 +456,7 @@ ExtLabelOneRegion(def, connTo, reg)
     Tile *tp;
     int quad, pNum;
     Point p;
+    TileType type, dinfo;
 
     /* Generate segment list for subcircuit boundary, if any */
 
@@ -474,8 +478,9 @@ ExtLabelOneRegion(def, connTo, reg)
 	    tp = PlaneGetHint(def->cd_planes[pNum]);
 	    GOTOPOINT(tp, &p);
 	    PlaneSetHint(def->cd_planes[pNum], tp);
-	    if (extConnectsTo(TiGetType(tp), lab->lab_type, connTo)
-		    && (NodeRegion *) ExtGetRegion(tp, (TileType)0) == reg)
+	    type = DBTypeAtPoint(tp, &p, &dinfo);
+	    if (extConnectsTo(type, lab->lab_type, connTo)
+		    && (NodeRegion *) ExtGetRegion(tp, dinfo) == reg)
 	    {
 		ll = (LabelList *) mallocMagic((unsigned) (sizeof (LabelList)));
 		ll->ll_label = lab;

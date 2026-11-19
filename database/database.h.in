@@ -1056,6 +1056,7 @@ extern bool DBNearestLabel();
 extern int DBSrLabelLoc();
 extern TileType DBTransformDiagonal();
 extern bool DBTestNMInteract(Rect *rect1, TileType tt1, Tile *t2, TileType di2, bool overlap_only);
+extern TileType DBTypeAtPoint(Tile *tile, const Point *point, TileType *dinfo);
 extern int dbcUnconnectFunc(Tile *tile, TileType dinfo, ClientData clientData); /* (notused) */
 extern int dbSrConnectFunc(Tile *tile, TileType dinfo, ClientData clientData); /*  (struct conSrArg *csa) */
 extern int dbSrConnectStartFunc(Tile *tile, TileType dinfo, ClientData clientData); /* cb_database_srpaintarea_t (Tile **pTile) */

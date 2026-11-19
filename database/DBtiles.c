@@ -44,6 +44,30 @@ struct dbCheck
 
 int dbCheckMaxHFunc(), dbCheckMaxVFunc();
 
+/* Return the material at a point already located inside tile's rectangle.
+ * Also return TT_SIDE for callers that need the corresponding region.
+ * On the diagonal prefer the left half, except when only the right half
+ * contains material.  Boundary label searches visit adjacent points too.
+ */
+TileType
+DBTypeAtPoint(Tile *tile, const Point *point, TileType *dinfo)
+{
+    dlong dx, dy, width, height, cross;
+    bool right;
+
+    *dinfo = 0;
+    if (!IsSplit(tile)) return TiGetTypeExact(tile);
+    dx = (dlong)point->p_x - LEFT(tile);
+    dy = (dlong)point->p_y - BOTTOM(tile);
+    width = (dlong)RIGHT(tile) - LEFT(tile);
+    height = (dlong)TOP(tile) - BOTTOM(tile);
+    cross = dy * width - (SplitDirection(tile) ? width - dx : dx) * height;
+    right = SplitDirection(tile) ? cross > 0 : cross < 0;
+    if (cross == 0 && TiGetLeftType(tile) == TT_SPACE) right = TRUE;
+    if (right) *dinfo = TT_SIDE;
+    return right ? TiGetRightType(tile) : TiGetLeftType(tile);
+}
+
 /*
  * --------------------------------------------------------------------
  *

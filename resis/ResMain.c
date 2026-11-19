@@ -207,6 +207,26 @@ typedef struct driversinkdata {
     ResConnect  *dsd_connect;
 } DriverSinkData;
 
+/* Area searches must straddle a point/line port to visit material on
+ * either side of a tile edge, including a diagonal.  Expand only the
+ * search box; keep the actual port geometry and breakpoint unchanged.
+ */
+static void
+resPortSearchRect(const Rect *port, Rect *search)
+{
+    *search = *port;
+    if (search->r_xbot == search->r_xtop)
+    {
+	search->r_xbot--;
+	search->r_xtop++;
+    }
+    if (search->r_ybot == search->r_ytop)
+    {
+	search->r_ybot--;
+	search->r_ytop++;
+    }
+}
+
 /*
  *---------------------------------------------------------------------------
  *
@@ -231,6 +251,7 @@ ResMakeDriverSinkPorts(def)
 {
     Plane	*plane;
     Rect	*rect;
+    Rect	search;
     TileTypeBitMask mask;
     HashSearch  hs;
     HashEntry   *entry;
@@ -280,7 +301,8 @@ ResMakeDriverSinkPorts(def)
 
 	    dsd.dsd_connect = rdriver;
 	    dsd.dsd_node = node;
-	    (void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
+	    resPortSearchRect(rect, &search);
+	    (void) DBSrPaintArea((Tile *) NULL, plane, &search, &mask,
 			ResAddPortFunc, (ClientData)&dsd);
 	}
 
@@ -295,18 +317,6 @@ ResMakeDriverSinkPorts(def)
 	    }
 
 	    rect = &(rsink->rc_rect);
-
-	    /* Beware of zero-area ports */
-	    if (rect->r_xbot == rect->r_xtop)
-	    {
-		rect->r_xbot--;
-		rect->r_xtop++;
-	    }
-	    if (rect->r_ybot == rect->r_ytop)
-	    {
-		rect->r_ybot--;
-		rect->r_ytop++;
-	    }
 
 	    /* If label is on a contact, the contact has been dissolved. */
 	    /* Assume that the uppermost residue is the port.  This may	 */
@@ -334,7 +344,8 @@ ResMakeDriverSinkPorts(def)
 
 	    dsd.dsd_connect = rsink;
 	    dsd.dsd_node = node;
-	    (void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
+	    resPortSearchRect(rect, &search);
+	    (void) DBSrPaintArea((Tile *) NULL, plane, &search, &mask,
 			ResAddPortFunc, (ClientData)&dsd);
 	}
     }
@@ -442,6 +453,7 @@ ResMakeLabelPorts(def, resisdata)
     ResExtNode  *node;
     ResConnect  *rdriver, *newsink;
     Label	*slab;
+    Rect	search;
     ResLabelData rld;
     int ResAddLabelFunc();	/* Forward Declaration */
 
@@ -514,7 +526,8 @@ ResMakeLabelPorts(def, resisdata)
 	rld.rld_node = node;
 	rld.rld_label = slab;
 	rld.rld_connect = newsink;
-	(void) DBSrPaintArea((Tile *) NULL, plane, &newsink->rc_rect, &mask,
+	resPortSearchRect(&newsink->rc_rect, &search);
+	(void) DBSrPaintArea((Tile *) NULL, plane, &search, &mask,
 			ResAddLabelFunc, (ClientData)&rld);
     }
 }
@@ -1751,13 +1764,15 @@ FindStartTile(resisdata, SourcePoint)
     /* for drivepoints, we don't have to find a device */
     if (resisdata->rg_status & DRIVEONLY)
     {
+	TileType dinfo;
+
 	tile = PlaneGetHint(ResUse->cu_def->cd_planes[pnum]);
 	GOTOPOINT(tile, &workingPoint);
 	PlaneSetHint(ResUse->cu_def->cd_planes[pnum], tile);
 	SourcePoint->p_x = workingPoint.p_x;
 	SourcePoint->p_y = workingPoint.p_y;
 
-	if (TiGetTypeExact(tile) == resisdata->rg_ttype)
+	if (DBTypeAtPoint(tile, &workingPoint, &dinfo) == resisdata->rg_ttype)
 	    return tile;
 	else
 	{
