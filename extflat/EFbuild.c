@@ -628,6 +628,11 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
 
 	    if (!isuniq)
 	    {
+		/* The .res.ext network replaces this ideal connection.  Any
+		 * unextracted port aliases are handled after that file is read.
+		 */
+		if (resist) return;
+
  		if ((EFOutputFlags & EF_SHORT_MASK) != EF_SHORT_NONE)
 		{
 		    int i;
@@ -651,7 +656,7 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
 		    freeMagic(argv[7]);
 		    return;
 		}
-		else if (!resist)
+		else
 		{
 		    char *uptr1, *uptr2;
 
@@ -667,9 +672,6 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
 		    if (uptr1) *uptr1 = '_';
 		    if (uptr2) *uptr2 = '_';
 		}
-		else
-		    /* Do not merge the nodes when folding in extresist parasitics */
-		    return;
 	    }
 	    else if (resist)
 		/* Do not merge the nodes when folding in extresist parasitics */
