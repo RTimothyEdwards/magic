@@ -548,14 +548,131 @@ extBasicOverlap(tile, dinfo, ecs)
  * ----------------------------------------------------------------------------
  */
 
+/* A convex intersection gains at most one vertex per clipping half-plane.
+ * Allow one rectangle and one diagonal per plane, plus the two conductors.
+ * Rectangular overlaps use o_npoints == 0 and need no polygon clipping.
+ */
+#define EXT_OVERLAP_POINTS (5 * NP + 16)
+
+typedef struct
+{
+    double x, y;
+} extOverlapPoint;
+
 struct overlap
 {
     Rect		 o_clip;
-    /* Area can exceed 32 bits even when both coordinates are small. */
-    dlong		 o_area;
+    double		 o_area;
     PlaneMask		 o_pmask;
     TileTypeBitMask	 o_tmask;
+    int			 o_npoints;
+    extOverlapPoint	 o_points[EXT_OVERLAP_POINTS];
 };
+
+/* Clip to a * (x - x0) + b * (y - y0) >= 0.  Using a local origin avoids
+ * cancellation when a small polygon is far from the layout origin.
+ */
+static void
+extClipOverlapHalfPlane(struct overlap *ov, double a, double b,
+	double x0, double y0)
+{
+    extOverlapPoint points[EXT_OVERLAP_POINTS], prev, cur, cross;
+    double dp, dc, fraction;
+    int i, n = 0;
+
+    if (ov->o_npoints < 1) return;
+    prev = ov->o_points[ov->o_npoints - 1];
+    dp = a * (prev.x - x0) + b * (prev.y - y0);
+    for (i = 0; i < ov->o_npoints; i++)
+    {
+	cur = ov->o_points[i];
+	dc = a * (cur.x - x0) + b * (cur.y - y0);
+	if ((dp < 0.0) != (dc < 0.0))
+	{
+	    fraction = dp / (dp - dc);
+	    cross.x = prev.x + fraction * (cur.x - prev.x);
+	    cross.y = prev.y + fraction * (cur.y - prev.y);
+	    ASSERT(n < EXT_OVERLAP_POINTS, "extClipOverlapHalfPlane");
+	    points[n++] = cross;
+	}
+	if (dc >= 0.0 && (n == 0 || points[n - 1].x != cur.x ||
+		points[n - 1].y != cur.y))
+	{
+	    ASSERT(n < EXT_OVERLAP_POINTS, "extClipOverlapHalfPlane");
+	    points[n++] = cur;
+	}
+	prev = cur;
+	dp = dc;
+    }
+    if (n > 1 && points[n - 1].x == points[0].x &&
+	    points[n - 1].y == points[0].y) n--;
+    ov->o_npoints = (n < 3) ? -1 : n;
+    for (i = 0; i < n; i++) ov->o_points[i] = points[i];
+}
+
+/* Intersect the current overlap with the selected half of a split tile.
+ * Keep this polygon through recursive shielding searches: clipping only
+ * its bounding box would count the empty half as a shield.
+ */
+static void
+extClipOverlapTile(struct overlap *ov, Tile *tile, TileType dinfo)
+{
+    double width, height, sign;
+    Rect r;
+
+    TITORECT(tile, &r);
+    GEOCLIP(&ov->o_clip, &r);
+    if (ov->o_clip.r_xbot >= ov->o_clip.r_xtop ||
+	    ov->o_clip.r_ybot >= ov->o_clip.r_ytop)
+    {
+	ov->o_npoints = -1;
+	return;
+    }
+    if (ov->o_npoints < 0) return;
+    if (ov->o_npoints == 0)
+    {
+	if (!IsSplit(tile)) return;
+	ov->o_points[0].x = ov->o_points[3].x = ov->o_clip.r_xbot;
+	ov->o_points[1].x = ov->o_points[2].x = ov->o_clip.r_xtop;
+	ov->o_points[0].y = ov->o_points[1].y = ov->o_clip.r_ybot;
+	ov->o_points[2].y = ov->o_points[3].y = ov->o_clip.r_ytop;
+	ov->o_npoints = 4;
+    }
+    else
+    {
+	extClipOverlapHalfPlane(ov, 1, 0, r.r_xbot, 0);
+	extClipOverlapHalfPlane(ov, -1, 0, r.r_xtop, 0);
+	extClipOverlapHalfPlane(ov, 0, 1, 0, r.r_ybot);
+	extClipOverlapHalfPlane(ov, 0, -1, 0, r.r_ytop);
+    }
+    if (!IsSplit(tile)) return;
+    width = (double)RIGHT(tile) - LEFT(tile);
+    height = (double)TOP(tile) - BOTTOM(tile);
+    sign = (dinfo & TT_SIDE) ? 1.0 : -1.0;
+    if (SplitDirection(tile))
+	extClipOverlapHalfPlane(ov, sign * height, sign * width,
+		RIGHT(tile), BOTTOM(tile));
+    else
+	extClipOverlapHalfPlane(ov, sign * height, -sign * width,
+		LEFT(tile), BOTTOM(tile));
+}
+
+static double
+extOverlapArea(const struct overlap *ov)
+{
+    int i;
+    double area = 0.0;
+    const extOverlapPoint *p = ov->o_points;
+
+    if (ov->o_npoints < 0) return 0.0;
+    if (ov->o_npoints == 0)
+	return ((double)ov->o_clip.r_xtop - ov->o_clip.r_xbot) *
+		((double)ov->o_clip.r_ytop - ov->o_clip.r_ybot);
+    for (i = 1; i + 1 < ov->o_npoints; i++)
+	area += (p[i].x - p[0].x) * (p[i + 1].y - p[0].y) -
+		(p[i].y - p[0].y) * (p[i + 1].x - p[0].x);
+    return fabs(area) * 0.5;
+}
 
 struct sideoverlap
 {
@@ -583,7 +700,7 @@ struct corneroverlap
 int
 extAddOverlap(tbelow, dinfo, ecpls)
     Tile *tbelow;
-    TileType dinfo;		/* unused, but needs to be handled */
+    TileType dinfo;		/* Selects the half of a split tile */
     extCoupleStruct *ecpls;
 {
     int extSubtractOverlap(), extSubtractOverlap2();
@@ -618,8 +735,11 @@ extAddOverlap(tbelow, dinfo, ecpls)
     {
 	GEOCLIP(&ov.o_clip, extCoupleSearchArea);
     }
-    ov.o_area = (dlong)(ov.o_clip.r_ytop - ov.o_clip.r_ybot)
-	      * (ov.o_clip.r_xtop - ov.o_clip.r_xbot);
+    ov.o_npoints = 0;
+    extClipOverlapTile(&ov, tabove, ecpls->dinfo);
+    extClipOverlapTile(&ov, tbelow, dinfo);
+    ov.o_area = extOverlapArea(&ov);
+    if (ov.o_area <= 0.0) return 0;
 
     if (IsSplit(tabove))
 	ta = (ecpls->dinfo & TT_SIDE) ? TiGetRightType(tabove) : TiGetLeftType(tabove);
@@ -721,16 +841,14 @@ extAddOverlap(tbelow, dinfo, ecpls)
 int
 extSubtractOverlap(tile, dinfo, ov)
     Tile *tile;
-    TileType dinfo;		/* (unused) */
+    TileType dinfo;
     struct overlap *ov;
 {
-    Rect r;
-    dlong area;
+    struct overlap clipped = *ov;
+    double area;
 
-    TITORECT(tile, &r);
-    GEOCLIP(&r, &ov->o_clip);
-    area = (dlong)(r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
-    if (IsSplit(tile)) area /= 2;
+    extClipOverlapTile(&clipped, tile, dinfo);
+    area = extOverlapArea(&clipped);
     if (area > 0)
 	ov->o_area -= area;
 
@@ -745,25 +863,21 @@ extSubtractOverlap(tile, dinfo, ov)
 int
 extSubtractOverlap2(tile, dinfo, ov)
     Tile *tile;
-    TileType dinfo;		/* (unused) */
+    TileType dinfo;
     struct overlap *ov;
 {
     TileType ttype;
     struct overlap ovnew;
-    dlong area;
     int pNum;
-    Rect r;
+    double area;
 
-    TITORECT(tile, &r);
-    GEOCLIP(&r, &ov->o_clip);
-    area = (dlong)(r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    ovnew = *ov;
+    extClipOverlapTile(&ovnew, tile, dinfo);
+    area = extOverlapArea(&ovnew);
     if (area <= 0)
 	return (0);
     if (IsSplit(tile))
-    {
-	area /= 2;
 	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
-    }
     else
 	ttype = TiGetTypeExact(tile);
 
@@ -775,8 +889,6 @@ extSubtractOverlap2(tile, dinfo, ov)
     }
 
     /* Tile doesn't shield, so search next plane */
-    ovnew = *ov;
-    ovnew.o_clip = r;
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
 	if (!PlaneMaskHasPlane(ovnew.o_pmask, pNum)) continue;
