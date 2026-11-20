@@ -2689,16 +2689,30 @@ DefRead(
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
 		if (rootDef == NULL) rootDef = DefNewCell(inName);
+		/* Resolve images once for the whole section, not after
+		 * every route segment (see DBPaintDeferImages), when the
+		 * technology guarantees that this gives the same result
+		 */
+		DBPaintDeferImages = DBPaintImagesNeverChange();
 		DefReadNets(f, rootDef, sections[DEF_SPECIALNETS], oscale, TRUE,
 			dolabels, annotate, total);
+		DBPaintDeferImages = FALSE;
+		DBResolveDeferredImages(rootDef);
 		break;
 	    case DEF_NETS:
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
 		if (rootDef == NULL) rootDef = DefNewCell(inName);
+		/* Resolve images once for the whole section, not after
+		 * every route segment (see DBPaintDeferImages), when the
+		 * technology guarantees that this gives the same result
+		 */
+		DBPaintDeferImages = DBPaintImagesNeverChange();
 		DefReadNets(f, rootDef, sections[DEF_NETS], oscale, FALSE,
 			dolabels, annotate, total);
+		DBPaintDeferImages = FALSE;
+		DBResolveDeferredImages(rootDef);
 		break;
 	    case DEF_NONDEFAULTRULES:
 		token = LefNextToken(f, TRUE);

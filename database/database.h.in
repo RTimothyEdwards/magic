@@ -842,6 +842,9 @@ typedef struct
 
     /* Painting/erasing */
 extern void DBPaint();
+extern bool DBPaintDeferImages;
+extern void DBResolveDeferredImages();
+extern bool DBPaintImagesNeverChange();
 extern void DBErase();
 extern int  DBSrPaintArea();
 extern int  DBPaintPlane0();
