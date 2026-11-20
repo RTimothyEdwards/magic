@@ -867,7 +867,7 @@ ResReadDevice(int argc,
      * A MOS gate, in contrast, can have its node location on ordinary
      * interconnect, so keep the name-based lookup for other classes.
      */
-    if ((devptr->exts_deviceClass == DEV_RES) ||
+    if ((devptr != NULL) && (devptr->exts_deviceClass == DEV_RES) ||
 	    (devptr->exts_deviceClass == DEV_RSUBCKT))
     {
 	TileType bodytype = device->gate->type;
