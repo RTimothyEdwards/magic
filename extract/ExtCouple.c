@@ -864,11 +864,24 @@ extSubtractOverlap(tile, dinfo, ov)
     TileType dinfo;
     struct overlap *ov;
 {
-    struct overlap clipped = *ov;
+    struct overlap clipped;
     dlong area;
+    Rect r;
 
-    extClipOverlapTile(&clipped, tile, dinfo);
-    area = extOverlapArea(&clipped);
+    if (!IsSplit(tile) && (ov->o_npoints == 0))
+    {
+	/* Rectangular overlap and Manhattan tile:  simple clip */
+	TITORECT(tile, &r);
+	GEOCLIP(&r, &ov->o_clip);
+	if ((r.r_xtop <= r.r_xbot) || (r.r_ytop <= r.r_ybot)) return (0);
+	area = (dlong)(r.r_xtop - r.r_xbot) * (dlong)(r.r_ytop - r.r_ybot);
+    }
+    else
+    {
+	clipped = *ov;
+	extClipOverlapTile(&clipped, tile, dinfo);
+	area = extOverlapArea(&clipped);
+    }
     if (area > 0)
 	ov->o_area -= area;
 
@@ -890,22 +903,50 @@ extSubtractOverlap2(tile, dinfo, ov)
     struct overlap ovnew;
     int pNum;
     dlong area;
+    Rect r;
 
-    ovnew = *ov;
-    extClipOverlapTile(&ovnew, tile, dinfo);
-    area = extOverlapArea(&ovnew);
-    if (area <= 0)
-	return (0);
-    if (IsSplit(tile))
-	ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) : TiGetLeftType(tile);
-    else
+    if (!IsSplit(tile) && (ov->o_npoints == 0))
+    {
+	/* Rectangular overlap and Manhattan tile:  simple clip */
+	TITORECT(tile, &r);
+	GEOCLIP(&r, &ov->o_clip);
+	if ((r.r_xtop <= r.r_xbot) || (r.r_ytop <= r.r_ybot)) return (0);
+	area = (dlong)(r.r_xtop - r.r_xbot) * (dlong)(r.r_ytop - r.r_ybot);
 	ttype = TiGetTypeExact(tile);
 
-    /* This tile shields everything below */
-    if (TTMaskHasType(&ov->o_tmask, ttype))
+	/* This tile shields everything below */
+	if (TTMaskHasType(&ov->o_tmask, ttype))
+	{
+	    ov->o_area -= area;
+	    return (0);
+	}
+
+	/* Copy only the fields used by a rectangular overlap */
+	ovnew.o_clip = r;
+	ovnew.o_area = ov->o_area;
+	ovnew.o_pmask = ov->o_pmask;
+	ovnew.o_tmask = ov->o_tmask;
+	ovnew.o_npoints = 0;
+    }
+    else
     {
-	ov->o_area -= area;
-	return (0);
+	ovnew = *ov;
+	extClipOverlapTile(&ovnew, tile, dinfo);
+	area = extOverlapArea(&ovnew);
+	if (area <= 0)
+	    return (0);
+	if (IsSplit(tile))
+	    ttype = (dinfo & TT_SIDE) ? TiGetRightType(tile) :
+			TiGetLeftType(tile);
+	else
+	    ttype = TiGetTypeExact(tile);
+
+	/* This tile shields everything below */
+	if (TTMaskHasType(&ov->o_tmask, ttype))
+	{
+	    ov->o_area -= area;
+	    return (0);
+	}
     }
 
     /* Tile doesn't shield, so search next plane */
