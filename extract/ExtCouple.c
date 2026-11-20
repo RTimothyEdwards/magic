@@ -562,7 +562,7 @@ typedef struct
 struct overlap
 {
     Rect		 o_clip;
-    double		 o_area;
+    dlong		 o_area;
     PlaneMask		 o_pmask;
     TileTypeBitMask	 o_tmask;
     int			 o_npoints;
@@ -657,21 +657,41 @@ extClipOverlapTile(struct overlap *ov, Tile *tile, TileType dinfo)
 		LEFT(tile), BOTTOM(tile));
 }
 
-static double
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extOverlapArea --
+ *
+ *	Compute the area of an overlap, either the rectangle o_clip or, if
+ *	o_npoints > 0, the convex polygon in o_points.  Polygon vertices
+ *	where diagonals cross need not lie on the integer grid, so the
+ *	polygon area is computed in floating point and rounded to the
+ *	nearest whole unit area.
+ *
+ * Results:
+ *	Area of the overlap in internal units squared (0 if empty).
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static dlong
 extOverlapArea(const struct overlap *ov)
 {
     int i;
     double area = 0.0;
     const extOverlapPoint *p = ov->o_points;
 
-    if (ov->o_npoints < 0) return 0.0;
+    if (ov->o_npoints < 0) return (dlong)0;
     if (ov->o_npoints == 0)
-	return ((double)ov->o_clip.r_xtop - ov->o_clip.r_xbot) *
-		((double)ov->o_clip.r_ytop - ov->o_clip.r_ybot);
+	return (dlong)(ov->o_clip.r_xtop - ov->o_clip.r_xbot) *
+		(dlong)(ov->o_clip.r_ytop - ov->o_clip.r_ybot);
     for (i = 1; i + 1 < ov->o_npoints; i++)
 	area += (p[i].x - p[0].x) * (p[i + 1].y - p[0].y) -
 		(p[i].y - p[0].y) * (p[i + 1].x - p[0].x);
-    return fabs(area) * 0.5;
+    return (dlong)llround(fabs(area) * 0.5);
 }
 
 struct sideoverlap
@@ -739,7 +759,7 @@ extAddOverlap(tbelow, dinfo, ecpls)
     extClipOverlapTile(&ov, tabove, ecpls->dinfo);
     extClipOverlapTile(&ov, tbelow, dinfo);
     ov.o_area = extOverlapArea(&ov);
-    if (ov.o_area <= 0.0) return 0;
+    if (ov.o_area <= 0) return 0;
 
     if (IsSplit(tabove))
 	ta = (ecpls->dinfo & TT_SIDE) ? TiGetRightType(tabove) : TiGetLeftType(tabove);
@@ -845,7 +865,7 @@ extSubtractOverlap(tile, dinfo, ov)
     struct overlap *ov;
 {
     struct overlap clipped = *ov;
-    double area;
+    dlong area;
 
     extClipOverlapTile(&clipped, tile, dinfo);
     area = extOverlapArea(&clipped);
@@ -869,7 +889,7 @@ extSubtractOverlap2(tile, dinfo, ov)
     TileType ttype;
     struct overlap ovnew;
     int pNum;
-    double area;
+    dlong area;
 
     ovnew = *ov;
     extClipOverlapTile(&ovnew, tile, dinfo);
@@ -1965,6 +1985,7 @@ extSideOverlap(tp, dinfo, esws)
 	     */
 	    int pNum;
 	    ov.o_area = areaTotal;
+	    ov.o_npoints = 0;	/* o_clip is a rectangle (no polygon) */
 	    ov.o_pmask = ExtCurStyle->exts_sideOverlapShieldPlanes[ta][tb];
 	    if (ov.o_pmask)
 	    {
