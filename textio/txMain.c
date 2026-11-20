@@ -123,7 +123,7 @@ TxInitReadline(void)
     /* removed "=" and "(" because styles contain them */
     rl_completer_word_break_characters = " \t\n\"\\'`@$><;|&{";
 
-    rl_attempted_completion_function = (CPPFunction *)magic_completion_function;
+    rl_attempted_completion_function = magic_completion_function;
     HashInit(&cellname_hash, 128, HT_STRINGKEYS);
 
     i = j = 0;
