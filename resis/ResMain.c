@@ -1631,6 +1631,12 @@ ResCleanUpEverything()
     {
 	ResCleanNode(ResNodeList, TRUE, &ResNodeList, &ResNodeQueue);
     }
+    while (ResAliasList != NULL)
+    {
+	resAlias *oldAlias = ResAliasList;
+	ResAliasList = oldAlias->ra_next;
+	freeMagic((char *)oldAlias);
+    }
     while (ResContactList != NULL)
     {
     	 oldCon = ResContactList;

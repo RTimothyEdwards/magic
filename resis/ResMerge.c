@@ -4,6 +4,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -841,6 +842,42 @@ ResTriangleCheck(resptr)
 /*
  *--------------------------------------------------------------------------
  *
+ * resAddAlias --
+ *
+ *	Record that the name "name" was lost when its node was merged into
+ *	"node", unless the name is already recorded.
+ *
+ * Results: none
+ *
+ * Side Effects: May add an entry to ResAliasList.
+ *
+ *--------------------------------------------------------------------------
+ */
+
+static void
+resAddAlias(name, node)
+    char *name;
+    resNode *node;
+{
+    resAlias *alias;
+
+    for (alias = ResAliasList; alias != NULL; alias = alias->ra_next)
+	if (!strcmp(alias->ra_name, name))
+	{
+	    alias->ra_node = node;
+	    return;
+	}
+
+    alias = (resAlias *)mallocMagic(sizeof(resAlias));
+    alias->ra_name = name;
+    alias->ra_node = node;
+    alias->ra_next = ResAliasList;
+    ResAliasList = alias;
+}
+
+/*
+ *--------------------------------------------------------------------------
+ *
  * ResMergeNodes--
  *
  * Results: none
@@ -857,6 +894,7 @@ ResMergeNodes(node1, node2, pendingList, doneList)
     resNode *node1, *node2;
     resNode **pendingList, **doneList;
 {
+    resAlias	*alias;
     resElement	*workingRes, *tRes;
     tElement	*workingDev, *tDev;
     jElement	*workingJunc, *tJunc;
@@ -956,19 +994,33 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	node1->rn_ce = tCon;
     }
 
-    /* Moves name to new node, if new node does not have a name */
+    /* Names already lost to node2 now belong to node1 */
+    for (alias = ResAliasList; alias != NULL; alias = alias->ra_next)
+	if (alias->ra_node == node2)
+	    alias->ra_node = node1;
+
+    /* Moves name to new node, if new node does not have a name.  If both
+     * nodes have different names, one name is kept (a port name if node2
+     * is a port) and the other is recorded so that it can be written out
+     * as an alias of node1.
+     */
     if (node1->rn_name == NULL)
 	node1->rn_name = node2->rn_name;
-    else if ((node2->rn_name != NULL) && (node2->rn_name != node1->rn_name))
+    else if ((node2->rn_name != NULL) && strcmp(node2->rn_name, node1->rn_name))
     {
 	HashEntry *entry;
 	ResExtNode *node;
+	char *lostname = node2->rn_name;
 
 	/* Check if node2 is a port */
 	entry = HashFind(&ResNodeTable, node2->rn_name);
 	node = (ResExtNode *)HashGetValue(entry);
 	if (node && (node->status & PORTNODE))
+	{
+	    lostname = node1->rn_name;
 	    node1->rn_name = node2->rn_name;
+	}
+	resAddAlias(lostname, node1);
     }
 
     /* Moves resistors to new node  */

@@ -209,6 +209,19 @@ typedef struct resnode
      int		rn_id;
 } resNode;
 
+/*
+ * A name lost when two named nodes are merged (as when two ports are on
+ * the same point).  The name is written to the .res.ext file as an
+ * "equiv" to the node that it was merged into.
+ */
+
+typedef struct resalias
+{
+    char		*ra_name;	/* Name that was lost		*/
+    resNode		*ra_node;	/* Node that took its place	*/
+    struct resalias	*ra_next;
+} resAlias;
+
 typedef struct nelement
 {
      struct nelement  *ne_nextEl;
@@ -546,6 +559,7 @@ extern resDevice 		*ResDevList;
 extern ResContactPoint		*ResContactList;
 extern resNode			*ResNodeQueue;
 extern resNode			*ResNodeAtOrigin;
+extern resAlias			*ResAliasList;
 extern resNode			*resCurrentNode;
 extern HashTable 		ResNodeTable;
 extern HashTable 		ResExtDevTable;

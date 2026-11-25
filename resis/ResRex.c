@@ -64,6 +64,7 @@ extern ResExtNode *ResOriginalNodes;	/*Linked List of Nodes */
 
 int	ResOptionsFlags = ResOpt_Simplify | ResOpt_DoExtFile;
 char	*ResCurrentNode;
+resAlias *ResAliasList = NULL;	/* Names lost by merging nodes in this net */
 
 FILE	*ResExtFile;
 FILE	*ResLumpFile;

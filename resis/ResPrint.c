@@ -223,7 +223,8 @@ ResPrintExtNode(outextfile, nodelist, node)
     ResExtNode *newnode;
     bool	DoKillNode = TRUE;
     bool	NeedFix = FALSE;
-    resNode	*snode, *keepsnode, *capsnode;
+    resNode	*snode, *keepsnode, *capsnode, *aliassnode;
+    resAlias	*alias;
     float	totalcap, subfrac;
 
     /* If any of the subnode names match the original node name, then	*/
@@ -238,6 +239,28 @@ ResPrintExtNode(outextfile, nodelist, node)
 		break;
 	    }
     }
+
+    /* If the original node name was lost by merging the subnode that	*/
+    /* had it into another (as when two ports are on the same point),	*/
+    /* then the original node is not killed either.  Instead, it gets	*/
+    /* an "rnode" record that cancels its capacitance from the "node"	*/
+    /* record and an "equiv" to the subnode that it was merged into.	*/
+
+    aliassnode = NULL;
+    if (DoKillNode)
+	for (alias = ResAliasList; alias != NULL; alias = alias->ra_next)
+	    if (!strcmp(alias->ra_name, nodename))
+	    {
+		for (snode = nodelist; snode != NULL; snode = snode->rn_more)
+		    if (snode == alias->ra_node)
+			break;
+		if (snode != NULL)
+		{
+		    aliassnode = snode;
+		    DoKillNode = FALSE;
+		}
+		break;
+	    }
 
     /* If any device terminal failed to extract for any reason, then	*/
     /* this node cannot be killed.  If it is already marked for killing	*/
@@ -328,6 +351,31 @@ ResPrintExtNode(outextfile, nodelist, node)
     }
     freeMagic(newname);
     freeMagic(tmpname);
+
+    if (ResOptionsFlags & ResOpt_DoExtFile)
+    {
+	if (aliassnode != NULL)
+     	    fprintf(outextfile, "rnode \"%s\" 0 %g %d %d %d\n",
+		    nodename,
+		    (-node->nodecap / ExtCurStyle->exts_capScale),
+		    aliassnode->rn_loc.p_x,
+		    aliassnode->rn_loc.p_y,
+		    0);
+
+	/* Names lost by merging subnodes are aliases of the subnode that
+	 * took their place.
+	 */
+	for (alias = ResAliasList; alias != NULL; alias = alias->ra_next)
+	{
+	    for (snode = nodelist; snode != NULL; snode = snode->rn_more)
+		if (snode == alias->ra_node)
+		    break;
+	    if ((snode != NULL) && (snode->rn_name != NULL) &&
+			strcmp(alias->ra_name, snode->rn_name))
+		fprintf(outextfile, "equiv \"%s\" \"%s\"\n",
+			alias->ra_name, snode->rn_name);
+	}
+    }
 
     if (DoKillNode && (capsnode != NULL))
 	node->capnode = capsnode->rn_name;

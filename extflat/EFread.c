@@ -394,6 +394,18 @@ readfile:
 
 	    /* equiv node1 node2 */
 	    case EQUIV:
+		/* An "equiv" in the .res.ext file joins two names on the
+		 * same point of the resistor network, which the network does
+		 * not connect.  Handle it as for a net without extresist.
+		 */
+		if (resNamesInit)
+		{
+		    HashFind(&resNames, argv[1]);
+		    HashFind(&resNames, argv[2]);
+		    efBuildEquiv(def, argv[1], argv[2], FALSE, isspice);
+		    break;
+		}
+
 		/* Save the names to check after reading the .res.ext file */
 		if (resist && DoResist)
 		{
