@@ -2170,7 +2170,7 @@ spcWriteSubParam(
 	    case 's':
 		if (dev->dev_subsnode == NULL)
 		    TxError("Error:  No substrate definition for device %s\n",
-				EFDevTypes[dev->dev_type]);
+				EFDevTypeName(dev->dev_type));
 		else
 		{
 		    fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -2452,7 +2452,7 @@ spcWriteParams(
 		{
 		    if (dev->dev_subsnode == NULL)
 			TxError("Error:  No substrate definition for device %s\n",
-				EFDevTypes[dev->dev_type]);
+				EFDevTypeName(dev->dev_type));
 		    else
 		    {
 			fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -2570,7 +2570,7 @@ esOutputResistor(
 	spcWriteValue(dev, hierName);
 	if (esFormat == CDL)
 	    subdone = spcWriteSubParam(dev, hierName);
-	fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 	if (esScale < 0)
 	    fprintf(esSpiceF, " w=%g l=%g", w * scale, (l * scale) / dscale);
@@ -2800,7 +2800,7 @@ spcdevVisit(
     /* Original hack for BiCMOS, Tim 10/4/97, is deprecated.	*/
     /* Use of "device bjt" preferred to "fet" with model="npn".	*/
 
-    if (!strcmp(EFDevTypes[dev->dev_type], "npn")) dev->dev_class = DEV_BJT;
+    if (!strcmp(EFDevTypeName(dev->dev_type), "npn")) dev->dev_class = DEV_BJT;
 
     /* For resistor and capacitor classes, set a boolean to	*/
     /* denote whether the device has a model or not, so we	*/
@@ -2814,7 +2814,7 @@ spcdevVisit(
 	    if (dev->dev_nterm < 1)
 		return 0;
 	    if ((dev->dev_type == esNoModelType) ||
-		    !strcmp(EFDevTypes[dev->dev_type], "None"))
+		    !strcmp(EFDevTypeName(dev->dev_type), "None"))
 		has_model = FALSE;
 	    break;
     }
@@ -2953,7 +2953,7 @@ spcdevVisit(
 
 	    if (esFormat == CDL)
 		subdone = spcWriteSubParam(dev, hierName);
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 	    sdM = getCurDevMult();
 	    spcWriteParams(dev, hierName, scale, l, w, sdM, subdone);
 	    break;
@@ -3052,7 +3052,7 @@ spcdevVisit(
 
 	    /* CDL format support:  Output a slash followed by a space. */
 	    if (esFormat == CDL) fprintf(esSpiceF, " /");
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 	    /* Write all requested parameters to the subcircuit call.	*/
 
@@ -3097,7 +3097,7 @@ spcdevVisit(
 
 		/* CDL format support:  Output a slash followed by a space. */
 		if (esFormat == CDL) fprintf(esSpiceF, " /");
-		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+		fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 		/* Write all requested parameters to the subcircuit call.	*/
 
@@ -3173,7 +3173,7 @@ spcdevVisit(
 	
 	    if (esFormat == CDL)
 		subdone = spcWriteSubParam(dev, hierName);
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 	    sdM = getCurDevMult();
 	    spcWriteParams(dev, hierName, scale, l, w, sdM, subdone);
 	    break;
@@ -3193,7 +3193,7 @@ spcdevVisit(
 
 	    if (esFormat == CDL)
 		subdone = spcWriteSubParam(dev, hierName);
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 	    sdM = getCurDevMult();
 	    spcWriteParams(dev, hierName, scale, l, w, sdM, subdone);
 	    break;
@@ -3227,7 +3227,7 @@ spcdevVisit(
 		spcWriteValue(dev, hierName);
 		if (esFormat == CDL)
 		    subdone = spcWriteSubParam(dev, hierName);
-		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+		fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 		if (esScale < 0)
 		    fprintf(esSpiceF, " w=%g l=%g", w*scale, l*scale);
@@ -3274,7 +3274,7 @@ spcdevVisit(
 		spcWriteValue(dev, hierName);
 		if (esFormat == CDL)
 		    subdone = spcWriteSubParam(dev, hierName);
-		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+		fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 		if (esScale < 0)
 		    fprintf(esSpiceF, " w=%g l=%g", w*scale, l*scale);
@@ -3311,7 +3311,7 @@ spcdevVisit(
 			subnode->efnode_name->efnn_hier,
 			dev->dev_type, esSpiceF);
 	    }
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 	    /*
 	     * Scale L and W appropriately by the same amount as distance

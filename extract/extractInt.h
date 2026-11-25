@@ -1113,6 +1113,7 @@ extern NodeRegion *extFindNodes();
 extern ExtTree *extHierNewOne();
 extern int extNbrPushFunc();
 extern TileType extGetDevType();
+extern bool extDevNameMatch();
 extern void extMakeNodeNumPrint();
 extern void ExtSetRegion();
 

@@ -75,6 +75,7 @@ extern bool EFHNIsGlob();
 extern int  EFNodeResist();
 extern void efAdjustSubCap();
 extern int  efBuildAddStr();
+extern char *EFDevTypeName();
 extern void efBuildAttr();
 extern int  efBuildDevice(Def *def, char class, char *type, const Rect *r, int argc, char *argv[]);
 extern void efBuildDeviceParams();

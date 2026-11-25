@@ -1094,10 +1094,10 @@ simdevVisit(
 	    /* it doesn't, then dev->dev_type should.  If neither does,	    */
 	    /* then use EFDevTypes[] but flag an error.			    */
 
-	    if (EFDevTypes[dev->dev_type][0] == 'n' ||
-		    EFDevTypes[dev->dev_type][0] == 'p')
+	    if (EFDevTypeName(dev->dev_type)[0] == 'n' ||
+		    EFDevTypeName(dev->dev_type)[0] == 'p')
 	    {
-		fprintf(esSimF, "%c", EFDevTypes[dev->dev_type][0]);
+		fprintf(esSimF, "%c", EFDevTypeName(dev->dev_type)[0]);
 	    }
 	    else
 	    {
@@ -1112,7 +1112,7 @@ simdevVisit(
 		{
 		    TxError("Error: MOSFET device type \"%s\" does not start with "
 			    "\"n\" or \"p\" as required for the .sim format\n",
-			    EFDevTypes[dev->dev_type]);
+			    EFDevTypeName(dev->dev_type));
 
 		    /* Default to "n" */
 		    fprintf(esSimF, "n");
@@ -1141,7 +1141,7 @@ simdevVisit(
 	    break;
 
 	default:
-	    fprintf(esSimF, "%c", EFDevTypes[dev->dev_type][0]);
+	    fprintf(esSimF, "%c", EFDevTypeName(dev->dev_type)[0]);
 	    break;
     }
 
@@ -1155,7 +1155,7 @@ simdevVisit(
 
     /* Hack for BiCMOS---see scmos.tech27 hack:  Tim, 7/16/96 */
     /* Second hack, using dev_class 2/20/03 */
-    if (EFDevTypes[dev->dev_type][0] == 'b')
+    if (EFDevTypeName(dev->dev_type)[0] == 'b')
 	dev->dev_class = DEV_BJT;
 
     if (dev->dev_class == DEV_BJT && subnode)
@@ -1211,7 +1211,7 @@ simdevVisit(
 
     GeoTransRect(trans, &dev->dev_rect, &r);
 
-    if (dev->dev_class == DEV_BJT || EFDevTypes[dev->dev_type][0] == 'b')
+    if (dev->dev_class == DEV_BJT || EFDevTypeName(dev->dev_type)[0] == 'b')
     {
        /* Bipolar sim format:  We don't have the length and width
 	* of the collector well, but we can get it from the area
@@ -1331,7 +1331,7 @@ simdevVisit(
     if (is_subckt)
     {
 	/* Last token on a subcircuit 'x' line is the subcircuit name */
-	fprintf(esSimF, " %s", EFDevTypes[dev->dev_type]);
+	fprintf(esSimF, " %s", EFDevTypeName(dev->dev_type));
     }
 
     fprintf(esSimF, "\n");

@@ -163,6 +163,10 @@ void extTransOutTerminal();
 void extTransBad();
 
 ExtDevice *extDevFindMatch();
+void extTransReslotTerms();
+bool extDevAcceptsTerms();
+bool extDevSymmetric();
+int extDevTermSlot();
 
 bool extLabType();
 
@@ -400,7 +404,28 @@ extBasic(def, outFile)
 		if (token == NULL)
 		    propfound = FALSE;
 		else
-		    modelname = StrDup((char **)NULL, token);
+		{
+		    TileType t;
+		    ExtDevice *devptr = NULL;
+
+		    /* If the model has several device records with unique
+		     * names (see extTechUniqueDevNames()), the property
+		     * cannot say which one is meant.  Use the name of a
+		     * matching record, so that parameters are found.
+		     */
+		    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+		    {
+			for (devptr = ExtCurStyle->exts_device[t]; devptr;
+				    devptr = devptr->exts_next)
+			    if (extDevNameMatch(devptr->exts_deviceName, token))
+				break;
+			if (devptr != NULL) break;
+		    }
+		    if (devptr != NULL)
+			modelname = StrDup((char **)NULL, devptr->exts_deviceName);
+		    else
+			modelname = StrDup((char **)NULL, token);
+		}
 	    }
 	    if (propfound)
 	    {
@@ -1741,7 +1766,7 @@ extOutputParameters(def, transList, outFile)
 		for (devptr = ExtCurStyle->exts_device[t]; devptr;
 				devptr = devptr->exts_next)
 		{
-		    if (!strcmp(devptr->exts_deviceName, devname))
+		    if (extDevNameMatch(devptr->exts_deviceName, devname))
 		    {
 			TTMaskSetType(&tmask, t);
 			break;
@@ -2527,6 +2552,7 @@ extOutputDevices(def, transList, outFile)
 			/* See if there is another matching device record	*/
 			/* with a different terminal type, and try again.	*/
 			devptr = extDevFindMatch(devptr, t);
+			if (devptr != NULL) extTransReslotTerms(devptr);
 			break;
 		    }
 		    extTransRec.tr_devmatch |= (MATCH_TERM << termcount);
@@ -2567,6 +2593,7 @@ extOutputDevices(def, transList, outFile)
 		    /* Determine if there is another matching device record */
 		    /* that has fewer required terminals.		    */
 		    devptr = extDevFindMatch(devptr, t);
+		    if (devptr != NULL) extTransReslotTerms(devptr);
 		    break;
 		}
 		if (termcount == nsd) break;    /* All terminals accounted for */
@@ -3036,6 +3063,11 @@ extOutputDevices(def, transList, outFile)
 		    (void) ExtFindNeighbors(reg->treg_tile, reg->treg_dinfo,
 					arg.fra_pNum, &arg);
 
+		    /* extComputeEffectiveLW() sets length and width	*/
+		    /* only if it finds opposing terminal edges (it	*/
+		    /* does not when all terminals are on one side).	*/
+
+		    length = width = 0;
 		    if (extSpecialBounds[0] != NULL)
 		    {
 			extSeparateBounds(n - 1);
@@ -3046,7 +3078,7 @@ extOutputDevices(def, transList, outFile)
 			    extComputeEffectiveLW(&width, &length, n,
 					ExtCurStyle->exts_cornerChop[t]);
 		    }
-		    else
+		    if ((length == 0) || (width == 0))
 		    {
 			if (ExtDoWarn)
 			    extTransBad(def, reg->treg_tile,
@@ -3439,17 +3471,225 @@ extTransFindIdFunc1(tile, dinfo, idtypeptr)
 /*
  * ----------------------------------------------------------------------------
  *
+ * extDevTermSlot --
+ *
+ *	Return the terminal slot that a terminal of type "ttype" takes in
+ *	device record "devptr" when the record has different terminal types
+ *	(an asymmetric record):  the first terminal whose types include
+ *	"ttype".  This is the same rule used by extTransPerimFunc().
+ *
+ * Results:
+ *	The slot index, or -1 if the record has no terminal of that type.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extDevTermSlot(devptr, ttype)
+    ExtDevice *devptr;
+    TileType ttype;
+{
+    int i;
+
+    for (i = 0; (i < MAXSD) && !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
+	if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], ttype))
+	    return i;
+    return -1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extDevSymmetric --
+ *
+ *	Determine whether device record "devptr" has a single terminal type
+ *	(or none), so that its terminals fill slots in the order found.
+ *	Note that exts_deviceSDTypes has only as many entries as there are
+ *	different terminal types, plus a terminating empty mask.
+ *
+ * Results:
+ *	TRUE if the record has fewer than two terminal types.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+extDevSymmetric(devptr)
+    ExtDevice *devptr;
+{
+    return (TTMaskIsZero(&devptr->exts_deviceSDTypes[0]) ||
+		TTMaskIsZero(&devptr->exts_deviceSDTypes[1]));
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extDevAcceptsTerms --
+ *
+ *	Determine whether device record "devptr" can take all of the
+ *	terminals found so far by the perimeter search of the current device
+ *	(those in extTransRec with a terminal tile).  For a record with one
+ *	terminal type, every terminal must have that type.  For a record
+ *	with different terminal types, each terminal must have a slot of its
+ *	own (see extDevTermSlot()).
+ *
+ * Results:
+ *	TRUE if the record can take the terminals, FALSE otherwise.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+extDevAcceptsTerms(devptr)
+    ExtDevice *devptr;
+{
+    int k, slot, usedslots = 0;
+    TileType ttype;
+    bool symmetric = extDevSymmetric(devptr);
+
+    for (k = 0; k < MAXSD; k++)
+    {
+	if ((extTransRec.tr_termnode[k] == NULL) ||
+		(extTransRec.tr_termpos[k].tile == NULL))
+	    continue;
+	ttype = extTransRec.tr_termpos[k].type & TT_LEFTMASK;
+	if (symmetric)
+	{
+	    if (!TTMaskHasType(&devptr->exts_deviceSDTypes[0], ttype))
+		return FALSE;
+	}
+	else
+	{
+	    slot = extDevTermSlot(devptr, ttype);
+	    if ((slot < 0) || (usedslots & (1 << slot)))
+		return FALSE;
+	    usedslots |= (1 << slot);
+	}
+    }
+    return TRUE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extTransReslotTerms --
+ *
+ *	Move the terminals found so far by the perimeter search of the
+ *	current device to the slots that device record "devptr" uses for
+ *	them.  A record with one terminal type fills slots in order, while
+ *	a record with different terminal types puts each terminal in the
+ *	slot of its type, so the terminals must be moved whenever the
+ *	device record is changed.  Terminals found other than by the
+ *	perimeter search (on other planes) are removed, to be found again
+ *	for the new record.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Rearranges the terminal entries of extTransRec, the terminal match
+ *	flags in tr_devmatch, and terminal attribute labels of the gate.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extTransReslotTerms(devptr)
+    ExtDevice *devptr;
+{
+    NodeRegion *node[MAXSD];
+    int len[MAXSD], area[MAXSD], perim[MAXSD], shared[MAXSD], map[MAXSD];
+    Point vec[MAXSD];
+    TermTilePos pos[MAXSD];
+    LabelList *ll;
+    int k, slot, n;
+    bool symmetric = extDevSymmetric(devptr);
+
+    for (k = 0; k < MAXSD; k++)
+    {
+	node[k] = extTransRec.tr_termnode[k];
+	len[k] = extTransRec.tr_termlen[k];
+	area[k] = extTransRec.tr_termarea[k];
+	perim[k] = extTransRec.tr_termperim[k];
+	shared[k] = extTransRec.tr_termshared[k];
+	vec[k] = extTransRec.tr_termvector[k];
+	pos[k] = extTransRec.tr_termpos[k];
+
+	extTransRec.tr_termnode[k] = NULL;
+	extTransRec.tr_termlen[k] = 0;
+	extTransRec.tr_termarea[k] = 0;
+	extTransRec.tr_termperim[k] = 0;
+	extTransRec.tr_termshared[k] = 0;
+	extTransRec.tr_termvector[k].p_x = 0;
+	extTransRec.tr_termvector[k].p_y = 0;
+	extTransRec.tr_termpos[k].pnum = 0;
+	extTransRec.tr_termpos[k].pt.p_x = 0;
+	extTransRec.tr_termpos[k].pt.p_y = 0;
+	extTransRec.tr_termpos[k].tile = NULL;
+	extTransRec.tr_termpos[k].type = TT_SPACE;
+    }
+    extTransRec.tr_devmatch &= (MATCH_TERM - 1);
+
+    n = 0;
+    for (k = 0; k < MAXSD; k++)
+    {
+	map[k] = -1;
+	if ((node[k] == NULL) || (pos[k].tile == NULL)) continue;
+
+	slot = (symmetric) ? n : extDevTermSlot(devptr, pos[k].type & TT_LEFTMASK);
+
+	/* The record should have been checked with extDevAcceptsTerms(),
+	 * but do not lose a terminal if it was not.
+	 */
+	if ((slot < 0) || (extTransRec.tr_termnode[slot] != NULL))
+	    for (slot = 0; extTransRec.tr_termnode[slot] != NULL; slot++);
+
+	extTransRec.tr_termnode[slot] = node[k];
+	extTransRec.tr_termlen[slot] = len[k];
+	extTransRec.tr_termarea[slot] = area[k];
+	extTransRec.tr_termperim[slot] = perim[k];
+	extTransRec.tr_termshared[slot] = shared[k];
+	extTransRec.tr_termvector[slot] = vec[k];
+	extTransRec.tr_termpos[slot] = pos[k];
+	extTransRec.tr_devmatch |= (MATCH_TERM << slot);
+	map[k] = slot;
+	n++;
+    }
+    extTransRec.tr_nterm = n;
+
+    /* Terminal attribute labels record the terminal index */
+    if (extTransRec.tr_gatenode != NULL)
+	for (ll = extTransRec.tr_gatenode->nreg_labels; ll; ll = ll->ll_next)
+	    if ((ll->ll_attr >= 0) && (ll->ll_attr < MAXSD))
+		ll->ll_attr = (map[ll->ll_attr] >= 0) ? map[ll->ll_attr] : LL_NOATTR;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * extDevFindMatch --
  *
  * Find and return the next matching device record.  extTransRec is queried
  * to find how many fields have been matched to the device already.  Then
- * it finds the next record with the same matching fields.  Because records
- * are in no specific order, it will loop to the beginning of the records
- * after reaching the end.  It is the responsibility of the calling routine to
- * determine if all matching devices have been tested.
+ * it finds the next record with the same matching fields and which can
+ * take the terminals found so far.  If the caller switches to the record,
+ * it must call extTransReslotTerms() to move the terminals to the slots
+ * that the record uses for them.  Because records are in no specific order,
+ * it will loop to the beginning of the records after reaching the end.  It
+ * is the responsibility of the calling routine to determine if all matching
+ * devices have been tested.
  *
- * deventry is the record position to start the search.
- * t is the tile type of the device.
+ * "deventry" is the record position to start the search.
+ * "t" is the tile type of the device.
  * ----------------------------------------------------------------------------
  */
 
@@ -3459,8 +3699,7 @@ extDevFindMatch(deventry, t)
     TileType t;
 {
     ExtDevice *devptr;
-    int i, j, k, matchflags;
-    bool match;
+    int matchflags;
 
     matchflags = extTransRec.tr_devmatch;
 
@@ -3487,35 +3726,11 @@ extDevFindMatch(deventry, t)
 	    /* To be completed */
 	    ;
 
-	j = MATCH_TERM;
-	i = 0;
-	match = TRUE;
-	for (k = 0; k < devptr->exts_deviceSDCount; k++)
-	{
-	    if (extTransRec.tr_termnode[k] == NULL) break;
-	    if (matchflags & j)	/* Must have the same terminal type */
-	    {
-		if (TTMaskIsZero(&devptr->exts_deviceSDTypes[i]))
-		{
-		    match = FALSE;
-		    break;
-		}
-		if (!TTMaskEqual(&devptr->exts_deviceSDTypes[i],
-			    &deventry->exts_deviceSDTypes[i]))
-		{
-		    match = FALSE;
-		    break;
-		}
-	    }
-	    j <<= 1;
-
-	    /* NOTE:  There are fewer exts_deviceSDTypes records than	*/
-	    /* terminals if all S/D terminals are the same type.  In	*/
-	    /* that case k increments and j bit shifts but i remains	*/
-	    /* the same.						*/
-	    if (!TTMaskIsZero(&devptr->exts_deviceSDTypes[i + 1])) i++;
-	}
-	if (match) break;
+	/* Must be able to take the terminals found so far.  Note that the
+	 * record may put them in different slots than the current record
+	 * (see extTransReslotTerms()).
+	 */
+	if (extDevAcceptsTerms(devptr)) break;
     }
     return (devptr == deventry) ? NULL : devptr;
 }
@@ -3668,6 +3883,8 @@ extTransTileFunc(tile, dinfo, pNum, arg)
 		}
 	    }
 	}
+	if ((devptr != NULL) && (devptr != extTransRec.tr_devrec))
+	    extTransReslotTerms(devptr);
 	extTransRec.tr_devrec = devptr;
 	if (devptr == NULL) return 0;	/* No matching devices, so forget it. */
     }
@@ -3738,6 +3955,8 @@ extTransTileFunc(tile, dinfo, pNum, arg)
 	else
 	    extTransRec.tr_devmatch |= MATCH_ID;
     }
+    if ((devptr != NULL) && (devptr != extTransRec.tr_devrec))
+	extTransReslotTerms(devptr);
     extTransRec.tr_devrec = devptr;
     return 0;
 }
@@ -4154,7 +4373,10 @@ extTransPerimFunc(bp, cdata)
 			TxError("Warning:  Device has more terminals than defined "
 				"for type!\n");
 		    else
+		    {
+			if (devptr != NULL) extTransReslotTerms(devptr);
 			extTransRec.tr_devrec = devptr;
+		    }
 		}
 		SDterm = TRUE;
 		break;
@@ -4174,6 +4396,7 @@ extTransPerimFunc(bp, cdata)
 
 	devptr = extDevFindMatch(devptr, tinside);
 	if (devptr == deventry) devptr = NULL;
+	if (devptr != NULL) extTransReslotTerms(devptr);
     }
 
     if (devptr == NULL)
@@ -4184,6 +4407,8 @@ extTransPerimFunc(bp, cdata)
 	/* However, failure to find all terminals will be flagged as an	*/
 	/* error elsewhere.						*/
 
+	if (extTransRec.tr_devrec != deventry)
+	    extTransReslotTerms(deventry);
 	extTransRec.tr_devrec = deventry;
     }
 

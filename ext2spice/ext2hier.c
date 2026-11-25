@@ -196,7 +196,7 @@ spcHierWriteSubParam(
 	    case 's':
 		if (dev->dev_subsnode == NULL)
 		    TxError("Error:  Device %s missing substrate node!\n",
-				EFDevTypes[dev->dev_type]);
+				EFDevTypeName(dev->dev_type));
 		else
 		{
 		    fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -441,7 +441,7 @@ spcHierWriteParams(
 		{
 		    if (dev->dev_subsnode == NULL)
 			TxError("Error:  Device %s missing substrate node!\n",
-				EFDevTypes[dev->dev_type]);
+				EFDevTypeName(dev->dev_type));
 		    else
 		    {
 			fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -539,7 +539,7 @@ esOutputHierResistor(
     if ((term1->dterm_node == NULL) || (term2->dterm_node == NULL))
     {
 	TxError("Error:  Resistor %s missing terminal node!\n",
-			EFDevTypes[dev->dev_type]);
+			EFDevTypeName(dev->dev_type));
 	return;
     }
 
@@ -569,7 +569,7 @@ esOutputHierResistor(
 	if (esFormat == CDL)
 	    subdone = spcHierWriteSubParam(hc, dev);
 
-	fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 	if (esScale < 0)
 	{
@@ -740,7 +740,7 @@ spcdevHierVisit(
     /* Original hack for BiCMOS, Tim 10/4/97, is deprecated.	*/
     /* Use of "device bjt" preferred to "fet" with model="npn".	*/
 
-    if (!strcmp(EFDevTypes[dev->dev_type], "npn")) dev->dev_class = DEV_BJT;
+    if (!strcmp(EFDevTypeName(dev->dev_type), "npn")) dev->dev_class = DEV_BJT;
 
     /* For resistor and capacitor classes, set a boolean to	*/
     /* denote whether the device has a model or not, so we	*/
@@ -752,7 +752,7 @@ spcdevHierVisit(
 	case DEV_CAP:
 	case DEV_CAPREV:
 	    if ((dev->dev_type == esNoModelType) ||
-		    !strcmp(EFDevTypes[dev->dev_type], "None"))
+		    !strcmp(EFDevTypeName(dev->dev_type), "None"))
 		has_model = FALSE;
 	    break;
     }
@@ -888,7 +888,7 @@ spcdevHierVisit(
 
 	    if (esFormat == CDL)
 		subdone = spcHierWriteSubParam(hc, dev);
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 	    break;
@@ -993,7 +993,7 @@ spcdevHierVisit(
 	    }
 	    /* Support for CDL format */
 	    if (esFormat == CDL) fprintf(esSpiceF, " /");
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 	    /* Write all requested parameters to the subcircuit call.	*/
 	    sdM = getCurDevMult();
@@ -1040,7 +1040,7 @@ spcdevHierVisit(
 		}
 		/* Support for CDL format */
 		if (esFormat == CDL) fprintf(esSpiceF, " /");
-		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+		fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 		/* Write all requested parameters to the subcircuit call.	*/
 		sdM = getCurDevMult();
@@ -1113,7 +1113,7 @@ spcdevHierVisit(
 			"diode_bot", esSpiceF);
 	    if (esFormat == CDL)
 		subdone = spcHierWriteSubParam(hc, dev);
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 	    break;
@@ -1136,7 +1136,7 @@ spcdevHierVisit(
 			"diode_top", esSpiceF);
 	    if (esFormat == CDL)
 		subdone = spcHierWriteSubParam(hc, dev);
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM, subdone);
 	    break;
@@ -1173,7 +1173,7 @@ spcdevHierVisit(
 		spcHierWriteValue(hc, dev);
 		if (esFormat == CDL)
 		    subdone = spcHierWriteSubParam(hc, dev);
-		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+		fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 		if (esScale < 0)
 		{
@@ -1224,7 +1224,7 @@ spcdevHierVisit(
 		spcHierWriteValue(hc, dev);
 		if (esFormat == CDL)
 		    subdone = spcHierWriteSubParam(hc, dev);
-		fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+		fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 		if (esScale < 0)
 		{
@@ -1266,7 +1266,7 @@ spcdevHierVisit(
 			subnode->efnode_name->efnn_hier,
 			dev->dev_type, esSpiceF);
 	    }
-	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    fprintf(esSpiceF, " %s", EFDevTypeName(dev->dev_type));
 
 	    sdM = getCurDevMult();
 
@@ -1417,7 +1417,7 @@ spcdevHierMergeVisit(
 		case DEV_RSUBCKT:
 		case DEV_RES:
 		    if ((fp->dev->dev_type == esNoModelType) ||
-			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
+			    !strcmp(EFDevTypeName(fp->dev->dev_type), "None"))
 		    {
 			if (cfp->dev->dev_res > 0)
 			    m = esFMult[cfp->esFMIndex] + (fp->dev->dev_res
@@ -1433,7 +1433,7 @@ spcdevHierMergeVisit(
 		case DEV_CAP:
 		case DEV_CAPREV:
 		    if ((fp->dev->dev_type == esNoModelType) ||
-			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
+			    !strcmp(EFDevTypeName(fp->dev->dev_type), "None"))
 		    {
 			if (cfp->dev->dev_cap > 0)
 			    m = esFMult[cfp->esFMIndex] + (fp->dev->dev_cap
@@ -1883,7 +1883,7 @@ mergeThem:
 		case DEV_RSUBCKT:
 		case DEV_RES:
 		    if ((fp->dev->dev_type == esNoModelType) ||
-			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
+			    !strcmp(EFDevTypeName(fp->dev->dev_type), "None"))
 		    {
 			if (cfp->dev->dev_res > 0)
 			    m = esFMult[cfp->esFMIndex] + (fp->dev->dev_res
@@ -1899,7 +1899,7 @@ mergeThem:
 		case DEV_CAP:
 		case DEV_CAPREV:
 		    if ((fp->dev->dev_type == esNoModelType) ||
-			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
+			    !strcmp(EFDevTypeName(fp->dev->dev_type), "None"))
 		    {
 			if (cfp->dev->dev_cap > 0)
 			    m = esFMult[cfp->esFMIndex] + (fp->dev->dev_cap

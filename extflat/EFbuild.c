@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include <stdio.h>
 #include <stdlib.h>		/* for atof() */
 #include <string.h>
+#include <ctype.h>
 #include <strings.h>
 
 #include "utils/magic.h"
@@ -755,6 +756,56 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
  * ----------------------------------------------------------------------------
  */
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * EFDevTypeName --
+ *
+ *	Return the model name of device type "type" for netlist output.
+ *	The extractor may add a suffix "@<n>" to the name of a device record
+ *	to distinguish records for the same model that have different
+ *	parameter lists (see extTechUniqueDevNames()).  The suffix is not
+ *	part of the model name and is removed here.
+ *
+ * Results:
+ *	Pointer to the model name.  If the name has a suffix, this is a
+ *	static buffer that is overwritten by the next call.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+EFDevTypeName(type)
+    int type;
+{
+    static char *namebuf = NULL;
+    static int buflen = 0;
+    char *name = EFDevTypes[type];
+    char *cp, *suffix;
+    int len;
+
+    if ((name == NULL) || ((suffix = strrchr(name, '@')) == NULL))
+	return name;
+    if ((suffix == name) || (*(suffix + 1) == '\0'))
+	return name;
+    for (cp = suffix + 1; *cp != '\0'; cp++)
+	if (!isdigit(*cp)) return name;
+
+    len = suffix - name;
+    if (len + 1 > buflen)
+    {
+	if (namebuf != NULL) freeMagic(namebuf);
+	buflen = len + 1;
+	namebuf = mallocMagic(buflen);
+    }
+    strncpy(namebuf, name, len);
+    namebuf[len] = '\0';
+    return namebuf;
+}
+
 DevParam *
 efGetDeviceParams(name)
     char *name;
@@ -1196,7 +1247,7 @@ efBuildDevice(
 	{
 	    TxError("Device %s %s at (%d, %d) overlaps incompatible device %s %s!\n",
 		    extDevTable[(unsigned char)class], type, r->r_xbot, r->r_ybot,
-		    extDevTable[newdev->dev_class], EFDevTypes[newdev->dev_type]);
+		    extDevTable[newdev->dev_class], EFDevTypeName(newdev->dev_type));
 	    return 0;
 	}
         else if (newdev->dev_nterm != nterminals)

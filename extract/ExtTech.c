@@ -493,7 +493,7 @@ extGetDevType(devname)
 
     for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
-	    if (!strcmp(devptr->exts_deviceName, devname))
+	    if (extDevNameMatch(devptr->exts_deviceName, devname))
 		return t;
 
     return -1;
@@ -3621,6 +3621,199 @@ ExtTechFinal()
 }
 
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extDevNameMatch --
+ *
+ *	Determine whether the name of a device record matches a model name.
+ *	A device record name may have a suffix "@<n>" added by
+ *	extTechUniqueDevNames() to distinguish it from other records for
+ *	the same model, and the suffix is ignored if "name" does not have one.
+ *
+ * Results:
+ *	TRUE if the names match, FALSE otherwise.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+extDevNameMatch(devname, name)
+    char *devname;	/* Name of the device record */
+    char *name;		/* Name to compare against */
+{
+    int len = strlen(name);
+    char *cp;
+
+    if (strncmp(devname, name, len)) return FALSE;
+    if (devname[len] == '\0') return TRUE;
+    if (devname[len] != '@' || devname[len + 1] == '\0') return FALSE;
+    for (cp = devname + len + 1; *cp != '\0'; cp++)
+	if (!isdigit(*cp)) return FALSE;
+    return TRUE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extParamListsEqual --
+ *
+ *	Determine whether two device parameter lists are the same as far as
+ *	they are written to the "parameters" line of a .ext file, that is,
+ *	ignoring parameter ranges, which are used only by the extractor.
+ *
+ * Results:
+ *	TRUE if the lists are equal, FALSE otherwise.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+extParamListsEqual(p1, p2)
+    ParamList *p1, *p2;
+{
+    while (TRUE)
+    {
+	while (p1 && (p1->pl_name == NULL)) p1 = p1->pl_next;
+	while (p2 && (p2->pl_name == NULL)) p2 = p2->pl_next;
+	if ((p1 == NULL) || (p2 == NULL)) break;
+
+	if ((p1->pl_param[0] != p2->pl_param[0]) ||
+		(p1->pl_param[1] != p2->pl_param[1]) ||
+		strcmp(p1->pl_name, p2->pl_name) ||
+		(p1->pl_scale != p2->pl_scale) ||
+		(p1->pl_offset != p2->pl_offset))
+	    return FALSE;
+	p1 = p1->pl_next;
+	p2 = p2->pl_next;
+    }
+    return (p1 == p2);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extTechUniqueDevNames --
+ *
+ *	Several device records may have the same model name but different
+ *	parameter lists, for example a model that covers several layouts
+ *	that need different parameter formulas.  The .ext file gives one
+ *	"parameters" line per model name, so such records cannot be told
+ *	apart in the .ext file.  Give each of them a unique name by adding
+ *	the suffix "@<n>", where <n> numbers the different parameter lists
+ *	in the order the records appear in the technology file.  The suffix
+ *	is removed from the model name in the netlist output (see
+ *	EFDevTypeName()).  Records whose model names are not shared, or
+ *	which share their parameter lists, keep their names.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	May change exts_deviceName of device records in the style.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extTechUniqueDevNames(style)
+    ExtStyle *style;
+{
+    ExtDevice *devptr, **devlist;
+    ParamList **sets;
+    int *setidx;
+    int ndev, nsets, i, j, k, n;
+    TileType t;
+    char *basename, *newname;
+    bool *done, *member;
+
+    ndev = 0;
+    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+	for (devptr = style->exts_device[t]; devptr; devptr = devptr->exts_next)
+	    ndev++;
+    if (ndev == 0) return;
+
+    /* Records are prepended to each type's list as they are read, so
+     * reverse each list to number them in the order of the tech file.
+     */
+    devlist = (ExtDevice **)mallocMagic(ndev * sizeof(ExtDevice *));
+    i = 0;
+    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+    {
+	n = 0;
+	for (devptr = style->exts_device[t]; devptr; devptr = devptr->exts_next)
+	    n++;
+	for (devptr = style->exts_device[t], j = i + n - 1; devptr;
+			devptr = devptr->exts_next, j--)
+	    devlist[j] = devptr;
+	i += n;
+    }
+
+    done = (bool *)mallocMagic(ndev * sizeof(bool));
+    member = (bool *)mallocMagic(ndev * sizeof(bool));
+    setidx = (int *)mallocMagic(ndev * sizeof(int));
+    sets = (ParamList **)mallocMagic(ndev * sizeof(ParamList *));
+    for (i = 0; i < ndev; i++) done[i] = FALSE;
+
+    for (i = 0; i < ndev; i++)
+    {
+	if (done[i]) continue;
+	done[i] = TRUE;
+	basename = devlist[i]->exts_deviceName;
+
+	/* Names with special meanings never get a suffix */
+	if ((basename == NULL) || !strcmp(basename, "None") ||
+		!strcmp(basename, "Ignore") || !strcmp(basename, "Short"))
+	    continue;
+
+	/* Find all records with this name and number their different
+	 * parameter lists.
+	 */
+	nsets = 1;
+	sets[0] = devlist[i]->exts_deviceParams;
+	for (j = i; j < ndev; j++) member[j] = FALSE;
+	member[i] = TRUE;
+	setidx[i] = 0;
+	for (j = i + 1; j < ndev; j++)
+	{
+	    if (done[j] || (devlist[j]->exts_deviceName == NULL)) continue;
+	    if (strcmp(devlist[j]->exts_deviceName, basename)) continue;
+	    done[j] = TRUE;
+	    member[j] = TRUE;
+	    for (k = 0; k < nsets; k++)
+		if (extParamListsEqual(sets[k], devlist[j]->exts_deviceParams))
+		    break;
+	    if (k == nsets) sets[nsets++] = devlist[j]->exts_deviceParams;
+	    setidx[j] = k;
+	}
+	if (nsets == 1) continue;
+
+	newname = mallocMagic(strlen(basename) + 16);
+	basename = StrDup((char **)NULL, basename);
+	for (j = i; j < ndev; j++)
+	{
+	    if (!member[j]) continue;
+	    sprintf(newname, "%s@%d", basename, setidx[j] + 1);
+	    freeMagic(devlist[j]->exts_deviceName);
+	    devlist[j]->exts_deviceName = StrDup((char **)NULL, newname);
+	}
+	freeMagic(newname);
+	freeMagic(basename);
+    }
+
+    freeMagic(devlist);
+    freeMagic(done);
+    freeMagic(member);
+    freeMagic(setidx);
+    freeMagic(sets);
+}
+
 void
 extTechFinalStyle(style)
     ExtStyle *style;
@@ -4008,6 +4201,9 @@ zinit:
 	    }
 	}
     }
+
+    /* Distinguish records for the same model with different parameters */
+    extTechUniqueDevNames(style);
 }
 
 /*
