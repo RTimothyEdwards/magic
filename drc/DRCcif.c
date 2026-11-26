@@ -79,10 +79,10 @@ char	*drcNeedStyle = NULL;
 
 /* Define Euclidean distance checks */
 
-#define RADIAL_NW       0x1000
-#define RADIAL_NE       0x8000
-#define RADIAL_SW       0x2000
-#define RADIAL_SE       0x4000
+#define RADIAL_NW       0x10000000
+#define RADIAL_NE       0x80000000
+#define RADIAL_SW       0x20000000
+#define RADIAL_SE       0x40000000
 
 /*
  * ----------------------------------------------------------------------------
@@ -805,8 +805,8 @@ drcCifTile (tile, dinfo, arg)
 		}
 		if (arg->dCD_radial)
 		{
-		    arg->dCD_radial &= 0xf000;
-		    arg->dCD_radial |= (0xfff & cptr->drcc_cdist);
+		    arg->dCD_radial &= 0xf0000000;
+		    arg->dCD_radial |= (0xfffffff & cptr->drcc_cdist);
 		}
 
 		DRCstatSlow++;
@@ -992,8 +992,8 @@ tbcheck:
 		}
 		if (arg->dCD_radial)
 		{
-		    arg->dCD_radial &= 0xf000;
-		    arg->dCD_radial |= (0xfff & cptr->drcc_cdist);
+		    arg->dCD_radial &= 0xf0000000;
+		    arg->dCD_radial |= (0xfffffff & cptr->drcc_cdist);
 		}
 
 		DRCstatSlow++;
@@ -1077,7 +1077,7 @@ areaCifCheck(tile, dinfo, arg)
     {
 	unsigned int i;
 	int sqx, sqy;
-	int sdist = arg->dCD_radial & 0xfff;
+	int sdist = arg->dCD_radial & 0xfffffff;
 	long sstest, ssdist = (long) sdist * sdist;
 
 	if ((arg->dCD_radial & RADIAL_NW) != 0)
